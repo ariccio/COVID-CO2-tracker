@@ -1,10 +1,10 @@
-import {formatErrors} from './ErrorObject';
+import {formatErrors, ErrorObjectType} from './ErrorObject';
 
 // NOTE: YES I KNOW JWT IS VULNERABLE TO XSS.
 // But Flatiron taught us this way before I knew about httponly, and now I don't want to rewrite this. 
 
 
-export function loginRequestOptions(username: string, password: string): RequestInit {
+export function loginRequestOptions(email: string, password: string): RequestInit {
     const requestOptions = {
         method: 'POST',
         headers: {
@@ -12,7 +12,7 @@ export function loginRequestOptions(username: string, password: string): Request
         },
         body: JSON.stringify({
             user: {
-                email: username,
+                email: email,
                 password
             }
         })
@@ -20,7 +20,7 @@ export function loginRequestOptions(username: string, password: string): Request
     return requestOptions;
 }
 
-export function signUpRequestOptions(username: string, email: string, password: string): RequestInit {
+export function signUpRequestOptions(email: string, password: string): RequestInit {
     const requestOptions = {
         method: 'POST',
         headers: {
@@ -28,7 +28,6 @@ export function signUpRequestOptions(username: string, email: string, password: 
         },
         body: JSON.stringify({
             user: {
-                username,
                 email,
                 password
             }
@@ -55,13 +54,23 @@ export function clearLocalStorage(): void {
 }
 
 export interface LoginResponse {
-    username: string,
     email: string,
-    jwt: string
+    error?: ErrorObjectType
+    // jwt: string
 }
 
 export interface SignupResponse {
-    jwt: string;
+    // jwt: string;,
+    error?: ErrorObjectType
+}
+
+function loginResponseStrongType(response: any): LoginResponse {
+    if (response.email === undefined) {
+        console.log("missing email in response from server");
+        debugger;
+        return response;
+    }
+    return response;
 }
 
 export async function login(username: string, password: string): Promise<LoginResponse | null> {
@@ -74,19 +83,29 @@ export async function login(username: string, password: string): Promise<LoginRe
     console.assert(response != null);
     console.assert(response !== undefined);
     console.assert(response !== "undefined");
+    if (response.status !== undefined) {
+        if (response.status !== 200) {
+            console.log("server returned a response with a status field, and it wasn't a 200 (OK) status.");
+            console.log(response);
+            debugger;
+            throw new Error("hmm");
+        }
+    }
     if (response.errors === undefined) {
-        console.assert(response.jwt !== undefined);
+        //console.assert(response.jwt !== undefined);
         console.log("Successful response from server: ", response)
-        localStorage.setItem('currentUser', response.jwt);
-        return response
+        // localStorage.setItem('currentUser', response.jwt);
+        console.log("tbd");
+        debugger;
+        return loginResponseStrongType(response);
     }
     console.error(formatErrors(response.errors));
     alert(formatErrors(response.errors));
     return null;
 }
 
-export async function signup(username: string, email: string, password: string): Promise<SignupResponse | null> {
-    const requestOptions: RequestInit = signUpRequestOptions(username, email, password);
+export async function signup(email: string, password: string): Promise<SignupResponse | null> {
+    const requestOptions: RequestInit = signUpRequestOptions(email, password);
     const rawFetchResponse: Promise<Response> = fetch("/users", requestOptions);
     const jsonResponse: Promise<any> = (await rawFetchResponse).json();
     const response = await jsonResponse;
@@ -94,12 +113,23 @@ export async function signup(username: string, email: string, password: string):
     console.assert(response != null);
     console.assert(response !== undefined);
     console.assert(response !== "undefined");
+    if (response.status !== undefined) {
+        if (response.status !== 201) {
+            console.log("server returned a response with a status field, and it wasn't a 201 (Created) status.");
+            console.log(response);
+            debugger;
+            throw new Error("hmm");
+        }
+    }
     if (response.errors === undefined) {
-        localStorage.setItem('currentUser', response.jwt);
+        // localStorage.setItem('currentUser', response.jwt);
+        console.log("Successful response from server: ", response)
+        console.log("tbd");
+        debugger;
         return response;
     }
     console.error(formatErrors(response.errors));
-    localStorage.setItem('currentUser', '');
+    // localStorage.setItem('currentUser', '');
     alert(formatErrors(response.errors))
     return null
 }

@@ -3,14 +3,15 @@ import { useSelector, useDispatch } from 'react-redux';
 import {Redirect, Link} from 'react-router-dom';
 
 
-import {login, LoginResponse} from '../../utils/Authentication';
+//Literally almost exactly the same as the login. I could make this generic if I wanted too, but right now I want to get this built.
+import {signup, SignupResponse} from '../../utils/Authentication';
 
 
 type eventChangeType = (event: React.ChangeEvent<HTMLInputElement>) => void;
 type formSubmitType = (e: React.FormEvent<HTMLFormElement>) => void;
 
 const onSubmit = async (email: string, password: string) => {
-    const response: LoginResponse | null = await login(email, password);
+    const response: SignupResponse | null = await signup(email, password);
     if (response === null) {
         console.log("hmm.")
         debugger;
@@ -18,7 +19,7 @@ const onSubmit = async (email: string, password: string) => {
         return;
     }
     //this.props.loginUser(response.email, response.email, response.jwt)
-    console.log(response.email, response);
+    console.log(response);
     debugger;
     return;
     // <Redirect to='/'/>
@@ -53,7 +54,7 @@ const formWithLink = (password: string, setPassword: eventChangeType, email: str
     {/* <Link to='/signup'>Sign up</Link> */}
     </>
 
-export const Login = () => {
+export const Signup = () => {
     const [password, setPassword] = useState('');
     const [email, setEmail] = useState('');
     const setPasswordEvent = (event: React.ChangeEvent<HTMLInputElement>) => {
