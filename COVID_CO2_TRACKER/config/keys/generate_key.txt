@@ -1,0 +1,6 @@
+Generate the private key with a command like this:
+
+openssl genrsa -out private_key.key 8192
+
+
+We should really be using EC25519 (see also: https://blog.trailofbits.com/2019/07/08/fuck-rsa/), but OSX uses libressl by default, and it doesn't yet support it :(

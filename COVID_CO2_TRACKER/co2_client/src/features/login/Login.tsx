@@ -1,6 +1,6 @@
 import React, { SetStateAction, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import {Redirect, Link} from 'react-router-dom';
+// import { useSelector, useDispatch } from 'react-redux';
+// import {Redirect, Link} from 'react-router-dom';
 
 
 import {login, LoginResponse} from '../../utils/Authentication';
@@ -15,7 +15,7 @@ const onSubmit = async (email: string, password: string) => {
         console.log("hmm.")
         debugger;
         throw new Error("development")
-        return;
+        // return;
     }
     //this.props.loginUser(response.email, response.email, response.jwt)
     console.log(response.email, response);

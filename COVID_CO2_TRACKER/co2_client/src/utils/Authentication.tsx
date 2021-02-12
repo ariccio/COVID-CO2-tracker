@@ -1,8 +1,12 @@
 import {formatErrors, ErrorObjectType} from './ErrorObject';
-
+import {API_URL} from './UrlPath';
 // NOTE: YES I KNOW JWT IS VULNERABLE TO XSS.
 // But Flatiron taught us this way before I knew about httponly, and now I don't want to rewrite this. 
 
+
+const LOGIN_URL = API_URL + '/login';
+const SIGNUP_URL = API_URL + "/users";
+const includeCreds: RequestCredentials = "include";
 
 export function loginRequestOptions(email: string, password: string): RequestInit {
     const requestOptions = {
@@ -10,6 +14,7 @@ export function loginRequestOptions(email: string, password: string): RequestIni
         headers: {
             'Content-Type': 'application/json'
         },
+        credentials: includeCreds, //for httpOnly cookie
         body: JSON.stringify({
             user: {
                 email: email,
@@ -26,6 +31,7 @@ export function signUpRequestOptions(email: string, password: string): RequestIn
         headers: {
             'Content-Type': 'application/json'
         },
+        credentials: includeCreds, //for httpOnly cookie
         body: JSON.stringify({
             user: {
                 email,
@@ -75,7 +81,7 @@ function loginResponseStrongType(response: any): LoginResponse {
 
 export async function login(username: string, password: string): Promise<LoginResponse | null> {
     const requestOptions: RequestInit = loginRequestOptions(username, password);
-    const rawFetchResponse: Promise<Response> = fetch("/login", requestOptions);
+    const rawFetchResponse: Promise<Response> = fetch(LOGIN_URL, requestOptions);
     const jsonResponse: Promise<any> = (await rawFetchResponse).json();
     const response = await jsonResponse;
     // console.log(response);
@@ -106,7 +112,7 @@ export async function login(username: string, password: string): Promise<LoginRe
 
 export async function signup(email: string, password: string): Promise<SignupResponse | null> {
     const requestOptions: RequestInit = signUpRequestOptions(email, password);
-    const rawFetchResponse: Promise<Response> = fetch("/users", requestOptions);
+    const rawFetchResponse: Promise<Response> = fetch(SIGNUP_URL, requestOptions);
     const jsonResponse: Promise<any> = (await rawFetchResponse).json();
     const response = await jsonResponse;
     // render json: { jwt: token }, status: :created

@@ -1,6 +1,6 @@
 import React, { SetStateAction, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import {Redirect, Link} from 'react-router-dom';
+// import { useSelector, useDispatch } from 'react-redux';
+// import {Redirect, Link} from 'react-router-dom';
 
 
 //Literally almost exactly the same as the login. I could make this generic if I wanted too, but right now I want to get this built.
@@ -16,7 +16,7 @@ const onSubmit = async (email: string, password: string) => {
         console.log("hmm.")
         debugger;
         throw new Error("development")
-        return;
+        // return;
     }
     //this.props.loginUser(response.email, response.email, response.jwt)
     console.log(response);
