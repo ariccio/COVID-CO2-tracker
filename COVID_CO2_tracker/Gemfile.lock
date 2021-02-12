@@ -191,6 +191,7 @@ DEPENDENCIES
   bootsnap (>= 1.4.4)
   byebug
   jbuilder (~> 2.7)
+  mini_racer
   pg
   puma (~> 5.0)
   rack-mini-profiler (~> 2.0)
