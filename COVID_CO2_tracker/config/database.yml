@@ -22,9 +22,4 @@ test:
 
 production:
   <<: *default
-  database: db/production
-  adapter: postgresql
-  username:
-  password:
-  host: localhost
-
+  database: db/production.sqlite3

@@ -22,6 +22,3 @@ Things you may want to cover:
 * Deployment instructions
 
 * ...
-
-
-note to self: as per (shakacode react_on_rails tutorial)[https://github.com/shakacode/react_on_rails/blob/master/docs/tutorial.md] run by `foreman start -f Procfile.dev-hmr`.
