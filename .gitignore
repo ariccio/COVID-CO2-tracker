@@ -71,3 +71,6 @@ yarn-debug.log*
 # private keys
 *.key
 *.rsa
+
+# public keys, why pollute?
+*.key.pub

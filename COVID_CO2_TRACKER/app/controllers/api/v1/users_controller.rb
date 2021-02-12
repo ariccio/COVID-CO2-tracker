@@ -24,7 +24,7 @@ module Api
         }, status: :ok
       rescue ActiveRecord::RecordInvalid => e
         render json: {
-          errors: create_activerecord_error('User somehow not found.', e)
+          errors: [create_activerecord_error('User somehow not found.', e)]
         }, status: :unauthorized    
       end
     

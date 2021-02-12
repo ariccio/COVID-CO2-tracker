@@ -1,6 +1,13 @@
-Generate the private key with a command like this:
+Generate the private key with a command like this (for JWT.decode(payload, key, true, algorithm: 'HS256')):
 
 openssl genrsa -out private_key.key 8192
 
+OR (for JWT.decode(payload, key, true, algorithm: 'ED25519'))
+
+ssh-keygen -a 100 -t ed25519 -b 8192 -m PEM -f private_key.key
+
 
 We should really be using EC25519 (see also: https://blog.trailofbits.com/2019/07/08/fuck-rsa/), but OSX uses libressl by default, and it doesn't yet support it :(
+
+
+To install libsodium on windows, see: https://github.com/RubyCrypto/rbnacl/wiki/Installing-libsodium for recommended method.

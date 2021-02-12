@@ -61,13 +61,13 @@ export function clearLocalStorage(): void {
 
 export interface LoginResponse {
     email: string,
-    error?: ErrorObjectType
+    errors?: Array<ErrorObjectType>
     // jwt: string
 }
 
 export interface SignupResponse {
-    // jwt: string;,
-    error?: ErrorObjectType
+    email: string,
+    errors?: Array<ErrorObjectType>
 }
 
 function loginResponseStrongType(response: any): LoginResponse {
@@ -136,6 +136,7 @@ export async function signup(email: string, password: string): Promise<SignupRes
     }
     console.error(formatErrors(response.errors));
     // localStorage.setItem('currentUser', '');
-    alert(formatErrors(response.errors))
-    return null
+    alert(formatErrors(response.errors));
+    debugger;
+    return response;
 }

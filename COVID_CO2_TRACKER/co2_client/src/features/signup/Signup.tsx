@@ -10,17 +10,18 @@ import {signup, SignupResponse} from '../../utils/Authentication';
 type eventChangeType = (event: React.ChangeEvent<HTMLInputElement>) => void;
 type formSubmitType = (e: React.FormEvent<HTMLFormElement>) => void;
 
-const onSubmit = async (email: string, password: string) => {
+const onSubmit = async (email: string, password: string,
+    setInvalid: React.Dispatch<React.SetStateAction<boolean>>) => {
     const response: SignupResponse | null = await signup(email, password);
     if (response === null) {
         console.log("hmm.")
-        debugger;
-        throw new Error("development")
-        // return;
+        // debugger;
+        setInvalid(true);
+        return;
     }
     //this.props.loginUser(response.email, response.email, response.jwt)
     console.log(response);
-    debugger;
+    // debugger;
     return;
     // <Redirect to='/'/>
     // alert("TODO: redirect here. For now please refresh.")
@@ -57,6 +58,7 @@ const formWithLink = (password: string, setPassword: eventChangeType, email: str
 export const Signup = () => {
     const [password, setPassword] = useState('');
     const [email, setEmail] = useState('');
+    const [invalid, setInvalid] = useState(false);
     const setPasswordEvent = (event: React.ChangeEvent<HTMLInputElement>) => {
         setPassword(event.target.value);
     };
@@ -65,10 +67,11 @@ export const Signup = () => {
     };
     const onSubmitEvent = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        onSubmit(email, password);
+        onSubmit(email, password, setInvalid);
     }
     return (
         <>
+            {invalid ? "try again!" : null}
             {formWithLink(password, setPasswordEvent, email, setEmailEvent, onSubmitEvent)}
         </>
     );

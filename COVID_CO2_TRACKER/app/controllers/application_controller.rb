@@ -36,7 +36,7 @@ class ApplicationController < ActionController::API
     def authenticate_user
         jwt = cookies.signed[:jwt]
         byebug
-        decode_jwt(jwt)
+        decode_with_jwt(jwt)
     end
     
     def user_id_from_jwt_token
