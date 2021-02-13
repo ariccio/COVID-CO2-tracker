@@ -1,6 +1,7 @@
 import React, { SetStateAction, useState } from 'react';
-// import { useSelector, useDispatch } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 // import {Redirect, Link} from 'react-router-dom';
+import {setUsername} from '../login/loginSlice';
 
 
 //Literally almost exactly the same as the login. I could make this generic if I wanted too, but right now I want to get this built.
@@ -11,7 +12,7 @@ type eventChangeType = (event: React.ChangeEvent<HTMLInputElement>) => void;
 type formSubmitType = (e: React.FormEvent<HTMLFormElement>) => void;
 
 const onSubmit = async (email: string, password: string,
-    setInvalid: React.Dispatch<React.SetStateAction<boolean>>) => {
+    setInvalid: React.Dispatch<React.SetStateAction<boolean>>, dispatch: any) => {
     const response: SignupResponse | null = await signup(email, password);
     if (response === null) {
         console.log("hmm.")
@@ -20,7 +21,8 @@ const onSubmit = async (email: string, password: string,
         return;
     }
     //this.props.loginUser(response.email, response.email, response.jwt)
-    console.log(response);
+    dispatch(setUsername(response.email));
+    // console.log(response);
     // debugger;
     return;
     // <Redirect to='/'/>
@@ -59,6 +61,7 @@ export const Signup = () => {
     const [password, setPassword] = useState('');
     const [email, setEmail] = useState('');
     const [invalid, setInvalid] = useState(false);
+    const dispatch = useDispatch();
     const setPasswordEvent = (event: React.ChangeEvent<HTMLInputElement>) => {
         setPassword(event.target.value);
     };
@@ -67,7 +70,7 @@ export const Signup = () => {
     };
     const onSubmitEvent = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        onSubmit(email, password, setInvalid);
+        onSubmit(email, password, setInvalid, dispatch);
     }
     return (
         <>

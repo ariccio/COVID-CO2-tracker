@@ -2,7 +2,7 @@ module Api
   module V1
 
     class AuthController < ApplicationController
-      skip_before_action :authorized, only: [:create]
+      skip_before_action :authorized, only: [:create, :get_email]
 
 
 # Note to self: https://philna.sh/blog/2020/01/15/test-signed-cookies-in-rails/
@@ -12,7 +12,7 @@ module Api
         # User#authenticate comes from BCrypt
         if @user.authenticate(user_login_params[:password])
           # encode token comes from ApplicationController
-          token = issue_token(user_id: @user.id)
+          token = encode_token(user_id: @user.id)
           # for good advice on httponly: https://www.thegreatcodeadventure.com/jwt-storage-in-rails-the-right-way/
           cookies.signed[:jwt] = {value: token, httponly: true}
           render json:
@@ -21,7 +21,7 @@ module Api
             },
             status: :accepted
         else
-          error_array = [create_error('authentication failed!', :not_acceptable.to_s)]
+          error_array = [create_error('authentication failed! Wrong password.', :not_acceptable.to_s)]
           render json: {
             errors:
               error_array
@@ -36,10 +36,22 @@ module Api
         }, status: :unauthorized
       end
     
+      def get_email
+        @user = current_user
+        render json: {
+          email: @user.email
+        }, status: :ok
+      rescue JWT::DecodeError => e
+        # byebug
+        render json: {
+          email: ''
+        }, status: :ok
+      end
+
+
       def destroy
         cookies.delete(:jwt)
         render json: {
-
         }, status: :ok
       end
     

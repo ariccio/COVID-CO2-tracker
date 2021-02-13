@@ -35,12 +35,11 @@ class ApplicationController < ActionController::API
 
     def authenticate_user
         jwt = cookies.signed[:jwt]
-        byebug
         decode_with_jwt(jwt)
     end
     
     def user_id_from_jwt_token
-        byebug
+        # byebug
         user_id = authenticate_user[0]['user_id']
     end
 
@@ -66,7 +65,8 @@ class ApplicationController < ActionController::API
           }
         end
       end
-    
+
+
       def logged_in?
         !!current_user
       end

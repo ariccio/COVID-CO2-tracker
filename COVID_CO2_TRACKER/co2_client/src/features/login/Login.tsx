@@ -1,7 +1,7 @@
 import React, { SetStateAction, useState } from 'react';
-// import { useSelector, useDispatch } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 // import {Redirect, Link} from 'react-router-dom';
-
+import {setUsername} from './loginSlice';
 
 import {login, LoginResponse} from '../../utils/Authentication';
 
@@ -10,7 +10,7 @@ type eventChangeType = (event: React.ChangeEvent<HTMLInputElement>) => void;
 type formSubmitType = (event: React.FormEvent<HTMLFormElement>) => void;
 
 const onSubmit = async (email: string, password: string,
-    setInvalid: React.Dispatch<React.SetStateAction<boolean>>) => {
+    setInvalid: React.Dispatch<React.SetStateAction<boolean>>, dispatch: any) => {
     const response: LoginResponse | null = await login(email, password);
     if (response === null) {
         console.log("hmm.")
@@ -19,7 +19,8 @@ const onSubmit = async (email: string, password: string,
         return;
     }
     //this.props.loginUser(response.email, response.email, response.jwt)
-    console.log(response.email, response);
+    dispatch(setUsername(response.email));
+    // console.log(response.email, response);
     // debugger;
     return;
     // <Redirect to='/'/>
@@ -58,6 +59,7 @@ export const Login = () => {
     const [password, setPassword] = useState('');
     const [email, setEmail] = useState('');
     const [invalid, setInvalid] = useState(false);
+    const dispatch = useDispatch();
     const setPasswordEvent = (event: React.ChangeEvent<HTMLInputElement>) => {
         setPassword(event.target.value);
     };
@@ -66,7 +68,7 @@ export const Login = () => {
     };
     const onSubmitEvent = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        onSubmit(email, password, setInvalid);
+        onSubmit(email, password, setInvalid, dispatch);
     }
     return (
         <>  {invalid ? "try again!" : null}

@@ -1,34 +1,68 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import {useSelector, useDispatch} from 'react-redux';
+
+// import {RootState} from './app/rootReducer';
+import {selectUsername, setUsername} from './features/login/loginSlice';
 import { Counter } from './features/counter/Counter';
 import {Login} from './features/login/Login';
+import {Logout} from './features/login/Logout';
 import {Signup} from './features/signup/Signup';
+import {get_email} from './utils/Authentication';
+
 import './App.css';
 
-function App() {
+
+const renderLoginSignup = (): JSX.Element => 
+  <>
+    Not logged in!
+
+    Login:
+    <Login/>
+
+    Signup:
+    <Signup/>
+  </>
+
+function loginOrSignupMaybe(username: string): JSX.Element {
+  if (username === '') {
+    return renderLoginSignup();
+  }
+  else {
+    return (
+      <>
+      You're logged in as {username}!
+      <Logout/>
+      </>
+    )
+  }
+}
+
+
+function App(): JSX.Element {
+  const username = useSelector(selectUsername);
+  const dispatch = useDispatch();
+  useEffect(() => {
+    const emailPromise = get_email();
+    emailPromise.then(email => {
+      if (email.errors === undefined){
+        if (email.email === undefined) {
+          alert("undefined response from server. Likely internal server error getting username!");
+          debugger;
+        }
+        dispatch(setUsername(email.email));
+      }
+    })
+  }, [dispatch]);
+
   return (
     <div className="App">
       <header className="App-header">
-        <Counter />
         <p>
           Edit <code>src/App.tsx</code> and save to reload.
         </p>
         <span>
-          <span>Learn </span>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux-toolkit.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux Toolkit
-          </a>
+          {loginOrSignupMaybe(username)}
         </span>
-        Login:
-        <Login/>
-
-        Signup:
-        <Signup/>
       </header>
     </div>
   );
