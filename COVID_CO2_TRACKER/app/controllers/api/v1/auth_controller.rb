@@ -4,6 +4,9 @@ module Api
     class AuthController < ApplicationController
       skip_before_action :authorized, only: [:create]
 
+
+# Note to self: https://philna.sh/blog/2020/01/15/test-signed-cookies-in-rails/
+
       def create
         @user = User.find_by!(email: user_login_params[:email])
         # User#authenticate comes from BCrypt
