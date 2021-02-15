@@ -1,9 +1,13 @@
 import React, { useEffect } from 'react';
+
+import {BrowserRouter} from 'react-router-dom';
 import {useSelector, useDispatch} from 'react-redux';
+
+
+import {Nav, Navbar, NavDropdown} from 'react-bootstrap';
 
 // import {RootState} from './app/rootReducer';
 import {selectUsername, setUsername} from './features/login/loginSlice';
-import { Counter } from './features/counter/Counter';
 import {Login, LoginFormType} from './features/login/Login';
 import {Logout} from './features/login/Logout';
 //import {Signup} from './features/signup/Signup';
@@ -14,13 +18,23 @@ import './App.css';
 
 const renderLoginSignup = (): JSX.Element => 
   <>
-    Not logged in!
+  <NavDropdown title={"Login/signup"} id="basic-nav-dropdown">
+    <Nav.Item>
+      Login: <Login formType={LoginFormType.Login}/>
+    </Nav.Item>
+    <NavDropdown.Item>
+      Signup: <Login formType={LoginFormType.Signup}/>
+    </NavDropdown.Item>
+    
+  </NavDropdown>
+    Not logged in! 
+  </>
 
-    Login:
-    <Login formType={LoginFormType.Login}/>
-
-    Signup:
-    <Login formType={LoginFormType.Signup}/>
+const loggedIn = (username: string) =>
+  <>
+  <NavDropdown title={`You're logged in as ${username}!`} id="basic-nav-dropdown">
+    <NavDropdown.Item><Logout/></NavDropdown.Item>
+  </NavDropdown>
   </>
 
 function loginOrSignupMaybe(username: string): JSX.Element {
@@ -28,12 +42,7 @@ function loginOrSignupMaybe(username: string): JSX.Element {
     return renderLoginSignup();
   }
   else {
-    return (
-      <>
-      You're logged in as {username}!
-      <Logout/>
-      </>
-    )
+    return loggedIn(username);
   }
 }
 
@@ -55,16 +64,25 @@ function App(): JSX.Element {
   }, [dispatch]);
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <span>
-          {loginOrSignupMaybe(username)}
-        </span>
-      </header>
-    </div>
+    <BrowserRouter>
+      <Navbar>
+        <Nav>
+          <Navbar.Collapse className="justify-content-end" id="basic-navbar-nav">
+              {loginOrSignupMaybe(username)}
+          </Navbar.Collapse>
+        </Nav>
+      </Navbar>
+      <div className="App">
+        <header className="App-header">
+          <p>
+            Edit <code>src/App.tsx</code> and save to reload.
+          </p>
+          <span>
+            
+          </span>
+        </header>
+      </div>
+    </BrowserRouter>
   );
 }
 
