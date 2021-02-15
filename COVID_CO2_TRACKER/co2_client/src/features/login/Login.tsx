@@ -20,7 +20,6 @@ const onSubmit = async (email: string, password: string,
     }
     //this.props.loginUser(response.email, response.email, response.jwt)
     dispatch(setUsername(response.email));
-    // console.log(response.email, response);
     // debugger;
     return;
     // <Redirect to='/'/>
@@ -71,7 +70,8 @@ export const Login = () => {
         onSubmit(email, password, setInvalid, dispatch);
     }
     return (
-        <>  {invalid ? "try again!" : null}
+        <>
+            {invalid ? "try again!" : null}
             {formWithLink(password, setPasswordEvent, email, setEmailEvent, onSubmitEvent)}
         </>
     );

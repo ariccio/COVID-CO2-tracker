@@ -9,7 +9,7 @@ import {signup, SignupResponse} from '../../utils/Authentication';
 
 
 type eventChangeType = (event: React.ChangeEvent<HTMLInputElement>) => void;
-type formSubmitType = (e: React.FormEvent<HTMLFormElement>) => void;
+type formSubmitType = (event: React.FormEvent<HTMLFormElement>) => void;
 
 const onSubmit = async (email: string, password: string,
     setInvalid: React.Dispatch<React.SetStateAction<boolean>>, dispatch: any) => {
@@ -22,7 +22,6 @@ const onSubmit = async (email: string, password: string,
     }
     //this.props.loginUser(response.email, response.email, response.jwt)
     dispatch(setUsername(response.email));
-    // console.log(response);
     // debugger;
     return;
     // <Redirect to='/'/>
