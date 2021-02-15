@@ -4,9 +4,9 @@ import {useSelector, useDispatch} from 'react-redux';
 // import {RootState} from './app/rootReducer';
 import {selectUsername, setUsername} from './features/login/loginSlice';
 import { Counter } from './features/counter/Counter';
-import {Login} from './features/login/Login';
+import {Login, LoginFormType} from './features/login/Login';
 import {Logout} from './features/login/Logout';
-import {Signup} from './features/signup/Signup';
+//import {Signup} from './features/signup/Signup';
 import {get_email} from './utils/Authentication';
 
 import './App.css';
@@ -17,10 +17,10 @@ const renderLoginSignup = (): JSX.Element =>
     Not logged in!
 
     Login:
-    <Login/>
+    <Login formType={LoginFormType.Login}/>
 
     Signup:
-    <Signup/>
+    <Login formType={LoginFormType.Signup}/>
   </>
 
 function loginOrSignupMaybe(username: string): JSX.Element {

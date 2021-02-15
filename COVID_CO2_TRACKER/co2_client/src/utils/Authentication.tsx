@@ -124,6 +124,7 @@ export async function login(username: string, password: string): Promise<LoginRe
         if (response.status !== 200) {
             console.log("server returned a response with a status field, and it wasn't a 200 (OK) status.");
             console.log(response);
+            alert(response);
             debugger;
             throw new Error("hmm");
         }

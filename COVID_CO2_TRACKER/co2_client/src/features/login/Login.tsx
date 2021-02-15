@@ -3,27 +3,62 @@ import { useSelector, useDispatch } from 'react-redux';
 // import {Redirect, Link} from 'react-router-dom';
 import {setUsername} from './loginSlice';
 
-import {login, LoginResponse} from '../../utils/Authentication';
+import {login, LoginResponse, signup, SignupResponse} from '../../utils/Authentication';
+import { assert } from 'console';
+
+
+export enum LoginFormType {
+    Login,
+    Signup
+}
 
 
 type eventChangeType = (event: React.ChangeEvent<HTMLInputElement>) => void;
 type formSubmitType = (event: React.FormEvent<HTMLFormElement>) => void;
 
-const onSubmit = async (email: string, password: string,
+
+const onSubmitLoginForm = async (email: string, password: string,
     setInvalid: React.Dispatch<React.SetStateAction<boolean>>, dispatch: any) => {
-    const response: LoginResponse | null = await login(email, password);
-    if (response === null) {
-        console.log("hmm.")
+        const response: LoginResponse | null = await login(email, password);
+        if (response === null) {
+            console.log("hmm.")
+            // debugger;
+            setInvalid(true);
+            return;
+        }
+        //this.props.loginUser(response.email, response.email, response.jwt)
+        dispatch(setUsername(response.email));
         // debugger;
-        setInvalid(true);
         return;
+        // <Redirect to='/'/>
+        // alert("TODO: redirect here. For now please refresh.")
     }
-    //this.props.loginUser(response.email, response.email, response.jwt)
-    dispatch(setUsername(response.email));
-    // debugger;
-    return;
-    // <Redirect to='/'/>
-    // alert("TODO: redirect here. For now please refresh.")
+
+const onSubmitSignupForm = async (email: string, password: string,
+    setInvalid: React.Dispatch<React.SetStateAction<boolean>>, dispatch: any) => {
+        const response: SignupResponse | null = await signup(email, password);
+        if (response === null) {
+            console.log("hmm.")
+            // debugger;
+            setInvalid(true);
+            return;
+        }
+        //this.props.loginUser(response.email, response.email, response.jwt)
+        dispatch(setUsername(response.email));
+        // debugger;
+        return;
+        // <Redirect to='/'/>
+        // alert("TODO: redirect here. For now please refresh.")
+
+    }
+
+const onSubmit = async (email: string, password: string,
+    setInvalid: React.Dispatch<React.SetStateAction<boolean>>, dispatch: any, typeOfInstance: LoginFormType) => {    
+    if (typeOfInstance === LoginFormType.Login) {
+        return onSubmitLoginForm(email, password, setInvalid, dispatch);
+    }
+    console.assert(typeOfInstance === LoginFormType.Signup);
+    return onSubmitSignupForm(email, password, setInvalid, dispatch);
 } 
 
 const inputField = (email: string, emailChange: eventChangeType) =>
@@ -54,7 +89,11 @@ const formWithLink = (password: string, setPassword: eventChangeType, email: str
     {/* <Link to='/signup'>Sign up</Link> */}
     </>
 
-export const Login = () => {
+export interface LoginProps {
+    formType: LoginFormType
+} 
+
+export const Login = ({formType}: LoginProps) => {
     const [password, setPassword] = useState('');
     const [email, setEmail] = useState('');
     const [invalid, setInvalid] = useState(false);
@@ -67,7 +106,7 @@ export const Login = () => {
     };
     const onSubmitEvent = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        onSubmit(email, password, setInvalid, dispatch);
+        onSubmit(email, password, setInvalid, dispatch, formType);
     }
     return (
         <>
