@@ -1,7 +1,7 @@
 import React, { SetStateAction, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 // import {Redirect, Link} from 'react-router-dom';
-import {setUsername} from './loginSlice';
+import {setUsername, selectUsername} from './loginSlice';
 
 import {login, LoginResponse, signup, SignupResponse} from '../../utils/Authentication';
 import { assert } from 'console';
@@ -98,6 +98,7 @@ export const Login = ({formType}: LoginProps) => {
     const [email, setEmail] = useState('');
     const [invalid, setInvalid] = useState(false);
     const dispatch = useDispatch();
+    const username = useSelector(selectUsername);
     const setPasswordEvent = (event: React.ChangeEvent<HTMLInputElement>) => {
         setPassword(event.target.value);
     };
@@ -109,6 +110,9 @@ export const Login = ({formType}: LoginProps) => {
         onSubmit(email, password, setInvalid, dispatch, formType);
     }
     debugger;
+    if (username !== '') {
+        return <h1>Logged in as {username} already!</h1>
+    }
     return (
         <>
             {invalid ? "try again!" : null}
@@ -116,3 +120,13 @@ export const Login = ({formType}: LoginProps) => {
         </>
     );
 }
+
+export const LoginComponent = () =>
+  <>
+    Login: <Login formType={LoginFormType.Login}/>
+  </>
+
+export const SignupComponent = () =>
+    <>
+        Signup: <Login formType={LoginFormType.Signup}/>
+    </>

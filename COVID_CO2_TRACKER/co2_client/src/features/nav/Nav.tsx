@@ -1,6 +1,6 @@
 import React, {FunctionComponent, useEffect} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import {Redirect} from 'react-router-dom';
+import {Link, Redirect} from 'react-router-dom';
 import NavItem from 'react-bootstrap/NavItem';
 import Navbar from 'react-bootstrap/Navbar';
 import Nav from 'react-bootstrap/Nav';
@@ -21,28 +21,36 @@ type NavBarProps = {
 
 
 const renderLoginSignup = (): JSX.Element => 
-  <NavDropdown title={"Login/signup"} id="basic-nav-dropdown">
-    <NavDropdown.Item>
-      Login: <Login formType={LoginFormType.Login}/>
-    </NavDropdown.Item>
-    <NavDropdown.Item>
-      Signup: <Login formType={LoginFormType.Signup}/>
-    </NavDropdown.Item>
-    
-  </NavDropdown>
+<>
+    <LinkContainer to='login'>
+        <NavItem className='nav-item'>Login</NavItem>                
+    </LinkContainer>
+
+    <LinkContainer to='signup'>
+        <NavItem className='nav-item'>Signup</NavItem>                
+    </LinkContainer>
+</>
+
 
 const loggedIn = (username: string) =>
   <NavDropdown title={`You're logged in as ${username}!`} id="basic-nav-dropdown">
-    <NavDropdown.Item><Logout/></NavDropdown.Item>
+    <NavDropdown.Item>
+        <LinkContainer to='/profile'>
+            <NavItem className='nav-item'>{username}'s profile</NavItem>
+        </LinkContainer>        
+    </NavDropdown.Item>
+    <NavDropdown.Item>
+        <Logout/>
+    </NavDropdown.Item>
   </NavDropdown>
 
 function loginOrSignupMaybe(username: string): JSX.Element {
   if (username === '') {
+    console.log("no username, rendering login/signup options")
     return renderLoginSignup();
   }
-  else {
-    return loggedIn(username);
-  }
+  console.log("logged in, rendering profile and logout")
+  return loggedIn(username);
 }
 
 
@@ -60,33 +68,36 @@ interface UserNavProps {
     username: string
 }
 
-const profileIfLoggedIn = (username: string): JSX.Element => {
-    if (username === '') {
-        console.log("not logged in, not rendering profile tab");
-        return (<></>);
-    }
+// const profileIfLoggedIn = (username: string): JSX.Element => {
+//     if (username === '') {
+//         console.log("not logged in, not rendering profile tab");
+//         return (<></>);
+//     }
 
-    return (
-        <LinkContainer to='/profile'>
-            <NavItem className='nav-item'>{username}'s profile</NavItem>
-        </LinkContainer>
-    )
-}
+//     return (
+//         <LinkContainer to='/profile'>
+//             <NavItem className='nav-item'>{username}'s profile</NavItem>
+//         </LinkContainer>
+//     )
+// }
 
 const UserNav: React.FC<UserNavProps> = ({username}) =>
     <Navbar expand="lg">
-        <Navbar.Toggle aria-controls="basic-navbar-nav"/>
-        <Navbar.Collapse className="justify-content-left" id="basic-navbar-nav">
-            <Nav>
+        {/* <Navbar.Toggle aria-controls="basic-navbar-nav"/> */}
+        {/* <Navbar.Collapse  id="basic-navbar-nav"> */}
+            <Nav className="justify-content-left" variant="tabs">
                 <LinkContainer to='/home'>
                     <NavItem className='nav-item'>Home</NavItem>
                 </LinkContainer>
-                {profileIfLoggedIn(username)}
+
+            </Nav>
+            <Nav className="justify-content-end">
+                {/* {profileIfLoggedIn(username)} */}
                 {loginOrSignupMaybe(username)}
                 {/* <LinkContainer to='/logout'><NavItem className='nav-item'>Logout {props.username}</NavItem></LinkContainer> */}
                 {/* <NavItem className='nav-item' pullRight>{props.username}</NavItem> */}
             </Nav>
-        </Navbar.Collapse>
+        {/* </Navbar.Collapse> */}
     </Navbar>
 
 
