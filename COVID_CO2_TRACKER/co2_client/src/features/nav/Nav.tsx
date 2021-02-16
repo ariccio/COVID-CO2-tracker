@@ -37,7 +37,7 @@ const loggedIn = (username: string) =>
     <NavDropdown.Item>
         <LinkContainer to='/profile'>
             <NavItem className='nav-item'>{username}'s profile</NavItem>
-        </LinkContainer>        
+        </LinkContainer>
     </NavDropdown.Item>
     <NavDropdown.Item>
         <Logout/>
@@ -82,17 +82,21 @@ interface UserNavProps {
 // }
 
 const UserNav: React.FC<UserNavProps> = ({username}) =>
-    <Navbar expand="lg">
+    <Navbar expand="lg" /*bg="dark" variant="dark"*/>
         {/* <Navbar.Toggle aria-controls="basic-navbar-nav"/> */}
         {/* <Navbar.Collapse  id="basic-navbar-nav"> */}
             <Nav className="justify-content-left" variant="tabs">
                 <LinkContainer to='/home'>
                     <NavItem className='nav-item'>Home</NavItem>
                 </LinkContainer>
+                <LinkContainer to='/devices'>
+                    <NavItem className='nav-item'>Devices</NavItem>
+                </LinkContainer>
 
             </Nav>
-            <Nav className="justify-content-end">
+            <Nav className="justify-content-end" variant="tabs">
                 {/* {profileIfLoggedIn(username)} */}
+                <Nav.Link href="https://github.com/ariccio/COVID-CO2-tracker">Github/sponsor</Nav.Link>
                 {loginOrSignupMaybe(username)}
                 {/* <LinkContainer to='/logout'><NavItem className='nav-item'>Logout {props.username}</NavItem></LinkContainer> */}
                 {/* <NavItem className='nav-item' pullRight>{props.username}</NavItem> */}
