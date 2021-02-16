@@ -1,12 +1,13 @@
 import React, {FunctionComponent, useEffect} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {Redirect} from 'react-router-dom';
-import NavItem from 'react-bootstrap/NavItem';
-import Navbar from 'react-bootstrap/Navbar';
-import Nav from 'react-bootstrap/Nav';
-import NavDropdown from 'react-bootstrap/NavDropdown';
+// import NavItem from 'react-bootstrap/NavItem';
+// import Navbar from 'react-bootstrap/Navbar';
+// import Nav from 'react-bootstrap/Nav';
+// import NavDropdown from 'react-bootstrap/NavDropdown';
+// import { LinkContainer } from 'react-router-bootstrap';
 
-import { LinkContainer } from 'react-router-bootstrap';
+import {AppBar, Tabs, Tab, TabPanel} from '@material-ui/core';
 
 import {Login, LoginFormType} from '../login/Login';
 import {Logout} from '../login/Logout';
@@ -88,6 +89,40 @@ const UserNav: React.FC<UserNavProps> = ({username}) =>
             </Nav>
         </Navbar.Collapse>
     </Navbar>
+
+
+// OOh I like this way of doing accessibility: 
+function a11yProps(index: number) {
+    return {
+      id: `simple-tab-${index}`,
+      'aria-controls': `simple-tabpanel-${index}`,
+    };
+  }
+
+const UserNavMaterialUI: React.FC<UserNavProps> = ({username}) => {
+    //see also: https://codesandbox.io/s/cbn97?file=/demo.js:1170-1324
+    // https://material-ui.com/components/tabs/
+    const [value, setValue] = React.useState(0);
+
+    const handleChange = (event, newValue) => {
+      setValue(newValue);
+    };
+
+    return (
+        <>
+            <AppBar position="static">
+                <Tabs value={value} onChange={handleChange} aria-label="application navbar">
+                    <Tab label={"Home"} {...a11yProps(0)}/>
+                    <Tab label={"Profile"} {...a11yProps(1)} disabled={username=== ''}/>
+                    <Tab label={"Login"} {...a11yProps(2)}/>
+                </Tabs>
+            </AppBar>
+            <TabPanel
+        </>
+    
+    )
+
+}
 
 
 export const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
