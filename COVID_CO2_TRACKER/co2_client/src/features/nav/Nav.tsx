@@ -55,15 +55,34 @@ function loginOrSignupMaybe(username: string): JSX.Element {
       </Navbar>
 
 */
-const UserNav: FunctionComponent<{username: string}> = (props: any) =>
+
+interface UserNavProps {
+    username: string
+}
+
+const profileIfLoggedIn = (username: string): JSX.Element => {
+    if (username === '') {
+        console.log("not logged in, not rendering profile tab");
+        return (<></>);
+    }
+
+    return (
+        <LinkContainer to='/profile'>
+            <NavItem className='nav-item'>{username}'s profile</NavItem>
+        </LinkContainer>
+    )
+}
+
+const UserNav: React.FC<UserNavProps> = ({username}) =>
     <Navbar expand="lg">
         <Navbar.Toggle aria-controls="basic-navbar-nav"/>
-        <Navbar.Collapse className="justify-content-end" id="basic-navbar-nav">
+        <Navbar.Collapse className="justify-content-left" id="basic-navbar-nav">
             <Nav>
                 <LinkContainer to='/home'>
                     <NavItem className='nav-item'>Home</NavItem>
                 </LinkContainer>
-                {loginOrSignupMaybe(props.username)}
+                {profileIfLoggedIn(username)}
+                {loginOrSignupMaybe(username)}
                 {/* <LinkContainer to='/logout'><NavItem className='nav-item'>Logout {props.username}</NavItem></LinkContainer> */}
                 {/* <NavItem className='nav-item' pullRight>{props.username}</NavItem> */}
             </Nav>
@@ -71,7 +90,7 @@ const UserNav: FunctionComponent<{username: string}> = (props: any) =>
     </Navbar>
 
 
-export const NavBar: FunctionComponent<NavBarProps> = (props: NavBarProps) => {
+export const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
     const username = useSelector(selectUsername);
     const dispatch = useDispatch();
     useEffect(() => {
@@ -82,6 +101,7 @@ export const NavBar: FunctionComponent<NavBarProps> = (props: NavBarProps) => {
             alert("undefined response from server. Likely internal server error getting username!");
             debugger;
           }
+          console.log("got email: ", email.email)
           dispatch(setUsername(email.email));
         }
       })

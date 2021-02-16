@@ -8,7 +8,7 @@ import {Route, Redirect} from 'react-router-dom';
 // import {selectUsername, setUsername} from './features/login/loginSlice';
 import {NavBar} from './features/nav/Nav';
 import {HomePage} from './features/home/HomePage';
-
+import {Profile} from './features/profile/Profile';
 //import {Signup} from './features/signup/Signup';
 // import {get_email} from './utils/Authentication';
 
@@ -21,6 +21,7 @@ const renderRedirect = () =>
 const routes = () =>
   <>
     <Route exact path='/home' component={HomePage}/>
+    <Route exact path='/profile' component={Profile}/>
     <Route exact path='/' render={renderRedirect}/>
   </>
 

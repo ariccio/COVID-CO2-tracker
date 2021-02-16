@@ -108,6 +108,7 @@ export const Login = ({formType}: LoginProps) => {
         e.preventDefault();
         onSubmit(email, password, setInvalid, dispatch, formType);
     }
+    debugger;
     return (
         <>
             {invalid ? "try again!" : null}
