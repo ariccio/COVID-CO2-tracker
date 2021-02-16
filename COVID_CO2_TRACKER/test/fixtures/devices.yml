@@ -1,0 +1,11 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  serial: MyString
+  model: one
+  user: one
+
+two:
+  serial: MyString
+  model: two
+  user: two

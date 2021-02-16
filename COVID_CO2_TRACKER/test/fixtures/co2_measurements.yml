@@ -1,0 +1,11 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  deviceinstance: one
+  ppm: 1
+  measurementtime: 2021-02-15 19:10:18
+
+two:
+  deviceinstance: two
+  ppm: 1
+  measurementtime: 2021-02-15 19:10:18
