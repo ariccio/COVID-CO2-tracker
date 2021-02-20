@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 
 // import {useSelector, useDispatch} from 'react-redux';
 import {Route, Redirect} from 'react-router-dom';
@@ -9,10 +9,11 @@ import {Route, Redirect} from 'react-router-dom';
 import {NavBar} from './features/nav/Nav';
 import {HomePage} from './features/home/HomePage';
 import {Profile} from './features/profile/Profile';
-import {Login, LoginComponent, SignupComponent} from './features/login/Login';
+import {LoginComponent, SignupComponent} from './features/login/Login';
+import {Devices} from './features/devices/Devices';
 //import {Signup} from './features/signup/Signup';
 // import {get_email} from './utils/Authentication';
-
+import {CreateManufacturerOrModel} from './features/create/createManufacturerModel';
 import './App.css';
 
 
@@ -27,6 +28,8 @@ const routes = () =>
     <Route exact path='/profile' component={Profile}/>
     <Route exact path='/login' component={LoginComponent} />
     <Route exact path='/singup' component={SignupComponent}/>
+    <Route exact path='/create' component={CreateManufacturerOrModel}/>
+    <Route path='/devices' component={Devices}/>
     <Route exact path='/' render={renderRedirect}/>
   </>
 

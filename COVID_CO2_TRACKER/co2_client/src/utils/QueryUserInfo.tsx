@@ -8,37 +8,14 @@ interface Score {
 */
 
 import {API_URL} from './UrlPath';
+import {UserInfoDevice, UserInfoMeasurements} from './QueryDeviceInfo';
+import {userRequestOptions} from './DefaultRequestOptions';
 
+import {formatErrors} from './ErrorObject'
 
 const SHOW_USER_URL = API_URL + '/users/show';
-const includeCreds: RequestCredentials = "include";
 
-function userRequestOptions(): RequestInit {
-    const requestOptions = {
-        method: 'get',
-        credentials: includeCreds, //for httpOnly cookie
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    }
-    return requestOptions;
-}
 
-export interface UserInfoDevice {
-    device_id: number,
-    serial: string,
-    device_model: string,
-    device_model_id: number,
-    device_manufacturer: string,
-    device_manufacturer_id: number
-}
-
-export interface UserInfoMeasurements {
-    device_id: number,
-    measurement_id: number,
-    co2ppm: number,
-    measurementtime: string
-}
 
 interface UserInfoInternal {
     username: string,
@@ -49,6 +26,14 @@ interface UserInfoInternal {
 export interface UserInfoType {
     user_info: UserInfoInternal,
     errors?: any
+}
+
+export const defaultUserInfo: UserInfoType = {
+    user_info: {
+        username: '',
+        devices: [],
+        measurements: []
+    }
 }
 
 
@@ -78,9 +63,11 @@ export async function queryUserInfo(): Promise<UserInfoType> {
     const response = await jsonResponse;
     console.log(response);
     if (response.errors !== undefined) {
+        console.error(formatErrors(response.errors));
+        alert(formatErrors(response.errors));
         if (response.status !== 200) {
-            console.log("server returned a response with a status field, and it wasn't a 200 (OK) status.");
-            console.log(response);
+            console.warn("server returned a response with a status field, and it wasn't a 200 (OK) status.");
+            console.error(response);
             alert(response);
             debugger;
             throw new Error("hmm");

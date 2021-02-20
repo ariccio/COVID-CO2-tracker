@@ -1,5 +1,5 @@
-import { assert } from 'console';
-import { setUsername } from '../features/login/loginSlice';
+// import { assert } from 'console';
+// import { setUsername } from '../features/login/loginSlice';
 import {formatErrors, ErrorObjectType} from './ErrorObject';
 import {API_URL} from './UrlPath';
 // NOTE: YES I KNOW JWT IS VULNERABLE TO XSS.
@@ -165,7 +165,7 @@ export async function logout(): Promise<LogoutResponse> {
     if (response.errors !== undefined) {
         console.log("Logged out successfully?")
         console.assert(response.errors === undefined);
-        if ((await rawFetchResponse).status == 200) {
+        if ((await rawFetchResponse).status === 200) {
             throw new Error("confused state.")
         }
         // setUsername('');

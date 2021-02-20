@@ -1,6 +1,7 @@
 module Api
     module V1
         class MeasurementController < ApplicationController
+            skip_before_action :authorized, only: [:show]
 
             def create
                 @new_measurement = Measurement.create!(device: measurement_params[:device_id], co2ppm: measurement_params[:co2ppm], measurementtime: measurement_params[:measurementtime])

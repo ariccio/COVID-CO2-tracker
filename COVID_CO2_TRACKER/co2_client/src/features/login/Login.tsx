@@ -4,7 +4,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import {setUsername, selectUsername} from './loginSlice';
 
 import {login, LoginResponse, signup, SignupResponse} from '../../utils/Authentication';
-import { assert } from 'console';
 
 
 export enum LoginFormType {

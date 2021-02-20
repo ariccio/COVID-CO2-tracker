@@ -1,6 +1,6 @@
-import React, {FunctionComponent, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import {Link, Redirect} from 'react-router-dom';
+// import {Link, Redirect} from 'react-router-dom';
 import NavItem from 'react-bootstrap/NavItem';
 import Navbar from 'react-bootstrap/Navbar';
 import Nav from 'react-bootstrap/Nav';
@@ -8,7 +8,7 @@ import NavDropdown from 'react-bootstrap/NavDropdown';
 
 import { LinkContainer } from 'react-router-bootstrap';
 
-import {Login, LoginFormType} from '../login/Login';
+// import {Login, LoginFormType} from '../login/Login';
 import {Logout} from '../login/Logout';
 
 // import {HomePage} from '../home/HomePage';
@@ -33,7 +33,7 @@ const renderLoginSignup = (): JSX.Element =>
 
 
 const loggedIn = (username: string) =>
-  <NavDropdown title={`You're logged in as ${username}!`} id="basic-nav-dropdown">
+  <NavDropdown title={`logged in as ${username}!`} id="basic-nav-dropdown">
     <NavDropdown.Item>
         <LinkContainer to='/profile'>
             <NavItem className='nav-item'>{username}'s profile</NavItem>
@@ -82,26 +82,29 @@ interface UserNavProps {
 // }
 
 const UserNav: React.FC<UserNavProps> = ({username}) =>
-    <Navbar expand="lg" /*bg="dark" variant="dark"*/>
-        {/* <Navbar.Toggle aria-controls="basic-navbar-nav"/> */}
-        {/* <Navbar.Collapse  id="basic-navbar-nav"> */}
-            <Nav className="justify-content-left" variant="tabs">
+    <Navbar expand="sm" /*bg="dark" variant="dark"*/ >
+        <Navbar.Toggle aria-controls="basic-navbar-nav"/>
+        <Navbar.Collapse  id="basic-navbar-nav">
+            <Nav justify={true} fill={false} variant="tabs" style={{display:"flex", flexDirection:"row", float: "left"}}>
                 <LinkContainer to='/home'>
-                    <NavItem className='nav-item'>Home</NavItem>
+                    <Nav.Link>Home</Nav.Link>
                 </LinkContainer>
                 <LinkContainer to='/devices'>
-                    <NavItem className='nav-item'>Devices</NavItem>
+                    <Nav.Link>Devices</Nav.Link>
+                </LinkContainer>
+                <LinkContainer to='/create'>
+                    <Nav.Link>Create</Nav.Link>
                 </LinkContainer>
 
             </Nav>
-            <Nav className="justify-content-end" variant="tabs">
+            <Nav className="container-fluid justify-content-end" variant="tabs" style={{display:"flex", flexDirection:"row", float: "right"}}>
                 {/* {profileIfLoggedIn(username)} */}
                 <Nav.Link href="https://github.com/ariccio/COVID-CO2-tracker">Github/sponsor</Nav.Link>
                 {loginOrSignupMaybe(username)}
                 {/* <LinkContainer to='/logout'><NavItem className='nav-item'>Logout {props.username}</NavItem></LinkContainer> */}
                 {/* <NavItem className='nav-item' pullRight>{props.username}</NavItem> */}
             </Nav>
-        {/* </Navbar.Collapse> */}
+        </Navbar.Collapse>
     </Navbar>
 
 
