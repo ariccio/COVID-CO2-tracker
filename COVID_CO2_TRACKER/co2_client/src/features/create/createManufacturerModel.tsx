@@ -1,9 +1,13 @@
 import React, {useEffect, useState} from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import {Dropdown, Modal, Button, Form} from 'react-bootstrap';
 
 import {API_URL} from '../../utils/UrlPath';
 import {postRequestOptions, userRequestOptions} from '../../utils/DefaultRequestOptions';
 import {formatErrors} from '../../utils/ErrorObject';
+
+import {setEnteredManufacturerText, setManufacturerFeedbackText} from './creationSlice';
+import {selectEnteredManufacturerText, selectManufacturerFeedbackText} from './creationSlice';
 
 interface CreateManufacturerOrModelProps {
 
@@ -119,13 +123,16 @@ interface manufacturerDialogProps {
 }
 
 const CreateManufacturerModalDialog: React.FC<manufacturerDialogProps> = (props: manufacturerDialogProps) => {
-    const [enteredText, setEnteredText] = useState("");
-    const [feedbackText, setFeedbackText] = useState("");
+    const enteredManufacturerText = useSelector(selectEnteredManufacturerText);
+    const dispatch = useDispatch();
+    // const [enteredManufacturerText, setEnteredManufacturerText] = useState("");
+    const feedbackText = useSelector(selectManufacturerFeedbackText);
+    // const [feedbackText, setFeedbackText] = useState("");
     const submit = () => {
-        const result = createNewManufacturer(enteredText);
+        const result = createNewManufacturer(enteredManufacturerText);
         result.then((response) => {
             if (response.errors !== undefined) {
-                setFeedbackText(formatErrors(response.errors));
+                dispatch(setManufacturerFeedbackText(formatErrors(response.errors)));
                 debugger;
             }
             else {
@@ -141,7 +148,7 @@ const CreateManufacturerModalDialog: React.FC<manufacturerDialogProps> = (props:
             <Modal.Body>
                 <Form onChange={(event: React.FormEvent<HTMLFormElement>) => {
                     const text = (event.currentTarget.elements[0] as HTMLInputElement).value;
-                    setEnteredText(text);
+                    dispatch(setEnteredManufacturerText(text));
                 }}>
                     <Form.Label>
                         Manufacturer name
@@ -170,8 +177,11 @@ const CreateManufacturerModalDialog: React.FC<manufacturerDialogProps> = (props:
 export const CreateManufacturerOrModel: React.FC<CreateManufacturerOrModelProps> = () => {
 
     const [knownManufacturers, setKnownManufacturers] = useState(defaultManufacturersArray);
+    const [showAddManufacturer, setShowAddManufacturer] = useState(false);
+
+    //This should be in redux
     const [selectedManufacturer, setSelectedManufacturer] = useState("");
-    const [showAddManufacturer, setShowAddManufacturer] = useState(false)
+    
     useEffect(() => {
         const getAllManufacturersPromise = queryManufacturers();
         getAllManufacturersPromise.then(result => {
