@@ -16,6 +16,7 @@ module Api
             skip_before_action :authorized, only: [:show]
 
             def create
+                # byebug
                 @new_manufacturer = Manufacturer.create!(name: manufacturer_params[:name])
                 render json: {
                     manufacturer_id: @new_manufacturer.id,
@@ -50,7 +51,7 @@ module Api
 
 
             def manufacturer_params
-                params.require[:manufacturer].permit(:name, :id)
+                params.require(:manufacturer).permit(:name, :id)
             end
         end
 

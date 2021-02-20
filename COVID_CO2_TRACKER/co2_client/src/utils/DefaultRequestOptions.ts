@@ -10,3 +10,16 @@ export function userRequestOptions(): RequestInit {
     }
     return requestOptions;
 }
+
+
+export function postRequestOptions(): RequestInit {
+    const requestOptions = {
+        method: 'post',
+        credentials: includeCreds, //for httpOnly cookie
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    }
+    return requestOptions;
+
+}

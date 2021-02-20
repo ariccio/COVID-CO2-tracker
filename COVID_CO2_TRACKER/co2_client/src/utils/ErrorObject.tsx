@@ -1,7 +1,4 @@
 
-interface EachError {
-}
-
 export interface ErrorObjectType {
     message: Array<string>,
     error: Array<string> // Can be weird b/c activerecord

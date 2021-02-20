@@ -61,7 +61,7 @@ export async function queryUserInfo(): Promise<UserInfoType> {
     const awaitedResponse = await rawResponse;
     const jsonResponse = awaitedResponse.json();
     const response = await jsonResponse;
-    console.log(response);
+    // console.log(response);
     if (response.errors !== undefined) {
         console.error(formatErrors(response.errors));
         alert(formatErrors(response.errors));

@@ -13,13 +13,13 @@ interface deviceProps {
 }
 
 export function Device(props: RouteComponentProps<deviceProps>) {
-    console.log(props.match.params.deviceId)
+    // console.log(props.match.params.deviceId)
 
     const [deviceInfo, setDeviceInfo] = useState(defaultDeviceInfoResponse);
     useEffect(() => {
         const deviceInfoPromise: Promise<DeviceInfoResponse> = queryDeviceInfo(parseInt(props.match.params.deviceId));
         deviceInfoPromise.then((deviceInfoResponse) => {
-            console.log(deviceInfoResponse);
+            // console.log(deviceInfoResponse);
             setDeviceInfo(deviceInfoResponse)
         })
     }, [props.match.params.deviceId]);
@@ -42,7 +42,7 @@ export const Devices: React.FC<{}> = () => {
     useEffect(() => {
         const userInfoPromise: Promise<UserInfoType> = queryUserInfo();
         userInfoPromise.then((userInfo) => {
-            console.log(userInfo);
+            // console.log(userInfo);
             setUserInfo(userInfo)
         })
     }, [])

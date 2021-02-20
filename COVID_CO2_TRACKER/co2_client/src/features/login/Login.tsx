@@ -1,4 +1,4 @@
-import React, { SetStateAction, useState } from 'react';
+import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 // import {Redirect, Link} from 'react-router-dom';
 import {setUsername, selectUsername} from './loginSlice';
@@ -93,6 +93,7 @@ export interface LoginProps {
 } 
 
 export const Login = ({formType}: LoginProps) => {
+    console.log("TODO: use bootstrap form. Even has a feedback option for the errors!")
     const [password, setPassword] = useState('');
     const [email, setEmail] = useState('');
     const [invalid, setInvalid] = useState(false);
