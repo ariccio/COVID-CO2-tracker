@@ -1,5 +1,5 @@
 PLACES_SCRIPT_URL_API_KEY_PATH = Rails.root.join('config', 'keys', 'google_places_api_key.txt.key')
-MAPS_JAVASCRIPT_API_KEY_PATH = Rails.root.join('config', 'keys' 'google_maps_javascript_api_key.txt.key')
+MAPS_JAVASCRIPT_API_KEY_PATH = Rails.root.join('config', 'keys', 'google_maps_javascript_api_key.txt.key')
 
 
 def places_script_url_api_key_from_disk
@@ -36,7 +36,7 @@ module Api
                         key: places_script_url_api_key_from_disk
                     }, status: :ok
                 when "MAPS_JAVASCRIPT_API_KEY"
-                    render jsonL {
+                    render json: {
                         key: maps_javascript_api_key_from_disk
                     }, status: :ok
                 else

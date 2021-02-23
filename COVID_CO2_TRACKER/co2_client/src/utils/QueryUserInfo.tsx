@@ -62,11 +62,11 @@ export async function queryUserInfo(): Promise<UserInfoType> {
     const jsonResponse = awaitedResponse.json();
     const response = await jsonResponse;
     // console.log(response);
-    if (response.errors !== undefined) {
+    if ((response.errors !== undefined) || (awaitedResponse.status !== 200)) {
         console.error(formatErrors(response.errors));
         alert(formatErrors(response.errors));
-        if (response.status !== 200) {
-            console.warn(`server returned a response with a status field (${response.status}), and it wasn't a 200 (OK) status.`);
+        if (awaitedResponse.status !== 200) {
+            console.warn(`server returned a response with a status field (${awaitedResponse.status}), and it wasn't a 200 (OK) status.`);
             console.error(response);
             alert(response);
             debugger;

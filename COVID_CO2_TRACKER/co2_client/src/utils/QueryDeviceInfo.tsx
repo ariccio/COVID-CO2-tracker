@@ -72,9 +72,9 @@ export async function queryDeviceInfo(device_id: number): Promise<DeviceInfoResp
     const jsonResponse = awaitedResponse.json();
     const response = await jsonResponse;
     console.log(response);
-    if (response.errors !== undefined) {
+    if ((response.errors !== undefined) || (awaitedResponse.status !== 200)) {
         if (response.status !== 200) {
-            console.warn(`server returned a response with a status field (${response.status}), and it wasn't a 200 (OK) status.`);
+            console.warn(`server returned a response with a status field (${awaitedResponse.status}), and it wasn't a 200 (OK) status.`);
         }
         console.error(formatErrors(response.errors));
         alert(formatErrors(response.errors));

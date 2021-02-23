@@ -113,21 +113,28 @@ function loginResponseStrongType(response: any): LoginResponse {
 export async function login(username: string, password: string): Promise<LoginResponse | null> {
     const requestOptions: RequestInit = loginRequestOptions(username, password);
     const rawFetchResponse: Promise<Response> = fetch(LOGIN_URL, requestOptions);
-    const jsonResponse: Promise<any> = (await rawFetchResponse).json();
+    const awaitedResponse = await rawFetchResponse;
+
+    const jsonResponse: Promise<any> = awaitedResponse.json();
     const response = await jsonResponse;
     // console.log(response);
     // render json: { username: @user.email, jwt: token }, status: :accepted
     console.assert(response != null);
     console.assert(response !== undefined);
     console.assert(response !== "undefined");
-    if (response.status !== undefined) {
-        if (response.status !== 200) {
-            console.warn(`server returned a response with a status field (${response.status}), and it wasn't a 200 (OK) status.`);
-            console.log(response);
-            alert(response);
-            debugger;
-            throw new Error("hmm");
+    if ((response.errors !== undefined) || (awaitedResponse.status !== 200)) {
+        console.log("modified since last time I tested this. Integration testing is hard.")
+        if (awaitedResponse.status !== 200) {
+            console.warn(`server returned a response with a status field (${awaitedResponse.status}), and it wasn't a 200 (OK) status.`);
+            // console.log(response);
+            // alert(response);
         }
+        if (response.errors !== undefined) {
+            console.error(formatErrors(response.errors));
+            alert(formatErrors(response.errors));        
+        }
+        debugger;
+        throw new Error("hmm");
     }
     if (response.errors === undefined) {
         //console.assert(response.jwt !== undefined);
@@ -136,20 +143,25 @@ export async function login(username: string, password: string): Promise<LoginRe
         const responseAsType = loginResponseStrongType(response);
         return responseAsType;
     }
-    console.error(formatErrors(response.errors));
-    alert(formatErrors(response.errors));
     return null;
 }
 
 export async function get_email(): Promise<LoginResponse> {
     const requestOptions: RequestInit = get_email_options();
     const rawFetchResponse: Promise<Response> = fetch(EMAIL_URL, requestOptions);
-    
+    const awaitedResponse = await rawFetchResponse;
     // https://stackoverflow.com/questions/4467044/proper-way-to-catch-exception-from-json-parse
     console.log("TODO: should I be properly catching this?")
-    const jsonResponse: Promise<any> = (await rawFetchResponse).json();
+    console.log(await rawFetchResponse);
+    // const resp = await rawFetchResponse;
+    // console.log((await rawFetchResponse.status));
+    const jsonResponse: Promise<any> = awaitedResponse.json();
     const response = await jsonResponse;
-    if (response.errors !== undefined) {
+    if ((response.errors !== undefined) || (awaitedResponse.status !== 200)) {
+        if (awaitedResponse.status !== 200) {
+            console.warn(`server returned a response with a status field (${awaitedResponse.status}), and it wasn't a 200 (OK) status.`);
+            debugger;
+        }
         console.error(formatErrors(response.errors));
         alert(formatErrors(response.errors));
         return response;
@@ -163,21 +175,18 @@ export async function get_email(): Promise<LoginResponse> {
 export async function logout(): Promise<LogoutResponse> {
     const requestOptions: RequestInit = logoutRequestOptions();
     const rawFetchResponse: Promise<Response> = fetch(LOGIN_URL, requestOptions);
-    const jsonResponse: Promise<any> = (await rawFetchResponse).json();
+    const awaitedResponse = await rawFetchResponse;
+    const jsonResponse: Promise<any> = awaitedResponse.json();
     const response = await jsonResponse;
     if (response.errors !== undefined) {
         console.log("Logged out successfully?")
-        console.assert(response.errors === undefined);
-        if ((await rawFetchResponse).status === 200) {
+        console.error(formatErrors(response.errors));
+        alert(formatErrors(response.errors));    
+        if (awaitedResponse.status === 200) {
             throw new Error("confused state.")
         }
         // setUsername('');
         return response;
-    }
-    if (response.errors !== undefined) {
-        console.error(formatErrors(response.errors));
-        // localStorage.setItem('currentUser', '');
-        alert(formatErrors(response.errors));    
     }
     // debugger;
     console.log("TODO: to strong type check for undefined");
@@ -188,21 +197,22 @@ export async function logout(): Promise<LogoutResponse> {
 export async function signup(email: string, password: string): Promise<SignupResponse | null> {
     const requestOptions: RequestInit = signUpRequestOptions(email, password);
     const rawFetchResponse: Promise<Response> = fetch(SIGNUP_URL, requestOptions);
-    const jsonResponse: Promise<any> = (await rawFetchResponse).json();
+    const awaitedResponse = await rawFetchResponse;
+    const jsonResponse: Promise<any> = awaitedResponse.json();
     const response = await jsonResponse;
     // render json: { jwt: token }, status: :created
     console.assert(response != null);
     console.assert(response !== undefined);
     console.assert(response !== "undefined");
-    if (response.status !== undefined) {
-        if (response.status !== 201) {
-            console.log(`server returned a response with a status field (${response.status}), and it wasn't a 201 (Created) status.`);
+    if (awaitedResponse.status !== undefined) {
+        if (awaitedResponse.status !== 201) {
+            console.log(`server returned a response with a status field (${awaitedResponse.status}), and it wasn't a 201 (Created) status.`);
             console.log(response);
             // throw new Error("hmm");
         }
     }
     if (response.errors === undefined) {
-        console.assert(response.status === 201);
+        console.assert(awaitedResponse.status === 201);
         // localStorage.setItem('currentUser', response.jwt);
         console.log("Successful response from server: ", response)
         return response;

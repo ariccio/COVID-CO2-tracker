@@ -55,7 +55,7 @@ async function queryManufacturers(): Promise<ManufacturersArray> {
     const awaitedResponse = await rawResponse;
     const jsonResponse = await awaitedResponse.json();
     const response = await jsonResponse;
-    if (response.errors !== undefined) {
+    if ((response.errors !== undefined) || (response.status !== 200)) {
         if (response.status !== 200) {
             console.warn("server returned a response with a status field, and it wasn't a 200 (OK) status.");
         }
@@ -91,7 +91,7 @@ async function createNewManufacturer(name: string): Promise<NewManufacturerRespo
     const awaitedResponse = await rawResponse;
     const jsonResponse = await awaitedResponse.json();
     const response = await jsonResponse;
-    if (response.errors !== undefined) {
+    if ((response.errors !== undefined) || (response.status !== 201)) {
         if (response.status !== 201) {
             console.warn("server returned a response with a status field, and it wasn't a 201 (CREATED) status.");
         }

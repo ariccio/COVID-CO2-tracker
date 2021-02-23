@@ -28,11 +28,12 @@ export function apiKeyRequestOptions(): RequestInit {
 export async function getGooglePlacesScriptAPIKey(): Promise<string> {
   const requestOptions = apiKeyRequestOptions();
   const rawFetchResponse: Promise<Response> = fetch(PLACES_SCRIPT_URL_API_KEY, requestOptions);
-  const jsonResponse: Promise<any> = (await rawFetchResponse).json();
+  const awaitedResponse = await rawFetchResponse;
+  const jsonResponse: Promise<any> = awaitedResponse.json();
   const response = await jsonResponse;
-  if (response.errors !== undefined) {
-    if (response.status !== 200) {
-      console.warn(`server returned a response with a status field (${response.status}), and it wasn't a 200 (OK) status.`);
+  if ((response.errors !== undefined) || (awaitedResponse.status !== 200)) {
+    if (awaitedResponse.status !== 200) {
+      console.warn(`server returned a response with a status field (${awaitedResponse.status}), and it wasn't a 200 (OK) status.`);
     }
     console.error("couldn't get google places API key!");
     console.error(formatErrors(response.errors));
@@ -48,11 +49,12 @@ export async function getGooglePlacesScriptAPIKey(): Promise<string> {
 export async function getGoogleMapsJavascriptAPIKey(): Promise<string> {
   const requestOptions = apiKeyRequestOptions();
   const rawFetchResponse: Promise<Response> = fetch(MAPS_JAVASCRIPT_API_KEY, requestOptions);
-  const jsonResponse: Promise<any> = (await rawFetchResponse).json();
+  const awaitedResponse = await rawFetchResponse;
+  const jsonResponse: Promise<any> = awaitedResponse.json();
   const response = await jsonResponse;
-  if (response.errors !== undefined) {
-    if (response.status !== 200) {
-      console.warn(`server returned a response with a status field (${response.status}), and it wasn't a 200 (OK) status.`);
+  if ((response.errors !== undefined) || (awaitedResponse.status !== 200)) {
+    if (awaitedResponse.status !== 200) {
+      console.warn(`server returned a response with a status field (${awaitedResponse.status}), and it wasn't a 200 (OK) status.`);
     }
     console.error("couldn't get google maps API key!");
     console.error(formatErrors(response.errors));
