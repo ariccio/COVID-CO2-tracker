@@ -6,6 +6,8 @@ KEY_PATH = Rails.root.join('config', 'keys', 'private_key.key')
 def encode_with_jwt(payload)
   key = IO.binread(KEY_PATH)
   if key.nil? || key.empty?
+    Rails.logging.error "Check your key file in #{KEY_PATH}"
+    # Not meant to be handled in a way that renders to user. This is a true internal server error.
     raise StandardError
   end
 
@@ -15,7 +17,8 @@ end
 def decode_with_jwt(payload)
   key = IO.binread(KEY_PATH)
   if key.nil? || key.empty?
-    puts "Check your key file in #{KEY_PATH}"
+    Rails.logging.error "Check your key file in #{KEY_PATH}"
+    # Not meant to be handled in a way that renders to user. This is a true internal server error.
     raise StandardError
   end
   JWT.decode(payload, key, true, algorithm: 'HS256')

@@ -44,8 +44,9 @@ module Api
       rescue JWT::DecodeError => e
         # byebug
         render json: {
-          email: ''
-        }, status: :ok
+          email: '',
+          errors: [create_jwt_error("decoding error", e)]
+        }, status: :bad_request
       end
 
 

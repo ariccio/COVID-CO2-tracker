@@ -144,6 +144,9 @@ export async function login(username: string, password: string): Promise<LoginRe
 export async function get_email(): Promise<LoginResponse> {
     const requestOptions: RequestInit = get_email_options();
     const rawFetchResponse: Promise<Response> = fetch(EMAIL_URL, requestOptions);
+    
+    // https://stackoverflow.com/questions/4467044/proper-way-to-catch-exception-from-json-parse
+    console.log("TODO: should I be properly catching this?")
     const jsonResponse: Promise<any> = (await rawFetchResponse).json();
     const response = await jsonResponse;
     if (response.errors !== undefined) {

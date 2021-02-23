@@ -51,6 +51,9 @@ module Api
             end
 
             def device_params
+                # this isn't right?
+                Rails.logging.error "todo, check this symbol in parenthesis?"
+                byebug
                 params.require[:device].permit(:id, :serial, :model_id, :user_id)
             end
         end

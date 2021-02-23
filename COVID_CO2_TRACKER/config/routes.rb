@@ -13,6 +13,7 @@ Rails.application.routes.draw do
       get '/all_manufacturers', to: "manufacturers#all_manufacturers"
       delete '/auth', to: "auth#destroy"
       get '/email', to: "auth#get_email"
+      resources :keys, only: [:show]
     end
   end
 end
