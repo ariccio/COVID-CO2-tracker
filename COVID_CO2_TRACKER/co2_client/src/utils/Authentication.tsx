@@ -122,7 +122,7 @@ export async function login(username: string, password: string): Promise<LoginRe
     console.assert(response !== "undefined");
     if (response.status !== undefined) {
         if (response.status !== 200) {
-            console.log("server returned a response with a status field, and it wasn't a 200 (OK) status.");
+            console.warn(`server returned a response with a status field (${response.status}), and it wasn't a 200 (OK) status.`);
             console.log(response);
             alert(response);
             debugger;
@@ -196,7 +196,7 @@ export async function signup(email: string, password: string): Promise<SignupRes
     console.assert(response !== "undefined");
     if (response.status !== undefined) {
         if (response.status !== 201) {
-            console.log("server returned a response with a status field, and it wasn't a 201 (Created) status.");
+            console.log(`server returned a response with a status field (${response.status}), and it wasn't a 201 (Created) status.`);
             console.log(response);
             // throw new Error("hmm");
         }

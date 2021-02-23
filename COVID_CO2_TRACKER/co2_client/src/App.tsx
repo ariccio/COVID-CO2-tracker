@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 
 // import {useSelector, useDispatch} from 'react-redux';
 import {Route, Redirect} from 'react-router-dom';
@@ -16,12 +16,11 @@ import {Devices} from './features/devices/Devices';
 import {CreateManufacturerOrModel} from './features/create/createManufacturerModel';
 import {DeviceModels} from './features/deviceModels/DeviceModels';
 
-import {API_URL} from './utils/UrlPath';
+
 
 import './App.css';
 
 
-const GET_API_KEY_URL = API_URL + '/keys';
 
 const renderRedirect = () =>
   <Redirect to='/home'/>
@@ -40,38 +39,10 @@ const routes = () =>
     <Route exact path='/' render={renderRedirect}/>
   </>
 
-const includeCreds: RequestCredentials = "include";
 
-export function apiKeyRequestOptions(): RequestInit {
-  const requestOptions = {
-      method: 'get',
-      credentials: includeCreds, //for httpOnly cookie
-      headers: {
-          'Content-Type': 'application/json'
-      },
-  }
-  return requestOptions;
-}
-
-
-async function farts() {
-  const requestOptions = apiKeyRequestOptions();
-  const THIS_API_URL = GET_API_KEY_URL + `/${"PLACES_SCRIPT_URL_API_KEY"}`
-  // const THIS_API_URL = GET_API_KEY_URL + `/1`
-  console.log(THIS_API_URL);
-  const rawFetchResponse: Promise<Response> = fetch(THIS_API_URL, requestOptions);
-  const jsonResponse: Promise<any> = (await rawFetchResponse).json();
-  const response = await jsonResponse;
-  console.log(response);
-  debugger;
-}
 
 
 function App(): JSX.Element {
-  
-  useEffect(() => {
-    farts();
-  }, []);
   return (
     <>
       <div className="App">

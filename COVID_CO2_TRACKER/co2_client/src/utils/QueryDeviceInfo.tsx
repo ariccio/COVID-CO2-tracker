@@ -74,7 +74,7 @@ export async function queryDeviceInfo(device_id: number): Promise<DeviceInfoResp
     console.log(response);
     if (response.errors !== undefined) {
         if (response.status !== 200) {
-            console.warn("server returned a response with a status field, and it wasn't a 200 (OK) status.");
+            console.warn(`server returned a response with a status field (${response.status}), and it wasn't a 200 (OK) status.`);
         }
         console.error(formatErrors(response.errors));
         alert(formatErrors(response.errors));
