@@ -72,7 +72,7 @@ export const Devices: React.FC<{}> = () => {
         <Route path={'/devices/:deviceId'} component={Device}/>
 
         <p>
-            popular devices: (NOT IMPLEMENTED)
+            popular devices: (NOT IMPLEMENTED YET, will show all kinds of stats)
         </p>
         </>
     )

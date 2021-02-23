@@ -95,6 +95,9 @@ const UserNav: React.FC<UserNavProps> = ({username}) =>
                 <LinkContainer to='/create'>
                     <Nav.Link>Create</Nav.Link>
                 </LinkContainer>
+                <LinkContainer to='/devicemodels'>
+                    <Nav.Link>Models</Nav.Link>
+                </LinkContainer>
 
             </Nav>
             <Nav className="container-fluid justify-content-end" variant="tabs" style={{display:"flex", flexDirection:"row", float: "right"}}>

@@ -14,6 +14,8 @@ import {Devices} from './features/devices/Devices';
 //import {Signup} from './features/signup/Signup';
 // import {get_email} from './utils/Authentication';
 import {CreateManufacturerOrModel} from './features/create/createManufacturerModel';
+import {DeviceModels} from './features/deviceModels/DeviceModels';
+
 import './App.css';
 
 
@@ -30,6 +32,7 @@ const routes = () =>
     <Route exact path='/singup' component={SignupComponent}/>
     <Route exact path='/create' component={CreateManufacturerOrModel}/>
     <Route path='/devices' component={Devices}/>
+    <Route path='/devicemodels' component={DeviceModels}/>
     <Route exact path='/' render={renderRedirect}/>
   </>
 

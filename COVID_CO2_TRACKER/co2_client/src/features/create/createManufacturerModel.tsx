@@ -146,6 +146,7 @@ const CreateManufacturerModalDialog: React.FC<manufacturerDialogProps> = (props:
                 <Modal.Title>Add a manufacturer to the database</Modal.Title>
             </Modal.Header>
             <Modal.Body>
+                (Please reduce administrative burden, don't add nuisance manufacturers. TODO: styling this text)
                 <Form onChange={(event: React.FormEvent<HTMLFormElement>) => {
                     const text = (event.currentTarget.elements[0] as HTMLInputElement).value;
                     dispatch(setEnteredManufacturerText(text));
@@ -181,7 +182,7 @@ export const CreateManufacturerOrModel: React.FC<CreateManufacturerOrModelProps>
 
     //This should be in redux
     const [selectedManufacturer, setSelectedManufacturer] = useState("");
-    
+
     useEffect(() => {
         const getAllManufacturersPromise = queryManufacturers();
         getAllManufacturersPromise.then(result => {
@@ -201,7 +202,7 @@ export const CreateManufacturerOrModel: React.FC<CreateManufacturerOrModelProps>
             <CreateManufacturerModalDialog showAddManufacturer={showAddManufacturer} setShowAddManufacturer={setShowAddManufacturer}/>
             <Dropdown onSelect={selectManufacturerHandler}>
                 <Dropdown.Toggle variant="success" id="dropdown-basic">
-                    Select manufacturer
+                    Select manufacturer:
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
                     {manufacturersToDropdown(knownManufacturers)}
