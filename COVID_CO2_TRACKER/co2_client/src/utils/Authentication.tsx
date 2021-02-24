@@ -152,7 +152,7 @@ export async function get_email(): Promise<LoginResponse> {
     const awaitedResponse = await rawFetchResponse;
     // https://stackoverflow.com/questions/4467044/proper-way-to-catch-exception-from-json-parse
     console.log("TODO: should I be properly catching this?")
-    console.log(await rawFetchResponse);
+    // console.log(await rawFetchResponse);
     // const resp = await rawFetchResponse;
     // console.log((await rawFetchResponse.status));
     const jsonResponse: Promise<any> = awaitedResponse.json();
