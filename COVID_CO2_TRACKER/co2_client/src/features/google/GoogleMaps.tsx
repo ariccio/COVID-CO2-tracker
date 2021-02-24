@@ -1,26 +1,26 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import { GoogleMap, useJsApiLoader, Autocomplete } from '@react-google-maps/api';
-import {Button, Form} from 'react-bootstrap';
+import { Button, Form } from 'react-bootstrap';
 
-import {getGooglePlacesScriptAPIKey} from '../../utils/GoogleAPIKeys';
+import { getGooglePlacesScriptAPIKey } from '../../utils/GoogleAPIKeys';
 // import {GeolocationPosition} from 'typescript/lib/lib.dom'
 
 
 // const loadGoogleMaps = async (callback: any) => {
 //     const existingScript = document.getElementById('googleMaps');
-  
+
 //     if (!existingScript) {
 //       const script: HTMLScriptElement = document.createElement('script');
 //       const apiKey: string = await getGoogleMapsJavascriptAPIKey();
 //       script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
 //       script.id = 'googleMaps';
 //       document.body.appendChild(script);
-  
+
 //       script.onload = () => {
 //         if (callback) callback();
 //       };
 //     }
-  
+
 //     if (existingScript && callback) {
 //       callback();
 //     }
@@ -33,25 +33,25 @@ const GOOGLE_LIBRARIES: Libraries = ["places"];
 //I hate this.
 const loadGooglePlaces = async () => {
     const existingScript = document.getElementById('googleMaps');
-  
+
     if (!existingScript) {
-      const script: HTMLScriptElement = document.createElement('script');
-      const apiKey: string = await getGooglePlacesScriptAPIKey();
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
-      script.id = 'googleMaps';
-      document.body.appendChild(script);
-  
-      script.onload = () => {
-        // if (callback) callback();
-        return;
-      };
+        const script: HTMLScriptElement = document.createElement('script');
+        const apiKey: string = await getGooglePlacesScriptAPIKey();
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+        script.id = 'googleMaps';
+        document.body.appendChild(script);
+
+        script.onload = () => {
+            // if (callback) callback();
+            return;
+        };
     }
-  
+
     // if (existingScript && callback) {
-        //   callback();
-        // return
+    //   callback();
+    // return
     // }
-  }
+}
 
 interface APIKeyProps {
     api_key: string
@@ -77,9 +77,9 @@ interface CenterType {
 const defaultCenter: CenterType = {
     lat: 40.769,
     lng: -73.966
-  };
+};
 
-  //Some dumb problem with typescript:
+//Some dumb problem with typescript:
 //   interface GeolocationPositionError {
 //     readonly code: number;
 //     readonly message: string;
@@ -96,7 +96,7 @@ interface GeolocationPositionShadowType {
         readonly heading: number | null;
         readonly latitude: number;
         readonly longitude: number;
-        readonly speed: number | null;                
+        readonly speed: number | null;
     }
 }
 
@@ -135,7 +135,7 @@ const invokeBrowserGeolocation = (setCenter: React.Dispatch<React.SetStateAction
         const validPositionCallback = (position: /*GeolocationPosition*/ GeolocationPositionShadowType) => {
             console.log("got position!");
             console.log(position);
-            setCenter({lat: position.coords.latitude, lng: position.coords.longitude});
+            setCenter({ lat: position.coords.latitude, lng: position.coords.longitude });
         }
         // Fun fact: https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/modules/geolocation/geolocation.cc;bpv=1;bpt=1;l=191?q=geolocation
         navigator.geolocation.getCurrentPosition(validPositionCallback, errorPositionCallback);
@@ -143,7 +143,7 @@ const invokeBrowserGeolocation = (setCenter: React.Dispatch<React.SetStateAction
     else {
         alert("geolocation not available (no reason available)")
     }
-  }
+}
 
 const loadCallback = (map: google.maps.Map, setMap: React.Dispatch<React.SetStateAction<google.maps.Map | null>>) => {
     if ((window as any).google === undefined) {
@@ -152,14 +152,14 @@ const loadCallback = (map: google.maps.Map, setMap: React.Dispatch<React.SetStat
     if ((window as any).google === null) {
         throw new Error("window.google is null!")
     }
-  //   debugger;
-  const bounds = new (window as any).google.maps.LatLngBounds();
-  map.fitBounds(bounds);
-  setMap(map);
-//   map.panTo(center);
-//   map.setZoom(100);
-//   console.log("map zoom " + map.getZoom());
-//   debugger;
+    //   debugger;
+    const bounds = new (window as any).google.maps.LatLngBounds();
+    map.fitBounds(bounds);
+    setMap(map);
+    //   map.panTo(center);
+    //   map.setZoom(100);
+    //   console.log("map zoom " + map.getZoom());
+    //   debugger;
     console.log("maps successfully loaded!");
 }
 
@@ -175,10 +175,10 @@ interface AutoCompleteRenderProps {
 const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (props) => {
     // In theory I can add another level of indirection so that this works even if maps fails.
     if (props.map === null) {
-        return(<>Maps STILL loading</>);
+        return (<>Maps STILL loading</>);
     }
     const bounds = props.map.getBounds();
-    if (bounds === undefined){
+    if (bounds === undefined) {
         // throw new Error("invariant");
         console.log("no bounds yet");
         return (null);
@@ -188,22 +188,22 @@ const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (pr
         console.log("no bounds yet");
         return (null);
     }
-  return (
+    return (
         <Autocomplete onLoad={props.autoCompleteLoad} onPlaceChanged={props.placeChange} bounds={bounds}>
-        <>
+            <>
 
-        <Form>
-            <Form.Group>
-                <Form.Control type="text"/>
-            </Form.Group>
-        </Form>
+                <Form>
+                    <Form.Group>
+                        <Form.Control type="text" />
+                    </Form.Group>
+                </Form>
 
-            {/* <div>
+                {/* <div>
 
             </div>
             <input type="text" placeholder="location">
             </input> */}
-        </>
+            </>
         </Autocomplete>
     );
 }
@@ -212,77 +212,77 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
     const containerStyle = {
         width: '400px',
         height: '400px'
-      };
-      
-      const [center, setCenter] = useState(defaultCenter);
-      const { isLoaded, loadError } = useJsApiLoader({
+    };
+
+    const [center, setCenter] = useState(defaultCenter);
+    const { isLoaded, loadError } = useJsApiLoader({
         id: 'google-map-script',
         googleMapsApiKey: props.api_key,
         libraries: GOOGLE_LIBRARIES
-      })
-    
-      const [autocomplete, setAutocomplete] = useState(null as google.maps.places.Autocomplete | null);
-      const [map, setMap] = React.useState(null as google.maps.Map | null);
-    
-      const onLoad = React.useCallback( (map: google.maps.Map) => {
+    })
+
+    const [autocomplete, setAutocomplete] = useState(null as google.maps.places.Autocomplete | null);
+    const [map, setMap] = React.useState(null as google.maps.Map | null);
+
+    const onLoad = React.useCallback((map: google.maps.Map) => {
         loadCallback(map, setMap);
-      }, [])
-    
-      const onUnmount = React.useCallback(function callback(map: google.maps.Map) {
+    }, [])
+
+    const onUnmount = React.useCallback(function callback(map: google.maps.Map) {
         setMap(null);
-      }, [])
+    }, [])
 
-      const autoCompleteLoad: autocompleteLoadType = (autocompleteEvent: google.maps.places.Autocomplete) => {
+    const autoCompleteLoad: autocompleteLoadType = (autocompleteEvent: google.maps.places.Autocomplete) => {
         //   debugger;
-          setAutocomplete(autocompleteEvent);
-          console.log("autocomplete loaded!");
-      }
+        setAutocomplete(autocompleteEvent);
+        console.log("autocomplete loaded!");
+    }
 
-      const placeChange = () => {
-          if (autocomplete !== null) {
-              console.log((autocomplete as any).getPlace())
-          }
-      }
+    const placeChange = () => {
+        if (autocomplete !== null) {
+            console.log((autocomplete as any).getPlace())
+        }
+    }
 
-      const [_zoomLevel, setZoomlevel] = useState(0);
-      const onZoomChange = () => {
-          if (map) {
-              setZoomlevel(map?.getZoom());
-          }
-      }
-      const options: google.maps.MapOptions = {
-          //default tweaked for manhattan
-          zoom: 18,
-          center: center
-      };
-      
+    const [_zoomLevel, setZoomlevel] = useState(0);
+    const onZoomChange = () => {
+        if (map) {
+            setZoomlevel(map?.getZoom());
+        }
+    }
+    const options: google.maps.MapOptions = {
+        //default tweaked for manhattan
+        zoom: 18,
+        center: center
+    };
+
     //   if (map) {
     //       debugger;
     //     map.setZoom(1000);
     //   }
 
-      if (isLoaded) {
-          return( 
-              <>
+    if (isLoaded) {
+        return (
+            <>
 
                 <div className="map">
                     <div className="map-container">
 
                         <GoogleMap mapContainerStyle={containerStyle} center={center} onLoad={onLoad} onUnmount={onUnmount} options={options} onZoomChanged={onZoomChange} >
-                            { /* Child components, such as markers, info windows, etc. */ }
+                            { /* Child components, such as markers, info windows, etc. */}
                             {map && console.log("map zoom: " + map.getZoom())}
                             <></>
                         </GoogleMap>
                     </div>
 
                 </div>
-                <RenderAutoComplete autoCompleteLoad={autoCompleteLoad} placeChange={placeChange} map={map}/>
+                <RenderAutoComplete autoCompleteLoad={autoCompleteLoad} placeChange={placeChange} map={map} />
                 <Button onClick={() => invokeBrowserGeolocation(setCenter)}>
                     Find me!
                 </Button>
-              </>
-          )
-      }
+            </>
+        )
+    }
     else if (loadError) {
         return <>
             Google maps load failed!
