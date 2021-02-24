@@ -17,7 +17,7 @@ require 'rails/test_unit/railtie'
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
-Bundler.require(*Rails.groups)
+::Bundler.require(*::Rails.groups)
 
 module COVIDCo2Tracker
   class Application < ::Rails::Application
@@ -38,6 +38,6 @@ module COVIDCo2Tracker
     config.api_only = true
 
 
-    config.middleware.use ActionDispatch::Cookies
+    config.middleware.use(::ActionDispatch::Cookies)
   end
 end

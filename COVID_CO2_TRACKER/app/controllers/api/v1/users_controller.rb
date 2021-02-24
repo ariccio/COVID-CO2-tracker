@@ -10,7 +10,7 @@ module Api
         token = encode_token(user_id: @user.id)
 
         # for good advice on httponly: https://www.thegreatcodeadventure.com/jwt-storage-in-rails-the-right-way/
-        cookies.signed[:jwt] = {value: token, httponly: true}
+        cookies.signed[:jwt] = { value: token, httponly: true }
         render json: { email: @user.email }, status: :created
       rescue ::ActiveRecord::RecordInvalid => e
         render json: {
@@ -36,6 +36,6 @@ module Api
       def user_params
         params.require(:user).permit(:email, :password)
       end
-    end    
+    end
   end
 end

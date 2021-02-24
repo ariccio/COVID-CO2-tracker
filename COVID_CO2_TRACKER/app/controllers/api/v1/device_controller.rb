@@ -46,7 +46,7 @@ module Api
                 }
             rescue ::ActiveRecord::RecordNotFound => e
                 render json: {
-                    errors: [create_activerecord_error("device not found!", e)]
+                    errors: [create_activerecord_error('device not found!', e)]
                 }, status: :not_found
             end
 

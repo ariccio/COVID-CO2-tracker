@@ -4,8 +4,8 @@ require_relative '../utils/errors'
 KEY_PATH = ::Rails.root.join('config', 'keys', 'private_key.key')
 
 def encode_with_jwt(payload)
-  key = IO.binread(KEY_PATH)
-  if key.nil? || key.empty?
+  key = ::IO.binread(KEY_PATH)
+  if key.blank?
     ::Rails.logging.error("Check your key file in #{KEY_PATH}")
     # Not meant to be handled in a way that renders to user. This is a true internal server error.
     raise ::StandardError
@@ -15,8 +15,8 @@ def encode_with_jwt(payload)
 end
 
 def decode_with_jwt(payload)
-  key = IO.binread(KEY_PATH)
-  if key.nil? || key.empty?
+  key = ::IO.binread(KEY_PATH)
+  if key.blank?
     ::Rails.logging.error("Check your key file in #{KEY_PATH}")
     # Not meant to be handled in a way that renders to user. This is a true internal server error.
     raise ::StandardError
@@ -24,9 +24,7 @@ def decode_with_jwt(payload)
   ::JWT.decode(payload, key, true, algorithm: 'HS256')
 end
 
-
-
-class ApplicationController < ActionController::API
+class ApplicationController < ::ActionController::API
     include ::ActionController::Cookies
     include Errors
 
@@ -51,7 +49,7 @@ class ApplicationController < ActionController::API
           begin
             # byebug
             user_id = user_id_from_jwt_token
-            @user = User.find(user_id)
+            @user = ::User.find(user_id)
             return @user
           rescue ::JWT::DecodeError => e
             render json: {
