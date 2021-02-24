@@ -1,27 +1,27 @@
-require_relative '../utils/errors.rb'
+require_relative '../utils/errors'
 
 
-KEY_PATH = Rails.root.join('config', 'keys', 'private_key.key')
+KEY_PATH = ::Rails.root.join('config', 'keys', 'private_key.key')
 
 def encode_with_jwt(payload)
   key = IO.binread(KEY_PATH)
   if key.nil? || key.empty?
-    Rails.logging.error "Check your key file in #{KEY_PATH}"
+    ::Rails.logging.error("Check your key file in #{KEY_PATH}")
     # Not meant to be handled in a way that renders to user. This is a true internal server error.
-    raise StandardError
+    raise ::StandardError
   end
 
-  JWT.encode(payload, key)
+  ::JWT.encode(payload, key)
 end
 
 def decode_with_jwt(payload)
   key = IO.binread(KEY_PATH)
   if key.nil? || key.empty?
-    Rails.logging.error "Check your key file in #{KEY_PATH}"
+    ::Rails.logging.error("Check your key file in #{KEY_PATH}")
     # Not meant to be handled in a way that renders to user. This is a true internal server error.
-    raise StandardError
+    raise ::StandardError
   end
-  JWT.decode(payload, key, true, algorithm: 'HS256')
+  ::JWT.decode(payload, key, true, algorithm: 'HS256')
 end
 
 
@@ -40,7 +40,7 @@ class ApplicationController < ActionController::API
         jwt = cookies.signed[:jwt]
         decode_with_jwt(jwt)
     end
-    
+
     def user_id_from_jwt_token
         # byebug
         user_id = authenticate_user[0]['user_id']
@@ -53,11 +53,11 @@ class ApplicationController < ActionController::API
             user_id = user_id_from_jwt_token
             @user = User.find(user_id)
             return @user
-          rescue JWT::DecodeError => e
+          rescue ::JWT::DecodeError => e
             render json: {
               errors: [create_jwt_error('something went wrong with parsing the JWT', e)]
             }
-          rescue ActiveRecord::RecordNotFound => e
+          rescue ::ActiveRecord::RecordNotFound => e
             render json: {
               errors: [create_activerecord_notfound_error('user_id not found while looking up from decoded_token!', e)]
             }
@@ -69,12 +69,10 @@ class ApplicationController < ActionController::API
         end
       end
 
-
       def logged_in?
         !!current_user
       end
     
-
     def authorized
         if !(logged_in?)
             error_array = [create_error('Please log in', :unauthorized.to_s)]

@@ -10,20 +10,20 @@
 # Model.destroy_by(name: "Contoso 1")
 # Manufacturer.destroy_by(name: "Contoso")
 
-contoso = Manufacturer.find_or_create_by!(name: "Contoso")
+contoso = ::Manufacturer.find_or_create_by!(name: 'Contoso')
 
-contoso_one = Model.find_or_create_by!(name: "Contoso 1") do |dm|
+contoso_one = ::Model.find_or_create_by!(name: 'Contoso 1') do |dm|
     dm.manufacturer = contoso
 end
 
-first_device = Device.find_or_create_by!(serial: "fart") do |di|
+first_device = ::Device.find_or_create_by!(serial: 'fart') do |di|
     di.model = contoso_one
-    di.user = User.first
+    di.user = ::User.first
 end
 
 pp first_device
 
-me = User.find_by(usename: "alexander@alexander")
+me = ::User.find_by(usename: 'alexander@alexander')
 me.devices.first.measurements.create!(co2ppm: 500)
 
 # YES THIS WORKS!:

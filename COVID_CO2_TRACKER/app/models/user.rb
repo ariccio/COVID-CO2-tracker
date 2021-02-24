@@ -3,21 +3,21 @@ class User < ApplicationRecord
     has_many :devices
     validates :email, presence: true, uniqueness: true
     validates :password_digest, presence: true
-  
+
     def my_devices
-        user_devices = devices
-        results = user_devices.each.map do |device|
-          {
-            device_id: device.id,
-            serial: device.serial,
-            device_model_id: device.model.id,
-            device_model: device.model.name,
-            device_manufacturer: device.model.manufacturer.name,
-            device_manufacturer_id: device.model.manufacturer_id
-          }
-        end
-        results
+      user_devices = devices
+      results = user_devices.each.map do |device|
+        {
+          device_id: device.id,
+          serial: device.serial,
+          device_model_id: device.model.id,
+          device_model: device.model.name,
+          device_manufacturer: device.model.manufacturer.name,
+          device_manufacturer_id: device.model.manufacturer_id
+        }
       end
+      results
+    end
 
       def my_measurements
         # @user = current_user

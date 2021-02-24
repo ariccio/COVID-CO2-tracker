@@ -10,7 +10,7 @@ def measurements_serializer(measurements, device_id)
 end
 
 def first_ten_measurements(device_id)
-    measurements = Measurement.where(device_id: device_id).first(10)
+    measurements = ::Measurement.where(device_id: device_id).first(10)
     measurements_serializer(measurements, device_id)
 end
 
@@ -20,22 +20,22 @@ module Api
             skip_before_action :authorized, only: [:show]
 
             def create
-                @new_device_instance = Device.create!(serial: device_params[:serial], model: device_params[:model_id], user: device_params[:user_id])
+                @new_device_instance = ::Device.create!(serial: device_params[:serial], model: device_params[:model_id], user: device_params[:user_id])
                 render json: {
                     serial: @new_device_instance.serial,
                     model_id: @new_device_instance.model.id,
                     user_id: @new_device_instance.user.id,
                     device_id: @new_device_instance.id
                 }, status: :created
-            rescue ActiveRecord::RecordInvalid => e
+            rescue ::ActiveRecord::RecordInvalid => e
                 render json: {
-                    errors: [create_activerecord_error("device creation failed!", e)]
+                    errors: [create_activerecord_error('device creation failed!', e)]
                 }, status: :bad_request
             end
 
             def show
                 # byebug
-                @device_instance = Device.find(params[:id])
+                @device_instance = ::Device.find(params[:id])
                 render json: {
                     device_id: @device_instance.id,
                     serial: @device_instance.serial,
@@ -44,7 +44,7 @@ module Api
                     measurements: first_ten_measurements(@device_instance.id)
                     # total number of measurements
                 }
-            rescue ActiveRecord::RecordNotFound => e
+            rescue ::ActiveRecord::RecordNotFound => e
                 render json: {
                     errors: [create_activerecord_error("device not found!", e)]
                 }, status: :not_found
@@ -52,7 +52,7 @@ module Api
 
             def device_params
                 # this isn't right?
-                Rails.logging.error "todo, check this symbol in parenthesis?"
+                ::Rails.logging.error('todo, check this symbol in parenthesis?')
                 byebug
                 params.require[:device].permit(:id, :serial, :model_id, :user_id)
             end

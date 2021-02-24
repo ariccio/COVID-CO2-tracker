@@ -1,6 +1,6 @@
-require "test_helper"
+require 'test_helper'
 
-class DeviceInstanceTest < ActiveSupport::TestCase
+class DeviceInstanceTest < ::ActiveSupport::TestCase
   # test "the truth" do
   #   assert true
   # end

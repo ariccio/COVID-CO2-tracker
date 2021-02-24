@@ -11,7 +11,7 @@ module Api
                 }, status: :created
             rescue ActiveRecord::RecordInvalid => e
                 render json: {
-                    errors: [create_activerecord_error("device model creation failed!", e)]
+                    errors: [create_activerecord_error('device model creation failed!', e)]
                 }, status: :bad_request
             end
 
@@ -25,7 +25,7 @@ module Api
                 }, status: :ok
             rescue ActiveRecord::RecordNotFound => e
                 render json: {
-                    errors[create_activerecord_error("model not found!", e)]
+                    errors[create_activerecord_error('model not found!', e)]
                 }, status: :not_found
             end
 

@@ -1,4 +1,3 @@
-
 module Errors
 
   def single_error(message, error)
@@ -21,19 +20,19 @@ module Errors
     anError
   end
   
-  def create_jwt_error(message, jwtError)
-    errors = jwtError.message
+  def create_jwt_error(message, jwt_error)
+    errors = jwt_error.message
     multiple_errors(message, errors)
   end
   
-  def create_activerecord_error(message, activeRecordError)
-    errors = activeRecordError.record.errors.full_messages;
+  def create_activerecord_error(message, active_record_error)
+    errors = active_record_error.record.errors.full_messages
     # puts "errors: #{errors}"
     multiple_errors(message, errors)
   end
   
-  def create_activerecord_notfound_error(message, activeRecordError)
-    errors = [activeRecordError.id, activeRecordError.model];
+  def create_activerecord_notfound_error(message, active_record_error)
+    errors = [active_record_error.id, active_record_error.model]
     # puts "errors: #{errors}"
     multiple_errors(message, errors)
   end
