@@ -39,7 +39,9 @@ function responseToManufacturersArrayStrongType(response: any): ManufacturersArr
     console.assert(response.manufacturers !== undefined);
     if (response.manufacturers !== undefined) {
         if (response.manufacturers.length > 0) {
-            for (let i = 0; i < response.manufacturers.length; ++i) {
+            //https://app.codacy.com/gh/ariccio/COVID-CO2-tracker/file/53649034797/issues/source?bid=22403719&fileBranchId=22403719#l43
+            //https://stackoverflow.com/a/55701580/625687
+            for (let i = 0; i < parseInt(response.manufacturers.length); ++i) {
                 console.assert(response.manufacturers[i].name !== undefined);
                 console.assert(response.manufacturers[i].id !== undefined);
             }
