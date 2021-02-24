@@ -55,8 +55,8 @@ async function queryManufacturers(): Promise<ManufacturersArray> {
     const awaitedResponse = await rawResponse;
     const jsonResponse = await awaitedResponse.json();
     const response = await jsonResponse;
-    if ((response.errors !== undefined) || (response.status !== 200)) {
-        if (response.status !== 200) {
+    if ((response.errors !== undefined) || (awaitedResponse.status !== 200)) {
+        if (awaitedResponse.status !== 200) {
             console.warn("server returned a response with a status field, and it wasn't a 200 (OK) status.");
         }
         console.error(formatErrors(response.errors));
