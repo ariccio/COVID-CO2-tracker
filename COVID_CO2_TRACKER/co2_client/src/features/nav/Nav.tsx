@@ -110,24 +110,31 @@ const UserNav: React.FC<UserNavProps> = ({username}) =>
         </Navbar.Collapse>
     </Navbar>
 
+const loadEmail = (dispatch: ReturnType<typeof useDispatch>) => {
+  const emailPromise = get_email();
+  emailPromise.then(email => {
+    if (email.errors === undefined){
+      if (email.email === undefined) {
+        alert("undefined response from server. Likely internal server error getting username!");
+        debugger;
+      }
+      console.log("got email: ", email.email)
+      dispatch(setUsername(email.email));
+    }
+  }).catch((error) => {
+    console.error(`Failed to get email from server! fetch itself failed with error ${error}`);
+    throw error;
+
+  })
+}
 
 export const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
     const username = useSelector(selectUsername);
     const dispatch = useDispatch();
-    useEffect(() => {
-      const emailPromise = get_email();
-      emailPromise.then(email => {
-        if (email.errors === undefined){
-          if (email.email === undefined) {
-            alert("undefined response from server. Likely internal server error getting username!");
-            debugger;
-          }
-          console.log("got email: ", email.email)
-          dispatch(setUsername(email.email));
-        }
-      })
-    }, [dispatch]);
-  
-    console.log(`Current username: ${username}`)
+    useEffect(() => {loadEmail(dispatch)}, [dispatch]);
+    // const setUsername_ 
+    if (username !== '') {
+      console.log(`Current username: ${username}`)
+    }
     return <UserNav username={username}/>;
 }

@@ -1,0 +1,2 @@
+rubocop --parallel
+brakeman

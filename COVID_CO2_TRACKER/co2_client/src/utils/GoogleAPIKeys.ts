@@ -1,5 +1,5 @@
 import {API_URL} from './UrlPath';
-import {formatErrors, ErrorObjectType} from './ErrorObject';
+import {formatErrors} from './ErrorObject';
 
 
 const GET_API_KEY_URL = API_URL + '/keys';
@@ -48,21 +48,33 @@ export async function getGooglePlacesScriptAPIKey(): Promise<string> {
 
 export async function getGoogleMapsJavascriptAPIKey(): Promise<string> {
   const requestOptions = apiKeyRequestOptions();
-  const rawFetchResponse: Promise<Response> = fetch(MAPS_JAVASCRIPT_API_KEY, requestOptions);
-  const awaitedResponse = await rawFetchResponse;
-  const jsonResponse: Promise<any> = awaitedResponse.json();
-  const response = await jsonResponse;
-  if ((response.errors !== undefined) || (awaitedResponse.status !== 200)) {
-    if (awaitedResponse.status !== 200) {
-      console.warn(`server returned a response with a status field (${awaitedResponse.status}), and it wasn't a 200 (OK) status.`);
+  try {
+    const rawFetchResponse: Promise<Response> = fetch(MAPS_JAVASCRIPT_API_KEY, requestOptions);
+    const awaitedResponse = await rawFetchResponse;
+    const jsonResponse: Promise<any> = awaitedResponse.json();
+    const response = await jsonResponse;
+    if ((response.errors !== undefined) || (awaitedResponse.status !== 200)) {
+      if (awaitedResponse.status !== 200) {
+        console.warn(`server returned a response with a status field (${awaitedResponse.status}), and it wasn't a 200 (OK) status.`);
+      }
+      console.error("couldn't get google maps API key!");
+      console.error(formatErrors(response.errors));
+      debugger;
     }
-    console.error("couldn't get google maps API key!");
-    console.error(formatErrors(response.errors));
-    debugger;
+    console.assert(response.key !== undefined);
+    console.assert(response.key !== null);
+    console.assert(response.key !== '');
+    return response.key;
   }
-  console.assert(response.key !== undefined);
-  console.assert(response.key !== null);
-  console.assert(response.key !== '');
-  return response.key;
+  catch (error) {
+    if (error instanceof SyntaxError) {
+      console.error("JSON parsing error, likely a network error anyways.")
+    }
+    else if (error instanceof TypeError) {
+      console.error("fetch itself failed, likely a network issue.")
+    }
+    console.error(`failed to get google maps API key, fetch iself failed! Error: ${error}`);
+    throw error;
+  }
 
 }

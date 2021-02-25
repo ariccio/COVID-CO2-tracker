@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { GoogleMap, useJsApiLoader, Autocomplete } from '@react-google-maps/api';
 import { Button, Form } from 'react-bootstrap';
 
@@ -31,41 +31,41 @@ import { getGooglePlacesScriptAPIKey } from '../../utils/GoogleAPIKeys';
 type Libraries = ("drawing" | "geometry" | "localContext" | "places" | "visualization")[];
 const GOOGLE_LIBRARIES: Libraries = ["places"];
 //I hate this.
-const loadGooglePlaces = async () => {
-    const existingScript = document.getElementById('googleMaps');
+// const loadGooglePlaces = async () => {
+//     const existingScript = document.getElementById('googleMaps');
 
-    if (!existingScript) {
-        const script: HTMLScriptElement = document.createElement('script');
-        const apiKey: string = await getGooglePlacesScriptAPIKey();
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
-        script.id = 'googleMaps';
-        document.body.appendChild(script);
+//     if (!existingScript) {
+//         const script: HTMLScriptElement = document.createElement('script');
+//         const apiKey: string = await getGooglePlacesScriptAPIKey();
+//         script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+//         script.id = 'googleMaps';
+//         document.body.appendChild(script);
 
-        script.onload = () => {
-            // if (callback) callback();
-            return;
-        };
-    }
+//         script.onload = () => {
+//             // if (callback) callback();
+//             return;
+//         };
+//     }
 
-    // if (existingScript && callback) {
-    //   callback();
-    // return
-    // }
-}
+//     // if (existingScript && callback) {
+//     //   callback();
+//     // return
+//     // }
+// }
 
 interface APIKeyProps {
     api_key: string
 }
 
-type containterStyleType = {
-    width: string,
-    height: string
-}
+// type containterStyleType = {
+//     width: string,
+//     height: string
+// }
 
-type centerType = {
-    lat: number,
-    lng: number
-}
+// type centerType = {
+//     lat: number,
+//     lng: number
+// }
 
 // const renderMap = (containerStyle: containterStyleType, center: centerType, zoom: number, onLoad: (map: any) => void, onUnmount: (map: any) => void) =>
 
@@ -239,15 +239,23 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
     }
 
     const placeChange = () => {
-        if (autocomplete !== null) {
-            console.log((autocomplete as any).getPlace())
+        if (autocomplete === null) {
+            return;
         }
+        console.log(autocomplete.getPlace())
+        console.log(`id: ${autocomplete.getPlace().id}`);
+        console.log(`place_id: ${autocomplete.getPlace().place_id}`);
+        console.log(`geometry.location.toString: ${autocomplete.getPlace().geometry?.location.toString()}`);
+        console.log(`geometry.viewport.toString: ${autocomplete.getPlace().geometry?.viewport.toString()}`)
+        // autocomplete.getPlace()
+        // debugger;
     }
 
     const [_zoomLevel, setZoomlevel] = useState(0);
     const onZoomChange = () => {
         if (map) {
             setZoomlevel(map?.getZoom());
+            // console.log("map zoom: " + map.getZoom())
         }
     }
     const options: google.maps.MapOptions = {
@@ -270,7 +278,6 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
 
                         <GoogleMap mapContainerStyle={containerStyle} center={center} onLoad={onLoad} onUnmount={onUnmount} options={options} onZoomChanged={onZoomChange} >
                             { /* Child components, such as markers, info windows, etc. */}
-                            {map && console.log("map zoom: " + map.getZoom())}
                             <></>
                         </GoogleMap>
                     </div>
