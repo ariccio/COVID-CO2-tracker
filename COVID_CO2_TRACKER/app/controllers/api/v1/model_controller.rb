@@ -4,7 +4,7 @@ module Api
   module V1
     class ModelController < ApplicationController
       def create
-        @new_model = Model.create!(name: model_params[:name], manufacturer: model_params[:manufacturer_id])
+        @new_model = ::Model.create!(name: model_params[:name], manufacturer: model_params[:manufacturer_id])
         render(
           json: {
             model_id: @new_model.id,
@@ -23,7 +23,7 @@ module Api
       end
 
       def show
-        @model = Model.find(model_params[:id])
+        @model = ::Model.find(model_params[:id])
         render(
           json: {
             model_id: @model.id,

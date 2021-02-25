@@ -5,7 +5,7 @@ module Api
     class MeasurementController < ApplicationController
       skip_before_action :authorized, only: [:show]
       def create
-        @new_measurement = Measurement.create!(device: measurement_params[:device_id], co2ppm: measurement_params[:co2ppm], measurementtime: measurement_params[:measurementtime])
+        @new_measurement = ::Measurement.create!(device: measurement_params[:device_id], co2ppm: measurement_params[:co2ppm], measurementtime: measurement_params[:measurementtime])
         render(
           json: {
             measurement_id: @new_measurement.id,
@@ -25,7 +25,7 @@ module Api
       end
 
       def show
-        @measurement = Measurement.find(measurement_params[:id])
+        @measurement = ::Measurement.find(measurement_params[:id])
         render(
           json: {
             device_id: @measurement.device.id,
