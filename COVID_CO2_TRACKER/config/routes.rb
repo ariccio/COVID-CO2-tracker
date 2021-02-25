@@ -12,7 +12,7 @@
 
       get '/all_manufacturers', to: 'manufacturers#all_manufacturers'
       delete '/auth', to: 'auth#destroy'
-      get '/email', to: 'auth#get_email'
+      get '/email', to: 'auth#email'
       resources :keys, only: [:show]
     end
   end

@@ -52,20 +52,26 @@ class ApplicationController < ::ActionController::API
             @user = ::User.find(user_id)
             return @user
           rescue ::JWT::DecodeError => e
-            render( json: {
-              errors: [create_jwt_error('something went wrong with parsing the JWT', e)]
-            }, status: :internal_server_error)
+            render(
+              json: {
+                errors: [create_jwt_error('something went wrong with parsing the JWT', e)]
+              },
+              status: :internal_server_error)
           rescue ::ActiveRecord::RecordNotFound => e
-            render( json: {
-              errors: [create_activerecord_notfound_error('user_id not found while looking up from decoded_token!', e)]
-            }, status: :not_found)
+            render(
+              json: {
+                errors: [create_activerecord_notfound_error('user_id not found while looking up from decoded_token!', e)]
+              },
+              status: :not_found)
           end
         else
-          render( json: {
-            errors: [create_missing_auth_header('hmmm, decoded_token is falsy')]
-          }, status: :internal_server_error)
+          render(
+            json: {
+              errors: [create_missing_auth_header('hmmm, decoded_token is falsy')]
+            },
+            status: :internal_server_error)
         end
-      end
+    end
 
       def logged_in?
         !!current_user
@@ -74,10 +80,12 @@ class ApplicationController < ::ActionController::API
     def authorized
         if !(logged_in?)
             error_array = [create_error('Please log in', :unauthorized.to_s)]
-          render( json: {
-            errors: error_array
-          }, status: :unauthorized)
+          render(
+            json: {
+              errors: error_array
+            },
+            status: :unauthorized)
         end
-      end
-    
+    end
+
 end
