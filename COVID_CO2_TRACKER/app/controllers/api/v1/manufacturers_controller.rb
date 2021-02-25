@@ -32,6 +32,7 @@ module Api
           status: :bad_request
         )
       end
+
       def show
         @manufacturer = ::Manufacturer.find(manufacturer_params[:id])
         render(
@@ -50,6 +51,7 @@ module Api
           status: :not_found
         )
       end
+
       def all_manufacturers
         render(
           json: {
@@ -58,6 +60,7 @@ module Api
           status: :ok
         )
       end
+
       def manufacturer_params
         params.require(:manufacturer).permit(:name, :id)
       end

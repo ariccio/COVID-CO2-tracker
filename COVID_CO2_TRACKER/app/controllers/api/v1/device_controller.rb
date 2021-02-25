@@ -17,7 +17,7 @@ end
 module Api
   module V1
     class DeviceController < ApplicationController
-      skip_before_action :authorized, only: [:show]  
+      skip_before_action :authorized, only: [:show]
       def create
         @new_device_instance = ::Device.create!(serial: device_params[:serial], model: device_params[:model_id], user: device_params[:user_id])
         render(
@@ -36,7 +36,8 @@ module Api
           },
           status: :bad_request
         )
-      end  
+      end
+
       def show
         # byebug
         @device_instance = ::Device.find(params[:id])
@@ -58,7 +59,8 @@ module Api
           },
           status: :not_found
         )
-      end  
+      end
+
       def device_params
         # this isn't right?
         ::Rails.logging.error('todo, check this symbol in parenthesis?')
