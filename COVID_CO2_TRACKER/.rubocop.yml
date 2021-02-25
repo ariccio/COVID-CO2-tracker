@@ -8,6 +8,11 @@
 # where the inspected file is and continue its way up to the root directory.
 #
 # See https://docs.rubocop.org/rubocop/configuration
+require:
+  - rubocop-rails
+  - rubocop-performance
+
+
 Layout/EndOfLine:
   Enabled: false
 
@@ -38,7 +43,6 @@ Style/GlobalStdStream:
 Style/ClassAndModuleChildren:
   Enabled: false
 
-
 AllCops:
   Exclude:
     - 'db/schema.rb'
@@ -50,3 +54,5 @@ AllCops:
     - 'tmp/**/*'
     - 'co2_client/**/*'
   NewCops: enable
+  SuggestExtensions: true
+

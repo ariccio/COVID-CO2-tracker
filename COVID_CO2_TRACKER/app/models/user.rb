@@ -2,7 +2,9 @@
 
 class User < ApplicationRecord
   has_secure_password
+  # app/models/user.rb:6:3: C: Rails/HasManyOrHasOneDependent: Specify a :dependent option.
   has_many :devices
+  # app/models/user.rb:7:3: C: Rails/UniqueValidationWithoutIndex: Uniqueness validation should be with a unique index.
   validates :email, presence: true, uniqueness: true
   validates :password_digest, presence: true
   def my_devices

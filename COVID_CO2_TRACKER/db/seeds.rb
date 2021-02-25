@@ -25,7 +25,7 @@ first_device =
     di.user = ::User.first
   end
 
-pp first_device
+Rails.logging.info(first_device)
 
 me = ::User.find_by(usename: 'alexander@alexander')
 me.devices.first.measurements.create!(co2ppm: 500)
