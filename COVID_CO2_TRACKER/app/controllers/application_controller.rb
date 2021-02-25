@@ -81,8 +81,8 @@ class ApplicationController < ::ActionController::API
       end
 
     def authorized
-        if !(logged_in?)
-            error_array = [create_error('Please log in', :unauthorized.to_s)]
+        unless (logged_in?)
+          error_array = [create_error('Please log in', :unauthorized.to_s)]
           render(
             json: {
               errors: error_array
