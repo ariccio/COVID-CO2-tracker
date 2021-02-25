@@ -16,8 +16,7 @@ module Errors
 
   def create_error(message, error)
     # puts error.class
-    anError = single_error(message, error)
-    anError
+    single_error(message, error)
   end
 
   def create_jwt_error(message, jwt_error)

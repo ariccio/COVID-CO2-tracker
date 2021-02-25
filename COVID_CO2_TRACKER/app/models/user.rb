@@ -6,7 +6,7 @@ class User < ApplicationRecord
 
     def my_devices
       user_devices = devices
-      results = user_devices.each.map do |device|
+      user_devices.each.map do |device|
         {
           device_id: device.id,
           serial: device.serial,
@@ -16,7 +16,6 @@ class User < ApplicationRecord
           device_manufacturer_id: device.model.manufacturer_id
         }
       end
-      results
     end
 
       def my_measurements

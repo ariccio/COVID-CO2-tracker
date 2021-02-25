@@ -12,14 +12,16 @@
 
 contoso = ::Manufacturer.find_or_create_by!(name: 'Contoso')
 
-contoso_one = ::Model.find_or_create_by!(name: 'Contoso 1') do |dm|
-    dm.manufacturer = contoso
-end
+contoso_one =
+    ::Model.find_or_create_by!(name: 'Contoso 1') do |dm|
+        dm.manufacturer = contoso
+    end
 
-first_device = ::Device.find_or_create_by!(serial: 'fart') do |di|
-    di.model = contoso_one
-    di.user = ::User.first
-end
+first_device =
+    ::Device.find_or_create_by!(serial: 'fart') do |di|
+        di.model = contoso_one
+        di.user = ::User.first
+    end
 
 pp first_device
 
