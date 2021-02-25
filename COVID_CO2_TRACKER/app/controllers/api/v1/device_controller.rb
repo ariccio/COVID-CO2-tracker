@@ -29,14 +29,14 @@ module Api
                         device_id: @new_device_instance.id
                     },
                     status: :created
-                    )
+                )
             rescue ::ActiveRecord::RecordInvalid => e
                 render(
                     json: {
                         errors: [create_activerecord_error('device creation failed!', e)]
                     },
                     status: :bad_request
-                    )
+                )
             end
 
             def show
@@ -52,14 +52,14 @@ module Api
                         # total number of measurements
                     },
                     status: :ok
-                    )
+                )
             rescue ::ActiveRecord::RecordNotFound => e
                 render(
                     json: {
                         errors: [create_activerecord_error('device not found!', e)]
                     },
                     status: :not_found
-                    )
+                )
             end
 
             def device_params

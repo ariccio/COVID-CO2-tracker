@@ -57,14 +57,14 @@ class ApplicationController < ::ActionController::API
                 errors: [create_jwt_error('something went wrong with parsing the JWT', e)]
               },
               status: :internal_server_error
-              )
+            )
           rescue ::ActiveRecord::RecordNotFound => e
             render(
               json: {
                 errors: [create_activerecord_notfound_error('user_id not found while looking up from decoded_token!', e)]
               },
               status: :not_found
-              )
+            )
           end
         else
           render(
@@ -72,7 +72,7 @@ class ApplicationController < ::ActionController::API
               errors: [create_missing_auth_header('hmmm, decoded_token is falsy')]
             },
             status: :internal_server_error
-            )
+          )
         end
     end
 
@@ -88,7 +88,7 @@ class ApplicationController < ::ActionController::API
               errors: error_array
             },
             status: :unauthorized
-            )
+          )
         end
     end
 

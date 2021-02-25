@@ -36,21 +36,21 @@ module Api
                             key: places_script_url_api_key_from_disk
                         },
                         status: :ok
-                        )
+                    )
                 when 'MAPS_JAVASCRIPT_API_KEY'
                     render(
                         json: {
                             key: maps_javascript_api_key_from_disk
                         },
                         status: :ok
-                        )
+                    )
                 else
                     render(
                         json: {
                             errors: [create_error("unknown api name: #{api_name_requested}", nil)]
                         },
                         status: :bad_request
-                        )
+                    )
                 end
             end
 

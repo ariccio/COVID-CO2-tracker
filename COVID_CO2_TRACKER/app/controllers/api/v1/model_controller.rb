@@ -11,14 +11,14 @@ module Api
                         name: @new_mode.name
                     },
                     status: :created
-                    )
+                )
             rescue ::ActiveRecord::RecordInvalid => e
                 render(
                     json: {
                         errors: [create_activerecord_error('device model creation failed!', e)]
                     },
                     status: :bad_request
-                    )
+                )
             end
 
             def show
@@ -31,14 +31,14 @@ module Api
                         # total number of measurements?
                     },
                     status: :ok
-                    )
+                )
             rescue ::ActiveRecord::RecordNotFound => e
                 render(
                     json: {
                         errors[create_activerecord_error('model not found!', e)]
                     },
                     status: :not_found
-                    )
+                )
             end
 
             def model_params
