@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
+import {useDispatch} from 'react-redux';
+import {useSelector} from 'react-redux';
+import {selectSelectedPlace} from '../google/googleSlice';
+
 import { GoogleMap, useJsApiLoader, Autocomplete } from '@react-google-maps/api';
 import { Button, Form } from 'react-bootstrap';
+
+import {setSelectedPlace} from './googleSlice';
 
 import { getGooglePlacesScriptAPIKey } from '../../utils/GoogleAPIKeys';
 // import {GeolocationPosition} from 'typescript/lib/lib.dom'
@@ -209,6 +215,7 @@ const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (pr
 }
 
 export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props) => {
+    const dispatch = useDispatch();
     const containerStyle = {
         width: '400px',
         height: '400px'
@@ -249,6 +256,13 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
         console.log(`geometry.viewport.toString: ${autocomplete.getPlace().geometry?.viewport.toString()}`)
         // autocomplete.getPlace()
         // debugger;
+        dispatch(setSelectedPlace(autocomplete.getPlace()));
+        if (map) {
+            const placeLocation = autocomplete.getPlace().geometry;
+            if (placeLocation) {
+                map.setCenter(placeLocation.location)
+            }
+        }
     }
 
     const [_zoomLevel, setZoomlevel] = useState(0);

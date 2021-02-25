@@ -115,6 +115,28 @@ vicinity: "1066 3rd Avenue, New York"
 
 interface googlePlacesState {
     // google.maps.places.
-    result: google.maps.places.PlaceResult
-    
+    selected: google.maps.places.PlaceResult   
 }
+
+const initialState: googlePlacesState = {
+    selected: {
+        name: ''
+    }
+}
+
+export const googlePlacesSlice = createSlice({
+    name: 'places',
+    initialState,
+    reducers: {
+        setSelectedPlace: (state, action: PayloadAction<google.maps.places.PlaceResult>) => {
+            state.selected = action.payload;
+        }
+    }
+});
+
+
+export const {setSelectedPlace} = googlePlacesSlice.actions;
+
+export const selectSelectedPlace = (state: RootState) => state.places.selected;
+
+export const placesReducer = googlePlacesSlice.reducer;
