@@ -11,28 +11,28 @@ module Api
 
         # for good advice on httponly: https://www.thegreatcodeadventure.com/jwt-storage-in-rails-the-right-way/
         cookies.signed[:jwt] = { value: token, httponly: true }
-        render json: { email: @user.email }, status: :created
+        render(json: { email: @user.email }, status: :created)
       rescue ::ActiveRecord::RecordInvalid => e
-        render json: {
+        render(json: {
           errors: [create_activerecord_error('User info not valid!', e)]
-        }, status: :unauthorized
+        }, status: :unauthorized)
       end
 
       def show
         @user = current_user
         device_ids = @user.my_devices
         # byebug
-        render json: {
+        render( json: {
           user_info: @user.as_json(only: [:email]),
           devices: device_ids,
           measurements: @user.my_measurements
-        }, status: :ok
+        }, status: :ok)
       rescue ::ActiveRecord::RecordInvalid => e
-        render json: {
+        render( json: {
           errors: [create_activerecord_error('User somehow not found.', e)]
-        }, status: :unauthorized
+        }, status: :unauthorized)
       end
-    
+
       def user_params
         params.require(:user).permit(:email, :password)
       end

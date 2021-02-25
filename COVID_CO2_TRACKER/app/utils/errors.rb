@@ -19,7 +19,7 @@ module Errors
     anError = single_error(message, error)
     anError
   end
-  
+
   def create_jwt_error(message, jwt_error)
     errors = jwt_error.message
     multiple_errors(message, errors)

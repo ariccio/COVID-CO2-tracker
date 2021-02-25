@@ -21,33 +21,33 @@ module Api
 
             def create
                 @new_device_instance = ::Device.create!(serial: device_params[:serial], model: device_params[:model_id], user: device_params[:user_id])
-                render json: {
+                render( json: {
                     serial: @new_device_instance.serial,
                     model_id: @new_device_instance.model.id,
                     user_id: @new_device_instance.user.id,
                     device_id: @new_device_instance.id
-                }, status: :created
+                }, status: :created)
             rescue ::ActiveRecord::RecordInvalid => e
-                render json: {
+                render( json: {
                     errors: [create_activerecord_error('device creation failed!', e)]
-                }, status: :bad_request
+                }, status: :bad_request)
             end
 
             def show
                 # byebug
                 @device_instance = ::Device.find(params[:id])
-                render json: {
+                render( json: {
                     device_id: @device_instance.id,
                     serial: @device_instance.serial,
                     device_model: @device_instance.model.name,
                     user_id: @device_instance.user.id,
                     measurements: first_ten_measurements(@device_instance.id)
                     # total number of measurements
-                }
+                }, status: :ok)
             rescue ::ActiveRecord::RecordNotFound => e
-                render json: {
+                render( json: {
                     errors: [create_activerecord_error('device not found!', e)]
-                }, status: :not_found
+                }, status: :not_found)
             end
 
             def device_params

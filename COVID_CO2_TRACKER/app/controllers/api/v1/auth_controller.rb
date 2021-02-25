@@ -14,44 +14,44 @@ module Api
           # encode token comes from ApplicationController
           token = encode_token(user_id: @user.id)
           # for good advice on httponly: https://www.thegreatcodeadventure.com/jwt-storage-in-rails-the-right-way/
-          cookies.signed[:jwt] = {value: token, httponly: true}
-          render json: {
+          cookies.signed[:jwt] = { value: token, httponly: true }
+          render( json: {
               email: @user.email
           },
-          status: :accepted
+          status: :accepted)
         else
           error_array = [create_error('authentication failed! Wrong password.', :not_acceptable.to_s)]
-          render json: {
+          render( json: {
             errors:
               error_array
-          }, status: :unauthorized
+          }, status: :unauthorized)
         end
       rescue ::ActiveRecord::RecordNotFound => e
         error_array = [create_error('Invalid username or password!', :not_acceptable.to_s)]
         error_array << create_activerecord_notfound_error('Invalid username or password!', e)
-        render json: {
+        render( json: {
           errors:
             error_array
-        }, status: :unauthorized
+        }, status: :unauthorized)
       end
 
       def get_email
         @user = current_user
-        render json: {
+        render( json: {
           email: @user.email
-        }, status: :ok
+        }, status: :ok)
       rescue ::JWT::DecodeError => e
         # byebug
-        render json: {
+        render( json: {
           email: '',
           errors: [create_jwt_error('decoding error', e)]
-        }, status: :bad_request
+        }, status: :bad_request)
       end
 
       def destroy
         cookies.delete(:jwt)
-        render json: {
-        }, status: :ok
+        render( json: {
+        }, status: :ok)
       end
 
       private
