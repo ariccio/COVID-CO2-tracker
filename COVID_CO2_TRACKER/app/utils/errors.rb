@@ -24,19 +24,19 @@ module Errors
     errors = jwt_error.message
     multiple_errors(message, errors)
   end
-  
+
   def create_activerecord_error(message, active_record_error)
     errors = active_record_error.record.errors.full_messages
     # puts "errors: #{errors}"
     multiple_errors(message, errors)
   end
-  
+
   def create_activerecord_notfound_error(message, active_record_error)
     errors = [active_record_error.id, active_record_error.model]
     # puts "errors: #{errors}"
     multiple_errors(message, errors)
   end
-  
+
   def create_missing_auth_header(message)
     errors = []
     multiple_errors(message, errors)

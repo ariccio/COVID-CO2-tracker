@@ -28,13 +28,15 @@ module Api
                         user_id: @new_device_instance.user.id,
                         device_id: @new_device_instance.id
                     },
-                    status: :created)
+                    status: :created
+                    )
             rescue ::ActiveRecord::RecordInvalid => e
                 render(
                     json: {
                         errors: [create_activerecord_error('device creation failed!', e)]
                     },
-                    status: :bad_request)
+                    status: :bad_request
+                    )
             end
 
             def show
@@ -49,19 +51,21 @@ module Api
                         measurements: first_ten_measurements(@device_instance.id)
                         # total number of measurements
                     },
-                    status: :ok)
+                    status: :ok
+                    )
             rescue ::ActiveRecord::RecordNotFound => e
                 render(
                     json: {
                         errors: [create_activerecord_error('device not found!', e)]
                     },
-                    status: :not_found)
+                    status: :not_found
+                    )
             end
 
             def device_params
                 # this isn't right?
                 ::Rails.logging.error('todo, check this symbol in parenthesis?')
-                byebug
+                # byebug
                 params.require[:device].permit(:id, :serial, :model_id, :user_id)
             end
         end

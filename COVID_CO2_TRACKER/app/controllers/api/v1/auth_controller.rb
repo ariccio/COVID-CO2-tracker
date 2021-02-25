@@ -19,7 +19,8 @@ module Api
             json: {
               email: @user.email
             },
-            status: :accepted)
+            status: :accepted
+            )
         else
           error_array = [create_error('authentication failed! Wrong password.', :not_acceptable.to_s)]
           render(
@@ -27,7 +28,8 @@ module Api
               errors:
               error_array
             },
-            status: :unauthorized)
+            status: :unauthorized
+            )
         end
       rescue ::ActiveRecord::RecordNotFound => e
         error_array = [create_error('Invalid username or password!', :not_acceptable.to_s)]
@@ -37,7 +39,8 @@ module Api
             errors:
               error_array
           },
-          status: :unauthorized)
+          status: :unauthorized
+          )
       end
 
       def email
@@ -46,7 +49,8 @@ module Api
           json: {
             email: @user.email
           },
-          status: :ok)
+          status: :ok
+          )
       rescue ::JWT::DecodeError => e
         # byebug
         render(
@@ -54,14 +58,16 @@ module Api
             email: '',
             errors: [create_jwt_error('decoding error', e)]
           },
-          status: :bad_request)
+          status: :bad_request
+          )
       end
 
       def destroy
         cookies.delete(:jwt)
         render(
           json: {},
-          status: :ok)
+          status: :ok
+          )
       end
 
       private

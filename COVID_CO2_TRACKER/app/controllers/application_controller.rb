@@ -4,7 +4,7 @@ require_relative '../utils/errors'
 KEY_PATH = ::Rails.root.join('config', 'keys', 'private_key.key')
 
 def encode_with_jwt(payload)
-  key = ::IO.binread(KEY_PATH)
+  key = ::IO.binread(::KEY_PATH)
   if key.blank?
     ::Rails.logging.error("Check your key file in #{::KEY_PATH}")
     # Not meant to be handled in a way that renders to user. This is a true internal server error.
@@ -15,7 +15,7 @@ def encode_with_jwt(payload)
 end
 
 def decode_with_jwt(payload)
-  key = ::IO.binread(KEY_PATH)
+  key = ::IO.binread(::KEY_PATH)
   if key.blank?
     ::Rails.logging.error("Check your key file in #{::KEY_PATH}")
     # Not meant to be handled in a way that renders to user. This is a true internal server error.
@@ -56,20 +56,23 @@ class ApplicationController < ::ActionController::API
               json: {
                 errors: [create_jwt_error('something went wrong with parsing the JWT', e)]
               },
-              status: :internal_server_error)
+              status: :internal_server_error
+              )
           rescue ::ActiveRecord::RecordNotFound => e
             render(
               json: {
                 errors: [create_activerecord_notfound_error('user_id not found while looking up from decoded_token!', e)]
               },
-              status: :not_found)
+              status: :not_found
+              )
           end
         else
           render(
             json: {
               errors: [create_missing_auth_header('hmmm, decoded_token is falsy')]
             },
-            status: :internal_server_error)
+            status: :internal_server_error
+            )
         end
     end
 
@@ -84,7 +87,8 @@ class ApplicationController < ::ActionController::API
             json: {
               errors: error_array
             },
-            status: :unauthorized)
+            status: :unauthorized
+            )
         end
     end
 

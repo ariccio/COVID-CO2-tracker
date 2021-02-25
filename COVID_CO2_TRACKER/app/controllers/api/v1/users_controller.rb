@@ -15,13 +15,15 @@ module Api
           json: {
             email: @user.email
           },
-          status: :created)
+          status: :created
+          )
       rescue ::ActiveRecord::RecordInvalid => e
         render(
           json: {
             errors: [create_activerecord_error('User info not valid!', e)]
           },
-          status: :unauthorized)
+          status: :unauthorized
+          )
       end
 
       def show
@@ -34,13 +36,15 @@ module Api
             devices: device_ids,
             measurements: @user.my_measurements
           },
-          status: :ok)
+          status: :ok
+          )
       rescue ::ActiveRecord::RecordInvalid => e
         render(
           json: {
             errors: [create_activerecord_error('User somehow not found.', e)]
           },
-          status: :unauthorized)
+          status: :unauthorized
+          )
       end
 
       def user_params

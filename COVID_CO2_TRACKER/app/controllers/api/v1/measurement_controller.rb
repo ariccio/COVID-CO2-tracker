@@ -12,13 +12,15 @@ module Api
                         co2ppm: @new_measurement.co2ppm,
                         measurementtime: @new_measurement.measurementtime
                     },
-                    status: :created)
-            rescue ActiveRecord::RecordInvalid => e
+                    status: :created
+                    )
+            rescue ::ActiveRecord::RecordInvalid => e
                 render(
                     json: {
                         errors: [create_activerecord_error('measurement creation failed!', e)]
                     },
-                    status: :bad_request)
+                    status: :bad_request
+                    
             end
 
 
@@ -30,13 +32,15 @@ module Api
                         co2ppm: @measurement.co2ppm,
                         measurementtime: @measurement.measurementtime
                     },
-                    status: :ok)
-            rescue ActiveRecord::RecordNotFound => e
+                    status: :ok
+                    )
+            rescue ::ActiveRecord::RecordNotFound => e
                 render(
                     json: {
                         errors[create_activerecord_error('manufacturer not found!', e)]
                     },
-                    status: :not_found)
+                    status: :not_found
+                    )
             end
 
 
