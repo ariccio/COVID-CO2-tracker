@@ -1,5 +1,6 @@
-module Errors
+# frozen_string_literal: true
 
+module Errors
   def single_error(message, error)
     {
       message: [message],
@@ -40,5 +41,4 @@ module Errors
     errors = []
     multiple_errors(message, errors)
   end
-
 end

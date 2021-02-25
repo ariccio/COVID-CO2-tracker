@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Api
   module V1
     class MeasurementController < ApplicationController
@@ -21,6 +23,7 @@ module Api
           status: :bad_request
         )
       end
+
       def show
         @measurement = Measurement.find(measurement_params[:id])
         render(
@@ -34,11 +37,12 @@ module Api
       rescue ::ActiveRecord::RecordNotFound => e
         render(
           json: {
-            errors[create_activerecord_error('manufacturer not found!', e)]
+            errors: [create_activerecord_error('manufacturer not found!', e)]
           },
           status: :not_found
         )
       end
+
       def measurement_params
         params.require[:measurement].permit(:id, :device_id, :co2ppm, :measurementtime)
       end

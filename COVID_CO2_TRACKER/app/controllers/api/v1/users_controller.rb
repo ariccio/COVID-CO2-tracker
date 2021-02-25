@@ -1,10 +1,11 @@
+# frozen_string_literal: true
+
 module Api
   module V1
     class UsersController < ApplicationController
       skip_before_action :authorized, only: [:create]
 
-
-# Note to self: https://philna.sh/blog/2020/01/15/test-signed-cookies-in-rails/
+      # Note to self: https://philna.sh/blog/2020/01/15/test-signed-cookies-in-rails/
       def create
         @user = ::User.create!(user_params)
         token = encode_token(user_id: @user.id)

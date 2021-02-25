@@ -1,12 +1,11 @@
+# frozen_string_literal: true
+
 module Api
   module V1
-
     class AuthController < ApplicationController
       skip_before_action :authorized, only: [:create, :email]
 
-
-# Note to self: https://philna.sh/blog/2020/01/15/test-signed-cookies-in-rails/
-
+      # Note to self: https://philna.sh/blog/2020/01/15/test-signed-cookies-in-rails/
       def create
         @user = ::User.find_by!(email: user_login_params[:email])
         # User#authenticate comes from BCrypt
@@ -77,6 +76,5 @@ module Api
         params.require(:user).permit(:email, :password)
       end
     end
-
   end
 end

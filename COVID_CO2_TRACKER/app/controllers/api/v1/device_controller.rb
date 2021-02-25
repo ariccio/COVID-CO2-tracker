@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 def measurements_serializer(measurements, device_id)
   measurements.each.map do |measurement|
     {

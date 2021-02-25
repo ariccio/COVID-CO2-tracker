@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 def first_ten(id)
   models = ::Model.where(manufacturer_id: id).first(10)
   models.each.map do |model|
@@ -46,7 +48,7 @@ module Api
       rescue ::ActiveRecord::RecordNotFound => e
         render(
           json: {
-              errors: [create_activerecord_error('manufacturer not found!', e)]
+            errors: [create_activerecord_error('manufacturer not found!', e)]
           },
           status: :not_found
         )

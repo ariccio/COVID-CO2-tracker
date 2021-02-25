@@ -1,5 +1,6 @@
-require_relative '../utils/errors'
+# frozen_string_literal: true
 
+require_relative '../utils/errors'
 
 KEY_PATH = ::Rails.root.join('config', 'keys', 'private_key.key')
 
@@ -25,71 +26,68 @@ def decode_with_jwt(payload)
 end
 
 class ApplicationController < ::ActionController::API
-    include ::ActionController::Cookies
-    include ::Errors
+  include ::ActionController::Cookies
+  include ::Errors
+  before_action :authorized
+  def encode_token(payload)
+    encode_with_jwt(payload)
+  end
 
-    before_action :authorized
+  def authenticate_user
+    jwt = cookies.signed[:jwt]
+    decode_with_jwt(jwt)
+  end
 
-    def encode_token(payload)
-        encode_with_jwt(payload)
-    end
+  def user_id_from_jwt_token
+    # byebug
+    authenticate_user[0]['user_id']
+  end
 
-    def authenticate_user
-        jwt = cookies.signed[:jwt]
-        decode_with_jwt(jwt)
-    end
-
-    def user_id_from_jwt_token
+  def current_user
+    if user_id_from_jwt_token
+      begin
         # byebug
-        user_id = authenticate_user[0]['user_id']
-    end
-
-    def current_user
-        if user_id_from_jwt_token
-          begin
-            # byebug
-            user_id = user_id_from_jwt_token
-            @user = ::User.find(user_id)
-            return @user
-          rescue ::JWT::DecodeError => e
-            render(
-              json: {
-                errors: [create_jwt_error('something went wrong with parsing the JWT', e)]
-              },
-              status: :internal_server_error
-            )
-          rescue ::ActiveRecord::RecordNotFound => e
-            render(
-              json: {
-                errors: [create_activerecord_notfound_error('user_id not found while looking up from decoded_token!', e)]
-              },
-              status: :not_found
-            )
-          end
-        else
-          render(
-            json: {
-              errors: [create_missing_auth_header('hmmm, decoded_token is falsy')]
-            },
-            status: :internal_server_error
-          )
-        end
-    end
-
-      def logged_in?
-        !!current_user
+        user_id = user_id_from_jwt_token
+        @user = ::User.find(user_id)
+        @user
+      rescue ::JWT::DecodeError => e
+        render(
+          json: {
+            errors: [create_jwt_error('something went wrong with parsing the JWT', e)]
+          },
+          status: :internal_server_error
+        )
+      rescue ::ActiveRecord::RecordNotFound => e
+        render(
+          json: {
+            errors: [create_activerecord_notfound_error('user_id not found while looking up from decoded_token!', e)]
+          },
+          status: :not_found
+        )
       end
-
-    def authorized
-        unless (logged_in?)
-          error_array = [create_error('Please log in', :unauthorized.to_s)]
-          render(
-            json: {
-              errors: error_array
-            },
-            status: :unauthorized
-          )
-        end
+    else
+      render(
+        json: {
+          errors: [create_missing_auth_header('hmmm, decoded_token is falsy')]
+        },
+        status: :internal_server_error
+      )
     end
+  end
 
+  def logged_in?
+    !!current_user
+  end
+
+  def authorized
+    unless (logged_in?)
+      error_array = [create_error('Please log in', :unauthorized.to_s)]
+      render(
+        json: {
+          errors: error_array
+        },
+        status: :unauthorized
+      )
+    end
+  end
 end

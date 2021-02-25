@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Api
   module V1
     class ModelController < ApplicationController
@@ -19,6 +21,7 @@ module Api
           status: :bad_request
         )
       end
+
       def show
         @model = Model.find(model_params[:id])
         render(
@@ -33,11 +36,12 @@ module Api
       rescue ::ActiveRecord::RecordNotFound => e
         render(
           json: {
-            errors[create_activerecord_error('model not found!', e)]
+            errors: [create_activerecord_error('model not found!', e)]
           },
           status: :not_found
         )
       end
+
       def model_params
         params.require[:model].permit(:id, :name, :manufacturer_id)
       end
