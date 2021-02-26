@@ -37,6 +37,11 @@ module Errors
     multiple_errors(message, errors)
   end
 
+  def create_not_logged_in_error(message)
+    errors = []
+    single_error(message, nil)
+  end
+
   def create_missing_auth_header(message)
     errors = []
     multiple_errors(message, errors)

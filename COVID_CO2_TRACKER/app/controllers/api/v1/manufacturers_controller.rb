@@ -1,12 +1,17 @@
 # frozen_string_literal: true
 
+# Ok, I need to write the serializers!
 def first_ten(id)
   models = ::Model.where(manufacturer_id: id).first(10)
+  # byebug
+  # Device.where(model_id: model.id)
   models.each.map do |model|
     {
       model_id: model.id,
       manufacturer_id: model.manufacturer.id,
-      name: model.name
+      name: model.name,
+      count: Device.where(model_id: model.id).count
+      # model.count instances
       # total number of measurements?
     }
   end
@@ -15,7 +20,7 @@ end
 module Api
   module V1
     class ManufacturersController < ApplicationController
-      skip_before_action :authorized, only: [:show]
+      skip_before_action :authorized, only: [:show, :all_manufacturers]
       def create
         # byebug
         @new_manufacturer = ::Manufacturer.create!(name: manufacturer_params[:name])
@@ -36,7 +41,7 @@ module Api
       end
 
       def show
-        @manufacturer = ::Manufacturer.find(manufacturer_params[:id])
+        @manufacturer = ::Manufacturer.find(params[:id])
         render(
           json: {
             manufacturer_id: @manufacturer.id,

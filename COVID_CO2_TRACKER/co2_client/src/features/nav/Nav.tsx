@@ -11,6 +11,9 @@ import { LinkContainer } from 'react-router-bootstrap';
 // import {Login, LoginFormType} from '../login/Login';
 import {Logout} from '../login/Logout';
 
+
+import {manufacturersPath, homePath, devicesPath, profilePath, deviceModelsPath} from '../../paths/paths';
+
 // import {HomePage} from '../home/HomePage';
 import {selectUsername, setUsername} from '../login/loginSlice';
 
@@ -35,7 +38,7 @@ const renderLoginSignup = (): JSX.Element =>
 const loggedIn = (username: string) =>
   <NavDropdown title={`logged in as ${username}!`} id="basic-nav-dropdown">
     <NavDropdown.Item>
-        <LinkContainer to='/profile'>
+        <LinkContainer to={profilePath}>
             <NavItem className='nav-item'>{username}'s profile</NavItem>
         </LinkContainer>
     </NavDropdown.Item>
@@ -86,16 +89,16 @@ const UserNav: React.FC<UserNavProps> = ({username}) =>
         <Navbar.Toggle aria-controls="basic-navbar-nav"/>
         <Navbar.Collapse  id="basic-navbar-nav">
             <Nav justify={true} fill={false} variant="tabs" style={{display:"flex", flexDirection:"row", float: "left"}}>
-                <LinkContainer to='/home'>
+                <LinkContainer to={homePath}>
                     <Nav.Link>Home</Nav.Link>
                 </LinkContainer>
-                <LinkContainer to='/devices'>
+                <LinkContainer to={devicesPath}>
                     <Nav.Link>Devices</Nav.Link>
                 </LinkContainer>
-                <LinkContainer to='/create'>
-                    <Nav.Link>Create</Nav.Link>
+                <LinkContainer to={manufacturersPath}>
+                    <Nav.Link>Manufacturers</Nav.Link>
                 </LinkContainer>
-                <LinkContainer to='/devicemodels'>
+                <LinkContainer to={deviceModelsPath}>
                     <Nav.Link>Models</Nav.Link>
                 </LinkContainer>
 
@@ -113,6 +116,10 @@ const UserNav: React.FC<UserNavProps> = ({username}) =>
 const loadEmail = (dispatch: ReturnType<typeof useDispatch>) => {
   const emailPromise = get_email();
   emailPromise.then(email => {
+    if (email === null) {
+      console.warn('not logged in!');
+      return;
+    }
     if (email.errors === undefined){
       if (email.email === undefined) {
         alert("undefined response from server. Likely internal server error getting username!");

@@ -16,15 +16,25 @@ export const Profile: React.FC<ProfileProps> = () => {
 
     const [userInfo, setUserInfo] = useState(defaultUserInfo);
     useEffect(() => {
-        const userInfoPromise: Promise<UserInfoType> = queryUserInfo();
+        //TODO: should be in redux
+        const userInfoPromise: Promise<UserInfoType | null> = queryUserInfo();
         userInfoPromise.then((userInfo) => {
+            if (userInfo === null) {
+                return;
+            }
             console.log(userInfo);
             setUserInfo(userInfo)
         })
     }, [])
 
     //TODO: if userInfo.errors?
-
+    if (userInfo === defaultUserInfo) {
+        return (
+            <h1>
+                Not logged in!
+            </h1>
+        )
+    }
     return (
         <>
             <h1>

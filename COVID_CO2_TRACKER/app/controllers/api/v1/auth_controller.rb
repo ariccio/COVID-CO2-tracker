@@ -5,32 +5,32 @@ module Api
     class AuthController < ApplicationController
       skip_before_action :authorized, only: [:create, :email]
 
-      # Note to self: https://philna.sh/blog/2020/01/15/test-signed-cookies-in-rails/
-      def create
-        @user = ::User.find_by!(email: user_login_params[:email])
-        # User#authenticate comes from BCrypt
-        if @user.authenticate(user_login_params[:password])
-          # encode token comes from ApplicationController
-          token = encode_token(user_id: @user.id)
-          # for good advice on httponly: https://www.thegreatcodeadventure.com/jwt-storage-in-rails-the-right-way/
-          cookies.signed[:jwt] = { value: token, httponly: true }
-          render(
-            json: {
-              email: @user.email
-            },
-            status: :accepted
-          )
-        else
-          error_array = [create_error('authentication failed! Wrong password.', :not_acceptable.to_s)]
-          render(
-            json: {
-              errors:
-              error_array
-            },
-            status: :unauthorized
-          )
-        end
-      rescue ::ActiveRecord::RecordNotFound => e
+
+      def render_failed_authentication
+        error_array = [create_error('authentication failed! Wrong password.', :not_acceptable.to_s)]
+        render(
+          json: {
+            errors:
+            error_array
+          },
+          status: :unauthorized
+        )
+      end
+
+      def render_successful_authentication
+        # encode token comes from ApplicationController
+        token = encode_token(user_id: @user.id)
+        # for good advice on httponly: https://www.thegreatcodeadventure.com/jwt-storage-in-rails-the-right-way/
+        cookies.signed[:jwt] = { value: token, httponly: true }
+        render(
+          json: {
+            email: @user.email
+          },
+          status: :accepted
+        )
+      end
+
+      def render_activerecord_notfound_error_invalid_username_or_password(e)
         error_array = [create_error('Invalid username or password!', :not_acceptable.to_s)]
         error_array << create_activerecord_notfound_error('Invalid username or password!', e)
         render(
@@ -42,16 +42,16 @@ module Api
         )
       end
 
-      def email
-        @user = current_user
+      def render_not_logged_in
         render(
-          json: {
-            email: @user.email
+          json:{
+            errors: [create_not_logged_in_error('user not logged in')]
           },
-          status: :ok
+          status: :unauthorized
         )
-      rescue ::JWT::DecodeError => e
-        # byebug
+      end
+
+      def render_jwt_decode_error(e)
         render(
           json: {
             email: '',
@@ -59,6 +59,35 @@ module Api
           },
           status: :bad_request
         )
+      end
+
+      # Note to self: https://philna.sh/blog/2020/01/15/test-signed-cookies-in-rails/
+      def create
+        @user = ::User.find_by!(email: user_login_params[:email])
+        # User#authenticate comes from BCrypt
+        if @user.authenticate(user_login_params[:password])
+          render_successful_authentication
+        else
+          render_failed_authentication
+        end
+      rescue ::ActiveRecord::RecordNotFound => e
+        render_activerecord_notfound_error_invalid_username_or_password(e)
+      end
+
+      def email
+        @user = current_user
+        if (@user.nil?)
+          render_not_logged_in
+          return
+        end
+        render(
+          json: {
+            email: @user.email
+          },
+          status: :ok
+        )
+      rescue ::JWT::DecodeError => e
+        render_jwt_decode_error(e)
       end
 
       def destroy
@@ -72,6 +101,7 @@ module Api
       private
 
       def user_login_params
+        # byebug
         # params { user: {username: 'Chandler Bing', password: 'hi' } }
         params.require(:user).permit(:email, :password)
       end

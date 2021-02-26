@@ -8,6 +8,8 @@ import {DevicesTable} from './DevicesTable';
 import {MeasurementsTable} from '../measurements/MeasurementsTable';
 import {CreateManufacturerOrModel} from '../create/createManufacturerModel';
 
+import {devicesPath} from '../../paths/paths';
+
 interface deviceProps {
     deviceId: string
 }
@@ -40,12 +42,26 @@ export const Devices: React.FC<{}> = () => {
     const [userInfo, setUserInfo] = useState(defaultUserInfo);
 
     useEffect(() => {
-        const userInfoPromise: Promise<UserInfoType> = queryUserInfo();
+
+        //TODO: should be in redux
+        const userInfoPromise: Promise<UserInfoType | null> = queryUserInfo();
         userInfoPromise.then((userInfo) => {
+            if (userInfo === null) {
+                return;
+            }
             // console.log(userInfo);
             setUserInfo(userInfo)
         })
     }, [])
+
+    if (userInfo === defaultUserInfo) {
+        return (
+            <h1>
+                Not logged in!
+            </h1>
+        )
+    }
+
 
     return (
         <>
@@ -69,7 +85,7 @@ export const Devices: React.FC<{}> = () => {
         </p>
 
 
-        <Route path={'/devices/:deviceId'} component={Device}/>
+        <Route path={`${devicesPath}/:deviceId`} component={Device}/>
 
         <p>
             popular devices: (NOT IMPLEMENTED YET, will show all kinds of stats)

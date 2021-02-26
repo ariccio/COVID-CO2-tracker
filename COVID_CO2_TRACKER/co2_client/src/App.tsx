@@ -16,26 +16,26 @@ import {Devices} from './features/devices/Devices';
 import {CreateManufacturerOrModel} from './features/create/createManufacturerModel';
 import {DeviceModels} from './features/deviceModels/DeviceModels';
 
-
+import {manufacturersPath, homePath, devicesPath, profilePath, deviceModelsPath, loginPath, signupPath} from './paths/paths';
 
 import './App.css';
 
 
 
 const renderRedirect = () =>
-  <Redirect to='/home'/>
+  <Redirect to={homePath}/>
 
 
   
 const routes = () =>
   <>
-    <Route exact path='/home' component={HomePage}/>
-    <Route exact path='/profile' component={Profile}/>
-    <Route exact path='/login' component={LoginComponent} />
-    <Route exact path='/singup' component={SignupComponent}/>
-    <Route exact path='/create' component={CreateManufacturerOrModel}/>
-    <Route path='/devices' component={Devices}/>
-    <Route path='/devicemodels' component={DeviceModels}/>
+    <Route exact path={homePath} component={HomePage}/>
+    <Route exact path={profilePath} component={Profile}/>
+    <Route exact path={loginPath} component={LoginComponent} />
+    <Route exact path={signupPath} component={SignupComponent}/>
+    <Route exact path={manufacturersPath} component={CreateManufacturerOrModel}/>
+    <Route path={devicesPath} component={Devices}/>
+    <Route path={deviceModelsPath} component={DeviceModels}/>
     <Route exact path='/' render={renderRedirect}/>
   </>
 

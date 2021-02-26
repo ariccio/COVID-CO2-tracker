@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-// import {Redirect, Link} from 'react-router-dom';
+import {Redirect} from 'react-router-dom';
 import {setUsername, selectUsername} from './loginSlice';
 
 import {login, LoginResponse, signup, SignupResponse} from '../../utils/Authentication';
-
+import {profilePath} from '../../paths/paths';
 
 export enum LoginFormType {
     Login,
@@ -109,9 +109,9 @@ export const Login = ({formType}: LoginProps) => {
         e.preventDefault();
         onSubmit(email, password, setInvalid, dispatch, formType);
     }
-    debugger;
+    // debugger;
     if (username !== '') {
-        return <h1>Logged in as {username} already!</h1>
+        return <Redirect to={profilePath}/>
     }
     return (
         <>

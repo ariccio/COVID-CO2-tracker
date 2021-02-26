@@ -3,6 +3,7 @@ import {Table} from 'react-bootstrap';
 import {UserInfoDevice} from '../../utils/QueryDeviceInfo';
 import {Link} from 'react-router-dom';
 
+import {devicesPath} from '../../paths/paths';
 
 const deviceTableHeader = () =>
     <thead>
@@ -24,11 +25,11 @@ const mapDevicesToTableBody = (devices: Array<UserInfoDevice>)/*: JSX.Element*/ 
     return devices.map((device, index: number) => {
         return (
             <tr key={deviceRowKey(device.device_id)}>                
-                <td><Link to={`/devices/${device.device_id}`}>{index}</Link></td>
-                <td><Link to={`/devices/${device.device_id}`}>{device.device_id}</Link></td>
-                <td><Link to={`/devices/${device.device_id}`}>{device.serial}</Link></td>
-                <td><Link to={`/devices/${device.device_id}`}>{device.device_model}</Link></td>
-                <td><Link to={`/devices/${device.device_id}`}>{device.device_manufacturer}</Link></td>
+                <td><Link to={`${devicesPath}/${device.device_id}`}>{index}</Link></td>
+                <td><Link to={`${devicesPath}/${device.device_id}`}>{device.device_id}</Link></td>
+                <td><Link to={`${devicesPath}/${device.device_id}`}>{device.serial}</Link></td>
+                <td><Link to={`${devicesPath}/${device.device_id}`}>{device.device_model}</Link></td>
+                <td><Link to={`${devicesPath}/${device.device_id}`}>{device.device_manufacturer}</Link></td>
             </tr>
         )
     })

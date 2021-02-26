@@ -55,7 +55,7 @@ function userInfoToStrongType(userInfo: any): UserInfoType {
     return return_value;
 }
 
-export async function queryUserInfo(): Promise<UserInfoType> {
+export async function queryUserInfo(): Promise<UserInfoType | null> {
     const rawResponse: Promise<Response> = fetch(SHOW_USER_URL, userRequestOptions());
     // console.log("body: ", (await rawResponse).body)
     const awaitedResponse = await rawResponse;
@@ -63,6 +63,13 @@ export async function queryUserInfo(): Promise<UserInfoType> {
     const response = await jsonResponse;
     // console.log(response);
     if ((response.errors !== undefined) || (awaitedResponse.status !== 200)) {
+        if (awaitedResponse.status === 401) {
+            console.warn("user not logged in!");
+            if (response.errors !== undefined) {
+                console.error(formatErrors(response.errors));
+                return null;
+            }
+        }
         console.error(formatErrors(response.errors));
         alert(formatErrors(response.errors));
         if (awaitedResponse.status !== 200) {

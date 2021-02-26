@@ -122,10 +122,10 @@ export async function login(username: string, password: string): Promise<LoginRe
     console.assert(response != null);
     console.assert(response !== undefined);
     console.assert(response !== "undefined");
-    if ((response.errors !== undefined) || (awaitedResponse.status !== 200)) {
+    if ((response.errors !== undefined) || (awaitedResponse.status !== 202)) {
         console.log("modified since last time I tested this. Integration testing is hard.")
-        if (awaitedResponse.status !== 200) {
-            console.warn(`server returned a response with a status field (${awaitedResponse.status}), and it wasn't a 200 (OK) status.`);
+        if (awaitedResponse.status !== 202) {
+            console.warn(`server returned a response with a status field (${awaitedResponse.status}), and it wasn't a 202 (CREATED) status.`);
             // console.log(response);
             // alert(response);
         }
@@ -133,8 +133,7 @@ export async function login(username: string, password: string): Promise<LoginRe
             console.error(formatErrors(response.errors));
             alert(formatErrors(response.errors));        
         }
-        debugger;
-        throw new Error("hmm");
+        return null;
     }
     if (response.errors === undefined) {
         //console.assert(response.jwt !== undefined);
@@ -146,7 +145,7 @@ export async function login(username: string, password: string): Promise<LoginRe
     return null;
 }
 
-export async function get_email(): Promise<LoginResponse> {
+export async function get_email(): Promise<LoginResponse | null> {
     const requestOptions: RequestInit = get_email_options();
     const rawFetchResponse: Promise<Response> = fetch(EMAIL_URL, requestOptions);
     const awaitedResponse = await rawFetchResponse;
@@ -158,6 +157,13 @@ export async function get_email(): Promise<LoginResponse> {
     const jsonResponse: Promise<any> = awaitedResponse.json();
     const response = await jsonResponse;
     if ((response.errors !== undefined) || (awaitedResponse.status !== 200)) {
+        if (awaitedResponse.status === 401) {
+            console.warn("no cookie, user not logged in!");
+            if (response.errors !== undefined) {
+                console.warn(formatErrors(response.errors));
+            }
+            return null
+        }
         if (awaitedResponse.status !== 200) {
             console.warn(`server returned a response with a status field (${awaitedResponse.status}), and it wasn't a 200 (OK) status.`);
             debugger;

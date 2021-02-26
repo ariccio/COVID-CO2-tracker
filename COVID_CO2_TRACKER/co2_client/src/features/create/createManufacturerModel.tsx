@@ -2,6 +2,8 @@ import React, {useEffect, useState} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {Dropdown, Modal, Button, Form} from 'react-bootstrap';
 
+import {DeviceModelsTable} from '../deviceModels/DeviceModelsTable';
+
 import {API_URL} from '../../utils/UrlPath';
 import {postRequestOptions, userRequestOptions} from '../../utils/DefaultRequestOptions';
 import {formatErrors} from '../../utils/ErrorObject';
@@ -33,6 +35,18 @@ interface NewManufacturerResponse {
     errors?: any
 }
 
+export interface ManufacturerModelInfo {
+    model_id: number,
+    name: string,
+    count: number
+}
+
+export interface SingleManufacturerInfo {
+    manufacturer_id: number,
+    name: string,
+    models: Array<ManufacturerModelInfo>,
+}
+
 const MANUFACTURERS_URL = API_URL + '/manufacturers';
 
 function responseToManufacturersArrayStrongType(response: any): ManufacturersArray {
@@ -48,6 +62,44 @@ function responseToManufacturersArrayStrongType(response: any): ManufacturersArr
         }
     }
     return response;
+}
+
+function manufacturerInfoResponseToStrongType(response: any): SingleManufacturerInfo {
+    console.assert(response.manufacturer_id !== undefined);
+    console.assert(response.name !== undefined);
+    console.assert(response.models !== undefined);
+    if (response.models.length === undefined) {
+        throw new Error("missing property length!");
+    }
+    for (let i = 0; i < parseInt(response.models.length); i++) {
+        console.assert(response.models[i].model_id !== undefined);
+        console.assert(response.models[i].name !== undefined);
+        console.assert(response.models[i].count !== undefined);
+    }
+    return response;
+}
+
+async function queryManufacturerInfo(manufacturer_id: string): Promise<SingleManufacturerInfo | null> {
+    // if (manufacturer_id === '-1') {
+    //     return null;
+    // }
+    const MANUFACTURER_SHOW_URL = (MANUFACTURERS_URL + `/${manufacturer_id}`);
+    const rawResponse: Promise<Response> = fetch(MANUFACTURER_SHOW_URL, userRequestOptions() );
+    const awaitedResponse = await rawResponse;
+    const jsonResponse = await awaitedResponse.json();
+    const response = await jsonResponse;
+    if ((response.errors !== undefined) || (awaitedResponse.status !== 200)) {
+        if (awaitedResponse.status !== 200) {
+            console.warn("server returned a response with a status field, and it wasn't a 200 (OK) status.");
+        }
+        console.error(formatErrors(response.errors));
+        alert(formatErrors(response.errors));
+        debugger;
+        throw new Error("hmm");
+    }
+    
+    // debugger;
+    return manufacturerInfoResponseToStrongType(response);
 }
 
 
@@ -176,6 +228,11 @@ const CreateManufacturerModalDialog: React.FC<manufacturerDialogProps> = (props:
 }
 
 // const CreateManufacturer: React.FC<
+const initSingleManufactuerInfo: SingleManufacturerInfo = {
+    name: '',
+    manufacturer_id: -1,
+    models: []
+}
 
 export const CreateManufacturerOrModel: React.FC<CreateManufacturerOrModelProps> = () => {
 
@@ -184,6 +241,7 @@ export const CreateManufacturerOrModel: React.FC<CreateManufacturerOrModelProps>
 
     //This should be in redux
     const [selectedManufacturer, setSelectedManufacturer] = useState("");
+    const [manufacturerModels, setManufacturerModels] = useState(initSingleManufactuerInfo as SingleManufacturerInfo);
 
     useEffect(() => {
         const getAllManufacturersPromise = queryManufacturers();
@@ -191,6 +249,17 @@ export const CreateManufacturerOrModel: React.FC<CreateManufacturerOrModelProps>
             setKnownManufacturers(result);
         })
     },[showAddManufacturer])
+
+    useEffect(() => {
+        if ((selectedManufacturer !== '') && (selectedManufacturer !== '-1')) {
+            const getManufacturerInfoPromise = queryManufacturerInfo(selectedManufacturer);
+            getManufacturerInfoPromise.then(manufacturerInfo => {
+                if (manufacturerInfo !== null) {
+                    setManufacturerModels(manufacturerInfo);
+                }
+            })
+        }
+    }, [selectedManufacturer])
 
     const selectManufacturerHandler = (eventKey: any, event: Object) => {
         if (eventKey === "-1") {
@@ -211,6 +280,7 @@ export const CreateManufacturerOrModel: React.FC<CreateManufacturerOrModelProps>
                     <Dropdown.Item eventKey={"-1"}>Create new manufacturer</Dropdown.Item>
                 </Dropdown.Menu>
             </Dropdown>
+            <DeviceModelsTable models={manufacturerModels.models}/>
         </>
     )
 }
