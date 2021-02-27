@@ -1,12 +1,12 @@
 
 import React, {useEffect, useState}  from 'react';
 import {Route, RouteComponentProps} from 'react-router-dom';
-
+import {Button} from 'react-bootstrap';
 import {UserInfoType, queryUserInfo, defaultUserInfo} from '../../utils/QueryUserInfo';
 import {defaultDeviceInfoResponse, DeviceInfoResponse, queryDeviceInfo} from '../../utils/QueryDeviceInfo';
 import {DevicesTable} from './DevicesTable';
 import {MeasurementsTable} from '../measurements/MeasurementsTable';
-import {CreateManufacturerOrModel} from '../create/createManufacturerModel';
+import {CreateManufacturerOrModel} from '../manufacturers/Manufacturers';
 
 import {devicesPath} from '../../paths/paths';
 
@@ -40,13 +40,15 @@ export function Device(props: RouteComponentProps<deviceProps>) {
 export const Devices: React.FC<{}> = () => {
     
     const [userInfo, setUserInfo] = useState(defaultUserInfo);
-
+    const [createClicked, setCreateClicked] = useState(false);
+    const [notLoggedIn, setNotLoggedIn] = useState(false);
     useEffect(() => {
 
         //TODO: should be in redux
         const userInfoPromise: Promise<UserInfoType | null> = queryUserInfo();
         userInfoPromise.then((userInfo) => {
             if (userInfo === null) {
+                setNotLoggedIn(true);
                 return;
             }
             // console.log(userInfo);
@@ -54,7 +56,7 @@ export const Devices: React.FC<{}> = () => {
         })
     }, [])
 
-    if (userInfo === defaultUserInfo) {
+    if (notLoggedIn) {
         return (
             <h1>
                 Not logged in!
@@ -62,34 +64,38 @@ export const Devices: React.FC<{}> = () => {
         )
     }
 
+    if (userInfo === defaultUserInfo) {
+         return (
+            <h3>
+                Loading...
+            </h3>
+        )
+    }
 
     return (
         <>
-            <h3>
-                My devices:
-            </h3>
-        <DevicesTable devices={userInfo.user_info.devices}/>
-
-        create a device:
-        <CreateManufacturerOrModel/>
-
-
-        <br>
-        </br>
-        <br>
-        </br>
-        <br>
-        </br>
-        <p>
-            Selected device:
-        </p>
+            <Button variant={createClicked ? "secondary" : "primary"} onClick={() => {setCreateClicked(!createClicked)}}>
+                create a device:
+            </Button>
+            <br/>
+            <br/>
+            <br/>
+            {createClicked ? <CreateManufacturerOrModel/> : null}
 
 
-        <Route path={`${devicesPath}/:deviceId`} component={Device}/>
+            <br/>
+            <br/>
+            <br/>
+            <p>
+                Selected device:
+            </p>
 
-        <p>
-            popular devices: (NOT IMPLEMENTED YET, will show all kinds of stats)
-        </p>
+
+            <Route path={`${devicesPath}/:deviceId`} component={Device}/>
+
+            <p>
+                popular devices: (NOT IMPLEMENTED YET, will show all kinds of stats)
+            </p>
         </>
     )
 }

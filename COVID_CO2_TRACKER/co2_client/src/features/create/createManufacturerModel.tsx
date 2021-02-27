@@ -1,33 +1,23 @@
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import {Dropdown, Modal, Button, Form} from 'react-bootstrap';
+import {Modal, Button, Form} from 'react-bootstrap';
 
-import {DeviceModelsTable} from '../deviceModels/DeviceModelsTable';
+import {ManufacturerDeviceModelsTable} from '../deviceModels/DeviceModelsTable';
 
 import {API_URL} from '../../utils/UrlPath';
 import {postRequestOptions, userRequestOptions} from '../../utils/DefaultRequestOptions';
-import {formatErrors} from '../../utils/ErrorObject';
+import {formatErrors, ErrorObjectType} from '../../utils/ErrorObject';
 
 import {setEnteredManufacturerText, setManufacturerFeedbackText} from './creationSlice';
 import {selectEnteredManufacturerText, selectManufacturerFeedbackText} from './creationSlice';
 
-interface CreateManufacturerOrModelProps {
 
-}
+import {ManufacturerModelInfo, SingleManufacturerInfo} from '../manufacturers/manufacturerSlice';
+
+import {ManufacturersArray} from '../manufacturers/Manufacturers';
 
 
-interface EachManufacturer {
-    name: string,
-    id: number
-}
 
-interface ManufacturersArray {
-    manufacturers: Array<EachManufacturer>
-}
-
-const defaultManufacturersArray: ManufacturersArray = {
-    manufacturers: []
-}
 
 interface NewManufacturerResponse {
     name: string,
@@ -35,17 +25,6 @@ interface NewManufacturerResponse {
     errors?: any
 }
 
-export interface ManufacturerModelInfo {
-    model_id: number,
-    name: string,
-    count: number
-}
-
-export interface SingleManufacturerInfo {
-    manufacturer_id: number,
-    name: string,
-    models: Array<ManufacturerModelInfo>,
-}
 
 const MANUFACTURERS_URL = API_URL + '/manufacturers';
 
@@ -64,7 +43,14 @@ function responseToManufacturersArrayStrongType(response: any): ManufacturersArr
     return response;
 }
 
-function manufacturerInfoResponseToStrongType(response: any): SingleManufacturerInfo {
+interface withErrors {
+    errors?: Array<ErrorObjectType>
+}
+
+type SingleManufacturerInfoReturnType = SingleManufacturerInfo & withErrors;
+
+
+function manufacturerInfoResponseToStrongType(response: any): SingleManufacturerInfoReturnType {
     console.assert(response.manufacturer_id !== undefined);
     console.assert(response.name !== undefined);
     console.assert(response.models !== undefined);
@@ -79,7 +65,8 @@ function manufacturerInfoResponseToStrongType(response: any): SingleManufacturer
     return response;
 }
 
-async function queryManufacturerInfo(manufacturer_id: string): Promise<SingleManufacturerInfo | null> {
+
+export async function queryManufacturerInfo(manufacturer_id: number): Promise<SingleManufacturerInfoReturnType> {
     // if (manufacturer_id === '-1') {
     //     return null;
     // }
@@ -90,12 +77,16 @@ async function queryManufacturerInfo(manufacturer_id: string): Promise<SingleMan
     const response = await jsonResponse;
     if ((response.errors !== undefined) || (awaitedResponse.status !== 200)) {
         if (awaitedResponse.status !== 200) {
-            console.warn("server returned a response with a status field, and it wasn't a 200 (OK) status.");
+            console.warn(`server returned a response (${awaitedResponse.status}) with a status field, and it wasn't a 200 (OK) status.`);
         }
-        console.error(formatErrors(response.errors));
-        alert(formatErrors(response.errors));
+        if (response.errors !== undefined) {
+            console.error(formatErrors(response.errors));
+            alert(formatErrors(response.errors));
+            return manufacturerInfoResponseToStrongType(response);
+        }
         debugger;
         throw new Error("hmm");
+        // return null;
     }
     
     // debugger;
@@ -103,7 +94,7 @@ async function queryManufacturerInfo(manufacturer_id: string): Promise<SingleMan
 }
 
 
-async function queryManufacturers(): Promise<ManufacturersArray> {
+export async function queryManufacturers(): Promise<ManufacturersArray> {
     const ALL_MANUFACTURERS_URL = (API_URL + '/all_manufacturers');
     const rawResponse: Promise<Response> = fetch(ALL_MANUFACTURERS_URL, userRequestOptions() );
     const awaitedResponse = await rawResponse;
@@ -111,10 +102,12 @@ async function queryManufacturers(): Promise<ManufacturersArray> {
     const response = await jsonResponse;
     if ((response.errors !== undefined) || (awaitedResponse.status !== 200)) {
         if (awaitedResponse.status !== 200) {
-            console.warn("server returned a response with a status field, and it wasn't a 200 (OK) status.");
+            console.warn(`server returned a response (${awaitedResponse.status}) with a status field, and it wasn't a 200 (OK) status.`);
         }
-        console.error(formatErrors(response.errors));
-        alert(formatErrors(response.errors));
+        if (response.errors !== undefined) {
+            console.error(formatErrors(response.errors));
+            alert(formatErrors(response.errors));
+        }
         debugger;
         throw new Error("hmm");
     }
@@ -145,12 +138,14 @@ async function createNewManufacturer(name: string): Promise<NewManufacturerRespo
     const awaitedResponse = await rawResponse;
     const jsonResponse = await awaitedResponse.json();
     const response = await jsonResponse;
-    if ((response.errors !== undefined) || (response.status !== 201)) {
+    if ((response.errors !== undefined) || (awaitedResponse.status !== 201)) {
         if (response.status !== 201) {
-            console.warn("server returned a response with a status field, and it wasn't a 201 (CREATED) status.");
+            console.warn(`server returned a response (${awaitedResponse.status}) with a status field, and it wasn't a 201 (CREATED) status.`);
         }
-        console.error(formatErrors(response.errors));
-        alert(formatErrors(response.errors));
+        if (response.errors !== undefined) {
+            console.error(formatErrors(response.errors));
+            alert(formatErrors(response.errors));
+        }
         debugger;
         // throw new Error("hmm");
     }
@@ -158,31 +153,22 @@ async function createNewManufacturer(name: string): Promise<NewManufacturerRespo
 }
 
 
-function dropdownItemRowKey(manufacturer: EachManufacturer): string {
-    return `rowkey-${manufacturer.name}-${manufacturer.id}-create-dropdown`;
-}
 
-function manufacturersToDropdown(manufacturers_: ManufacturersArray) {
-    const manufacturers = manufacturers_.manufacturers;
-    return manufacturers.map((manufacturer: EachManufacturer, index: number) => {
-        return (
-            <Dropdown.Item eventKey={`${manufacturer.id}`} key={dropdownItemRowKey(manufacturer)}>{manufacturer.name}</Dropdown.Item>
-        )
-    })
-}
 
 interface manufacturerDialogProps {
     showAddManufacturer: boolean,
     setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-const CreateManufacturerModalDialog: React.FC<manufacturerDialogProps> = (props: manufacturerDialogProps) => {
+
+export const CreateManufacturerModalDialog: React.FC<manufacturerDialogProps> = (props: manufacturerDialogProps) => {
     const enteredManufacturerText = useSelector(selectEnteredManufacturerText);
     const dispatch = useDispatch();
     // const [enteredManufacturerText, setEnteredManufacturerText] = useState("");
     const feedbackText = useSelector(selectManufacturerFeedbackText);
     // const [feedbackText, setFeedbackText] = useState("");
-    const submit = () => {
+
+    const submitHandler = () => {
         const result = createNewManufacturer(enteredManufacturerText);
         result.then((response) => {
             if (response.errors !== undefined) {
@@ -193,7 +179,24 @@ const CreateManufacturerModalDialog: React.FC<manufacturerDialogProps> = (props:
                 props.setShowAddManufacturer(false)
             }
         })
+
     }
+
+    const submit = (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
+        event.stopPropagation();
+        submitHandler();
+    }
+    const onChangeEvent = (event: React.FormEvent<HTMLFormElement>) => {
+        const text = (event.currentTarget.elements[0] as HTMLInputElement).value;
+        dispatch(setEnteredManufacturerText(text));
+    }
+
+    const onSubmitEvent = (event: React.FormEvent<HTMLFormElement>) => {
+        event.stopPropagation();
+        submitHandler();
+        debugger;
+    }
+
     return (
         <Modal show={props.showAddManufacturer} onHide={() => props.setShowAddManufacturer(false)}>
             <Modal.Header closeButton>
@@ -201,10 +204,7 @@ const CreateManufacturerModalDialog: React.FC<manufacturerDialogProps> = (props:
             </Modal.Header>
             <Modal.Body>
                 (Please reduce administrative burden, don't add nuisance manufacturers. TODO: styling this text)
-                <Form onChange={(event: React.FormEvent<HTMLFormElement>) => {
-                    const text = (event.currentTarget.elements[0] as HTMLInputElement).value;
-                    dispatch(setEnteredManufacturerText(text));
-                }}>
+                <Form onChange={onChangeEvent} onSubmit={onSubmitEvent}>
                     <Form.Label>
                         Manufacturer name
                     </Form.Label>
@@ -217,7 +217,7 @@ const CreateManufacturerModalDialog: React.FC<manufacturerDialogProps> = (props:
                 <Button variant="secondary" onClick={() => props.setShowAddManufacturer(false)}>
                     Cancel
                 </Button>
-                <Button variant="primary" onClick={() => submit()}>
+                <Button variant="primary" onClick={(event) => submit(event)}>
                     Submit new manufacturer
                 </Button>
             </Modal.Footer>
@@ -227,60 +227,14 @@ const CreateManufacturerModalDialog: React.FC<manufacturerDialogProps> = (props:
 
 }
 
-// const CreateManufacturer: React.FC<
-const initSingleManufactuerInfo: SingleManufacturerInfo = {
-    name: '',
-    manufacturer_id: -1,
-    models: []
-}
 
-export const CreateManufacturerOrModel: React.FC<CreateManufacturerOrModelProps> = () => {
 
-    const [knownManufacturers, setKnownManufacturers] = useState(defaultManufacturersArray);
-    const [showAddManufacturer, setShowAddManufacturer] = useState(false);
+// export const Manufacturers: React.FC<{}> = () => {
 
-    //This should be in redux
-    const [selectedManufacturer, setSelectedManufacturer] = useState("");
-    const [manufacturerModels, setManufacturerModels] = useState(initSingleManufactuerInfo as SingleManufacturerInfo);
+//     return (
+//         <>
 
-    useEffect(() => {
-        const getAllManufacturersPromise = queryManufacturers();
-        getAllManufacturersPromise.then(result => {
-            setKnownManufacturers(result);
-        })
-    },[showAddManufacturer])
+//         </>
+//     )
 
-    useEffect(() => {
-        if ((selectedManufacturer !== '') && (selectedManufacturer !== '-1')) {
-            const getManufacturerInfoPromise = queryManufacturerInfo(selectedManufacturer);
-            getManufacturerInfoPromise.then(manufacturerInfo => {
-                if (manufacturerInfo !== null) {
-                    setManufacturerModels(manufacturerInfo);
-                }
-            })
-        }
-    }, [selectedManufacturer])
-
-    const selectManufacturerHandler = (eventKey: any, event: Object) => {
-        if (eventKey === "-1") {
-            setShowAddManufacturer(true);
-            return;
-        }
-        setSelectedManufacturer(eventKey)
-    }
-    return (
-        <>
-            <CreateManufacturerModalDialog showAddManufacturer={showAddManufacturer} setShowAddManufacturer={setShowAddManufacturer}/>
-            <Dropdown onSelect={selectManufacturerHandler}>
-                <Dropdown.Toggle variant="success" id="dropdown-basic">
-                    Select manufacturer:
-                </Dropdown.Toggle>
-                <Dropdown.Menu>
-                    {manufacturersToDropdown(knownManufacturers)}
-                    <Dropdown.Item eventKey={"-1"}>Create new manufacturer</Dropdown.Item>
-                </Dropdown.Menu>
-            </Dropdown>
-            <DeviceModelsTable models={manufacturerModels.models}/>
-        </>
-    )
-}
+// }

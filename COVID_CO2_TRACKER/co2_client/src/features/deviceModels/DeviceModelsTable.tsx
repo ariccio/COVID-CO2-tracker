@@ -4,7 +4,7 @@ import {Table} from 'react-bootstrap';
 import {Link} from 'react-router-dom';
 
 
-import {SingleManufacturerInfo, ManufacturerModelInfo} from '../create/createManufacturerModel';
+import {SingleManufacturerInfo, ManufacturerModelInfo} from '../manufacturers/manufacturerSlice';
 import {deviceModelsPath} from '../../paths/paths';
 
 
@@ -42,11 +42,22 @@ const deviceModelsBody = (models: Array<ManufacturerModelInfo>): JSX.Element =>
         {mapModelsToTableBody(models)}
     </tbody>
 
-export const DeviceModelsTable = (props: {models: Array<ManufacturerModelInfo>}) =>
-    <>
-        <Table striped bordered hover>
-            {ModelsTableHeader()}
-            {deviceModelsBody(props.models)}
-        </Table>
-    </>
+export const ManufacturerDeviceModelsTable = (props: {models: Array<ManufacturerModelInfo>}) => {
+
+    if (props.models.length === 0) {
+        return (
+            <h3>
+                No models in database
+            </h3>
+        )
+    }
+    return (
+        <>
+            <Table striped bordered hover>
+                {ModelsTableHeader()}
+                {deviceModelsBody(props.models)}
+            </Table>
+        </>
+    );
+}
 

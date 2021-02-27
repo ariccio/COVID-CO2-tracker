@@ -36,7 +36,7 @@ const renderLoginSignup = (): JSX.Element =>
 
 
 const loggedIn = (username: string) =>
-  <NavDropdown title={`logged in as ${username}!`} id="basic-nav-dropdown">
+  <NavDropdown title={`${username}!`} id="basic-nav-dropdown">
     <NavDropdown.Item>
         <LinkContainer to={profilePath}>
             <NavItem className='nav-item'>{username}'s profile</NavItem>

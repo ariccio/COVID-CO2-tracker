@@ -11,3 +11,6 @@ export function formatErrors(errorObject: Array<ErrorObjectType>): string {
     });
     return errorStrings.toString();
 }
+
+//TODO: use this:
+export type Errors = Array<ErrorObjectType>;

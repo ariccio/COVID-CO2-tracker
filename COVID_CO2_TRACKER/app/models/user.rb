@@ -4,6 +4,7 @@ class User < ApplicationRecord
   has_secure_password
   # app/models/user.rb:6:3: C: Rails/HasManyOrHasOneDependent: Specify a :dependent option.
   has_many :devices
+  has_many :measurement, -> {distinct}, through: :devices
   # app/models/user.rb:7:3: C: Rails/UniqueValidationWithoutIndex: Uniqueness validation should be with a unique index.
   validates :email, presence: true, uniqueness: true
   validates :password_digest, presence: true
@@ -26,7 +27,7 @@ class User < ApplicationRecord
     measurements = []
     devices.each.map do |device|
       # byebug
-      device.measurements.order('measurementtime DESC').each.map do |measurement|
+      device.measurement.order('measurementtime DESC').each.map do |measurement|
         measurements << {
           device_id: device.id,
           measurement_id: measurement.id,

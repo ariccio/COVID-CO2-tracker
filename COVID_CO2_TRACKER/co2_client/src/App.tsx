@@ -13,7 +13,7 @@ import {LoginComponent, SignupComponent} from './features/login/Login';
 import {Devices} from './features/devices/Devices';
 //import {Signup} from './features/signup/Signup';
 // import {get_email} from './utils/Authentication';
-import {CreateManufacturerOrModel} from './features/create/createManufacturerModel';
+import {CreateManufacturerOrModel} from './features/manufacturers/Manufacturers';
 import {DeviceModels} from './features/deviceModels/DeviceModels';
 
 import {manufacturersPath, homePath, devicesPath, profilePath, deviceModelsPath, loginPath, signupPath} from './paths/paths';
@@ -33,7 +33,7 @@ const routes = () =>
     <Route exact path={profilePath} component={Profile}/>
     <Route exact path={loginPath} component={LoginComponent} />
     <Route exact path={signupPath} component={SignupComponent}/>
-    <Route exact path={manufacturersPath} component={CreateManufacturerOrModel}/>
+    <Route path={manufacturersPath} component={CreateManufacturerOrModel}/>
     <Route path={devicesPath} component={Devices}/>
     <Route path={deviceModelsPath} component={DeviceModels}/>
     <Route exact path='/' render={renderRedirect}/>
