@@ -66,6 +66,9 @@ function deviceInfoToStrongType(deviceInfoResponse: any): DeviceInfoResponse {
 
 
 export async function queryDeviceInfo(device_id: number): Promise<DeviceInfoResponse> {
+    if (isNaN(device_id)) {
+        debugger;
+    }
     // const show_device_url = (SHOW_DEVICES_URL);
     const rawResponse: Promise<Response> = fetch(SHOW_DEVICES_URL + `/${device_id}`, userRequestOptions());
     const awaitedResponse = await rawResponse;

@@ -1,18 +1,18 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {Modal, Button, Form} from 'react-bootstrap';
-
-import {ManufacturerDeviceModelsTable} from '../deviceModels/DeviceModelsTable';
+import {useLocation, useHistory} from 'react-router-dom'
+// import {ManufacturerDeviceModelsTable} from '../deviceModels/DeviceModelsTable';
 
 import {API_URL} from '../../utils/UrlPath';
 import {postRequestOptions, userRequestOptions} from '../../utils/DefaultRequestOptions';
 import {formatErrors, ErrorObjectType} from '../../utils/ErrorObject';
 
-import {setEnteredManufacturerText, setManufacturerFeedbackText} from './creationSlice';
-import {selectEnteredManufacturerText, selectManufacturerFeedbackText} from './creationSlice';
+import {setEnteredManufacturerText/*, setManufacturerFeedbackText*/} from './creationSlice';
+import {selectEnteredManufacturerText} from './creationSlice';
 
 
-import {ManufacturerModelInfo, SingleManufacturerInfo} from '../manufacturers/manufacturerSlice';
+import {SingleManufacturerInfo} from '../manufacturers/manufacturerSlice';
 
 import {ManufacturersArray} from '../manufacturers/Manufacturers';
 
@@ -128,8 +128,10 @@ function newManufacturerRequestInit(newManufacturerName: string): RequestInit {
 }
 
 function responseToNewManufacturerStrongType(response: any): NewManufacturerResponse {
-    console.assert(response.name !== undefined);
-    console.assert(response.id !== undefined);
+    if (response.errors !== undefined) {
+        console.assert(response.name !== undefined);
+        console.assert(response.id !== undefined);
+    }
     return response;
 }
 
@@ -144,9 +146,10 @@ async function createNewManufacturer(name: string): Promise<NewManufacturerRespo
         }
         if (response.errors !== undefined) {
             console.error(formatErrors(response.errors));
-            alert(formatErrors(response.errors));
+            // alert(formatErrors(response.errors)); // Now handled kinda correctly by frontend
         }
-        debugger;
+        // Now handled kinda correctly by frontend
+        // debugger;
         // throw new Error("hmm");
     }
     return responseToNewManufacturerStrongType(response);
@@ -160,64 +163,92 @@ interface manufacturerDialogProps {
     setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>
 }
 
+const submitHandler = (enteredManufacturerText: string, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>) => {
+    const result = createNewManufacturer(enteredManufacturerText);
+    result.then((response) => {
+        if (response.errors !== undefined) {
+            alert(formatErrors(response.errors));
+
+            //Still having trouble.
+            // dispatch(setManufacturerFeedbackText(firstErrorAsString(response.errors)));
+            
+        }
+        else {
+            setShowAddManufacturer(false)
+            console.log(history);
+            history.goBack();
+            console.log(history);
+            debugger;
+        }
+    })
+
+}
+
+const submit = (event: React.MouseEvent<HTMLElement, MouseEvent>, enteredManufacturerText: string, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>) => {
+    event.stopPropagation();
+    event.preventDefault();
+    submitHandler(enteredManufacturerText, setShowAddManufacturer, history);
+}
+
+const cancelHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>) => {
+    // event.stopPropagation();
+    // event.preventDefault();
+    setShowAddManufacturer(false);
+    history.goBack();
+}
+
+const hideHandler = (setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>) => {
+    setShowAddManufacturer(false);
+    history.goBack();
+}
+
+const onChangeEvent = (event: React.FormEvent<HTMLFormElement>, dispatch: any) => {
+    const text = (event.currentTarget.elements[0] as HTMLInputElement).value;
+    dispatch(setEnteredManufacturerText(text));
+}
+
+const onSubmitEvent = (event: React.FormEvent<HTMLFormElement>, enteredManufacturerText: string, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>) => {
+    event.stopPropagation();
+    event.preventDefault();
+    submitHandler(enteredManufacturerText, setShowAddManufacturer, history);
+    // debugger;
+}
+
+const ModalHeader = () =>
+    <Modal.Header closeButton>
+        <Modal.Title>Add a manufacturer to the database</Modal.Title>
+    </Modal.Header>
 
 export const CreateManufacturerModalDialog: React.FC<manufacturerDialogProps> = (props: manufacturerDialogProps) => {
+    const location = useLocation();
     const enteredManufacturerText = useSelector(selectEnteredManufacturerText);
     const dispatch = useDispatch();
-    // const [enteredManufacturerText, setEnteredManufacturerText] = useState("");
-    const feedbackText = useSelector(selectManufacturerFeedbackText);
-    // const [feedbackText, setFeedbackText] = useState("");
+    const history = useHistory();
 
-    const submitHandler = () => {
-        const result = createNewManufacturer(enteredManufacturerText);
-        result.then((response) => {
-            if (response.errors !== undefined) {
-                dispatch(setManufacturerFeedbackText(formatErrors(response.errors)));
-                debugger;
-            }
-            else {
-                props.setShowAddManufacturer(false)
-            }
-        })
-
+    // debugger;
+    //TODO: this is not how you do nested routes.
+    if (location.pathname.endsWith('create')) {
+        props.setShowAddManufacturer(true);
     }
-
-    const submit = (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
-        event.stopPropagation();
-        submitHandler();
-    }
-    const onChangeEvent = (event: React.FormEvent<HTMLFormElement>) => {
-        const text = (event.currentTarget.elements[0] as HTMLInputElement).value;
-        dispatch(setEnteredManufacturerText(text));
-    }
-
-    const onSubmitEvent = (event: React.FormEvent<HTMLFormElement>) => {
-        event.stopPropagation();
-        submitHandler();
-        debugger;
-    }
-
     return (
-        <Modal show={props.showAddManufacturer} onHide={() => props.setShowAddManufacturer(false)}>
-            <Modal.Header closeButton>
-                <Modal.Title>Add a manufacturer to the database</Modal.Title>
-            </Modal.Header>
+        <Modal show={props.showAddManufacturer} onHide={() => hideHandler(props.setShowAddManufacturer, history)}>
+            <ModalHeader/>
             <Modal.Body>
                 (Please reduce administrative burden, don't add nuisance manufacturers. TODO: styling this text)
-                <Form onChange={onChangeEvent} onSubmit={onSubmitEvent}>
+                <Form noValidate onChange={(event) => onChangeEvent(event, dispatch)} onSubmit={(event) => onSubmitEvent(event, enteredManufacturerText, props.setShowAddManufacturer, history)}>
                     <Form.Label>
                         Manufacturer name
                     </Form.Label>
                     <Form.Control type="text" placeholder="Contoso"></Form.Control>
-                    <Form.Control.Feedback>{feedbackText}</Form.Control.Feedback>
+                    {/* <Form.Control.Feedback type="invalid">{feedbackText}</Form.Control.Feedback> */}
                 </Form>
             </Modal.Body>
 
             <Modal.Footer>
-                <Button variant="secondary" onClick={() => props.setShowAddManufacturer(false)}>
+                <Button variant="secondary" onClick={(event) => cancelHandler(event, props.setShowAddManufacturer, history)}>
                     Cancel
                 </Button>
-                <Button variant="primary" onClick={(event) => submit(event)}>
+                <Button variant="primary" onClick={(event) => submit(event, enteredManufacturerText, props.setShowAddManufacturer, history)}>
                     Submit new manufacturer
                 </Button>
             </Modal.Footer>

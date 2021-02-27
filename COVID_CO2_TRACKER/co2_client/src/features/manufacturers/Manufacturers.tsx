@@ -1,13 +1,13 @@
 import React, {useEffect, useState} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import {Dropdown} from 'react-bootstrap';
-
+import {Dropdown, Button} from 'react-bootstrap';
+import {Link, useLocation} from 'react-router-dom';
 
 import {ManufacturerDeviceModelsTable} from '../deviceModels/DeviceModelsTable';
 
-import {formatErrors, ErrorObjectType} from '../../utils/ErrorObject';
+import {ErrorObjectType} from '../../utils/ErrorObject';
 
-import {ManufacturerModelInfo, SingleManufacturerInfo} from './manufacturerSlice';
+import {SingleManufacturerInfo} from './manufacturerSlice';
 
 import {setSelectedManufacturer} from './manufacturerSlice';
 import {selectSelectedManufacturer} from './manufacturerSlice';
@@ -60,68 +60,100 @@ function manufacturersToDropdown(manufacturers_: ManufacturersArray) {
 }
 
 
+const getAndSetManufacturers = (setKnownManufacturers: React.Dispatch<React.SetStateAction<ManufacturersArray>>) => {
+    const getAllManufacturersPromise = queryManufacturers();
+    getAllManufacturersPromise.then(result => {
+        setKnownManufacturers(result);
+    })
+
+}
+
+const getSingleManufacturer = (selectedManufacturer: number | null, setManufacturerModels: React.Dispatch<React.SetStateAction<SingleManufacturerInfo>>, setErrors: React.Dispatch<React.SetStateAction<ErrorObjectType[] | null>>) => {
+    if ((selectedManufacturer !== null) && (selectedManufacturer !== -1)) {
+        const getManufacturerInfoPromise = queryManufacturerInfo(selectedManufacturer);
+        getManufacturerInfoPromise.then(manufacturerInfo => {
+            if (manufacturerInfo.errors === undefined) {
+                // debugger;
+                setManufacturerModels(manufacturerInfo);
+                return;
+            }
+            setErrors(manufacturerInfo.errors);
+        })
+    }
+
+}
+
+const selectManufacturerHandler = (eventKey: any, event: Object, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, dispatch: any
+    ) => {
+    if (eventKey === "-1") {
+        console.log(`user selected create manufacturer`);
+        setShowAddManufacturer(true);
+        return;
+    }
+    const selected = dropdownKeyToManufacturerID(eventKey);
+    if (selected !== null) {
+        dispatch(setSelectedManufacturer(selected));
+        console.log(`user selected manufactuer dropdown number: ${eventKey}`);
+    }
+}
+
+const renderDropdown = (manufacturerModels: SingleManufacturerInfo, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, knownManufacturers: ManufacturersArray, location: ReturnType<typeof useLocation>, dispatch: any) => 
+    <Dropdown onSelect={(eventKey: any, event: Object) => {selectManufacturerHandler(eventKey, event, setShowAddManufacturer, dispatch)}}>
+        <Dropdown.Toggle variant="success" id="dropdown-basic">
+            {manufacturerModels.name === '' ? "Select manufacturer:" : manufacturerModels.name} 
+        </Dropdown.Toggle>
+        <Dropdown.Menu>
+            {manufacturersToDropdown(knownManufacturers)}
+            <Dropdown.Item eventKey={"-1"}>
+                <Link to={{pathname: `/manufacturers/create`, state: {background: location}}}>
+                    Create new manufacturer
+                </Link>
+            </Dropdown.Item>
+        </Dropdown.Menu>
+    </Dropdown>
+
+const renderNewModelForManufacturer = (manufacturerModels: SingleManufacturerInfo) => {
+    if (manufacturerModels === initSingleManufactuerInfo) {
+        return null;
+    }
+    return (
+        <Button>
+            Create new model for manufacturer {manufacturerModels.name}
+        </Button>
+    );
+
+}
+
+
 export const CreateManufacturerOrModel: React.FC<CreateManufacturerOrModelProps> = () => {
-
-    const [knownManufacturers, setKnownManufacturers] = useState(defaultManufacturersArray);
-    const [showAddManufacturer, setShowAddManufacturer] = useState(false);
-    const [errors, setErrors] = useState(null as (Array<ErrorObjectType> | null));
-    //This should be in redux
-    // const [selectedManufacturer, setSelectedManufacturer] = useState("");
-    const selectedManufacturer = useSelector(selectSelectedManufacturer);
-
-    const [manufacturerModels, setManufacturerModels] = useState(initSingleManufactuerInfo as SingleManufacturerInfo);
+    let location = useLocation();
     const dispatch = useDispatch();
 
+    const [knownManufacturers, setKnownManufacturers] = useState(defaultManufacturersArray);
+    //TODO: this is not how you do nested routes.
+    const [showAddManufacturer, setShowAddManufacturer] = useState(location.pathname.endsWith('create'));
+    const [errors, setErrors] = useState(null as (Array<ErrorObjectType> | null));
+    const [manufacturerModels, setManufacturerModels] = useState(initSingleManufactuerInfo as SingleManufacturerInfo);
+    const selectedManufacturer = useSelector(selectSelectedManufacturer);
+
     useEffect(() => {
-        const getAllManufacturersPromise = queryManufacturers();
-        getAllManufacturersPromise.then(result => {
-            setKnownManufacturers(result);
-        })
+        // console.log("change");
+        getAndSetManufacturers(setKnownManufacturers);
     },[showAddManufacturer])
 
     useEffect(() => {
-        if ((selectedManufacturer !== null) && (selectedManufacturer !== -1)) {
-            const getManufacturerInfoPromise = queryManufacturerInfo(selectedManufacturer);
-            getManufacturerInfoPromise.then(manufacturerInfo => {
-                if (manufacturerInfo.errors === undefined) {
-                    setManufacturerModels(manufacturerInfo);
-                    return;
-                }
-                setErrors(manufacturerInfo.errors);
-            })
-        }
+        getSingleManufacturer(selectedManufacturer, setManufacturerModels, setErrors);
     }, [selectedManufacturer])
 
-    const selectManufacturerHandler = (eventKey: any, event: Object) => {
-        if (eventKey === "-1") {
-            console.log(`user selected create manufacturer`);
-            setShowAddManufacturer(true);
-            return;
-        }
-        const selected = dropdownKeyToManufacturerID(eventKey);
-        if (selected !== null) {
-            dispatch(setSelectedManufacturer(selected));
-            console.log(`user selected manufactuer dropdown number: ${eventKey}`);
-        }
-    }
     return (
         <>
-            TODO: need route directly to create dialog
-            <CreateManufacturerModalDialog showAddManufacturer={showAddManufacturer} setShowAddManufacturer={setShowAddManufacturer}/>
-            <Dropdown onSelect={selectManufacturerHandler}>
-                <Dropdown.Toggle variant="success" id="dropdown-basic">
-                    {manufacturerModels.name === '' ? "Select manufacturer:" : manufacturerModels.name} 
-                </Dropdown.Toggle>
-                <Dropdown.Menu>
-                    {manufacturersToDropdown(knownManufacturers)}
-                    <Dropdown.Item eventKey={"-1"}>Create new manufacturer</Dropdown.Item>
-                </Dropdown.Menu>
-            </Dropdown>
-
+            {(showAddManufacturer) ? <CreateManufacturerModalDialog showAddManufacturer={showAddManufacturer} setShowAddManufacturer={setShowAddManufacturer}/> : null}
+            {renderDropdown(manufacturerModels, setShowAddManufacturer, knownManufacturers, location, dispatch)}
             <br/>
             <br/>
             <br/>
             {errors === null ? <ManufacturerDeviceModelsTable models={manufacturerModels.models}/>  : errors}
+            {renderNewModelForManufacturer(manufacturerModels)}
         </>
     )
 }

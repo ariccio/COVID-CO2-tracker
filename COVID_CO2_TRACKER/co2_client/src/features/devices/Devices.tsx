@@ -4,7 +4,7 @@ import {Route, RouteComponentProps} from 'react-router-dom';
 import {Button} from 'react-bootstrap';
 import {UserInfoType, queryUserInfo, defaultUserInfo} from '../../utils/QueryUserInfo';
 import {defaultDeviceInfoResponse, DeviceInfoResponse, queryDeviceInfo} from '../../utils/QueryDeviceInfo';
-import {DevicesTable} from './DevicesTable';
+// import {DevicesTable} from './DevicesTable';
 import {MeasurementsTable} from '../measurements/MeasurementsTable';
 import {CreateManufacturerOrModel} from '../manufacturers/Manufacturers';
 
@@ -19,7 +19,12 @@ export function Device(props: RouteComponentProps<deviceProps>) {
 
     const [deviceInfo, setDeviceInfo] = useState(defaultDeviceInfoResponse);
     useEffect(() => {
-        const deviceInfoPromise: Promise<DeviceInfoResponse> = queryDeviceInfo(parseInt(props.match.params.deviceId));
+        const parsedDeviceID = parseInt(props.match.params.deviceId);
+        if (isNaN(parsedDeviceID)) {
+            return;
+        }
+
+        const deviceInfoPromise: Promise<DeviceInfoResponse> = queryDeviceInfo(parsedDeviceID);
         deviceInfoPromise.then((deviceInfoResponse) => {
             // console.log(deviceInfoResponse);
             setDeviceInfo(deviceInfoResponse)
@@ -40,7 +45,7 @@ export function Device(props: RouteComponentProps<deviceProps>) {
 export const Devices: React.FC<{}> = () => {
     
     const [userInfo, setUserInfo] = useState(defaultUserInfo);
-    const [createClicked, setCreateClicked] = useState(false);
+    const [createDeviceClicked, setCreateClicked] = useState(false);
     const [notLoggedIn, setNotLoggedIn] = useState(false);
     useEffect(() => {
 
@@ -74,13 +79,13 @@ export const Devices: React.FC<{}> = () => {
 
     return (
         <>
-            <Button variant={createClicked ? "secondary" : "primary"} onClick={() => {setCreateClicked(!createClicked)}}>
+            <Button variant={createDeviceClicked ? "secondary" : "primary"} onClick={() => {setCreateClicked(!createDeviceClicked)}}>
                 create a device:
             </Button>
             <br/>
             <br/>
             <br/>
-            {createClicked ? <CreateManufacturerOrModel/> : null}
+            {createDeviceClicked ? <CreateManufacturerOrModel/> : null}
 
 
             <br/>

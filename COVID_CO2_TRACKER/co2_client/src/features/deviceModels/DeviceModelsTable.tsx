@@ -4,7 +4,7 @@ import {Table} from 'react-bootstrap';
 import {Link} from 'react-router-dom';
 
 
-import {SingleManufacturerInfo, ManufacturerModelInfo} from '../manufacturers/manufacturerSlice';
+import {ManufacturerModelInfo} from '../manufacturers/manufacturerSlice';
 import {deviceModelsPath} from '../../paths/paths';
 
 
