@@ -6,6 +6,8 @@ import {DevicesTable} from '../devices/DevicesTable';
 import {MeasurementsTable} from '../measurements/MeasurementsTable';
 import {queryUserInfo, UserInfoType, defaultUserInfo} from '../../utils/QueryUserInfo';
 
+import {formatErrors} from '../../utils/ErrorObject';
+
 interface ProfileProps {
 
 }
@@ -15,24 +17,38 @@ export const Profile: React.FC<ProfileProps> = () => {
     const username = useSelector(selectUsername);
 
     const [userInfo, setUserInfo] = useState(defaultUserInfo);
+    const [errorState, setErrorState] = useState('');
     useEffect(() => {
         //TODO: should be in redux
-        const userInfoPromise: Promise<UserInfoType | null> = queryUserInfo();
+        const userInfoPromise: Promise<UserInfoType> = queryUserInfo();
         userInfoPromise.then((userInfo) => {
-            if (userInfo === null) {
-                return;
+            if (userInfo.errors !== undefined) {
+                setErrorState(formatErrors(userInfo.errors));
             }
             console.log(userInfo);
             setUserInfo(userInfo)
+        }).catch((error) => {
+            setErrorState(error.message);
         })
     }, [])
 
     //TODO: if userInfo.errors?
     if (userInfo === defaultUserInfo) {
+        if (errorState === '') {
+            return (
+                <h1>
+                    Loading...
+                </h1>
+            );
+        }
         return (
-            <h1>
-                Not logged in!
-            </h1>
+            <>
+                <p>
+                    Not logged in!
+                    {errorState}
+                </p>
+            </>
+            
         )
     }
     return (

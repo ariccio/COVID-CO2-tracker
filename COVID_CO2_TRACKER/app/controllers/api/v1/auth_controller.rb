@@ -13,7 +13,7 @@ module Api
             errors:
             error_array
           },
-          status: :unauthorized
+          status: :unauthorized # 401
         )
       end
 
@@ -26,7 +26,7 @@ module Api
           json: {
             email: @user.email
           },
-          status: :accepted
+          status: :accepted # 202
         )
       end
 
@@ -38,7 +38,7 @@ module Api
             errors:
               error_array
           },
-          status: :unauthorized
+          status: :unauthorized # 401
         )
       end
 
@@ -47,7 +47,7 @@ module Api
           json:{
             errors: [create_not_logged_in_error('user not logged in')]
           },
-          status: :unauthorized
+          status: :unauthorized # 401
         )
       end
 
@@ -57,7 +57,7 @@ module Api
             email: '',
             errors: [create_jwt_error('decoding error', e)]
           },
-          status: :bad_request
+          status: :bad_request # 400
         )
       end
 

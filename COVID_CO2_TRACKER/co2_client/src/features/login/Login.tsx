@@ -18,36 +18,48 @@ type formSubmitType = (event: React.FormEvent<HTMLFormElement>) => void;
 
 const onSubmitLoginForm = async (email: string, password: string,
     setInvalid: React.Dispatch<React.SetStateAction<boolean>>, dispatch: any) => {
-        const response: LoginResponse | null = await login(email, password);
-        if (response === null) {
-            console.log("hmm.")
+        try {
+            const response: LoginResponse = await login(email, password);
+            if (response.errors !== undefined) {
+                console.log("hmm.")
+                // debugger;
+                setInvalid(true);
+                return;
+            }
+            //this.props.loginUser(response.email, response.email, response.jwt)
+            dispatch(setUsername(response.email));
             // debugger;
-            setInvalid(true);
             return;
+            // <Redirect to='/'/>
+            // alert("TODO: redirect here. For now please refresh.")
         }
-        //this.props.loginUser(response.email, response.email, response.jwt)
-        dispatch(setUsername(response.email));
-        // debugger;
-        return;
-        // <Redirect to='/'/>
-        // alert("TODO: redirect here. For now please refresh.")
+        catch(error) {
+            setInvalid(true);
+            alert(error.message);
+        }
     }
 
 const onSubmitSignupForm = async (email: string, password: string,
     setInvalid: React.Dispatch<React.SetStateAction<boolean>>, dispatch: any) => {
-        const response: SignupResponse | null = await signup(email, password);
-        if (response === null) {
-            console.log("hmm.")
+        try {
+            const response: SignupResponse = await signup(email, password);
+            if (response.errors !== undefined) {
+                console.log("hmm.")
+                // debugger;
+                setInvalid(true);
+                return;
+            }
+            //this.props.loginUser(response.email, response.email, response.jwt)
+            dispatch(setUsername(response.email));
             // debugger;
-            setInvalid(true);
             return;
+            // <Redirect to='/'/>
+            // alert("TODO: redirect here. For now please refresh.")
         }
-        //this.props.loginUser(response.email, response.email, response.jwt)
-        dispatch(setUsername(response.email));
-        // debugger;
-        return;
-        // <Redirect to='/'/>
-        // alert("TODO: redirect here. For now please refresh.")
+        catch(error) {
+            setInvalid(true);
+            alert(error.message);
+        }
 
     }
 

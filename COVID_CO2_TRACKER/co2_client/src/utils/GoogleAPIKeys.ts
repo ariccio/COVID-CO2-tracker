@@ -1,9 +1,9 @@
 import {API_URL} from './UrlPath';
 import {formatErrors} from './ErrorObject';
-
+import {fetchFailed, fetchFilter} from './FetchHelpers';
 
 const GET_API_KEY_URL = API_URL + '/keys';
-const PLACES_SCRIPT_URL_API_KEY = GET_API_KEY_URL + `/${"PLACES_SCRIPT_URL_API_KEY"}`
+// const PLACES_SCRIPT_URL_API_KEY = GET_API_KEY_URL + `/${"PLACES_SCRIPT_URL_API_KEY"}`
 const MAPS_JAVASCRIPT_API_KEY = GET_API_KEY_URL + `/${"MAPS_JAVASCRIPT_API_KEY"}`
 
 
@@ -25,25 +25,23 @@ export function apiKeyRequestOptions(): RequestInit {
 //   errors?: Array<ErrorObjectType>;
 // }
 
-export async function getGooglePlacesScriptAPIKey(): Promise<string> {
-  const requestOptions = apiKeyRequestOptions();
-  const rawFetchResponse: Promise<Response> = fetch(PLACES_SCRIPT_URL_API_KEY, requestOptions);
-  const awaitedResponse = await rawFetchResponse;
-  const jsonResponse: Promise<any> = awaitedResponse.json();
-  const response = await jsonResponse;
-  if ((response.errors !== undefined) || (awaitedResponse.status !== 200)) {
-    if (awaitedResponse.status !== 200) {
-      console.warn(`server returned a response with a status field (${awaitedResponse.status}), and it wasn't a 200 (OK) status.`);
-    }
-    console.error("couldn't get google places API key!");
-    console.error(formatErrors(response.errors));
-    debugger;
-  }
-  console.assert(response.key !== undefined);
-  console.assert(response.key !== null);
-  console.assert(response.key !== '');
-  return response.key;
-}
+// export async function getGooglePlacesScriptAPIKey(): Promise<string> {
+//   console.error("this isn't even used?")
+//   const requestOptions = apiKeyRequestOptions();
+//   const rawFetchResponse: Promise<Response> = fetch(PLACES_SCRIPT_URL_API_KEY, requestOptions);
+//   const awaitedResponse = await rawFetchResponse;
+//   const jsonResponse: Promise<any> = awaitedResponse.json();
+//   const response = await jsonResponse;
+//   if (fetchFailed(awaitedResponse, response, 200, false)) {
+//     console.error("couldn't get google places API key!");
+//     debugger;
+//     return '';
+//   }
+//   console.assert(response.key !== undefined);
+//   console.assert(response.key !== null);
+//   console.assert(response.key !== '');
+//   return response.key;
+// }
 
 
 export async function getGoogleMapsJavascriptAPIKey(): Promise<string> {
@@ -53,13 +51,10 @@ export async function getGoogleMapsJavascriptAPIKey(): Promise<string> {
     const awaitedResponse = await rawFetchResponse;
     const jsonResponse: Promise<any> = awaitedResponse.json();
     const response = await jsonResponse;
-    if ((response.errors !== undefined) || (awaitedResponse.status !== 200)) {
-      if (awaitedResponse.status !== 200) {
-        console.warn(`server returned a response with a status field (${awaitedResponse.status}), and it wasn't a 200 (OK) status.`);
-      }
+    if (fetchFailed(awaitedResponse, response, 200, false)) {
       console.error("couldn't get google maps API key!");
-      console.error(formatErrors(response.errors));
-      debugger;
+      throw new Error(formatErrors(response.errors));
+      // debugger;
     }
     console.assert(response.key !== undefined);
     console.assert(response.key !== null);
@@ -67,14 +62,7 @@ export async function getGoogleMapsJavascriptAPIKey(): Promise<string> {
     return response.key;
   }
   catch (error) {
-    if (error instanceof SyntaxError) {
-      console.error("JSON parsing error, likely a network error anyways.")
-    }
-    else if (error instanceof TypeError) {
-      console.error("fetch itself failed, likely a network issue.")
-    }
-    console.error(`failed to get google maps API key, fetch iself failed! Error: ${error}`);
-    throw error;
+    fetchFilter(error);
   }
 
 }

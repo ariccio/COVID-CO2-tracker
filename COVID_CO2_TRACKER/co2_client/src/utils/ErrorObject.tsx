@@ -4,6 +4,10 @@ export interface ErrorObjectType {
     error: Array<string> // Can be weird b/c activerecord
 }
 
+export interface withErrors {
+    errors?: Array<ErrorObjectType>
+}
+
 //TODO: use this:
 export type Errors = Array<ErrorObjectType>;
 
@@ -25,3 +29,9 @@ export function firstErrorAsString(errorObject: Errors): string {
     return "Error parsing errors, none present!";
 }
 
+export function exceptionToErrorObject(error: any): ErrorObjectType {
+    return {
+        message: error.message,
+        error: error
+    }
+}

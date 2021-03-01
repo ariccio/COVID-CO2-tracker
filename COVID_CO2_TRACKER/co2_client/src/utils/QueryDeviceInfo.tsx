@@ -1,7 +1,8 @@
 import {API_URL} from './UrlPath';
 
-import {formatErrors} from './ErrorObject';
+import {formatErrors, ErrorObjectType} from './ErrorObject';
 import {userRequestOptions} from './DefaultRequestOptions';
+import {fetchFailed, fetchFilter} from './FetchHelpers';
 
 export interface UserInfoMeasurements {
     device_id: number,
@@ -32,7 +33,8 @@ export interface DeviceInfoResponse {
     serial: string,
     device_model: string,
     user_id: number,
-    measurements: Array<UserInfoMeasurements>
+    measurements: Array<UserInfoMeasurements>,
+    errors?: Array<ErrorObjectType>
 }
 
 
@@ -70,19 +72,19 @@ export async function queryDeviceInfo(device_id: number): Promise<DeviceInfoResp
         debugger;
     }
     // const show_device_url = (SHOW_DEVICES_URL);
-    const rawResponse: Promise<Response> = fetch(SHOW_DEVICES_URL + `/${device_id}`, userRequestOptions());
-    const awaitedResponse = await rawResponse;
-    const jsonResponse = awaitedResponse.json();
-    const response = await jsonResponse;
-    console.log(response);
-    if ((response.errors !== undefined) || (awaitedResponse.status !== 200)) {
-        if (response.status !== 200) {
-            console.warn(`server returned a response with a status field (${awaitedResponse.status}), and it wasn't a 200 (OK) status.`);
+    try {
+        const rawResponse: Promise<Response> = fetch(SHOW_DEVICES_URL + `/${device_id}`, userRequestOptions());
+        const awaitedResponse = await rawResponse;
+        const jsonResponse = awaitedResponse.json();
+        const response = await jsonResponse;
+        console.log(response);
+        if(fetchFailed(awaitedResponse, response, 200, true)){
+            debugger;
+            throw new Error(formatErrors(response.errors));
         }
-        console.error(formatErrors(response.errors));
-        alert(formatErrors(response.errors));
-        debugger;
-        throw new Error("hmm");
+        return deviceInfoToStrongType(response);
     }
-    return deviceInfoToStrongType(response);
+    catch(error) {
+        fetchFilter(error);
+    }
 }

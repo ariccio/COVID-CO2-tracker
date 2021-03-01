@@ -14,12 +14,6 @@ export const HomePage: FunctionComponent<{}> = (props: any) => {
         getGoogleMapsJavascriptAPIKey().then((key: string) => setMapsAPIKey(key)).catch((error) => {
             setErrorState(error.message);
         })
-        try {
-        }
-        catch (error) {
-            console.error(error);
-            debugger;
-        }
     }, []);
   
     if (errorState !== '') {

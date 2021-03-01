@@ -12,6 +12,7 @@ import {UserInfoDevice, UserInfoMeasurements} from './QueryDeviceInfo';
 import {userRequestOptions} from './DefaultRequestOptions';
 
 import {formatErrors} from './ErrorObject'
+import { fetchFailed, fetchFilter } from './FetchHelpers';
 
 const SHOW_USER_URL = API_URL + '/users/show';
 
@@ -55,32 +56,29 @@ function userInfoToStrongType(userInfo: any): UserInfoType {
     return return_value;
 }
 
-export async function queryUserInfo(): Promise<UserInfoType | null> {
-    const rawResponse: Promise<Response> = fetch(SHOW_USER_URL, userRequestOptions());
-    // console.log("body: ", (await rawResponse).body)
-    const awaitedResponse = await rawResponse;
-    const jsonResponse = awaitedResponse.json();
-    const response = await jsonResponse;
-    // console.log(response);
-    if ((response.errors !== undefined) || (awaitedResponse.status !== 200)) {
-        if (awaitedResponse.status === 401) {
-            console.warn("user not logged in!");
-            if (response.errors !== undefined) {
-                console.error(formatErrors(response.errors));
-                return null;
+export async function queryUserInfo(): Promise<UserInfoType> {
+    try {
+        const rawResponse: Promise<Response> = fetch(SHOW_USER_URL, userRequestOptions());
+        // console.log("body: ", (await rawResponse).body)
+        const awaitedResponse = await rawResponse;
+        const jsonResponse = awaitedResponse.json();
+        const response = await jsonResponse;
+        // console.log(response);
+        if (fetchFailed(awaitedResponse, response, 200, false)) {
+            if (awaitedResponse.status === 401) {
+                console.warn("user not logged in!");
+                if (response.errors !== undefined) {
+                    console.error(formatErrors(response.errors));
+                    // return null;
+                }
             }
+    
         }
-        console.error(formatErrors(response.errors));
-        alert(formatErrors(response.errors));
-        if (awaitedResponse.status !== 200) {
-            console.warn(`server returned a response with a status field (${awaitedResponse.status}), and it wasn't a 200 (OK) status.`);
-            console.error(response);
-            alert(response);
-            debugger;
-            throw new Error("hmm");
-        }
+        return userInfoToStrongType(response);
     }
-    return userInfoToStrongType(response);
+    catch(error) {
+        fetchFilter(error);
+    }
     // return response;
 }
 

@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
 
-// import {ErrorObjectType} from '../../utils/ErrorObject';
+import {ErrorObjectType} from '../../utils/ErrorObject';
 
 export interface ManufacturerModelInfo {
     model_id: number,
@@ -9,11 +9,11 @@ export interface ManufacturerModelInfo {
     count: number
 }
 
-export interface SingleManufacturerInfo {
+export interface SingleManufacturerInfoResponse {
     manufacturer_id: number,
     name: string,
     models: Array<ManufacturerModelInfo>,
-    // errors?: Array<ErrorObjectType>
+    errors?: Array<ErrorObjectType>
 }
 
 

@@ -10,7 +10,7 @@ import { LinkContainer } from 'react-router-bootstrap';
 
 // import {Login, LoginFormType} from '../login/Login';
 import {Logout} from '../login/Logout';
-
+import {formatErrors} from '../../utils/ErrorObject';
 
 import {manufacturersPath, homePath, devicesPath, profilePath, deviceModelsPath} from '../../paths/paths';
 
@@ -128,10 +128,15 @@ const loadEmail = (dispatch: ReturnType<typeof useDispatch>) => {
       console.log("got email: ", email.email)
       dispatch(setUsername(email.email));
     }
+    else {
+      console.error('failed to get email!');
+      console.error(formatErrors(email.errors))
+    }
   }).catch((error) => {
     console.error(`Failed to get email from server! fetch itself failed with error ${error}`);
-    throw error;
-
+    alert(error.message);
+    debugger;
+    // throw error;
   })
 }
 

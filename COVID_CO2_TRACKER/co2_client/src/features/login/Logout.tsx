@@ -13,6 +13,9 @@ export const Logout = () => {
             if (result.errors === undefined) {
                 dispatch(setUsername(''));
             }
+        }).catch((error) => {
+            // alert(error)
+            alert(`unable to log out, network error: ${error.message}`)
         })
     }
 
