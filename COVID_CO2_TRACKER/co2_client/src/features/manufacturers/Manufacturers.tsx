@@ -13,6 +13,7 @@ import {setSelectedManufacturer} from './manufacturerSlice';
 import {selectSelectedManufacturer} from './manufacturerSlice';
 
 import {queryManufacturerInfo, queryManufacturers, CreateManufacturerModalDialog} from '../create/createManufacturerModel';
+import { selectSelectedModel } from '../deviceModels/deviceModelsSlice';
 
 
 interface CreateManufacturerOrModelProps {
@@ -116,6 +117,7 @@ const renderDropdown = (manufacturerModels: SingleManufacturerInfoResponse, setS
         <Dropdown.Menu>
             {manufacturersToDropdown(knownManufacturers)}
             <Dropdown.Item eventKey={"-1"}>
+                {/* TODO: this is not valid? Dropdown.item might be a link itself */}
                 <Link to={{pathname: `/manufacturers/create`, state: {background: location}}}>
                     Create new manufacturer
                 </Link>
@@ -123,13 +125,13 @@ const renderDropdown = (manufacturerModels: SingleManufacturerInfoResponse, setS
         </Dropdown.Menu>
     </Dropdown>
 
-const renderNewModelForManufacturer = (manufacturerModels: SingleManufacturerInfoResponse) => {
+const renderNewModelForManufacturer = (manufacturerModels: SingleManufacturerInfoResponse, location: ReturnType<typeof useLocation>) => {
     if (manufacturerModels === initSingleManufactuerInfo) {
         return null;
     }
     return (
-        <Button>
-            Create new model for manufacturer {manufacturerModels.name}
+        <Button variant="primary">
+            <Link to={{pathname:`/devicemodels/create`, state: {background: location}}}> Create new model for manufacturer {manufacturerModels.name} </Link>
         </Button>
     );
 
@@ -146,6 +148,7 @@ export const CreateManufacturerOrModel: React.FC<CreateManufacturerOrModelProps>
     const [errors, setErrors] = useState(null as (Array<ErrorObjectType> | null));
     const [manufacturerModels, setManufacturerModels] = useState(initSingleManufactuerInfo as SingleManufacturerInfoResponse);
     const selectedManufacturer = useSelector(selectSelectedManufacturer);
+    const selectedModel = useSelector(selectSelectedModel);
 
     useEffect(() => {
         // console.log("change");
@@ -154,17 +157,17 @@ export const CreateManufacturerOrModel: React.FC<CreateManufacturerOrModelProps>
 
     useEffect(() => {
         getSingleManufacturer(selectedManufacturer, setManufacturerModels, setErrors);
-    }, [selectedManufacturer])
+    }, [selectedManufacturer, selectedModel])
 
     return (
         <>
             {(showAddManufacturer) ? <CreateManufacturerModalDialog showAddManufacturer={showAddManufacturer} setShowAddManufacturer={setShowAddManufacturer}/> : null}
-            {renderDropdown(manufacturerModels, setShowAddManufacturer, knownManufacturers, location, dispatch)}
+            {(knownManufacturers !== defaultManufacturersArray) ? renderDropdown(manufacturerModels, setShowAddManufacturer, knownManufacturers, location, dispatch) : <div>Loading manufacturers...</div>}
             <br/>
             <br/>
             <br/>
             {errors === null ? <ManufacturerDeviceModelsTable models={manufacturerModels.models}/>  : errors}
-            {renderNewModelForManufacturer(manufacturerModels)}
+            {renderNewModelForManufacturer(manufacturerModels, location)}
         </>
     )
 }

@@ -1,12 +1,12 @@
 import React from 'react';
-import {Table} from 'react-bootstrap';
+import {useSelector, useDispatch} from 'react-redux';
+import {Table, Button} from 'react-bootstrap';
 // import {UserInfoDevice} from '../../utils/QueryDeviceInfo';
 import {Link} from 'react-router-dom';
 
-
 import {ManufacturerModelInfo} from '../manufacturers/manufacturerSlice';
 import {deviceModelsPath} from '../../paths/paths';
-
+import {setSelectedModel, selectSelectedModel, selectSelectedModelName, setSelectedModelName} from '../deviceModels/deviceModelsSlice';
 
 const ModelsTableHeader = () =>
     <thead>
@@ -15,6 +15,7 @@ const ModelsTableHeader = () =>
             <th>Model ID</th>
             <th>Device model name</th>
             <th>Instances</th>
+            <th>pick it!</th>
         </tr>
     </thead>
 
@@ -22,8 +23,13 @@ function modelRowKey(model: number): string {
     return `manufacturer-model-entry-key-${model}`;
 }
 
+const pickModel = (model_id: number, name: string, dispatch: ReturnType<typeof useDispatch>) => {
+    dispatch(setSelectedModel(model_id));
+    dispatch(setSelectedModelName(name));
+}
 
-const mapModelsToTableBody = (models: Array<ManufacturerModelInfo>)/* JSX.Element */ => {
+
+const mapModelsToTableBody = (models: Array<ManufacturerModelInfo>, dispatch: ReturnType<typeof useDispatch>)/* JSX.Element */ => {
     // debugger;
     return models.map((model: ManufacturerModelInfo, index: number) => {
         return (
@@ -32,17 +38,27 @@ const mapModelsToTableBody = (models: Array<ManufacturerModelInfo>)/* JSX.Elemen
                 <td><Link to={`${deviceModelsPath}/${model.model_id}`}>{model.model_id}</Link></td>
                 <td><Link to={`${deviceModelsPath}/${model.model_id}`}>{model.name}</Link></td>
                 <td><Link to={`${deviceModelsPath}/${model.model_id}`}>{model.count}</Link></td>
+                <td><Button variant="primary" onClick={(event) => {pickModel(model.model_id, model.name, dispatch)}}>Pick</Button></td>
             </tr>
         )
     })
 }
 
-const deviceModelsBody = (models: Array<ManufacturerModelInfo>): JSX.Element =>
+const deviceModelsBody = (models: Array<ManufacturerModelInfo>, dispatch: ReturnType<typeof useDispatch>): JSX.Element =>
     <tbody>
-        {mapModelsToTableBody(models)}
+        {mapModelsToTableBody(models, dispatch)}
     </tbody>
 
+const renderTable = (models: Array<ManufacturerModelInfo>, dispatch: ReturnType<typeof useDispatch>) =>
+    <Table striped bordered hover>
+        {ModelsTableHeader()}
+        {deviceModelsBody(models, dispatch)}
+    </Table>
+
 export const ManufacturerDeviceModelsTable = (props: {models: Array<ManufacturerModelInfo>}) => {
+    const selectedModel = useSelector(selectSelectedModel);
+    const selectedModelName = useSelector(selectSelectedModelName);
+    const dispatch = useDispatch();
 
     if (props.models.length === 0) {
         return (
@@ -51,12 +67,22 @@ export const ManufacturerDeviceModelsTable = (props: {models: Array<Manufacturer
             </h3>
         )
     }
+    if (selectedModel === -1) {
+        return (
+            <>  
+                {renderTable(props.models, dispatch)}
+            </>
+        );
+    }
     return (
         <>
-            <Table striped bordered hover>
-                {ModelsTableHeader()}
-                {deviceModelsBody(props.models)}
-            </Table>
+            <div>
+                Selected a model! ({selectedModelName})
+                <Button variant="secondary" onClick={() => {dispatch(setSelectedModel(-1)); dispatch(setSelectedModelName(''))}}>
+                    Unselect {selectedModelName}
+                </Button>
+            </div>
+
         </>
     );
 }

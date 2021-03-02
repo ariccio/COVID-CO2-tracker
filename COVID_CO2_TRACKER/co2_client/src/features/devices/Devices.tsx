@@ -122,7 +122,7 @@ export const Devices: React.FC<{}> = () => {
             </p>
 
 
-            <Route path={`${devicesPath}/:deviceId`} component={Device}/>
+            
 
             <p>
                 popular devices: (NOT IMPLEMENTED YET, will show all kinds of stats)

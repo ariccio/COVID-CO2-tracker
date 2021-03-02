@@ -4,12 +4,12 @@ module Api
   module V1
     class ModelController < ApplicationController
       def create
-        @new_model = ::Model.create!(name: model_params[:name], manufacturer: model_params[:manufacturer_id])
+        @new_model = ::Model.create!(name: model_params[:name], manufacturer_id: model_params[:manufacturer_id])
         render(
           json: {
             model_id: @new_model.id,
             manufacturer_id: @new_model.manufacturer,
-            name: @new_mode.name
+            name: @new_model.name
           },
           status: :created
         )
@@ -23,13 +23,16 @@ module Api
       end
 
       def show
-        @model = ::Model.find(model_params[:id])
+        # byebug
+        @model = ::Model.find(params[:id])
         render(
           json: {
             model_id: @model.id,
             name: @model.name,
-            manufacturer: @model.manufacturer.id
-            # total number of measurements?
+            manufacturer: @model.manufacturer.id,
+            count: Device.where(model_id: @model.id).count,
+            measurement_count: @model.measurement.count,
+            manufacturer_name: @model.manufacturer.name,
           },
           status: :ok
         )
@@ -43,7 +46,8 @@ module Api
       end
 
       def model_params
-        params.require[:model].permit(:id, :name, :manufacturer_id)
+        # byebug
+        params.require(:model).permit(:id, :name, :manufacturer_id)
       end
     end
   end

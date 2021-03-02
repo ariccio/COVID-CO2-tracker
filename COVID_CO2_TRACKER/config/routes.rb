@@ -11,6 +11,7 @@
       resources :auth, only: [:create]
       resources :device, only: [:create, :show]
       resources :manufacturers, only: [:create, :show]
+      resources :model, only: [:create, :show]
 
       get '/all_manufacturers', to: 'manufacturers#all_manufacturers'
       delete '/auth', to: 'auth#destroy'
