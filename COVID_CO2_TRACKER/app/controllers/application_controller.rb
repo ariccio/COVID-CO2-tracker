@@ -27,7 +27,7 @@ end
 
 class NoJWTCookieError < ::StandardError
   def message
-    "this is the simplest way to do this control flow methinks"
+    'this is the simplest way to do this control flow methinks'
   end
 end
 
@@ -66,19 +66,19 @@ class ApplicationController < ::ActionController::API
     )
   end
 
-  def render_jwt_error(e)
+  def render_jwt_error(exception)
     render(
       json: {
-        errors: [create_jwt_error('something went wrong with parsing the JWT', e)]
+        errors: [create_jwt_error('something went wrong with parsing the JWT', exception)]
       },
       status: :internal_server_error
     )
   end
 
-  def render_activerecord_notfound_error(e)
+  def render_activerecord_notfound_error(exception)
     render(
       json: {
-        errors: [create_activerecord_notfound_error('user_id not found while looking up from decoded_token!', e)]
+        errors: [create_activerecord_notfound_error('user_id not found while looking up from decoded_token!', exception)]
       },
       status: :not_found
     )
@@ -106,10 +106,11 @@ class ApplicationController < ::ActionController::API
     # byebug
     @user = ::User.find(user_id)
     @user
-    rescue ::JWT::DecodeError => e
-      render_jwt_error
-    rescue ::ActiveRecord::RecordNotFound => e
-      render_activerecord_notfound_error
+  rescue ::JWT::DecodeError => _e
+    render_jwt_error
+  rescue ::ActiveRecord::RecordNotFound => _e
+    #todo is this the most specific error?
+    render_activerecord_notfound_error
   end
 
   def logged_in?
@@ -129,7 +130,7 @@ class ApplicationController < ::ActionController::API
   def authorized
     return if logged_in?
     please_log_in
-  rescue NoJWTCookieError => e
+  rescue NoJWTCookieError => _e
     please_log_in
   end
 end

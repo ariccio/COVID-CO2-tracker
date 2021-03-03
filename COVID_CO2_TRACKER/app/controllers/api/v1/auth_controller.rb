@@ -30,9 +30,9 @@ module Api
         )
       end
 
-      def render_activerecord_notfound_error_invalid_username_or_password(e)
+      def render_activerecord_notfound_error_invalid_username_or_password(exception)
         error_array = [create_error('Invalid username or password!', :not_acceptable.to_s)]
-        error_array << create_activerecord_notfound_error('Invalid username or password!', e)
+        error_array << create_activerecord_notfound_error('Invalid username or password!', exception)
         render(
           json: {
             errors:
@@ -51,11 +51,11 @@ module Api
         )
       end
 
-      def render_jwt_decode_error(e)
+      def render_jwt_decode_error(exception)
         render(
           json: {
             email: '',
-            errors: [create_jwt_error('decoding error', e)]
+            errors: [create_jwt_error('decoding error', exception)]
           },
           status: :bad_request # 400
         )

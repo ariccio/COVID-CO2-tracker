@@ -38,7 +38,7 @@ module Errors
   end
 
   def create_not_logged_in_error(message)
-    errors = []
+    # errors = []
     single_error(message, nil)
   end
 
