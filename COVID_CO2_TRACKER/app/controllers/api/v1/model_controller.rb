@@ -24,15 +24,16 @@ module Api
 
       def show
         # byebug
+        # TODO: write a damn serializer
         @model = ::Model.find(params[:id])
         render(
           json: {
             model_id: @model.id,
             name: @model.name,
             manufacturer: @model.manufacturer.id,
-            count: Device.where(model_id: @model.id).count,
+            count: ::Device.where(model_id: @model.id).count,
             measurement_count: @model.measurement.count,
-            manufacturer_name: @model.manufacturer.name,
+            manufacturer_name: @model.manufacturer.name
           },
           status: :ok
         )

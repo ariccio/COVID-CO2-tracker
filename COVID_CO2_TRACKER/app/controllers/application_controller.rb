@@ -85,7 +85,7 @@ class ApplicationController < ::ActionController::API
   end
 
   def cookie?
-    return false if user_id_from_jwt_token.nil? 
+    return false if user_id_from_jwt_token.nil?
     true
   end
 
@@ -107,7 +107,7 @@ class ApplicationController < ::ActionController::API
   rescue ::JWT::DecodeError => _e
     render_jwt_error
   rescue ::ActiveRecord::RecordNotFound => _e
-    # todo is this the most specific error?
+    # TODO: is this the most specific error?
     render_activerecord_notfound_error
   end
 

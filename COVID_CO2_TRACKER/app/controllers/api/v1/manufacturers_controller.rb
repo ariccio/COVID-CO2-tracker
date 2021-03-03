@@ -5,12 +5,13 @@ def first_ten(id)
   models = ::Model.where(manufacturer_id: id).first(10)
   # byebug
   # Device.where(model_id: model.id)
+  # TODO: write a damn serializer
   models.each.map do |model|
     {
       model_id: model.id,
       manufacturer_id: model.manufacturer.id,
       name: model.name,
-      count: Device.where(model_id: model.id).count
+      count: ::Device.where(model_id: model.id).count
       # model.count instances
       # total number of measurements?
     }
