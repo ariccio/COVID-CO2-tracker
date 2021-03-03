@@ -81,6 +81,7 @@ export const ManufacturerDeviceModelsTable = (props: {models: Array<Manufacturer
         <>
             <div>
                 Selected a model! ({selectedModelName})
+                <br/>
                 <Button variant="secondary" onClick={() => {dispatch(setSelectedModel(-1)); dispatch(setSelectedModelName(''))}}>
                     Unselect {selectedModelName}
                 </Button>

@@ -1,5 +1,6 @@
 
 import React, {useEffect, useState}  from 'react';
+import {useSelector} from 'react-redux';
 import {RouteComponentProps} from 'react-router-dom';
 import {Button} from 'react-bootstrap';
 import {UserInfoType, queryUserInfo, defaultUserInfo} from '../../utils/QueryUserInfo';
@@ -8,8 +9,12 @@ import {defaultDeviceInfoResponse, DeviceInfoResponse, queryDeviceInfo} from '..
 import {MeasurementsTable} from '../measurements/MeasurementsTable';
 import {CreateManufacturerOrModel} from '../manufacturers/Manufacturers';
 
-import {devicesPath} from '../../paths/paths';
+// import {devicesPath} from '../../paths/paths';
 import { formatErrors } from '../../utils/ErrorObject';
+
+import {selectSelectedModelName} from '../deviceModels/deviceModelsSlice';
+
+import {CreateMyDeviceInstance} from '../create/CreateDeviceInstance';
 
 interface deviceProps {
     deviceId: string
@@ -65,6 +70,8 @@ export const Devices: React.FC<{}> = () => {
     const [createDeviceClicked, setCreateClicked] = useState(false);
     const [notLoggedIn, setNotLoggedIn] = useState(false);
     const [errorState, setErrorState] = useState('');
+    const selectedModelName = useSelector(selectSelectedModelName);
+
     useEffect(() => {
 
         //TODO: should be in redux
@@ -114,7 +121,7 @@ export const Devices: React.FC<{}> = () => {
     return (
         <>
             <Button variant={createDeviceClicked ? "secondary" : "primary"} onClick={() => {setCreateClicked(!createDeviceClicked)}}>
-                create a device:
+                Add my device:
             </Button>
             <br/>
             <br/>
@@ -129,7 +136,7 @@ export const Devices: React.FC<{}> = () => {
                 Selected device:
             </p>
 
-
+            <CreateMyDeviceInstance show={selectedModelName !== ''}/>
             
 
             <p>

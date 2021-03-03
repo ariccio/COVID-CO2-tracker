@@ -118,7 +118,7 @@ export function fetchFilter(error: any): never {
     }
     else if (error instanceof TypeError) {
         console.error("fetch itself failed, likely a network issue.");
-        alert("fetch itself failed, are you connected? is the server running?");
+        alert("fetch itself failed, are you connected? is the server running? Did you manually interrupt it with a refresh?");
     }
     else if (error instanceof DOMException)
     console.error(`fetch iself failed! Error: ${error}`);
@@ -148,7 +148,10 @@ export async function fetchJSONWithChecks(input: RequestInfo, init: RequestInit,
         // const clonedResponseforResponseErrorMessage = (await rawFetchResponse_).clone();
         return rawFetchResponse_.then(resp => resp.clone()).then().then(resp => resp.text()).then(async (body) => {
             try {
-                console.log(JSON.parse(body));
+                const throwaway = JSON.parse(body);
+                if (throwaway === undefined) {
+                    console.error("what?");
+                }
                 // debugger;
             }
             catch {

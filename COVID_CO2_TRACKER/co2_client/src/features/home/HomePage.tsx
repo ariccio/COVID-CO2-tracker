@@ -16,12 +16,12 @@ const renderSelectedPlaceInfo = (currentPlace: google.maps.places.PlaceResult) =
             <br/>
             {currentPlace.place_id ? <> current selected place_id: <i>{currentPlace.place_id}</i></> : null}
             <br/>
-            {currentPlace.formatted_address ? <> current selected address: <i>{currentPlace.formatted_address}</i></> : null}
+            {currentPlace.formatted_address ? <> address: <i>{currentPlace.formatted_address}</i></> : null}
             <br/>
             {/* {currentPlace.icon ? `currentPlace.icon: ${currentPlace.icon}` : null} 
             {currentPlace.icon ? <img src={currentPlace.icon} alt={`google supplied icon for ${currentPlace.name}`}/> : null}
             <br/> */}
-            {currentPlace.types ? <> currentPlace.types <i>{currentPlace.types}</i> </> : null}
+            {currentPlace.types ? <> currentPlace.types <i>{currentPlace.types.join(', ')}</i> </> : null}
             <br/>
             {currentPlace.vicinity ? <> currentPlace.vicinity <i>{currentPlace.vicinity}</i> </>: null}
             <br/>

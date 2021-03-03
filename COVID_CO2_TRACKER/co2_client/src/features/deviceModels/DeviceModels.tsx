@@ -124,7 +124,7 @@ export const DeviceModels: React.FC<RouteComponentProps<DeviceModelsProps>> = (p
         return (
             <>
                 Will contain a page with stats by-device-model, eventually. <br/>
-                No device selected.
+                
             </>
         );     
     }
