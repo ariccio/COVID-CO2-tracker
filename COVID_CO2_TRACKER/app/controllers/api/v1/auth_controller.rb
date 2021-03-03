@@ -44,7 +44,7 @@ module Api
 
       def render_not_logged_in
         render(
-          json:{
+          json: {
             errors: [create_not_logged_in_error('user not logged in')]
           },
           status: :unauthorized # 401

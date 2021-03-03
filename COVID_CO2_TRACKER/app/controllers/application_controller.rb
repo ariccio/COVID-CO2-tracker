@@ -84,16 +84,14 @@ class ApplicationController < ::ActionController::API
     )
   end
 
-  def has_cookie
-    if user_id_from_jwt_token.nil?
-      return false
-    end
+  def cookie?
+    return false if user_id_from_jwt_token.nil? 
     true
   end
 
   def current_user
     # byebug
-    if (!has_cookie)
+    if (!cookie?)
       return nil
     end
     @id_from_token = user_id_from_jwt_token
@@ -109,7 +107,7 @@ class ApplicationController < ::ActionController::API
   rescue ::JWT::DecodeError => _e
     render_jwt_error
   rescue ::ActiveRecord::RecordNotFound => _e
-    #todo is this the most specific error?
+    # todo is this the most specific error?
     render_activerecord_notfound_error
   end
 
@@ -130,7 +128,7 @@ class ApplicationController < ::ActionController::API
   def authorized
     return if logged_in?
     please_log_in
-  rescue NoJWTCookieError => _e
+  rescue ::NoJWTCookieError => _e
     please_log_in
   end
 end
