@@ -2,7 +2,7 @@ import {API_URL} from './UrlPath';
 
 import {formatErrors, ErrorObjectType} from './ErrorObject';
 import {userRequestOptions} from './DefaultRequestOptions';
-import {fetchFailed, fetchFilter, fetchJSONWithChecks} from './FetchHelpers';
+import {fetchJSONWithChecks} from './FetchHelpers';
 
 export interface UserInfoMeasurements {
     device_id: number,

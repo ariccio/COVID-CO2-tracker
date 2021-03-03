@@ -1,6 +1,6 @@
 import {API_URL} from './UrlPath';
 import {formatErrors} from './ErrorObject';
-import {fetchFailed, fetchFilter, fetchJSONWithChecks} from './FetchHelpers';
+import {fetchJSONWithChecks} from './FetchHelpers';
 
 const GET_API_KEY_URL = API_URL + '/keys';
 // const PLACES_SCRIPT_URL_API_KEY = GET_API_KEY_URL + `/${"PLACES_SCRIPT_URL_API_KEY"}`

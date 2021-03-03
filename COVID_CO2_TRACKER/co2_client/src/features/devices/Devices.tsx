@@ -1,6 +1,6 @@
 
 import React, {useEffect, useState}  from 'react';
-import {Route, RouteComponentProps} from 'react-router-dom';
+import {RouteComponentProps} from 'react-router-dom';
 import {Button} from 'react-bootstrap';
 import {UserInfoType, queryUserInfo, defaultUserInfo} from '../../utils/QueryUserInfo';
 import {defaultDeviceInfoResponse, DeviceInfoResponse, queryDeviceInfo} from '../../utils/QueryDeviceInfo';
@@ -106,7 +106,7 @@ export const Devices: React.FC<{}> = () => {
         }
          return (
             <h3>
-                Loading...
+                Loading user info...
             </h3>
         );
     }

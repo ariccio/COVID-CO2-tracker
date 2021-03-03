@@ -37,7 +37,7 @@ export const Profile: React.FC<ProfileProps> = () => {
         if (errorState === '') {
             return (
                 <h1>
-                    Loading...
+                    Loading profile information...
                 </h1>
             );
         }

@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import {Dropdown, Button} from 'react-bootstrap';
+import {Dropdown} from 'react-bootstrap';
 import {Link, useLocation} from 'react-router-dom';
 
 import {ManufacturerDeviceModelsTable} from '../deviceModels/DeviceModelsTable';
@@ -95,8 +95,7 @@ const getSingleManufacturer = (selectedManufacturer: number | null, setManufactu
 
 }
 
-const selectManufacturerHandler = (eventKey: any, event: Object, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, dispatch: any
-    ) => {
+const selectManufacturerHandler = (eventKey: any, event: Object, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, dispatch: ReturnType<typeof useDispatch>) => {
     if (eventKey === "-1") {
         console.log(`user selected create manufacturer`);
         setShowAddManufacturer(true);
@@ -109,7 +108,7 @@ const selectManufacturerHandler = (eventKey: any, event: Object, setShowAddManuf
     }
 }
 
-const renderDropdown = (manufacturerModels: SingleManufacturerInfoResponse, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, knownManufacturers: ManufacturersArray, location: ReturnType<typeof useLocation>, dispatch: any) => 
+const renderDropdown = (manufacturerModels: SingleManufacturerInfoResponse, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, knownManufacturers: ManufacturersArray, location: ReturnType<typeof useLocation>, dispatch: ReturnType<typeof useDispatch>) => 
     <Dropdown onSelect={(eventKey: any, event: Object) => {selectManufacturerHandler(eventKey, event, setShowAddManufacturer, dispatch)}}>
         <Dropdown.Toggle variant="success" id="dropdown-basic">
             {manufacturerModels.name === '' ? "Select manufacturer:" : manufacturerModels.name} 
@@ -125,18 +124,61 @@ const renderDropdown = (manufacturerModels: SingleManufacturerInfoResponse, setS
         </Dropdown.Menu>
     </Dropdown>
 
-const renderNewModelForManufacturer = (manufacturerModels: SingleManufacturerInfoResponse, location: ReturnType<typeof useLocation>) => {
+const renderNewModelForManufacturer = (manufacturerModels: SingleManufacturerInfoResponse, location: ReturnType<typeof useLocation>, selectedModel: number) => {
+    if (selectedModel !== -1) {
+        return null;
+    }
+    // const buttonClick = () => {
+    //     debugger;
+    //     return <Redirect } />
+    // }
     if (manufacturerModels === initSingleManufactuerInfo) {
         return null;
     }
     return (
-        <Button variant="primary">
-            <Link to={{pathname:`/devicemodels/create`, state: {background: location}}}> Create new model for manufacturer {manufacturerModels.name} </Link>
-        </Button>
+        <Link to={{pathname:`/devicemodels/create`, state: {background: location}}} className="btn btn-primary">
+            Create new model for manufacturer {manufacturerModels.name}
+        </Link>
     );
 
 }
 
+const renderDropdownOrLoading = (knownManufacturers: ManufacturersArray, manufacturerModels: SingleManufacturerInfoResponse, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, location: ReturnType<typeof useLocation>, dispatch: ReturnType<typeof useDispatch>, errors: string) => {
+    if(knownManufacturers !== defaultManufacturersArray) {
+        return (renderDropdown(manufacturerModels, setShowAddManufacturer, knownManufacturers, location, dispatch));
+    }
+    if (errors !== '') {
+        return(
+            <>
+                {errors}
+            </>
+        );
+    } 
+    return (
+        <div>Loading manufacturers...</div>
+    );
+}
+
+const renderDeviceModelsOrLoading = (selectedManufacturer: number | null, manufacturerModels: SingleManufacturerInfoResponse, errors: string) => {
+    if (errors === '') {
+        if (selectedManufacturer === null) {
+            return null;
+        }
+        if (manufacturerModels === initSingleManufactuerInfo) {
+            return (
+                <>
+                    Loading know models from database...
+                </>
+            )
+        }
+        return <ManufacturerDeviceModelsTable models={manufacturerModels.models} selectedManufacturer={selectedManufacturer}/>;
+    }
+    return(
+        <>
+            {errors}
+        </>
+    );
+}
 
 export const CreateManufacturerOrModel: React.FC<CreateManufacturerOrModelProps> = () => {
     let location = useLocation();
@@ -162,12 +204,12 @@ export const CreateManufacturerOrModel: React.FC<CreateManufacturerOrModelProps>
     return (
         <>
             {(showAddManufacturer) ? <CreateManufacturerModalDialog showAddManufacturer={showAddManufacturer} setShowAddManufacturer={setShowAddManufacturer}/> : null}
-            {(knownManufacturers !== defaultManufacturersArray) ? renderDropdown(manufacturerModels, setShowAddManufacturer, knownManufacturers, location, dispatch) : <div>Loading manufacturers...</div>}
+            {renderDropdownOrLoading(knownManufacturers, manufacturerModels, setShowAddManufacturer, location, dispatch, errors)}
             <br/>
             <br/>
             <br/>
-            {errors === '' ? <ManufacturerDeviceModelsTable models={manufacturerModels.models}/>  : errors}
-            {renderNewModelForManufacturer(manufacturerModels, location)}
+            {renderDeviceModelsOrLoading(selectedManufacturer, manufacturerModels, errors)}
+            {renderNewModelForManufacturer(manufacturerModels, location, selectedModel)}
         </>
     )
 }

@@ -6,8 +6,8 @@ import {useLocation, useHistory} from 'react-router-dom'
 
 import {API_URL} from '../../utils/UrlPath';
 import {postRequestOptions, userRequestOptions} from '../../utils/DefaultRequestOptions';
-import {formatErrors, exceptionToErrorObject, ErrorObjectType} from '../../utils/ErrorObject';
-import {fetchFailed, fetchFilter, fetchJSONWithChecks} from '../../utils/FetchHelpers';
+import {formatErrors, ErrorObjectType} from '../../utils/ErrorObject';
+import {fetchJSONWithChecks} from '../../utils/FetchHelpers';
 import {setEnteredManufacturerText/*, setManufacturerFeedbackText*/} from './creationSlice';
 import {selectEnteredManufacturerText} from './creationSlice';
 
@@ -250,6 +250,9 @@ export const CreateManufacturerModalDialog: React.FC<manufacturerDialogProps> = 
     //TODO: this is not how you do nested routes.
     if (location.pathname.endsWith('create')) {
         props.setShowAddManufacturer(true);
+    }
+    if (!props.showAddManufacturer) {
+        return null;
     }
     return (
         <Modal show={props.showAddManufacturer} onHide={() => hideHandler(props.setShowAddManufacturer, history)}>

@@ -6,7 +6,7 @@ import {selectSelectedManufacturer} from '../manufacturers/manufacturerSlice';
 import {setEnteredModelText, selectEnteredModelText} from '../create/creationSlice';
 import {setSelectedModel, setSelectedModelName} from '../deviceModels/deviceModelsSlice';
 import {postRequestOptions} from '../../utils/DefaultRequestOptions';
-import { fetchFailed, fetchFilter, fetchJSONWithChecks } from '../../utils/FetchHelpers';
+import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
 
 import {ErrorObjectType, formatErrors} from '../../utils/ErrorObject';
 

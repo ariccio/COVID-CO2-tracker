@@ -55,12 +55,15 @@ const renderTable = (models: Array<ManufacturerModelInfo>, dispatch: ReturnType<
         {deviceModelsBody(models, dispatch)}
     </Table>
 
-export const ManufacturerDeviceModelsTable = (props: {models: Array<ManufacturerModelInfo>}) => {
+export const ManufacturerDeviceModelsTable = (props: {models: Array<ManufacturerModelInfo>, selectedManufacturer: number | null}) => {
     const selectedModel = useSelector(selectSelectedModel);
     const selectedModelName = useSelector(selectSelectedModelName);
     const dispatch = useDispatch();
 
     if (props.models.length === 0) {
+        if (props.selectedManufacturer === null) {
+            return null;
+        }
         return (
             <h3>
                 No models in database

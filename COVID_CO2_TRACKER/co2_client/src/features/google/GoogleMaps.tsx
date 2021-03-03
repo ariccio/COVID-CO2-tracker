@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {useDispatch} from 'react-redux';
-import {useSelector} from 'react-redux';
-import {selectSelectedPlace} from '../google/googleSlice';
+// import {useSelector} from 'react-redux';
+// import {selectSelectedPlace} from '../google/googleSlice';
 
 import { GoogleMap, useJsApiLoader, Autocomplete } from '@react-google-maps/api';
 import { Button, Form } from 'react-bootstrap';

@@ -1,11 +1,11 @@
 import React, {useEffect, useState} from 'react';
 // import { useSelector, useDispatch } from 'react-redux';
 // import {Dropdown} from 'react-bootstrap';
-import {Link, useLocation} from 'react-router-dom';
+import {useLocation} from 'react-router-dom';
 import {RouteComponentProps} from 'react-router-dom';
 // import {deviceModelsPath} from '../../paths/paths';
 import {userRequestOptions} from '../../utils/DefaultRequestOptions';
-import { fetchFailed, fetchFilter, fetchJSONWithChecks } from '../../utils/FetchHelpers';
+import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
 import {API_URL} from '../../utils/UrlPath';
 import {ErrorObjectType, formatErrors} from '../../utils/ErrorObject';
 
@@ -82,7 +82,7 @@ const basicDeviceModelInfo = (deviceModelInfo: QueryDeviceModelInfoResponse, err
     if (errorState === '') {
         return (
             <h3>
-                Loading...
+                Loading infor for device model from database...
             </h3>
         )
     }

@@ -17,8 +17,8 @@ function dumpHeaders(headers: Headers, asError: boolean): void {
 
 export async function dumpResponse(response_: Response): Promise<void> {
     const clonedResponse = response_.clone();
-    const clonedResponseForBody = response_.clone();
-    const clonedResponseForText = response_.clone()
+    // const clonedResponseForBody = response_.clone();
+    // const clonedResponseForText = response_.clone()
     // debugger;
     dumpHeaders(clonedResponse.headers, clonedResponse.ok);
     if (clonedResponse.ok) {
@@ -39,7 +39,7 @@ export async function dumpResponse(response_: Response): Promise<void> {
 async function checkJSONparsingErrors(awaitedResponseOriginal: Response): Promise<any> {
     const clonedResponseForErrorChecks = awaitedResponseOriginal.clone();
     const clonedResponseForErrorMessage = awaitedResponseOriginal.clone();
-    const clonedResponseforResponseErrorMessage = awaitedResponseOriginal.clone();
+    // const clonedResponseforResponseErrorMessage = awaitedResponseOriginal.clone();
 // debugger;
     try {
         // const awaitedClonedResponse = await clonedResponseForErrorChecks;
@@ -145,7 +145,7 @@ export async function fetchJSONWithChecks(input: RequestInfo, init: RequestInit,
         // const rawFetchResponse = (await rawFetchResponse_).clone();
         const rawResponseForErrors = (await rawFetchResponse_).clone();
         const rawResponseForErrorsMessage = (await rawFetchResponse_).clone();
-        const clonedResponseforResponseErrorMessage = (await rawFetchResponse_).clone();
+        // const clonedResponseforResponseErrorMessage = (await rawFetchResponse_).clone();
         return rawFetchResponse_.then(resp => resp.clone()).then().then(resp => resp.text()).then(async (body) => {
             try {
                 console.log(JSON.parse(body));
@@ -184,7 +184,7 @@ export async function fetchJSONWithChecks(input: RequestInfo, init: RequestInit,
         }).catch((catchError) => {
             //YESS
             console.error("Ultimate cause of network error: ");
-            debugger;
+            // debugger;
             console.error(catchError);
             throw new Error(catchError);
         })

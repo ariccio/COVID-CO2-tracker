@@ -12,7 +12,7 @@ import {UserInfoDevice, UserInfoMeasurements} from './QueryDeviceInfo';
 import {userRequestOptions} from './DefaultRequestOptions';
 
 import {formatErrors} from './ErrorObject'
-import { fetchFailed, fetchFilter, fetchJSONWithChecks } from './FetchHelpers';
+import { fetchJSONWithChecks } from './FetchHelpers';
 
 const SHOW_USER_URL = API_URL + '/users/show';
 

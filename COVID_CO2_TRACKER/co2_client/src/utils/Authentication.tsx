@@ -1,9 +1,9 @@
 // import { assert } from 'console';
 // import { setUsername } from '../features/login/loginSlice';
-import {formatErrors, ErrorObjectType} from './ErrorObject';
+import {ErrorObjectType} from './ErrorObject';
 import {API_URL} from './UrlPath';
 
-import {fetchFailed, fetchFilter, dumpResponse, fetchJSONWithChecks} from './FetchHelpers';
+import {fetchJSONWithChecks} from './FetchHelpers';
 
 const LOGIN_URL = API_URL + '/auth';
 const SIGNUP_URL = API_URL + "/users";
