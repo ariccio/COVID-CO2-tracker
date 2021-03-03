@@ -2,7 +2,7 @@ import {API_URL} from './UrlPath';
 
 import {formatErrors, ErrorObjectType} from './ErrorObject';
 import {userRequestOptions} from './DefaultRequestOptions';
-import {fetchFailed, fetchFilter} from './FetchHelpers';
+import {fetchFailed, fetchFilter, fetchJSONWithChecks} from './FetchHelpers';
 
 export interface UserInfoMeasurements {
     device_id: number,
@@ -71,20 +71,31 @@ export async function queryDeviceInfo(device_id: number): Promise<DeviceInfoResp
     if (isNaN(device_id)) {
         debugger;
     }
-    // const show_device_url = (SHOW_DEVICES_URL);
-    try {
-        const rawResponse: Promise<Response> = fetch(SHOW_DEVICES_URL + `/${device_id}`, userRequestOptions());
-        const awaitedResponse = await rawResponse;
-        const jsonResponse = awaitedResponse.json();
-        const response = await jsonResponse;
-        console.log(response);
-        if(fetchFailed(awaitedResponse, response, 200, true)){
-            debugger;
-            throw new Error(formatErrors(response.errors));
-        }
-        return deviceInfoToStrongType(response);
+
+    const fetchFailedCallback = async (awaitedResponse: Response): Promise<never> => {
+        debugger;
+        throw new Error(formatErrors((await awaitedResponse.json()).errors));
     }
-    catch(error) {
-        fetchFilter(error);
+
+    const fetchSuccessCallback = async (awaitedResponse: Response): Promise<DeviceInfoResponse> => {
+        return deviceInfoToStrongType(await awaitedResponse.json());
     }
+    const show_device_url = (SHOW_DEVICES_URL + `/${device_id}`);
+    const result = fetchJSONWithChecks(show_device_url, userRequestOptions(), 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<never> | Promise<DeviceInfoResponse>;
+    return result;
+    // try {
+    //     const rawResponse: Promise<Response> = fetch(, userRequestOptions());
+    //     const awaitedResponse = await rawResponse;
+    //     // const jsonResponse = awaitedResponse.json();
+    //     // const parsedJSONResponse = await jsonResponse;
+    //     // console.log(parsedJSONResponse);
+    //     if(fetchFailed(awaitedResponse, 200, true)){
+    //         debugger;
+    //         throw new Error(formatErrors((await awaitedResponse.json()).errors));
+    //     }
+    //     return deviceInfoToStrongType(await awaitedResponse.json());
+    // }
+    // catch(error) {
+    //     fetchFilter(error);
+    // }
 }

@@ -1,6 +1,6 @@
 import {API_URL} from './UrlPath';
 import {formatErrors} from './ErrorObject';
-import {fetchFailed, fetchFilter} from './FetchHelpers';
+import {fetchFailed, fetchFilter, fetchJSONWithChecks} from './FetchHelpers';
 
 const GET_API_KEY_URL = API_URL + '/keys';
 // const PLACES_SCRIPT_URL_API_KEY = GET_API_KEY_URL + `/${"PLACES_SCRIPT_URL_API_KEY"}`
@@ -46,23 +46,34 @@ export function apiKeyRequestOptions(): RequestInit {
 
 export async function getGoogleMapsJavascriptAPIKey(): Promise<string> {
   const requestOptions = apiKeyRequestOptions();
-  try {
-    const rawFetchResponse: Promise<Response> = fetch(MAPS_JAVASCRIPT_API_KEY, requestOptions);
-    const awaitedResponse = await rawFetchResponse;
-    const jsonResponse: Promise<any> = awaitedResponse.json();
-    const response = await jsonResponse;
-    if (fetchFailed(awaitedResponse, response, 200, false)) {
-      console.error("couldn't get google maps API key!");
-      throw new Error(formatErrors(response.errors));
-      // debugger;
-    }
-    console.assert(response.key !== undefined);
-    console.assert(response.key !== null);
-    console.assert(response.key !== '');
-    return response.key;
+
+  const fetchFailedCallback = async (awaitedResponse: Response): Promise<string> => {
+    console.error("couldn't get google maps API key!");
+    throw new Error(formatErrors((await awaitedResponse.json()).errors));
   }
-  catch (error) {
-    fetchFilter(error);
+  const fetchSuccessCallback = async (awaitedResponse: Response): Promise<string> => {
+    return (await awaitedResponse.json()).key;
   }
+
+  const result = fetchJSONWithChecks(MAPS_JAVASCRIPT_API_KEY, requestOptions, 200, false, fetchFailedCallback, fetchSuccessCallback) as Promise<string>;
+  return result;
+  // try {
+  //   const rawFetchResponse: Promise<Response> = fetch(MAPS_JAVASCRIPT_API_KEY, requestOptions);
+  //   const awaitedResponse = await rawFetchResponse;
+  //   // const jsonResponse: Promise<any> = awaitedResponse.json();
+  //   // const parsedJSONResponse = await jsonResponse;
+  //   if (fetchFailed(awaitedResponse, 200, false)) {
+  //     console.error("couldn't get google maps API key!");
+  //     throw new Error(formatErrors((await awaitedResponse.json()).errors));
+  //     // debugger;
+  //   }
+  //   // console.assert(parsedJSONResponse.key !== undefined);
+  //   // console.assert(parsedJSONResponse.key !== null);
+  //   // console.assert(parsedJSONResponse.key !== '');
+  //   return (await awaitedResponse.json()).key;
+  // }
+  // catch (error) {
+  //   fetchFilter(error);
+  // }
 
 }

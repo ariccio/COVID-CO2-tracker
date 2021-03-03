@@ -12,7 +12,7 @@ import {UserInfoDevice, UserInfoMeasurements} from './QueryDeviceInfo';
 import {userRequestOptions} from './DefaultRequestOptions';
 
 import {formatErrors} from './ErrorObject'
-import { fetchFailed, fetchFilter } from './FetchHelpers';
+import { fetchFailed, fetchFilter, fetchJSONWithChecks } from './FetchHelpers';
 
 const SHOW_USER_URL = API_URL + '/users/show';
 
@@ -57,28 +57,46 @@ function userInfoToStrongType(userInfo: any): UserInfoType {
 }
 
 export async function queryUserInfo(): Promise<UserInfoType> {
-    try {
-        const rawResponse: Promise<Response> = fetch(SHOW_USER_URL, userRequestOptions());
-        // console.log("body: ", (await rawResponse).body)
-        const awaitedResponse = await rawResponse;
-        const jsonResponse = awaitedResponse.json();
-        const response = await jsonResponse;
-        // console.log(response);
-        if (fetchFailed(awaitedResponse, response, 200, false)) {
-            if (awaitedResponse.status === 401) {
-                console.warn("user not logged in!");
-                if (response.errors !== undefined) {
-                    console.error(formatErrors(response.errors));
-                    // return null;
-                }
+    const fetchFailedCallback = async (awaitedResponse: Response): Promise<UserInfoType> => {
+        if (awaitedResponse.status === 401) {
+            console.warn("user not logged in!");
+            const parsedJSONResponse = await awaitedResponse.json();
+            if (parsedJSONResponse.errors !== undefined) {
+                console.error(formatErrors(parsedJSONResponse.errors));
+                // return null;
             }
-    
         }
-        return userInfoToStrongType(response);
+        return userInfoToStrongType(await awaitedResponse.json());
     }
-    catch(error) {
-        fetchFilter(error);
+
+    const fetchSuccessCallback = async (awaitedResponse: Response): Promise<UserInfoType> => {
+        return userInfoToStrongType(await awaitedResponse.json());
     }
+    const result = fetchJSONWithChecks(SHOW_USER_URL, userRequestOptions(), 200, false, fetchFailedCallback, fetchSuccessCallback) as Promise<UserInfoType>;
+    return result;
+    // try {
+    //     const rawResponse: Promise<Response> = fetch(SHOW_USER_URL, userRequestOptions());
+    //     // console.log("body: ", (await rawResponse).body)
+    //     const awaitedResponse = await rawResponse;
+    //     // const jsonResponse = awaitedResponse.json();
+    //     // const parsedJSONResponse = await jsonResponse;
+    //     // console.log(response);
+    //     if (fetchFailed(awaitedResponse, 200, false)) {
+    //         if (awaitedResponse.status === 401) {
+    //             console.warn("user not logged in!");
+    //             const parsedJSONResponse = await awaitedResponse.json();
+    //             if (parsedJSONResponse.errors !== undefined) {
+    //                 console.error(formatErrors(parsedJSONResponse.errors));
+    //                 // return null;
+    //             }
+    //         }
+    
+    //     }
+    //     return userInfoToStrongType(await awaitedResponse.json());
+    // }
+    // catch(error) {
+    //     fetchFilter(error);
+    // }
     // return response;
 }
 

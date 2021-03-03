@@ -3,7 +3,7 @@
 import {formatErrors, ErrorObjectType} from './ErrorObject';
 import {API_URL} from './UrlPath';
 
-import {fetchFailed, fetchFilter} from './FetchHelpers';
+import {fetchFailed, fetchFilter, dumpResponse, fetchJSONWithChecks} from './FetchHelpers';
 
 const LOGIN_URL = API_URL + '/auth';
 const SIGNUP_URL = API_URL + "/users";
@@ -115,100 +115,170 @@ function loginResponseStrongType(response: any): LoginResponse {
 
 export async function login(username: string, password: string): Promise<LoginResponse> {
     const requestOptions: RequestInit = loginRequestOptions(username, password);
-    try {
-        const rawFetchResponse: Promise<Response> = fetch(LOGIN_URL, requestOptions);
-        const awaitedResponse = await rawFetchResponse;
+    const fetchfailedCallback = async (awaitedResponse: Response): Promise<LoginResponse> => {
+        console.error("modified since last time I tested this. Integration testing is hard.")
+        return loginResponseStrongType(await awaitedResponse.json());
+    }
+    const fetchSuccessCallback = async (awaitedResponse: Response): Promise<LoginResponse> => {
+        return loginResponseStrongType(await awaitedResponse.json());
+    }
+    const result = fetchJSONWithChecks(LOGIN_URL, requestOptions, 202, true, fetchfailedCallback, fetchSuccessCallback ) as Promise<LoginResponse>;
+    return result;
+    // try {
+    //     const rawFetchResponse: Promise<Response> = fetch(LOGIN_URL, requestOptions);
+    //     const awaitedResponse = await rawFetchResponse;
     
-        const jsonResponse: Promise<any> = awaitedResponse.json();
-        const response = await jsonResponse;
-        // console.log(response);
-        // render json: { username: @user.email, jwt: token }, status: :accepted
-        console.assert(response != null);
-        console.assert(response !== undefined);
-        console.assert(response !== "undefined");
-        if (fetchFailed(awaitedResponse, response, 202, true)) {
-            console.error("modified since last time I tested this. Integration testing is hard.")
-            return loginResponseStrongType(response);
-            // return null
-        }
-        //console.assert(response.jwt !== undefined);
-        console.log("Successful response from server: ", response)
-        // localStorage.setItem('currentUser', response.jwt);
-        return loginResponseStrongType(response);
-    }
-    catch(error) {
-        fetchFilter(error);
-    }
+    //     // const jsonResponse: Promise<any> = awaitedResponse.json();
+    //     // const parsedJSONResponse = await jsonResponse;
+    //     // console.log(response);
+    //     // render json: { username: @user.email, jwt: token }, status: :accepted
+    //     // console.assert(parsedJSONResponse != null);
+    //     // console.assert(parsedJSONResponse !== undefined);
+    //     // console.assert(parsedJSONResponse !== "undefined");
+    //     if (fetchFailed(awaitedResponse, 202, true)) {
+    //         console.error("modified since last time I tested this. Integration testing is hard.")
+    //         return loginResponseStrongType(await awaitedResponse.json());
+    //         // return null
+    //     }
+    //     //console.assert(response.jwt !== undefined);
+    //     // console.log("Successful response from server: ", parsedJSONResponse)
+    //     // localStorage.setItem('currentUser', response.jwt);
+    //     return loginResponseStrongType(await awaitedResponse.json());
+    // }
+    // catch(error) {
+    //     fetchFilter(error);
+    // }
 }
+
 
 export async function get_email(): Promise<LoginResponse | null> {
     const requestOptions: RequestInit = get_email_options();
-    try {
-        const rawFetchResponse: Promise<Response> = fetch(EMAIL_URL, requestOptions);
-        const awaitedResponse = await rawFetchResponse;
-        // https://stackoverflow.com/questions/4467044/proper-way-to-catch-exception-from-json-parse
-        console.log("TODO: should I be properly catching this?")
-        // console.log(await rawFetchResponse);
-        // const resp = await rawFetchResponse;
-        // console.log((await rawFetchResponse.status));
-        const jsonResponse: Promise<any> = awaitedResponse.json();
-        const response = await jsonResponse;
-        if(fetchFailed(awaitedResponse, response, 200, true)) {
-            if (awaitedResponse.status === 401) {
-                console.warn("no cookie, user not logged in!");
-                return null
-            }
-            return loginResponseStrongType(response);
+    const fetchFailedCallback = async (awaitedResponse: Response): Promise<LoginResponse | null> => {
+        if (awaitedResponse.status === 401) {
+            console.warn("no cookie, user not logged in!");
+            return null
         }
+        return loginResponseStrongType(await (awaitedResponse.json()));
+    }
+    const fetchSuccessCallback = async (awaitedResponse: Response): Promise<LoginResponse | null> => {
         console.log("TODO: to strong type check for undefined");
-        console.assert((response as LoginResponse).email !== undefined);
-        console.log("got initial username/email from server:", response.email);
-        return loginResponseStrongType(response);
+        // console.assert((parsedJSONResponse as LoginResponse).email !== undefined);
+        // console.log("got initial username/email from server:", parsedJSONResponse.email);
+        return loginResponseStrongType(await awaitedResponse.json());
+
     }
-    catch(error) {
-        fetchFilter(error);
-    }
+
+    const result = fetchJSONWithChecks(EMAIL_URL, requestOptions, 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<ReturnType<typeof fetchSuccessCallback> | ReturnType<typeof fetchFailedCallback>>;
+    return result;
+    // try {
+    //     const rawFetchResponse: Promise<Response> = fetch(EMAIL_URL, requestOptions);
+    //     const rawResponseForErrors = (await rawFetchResponse).clone();
+    //     const rawResponseForErrorsMessage = (await rawFetchResponse).clone();
+
+    //     //This can throw here?
+    //     // const awaitedResponse = await rawFetchResponse;
+    //     try {
+    //         const awaitedResponse = await awaitRawResponse(rawFetchResponse);
+    //         // https://stackoverflow.com/questions/4467044/proper-way-to-catch-exception-from-json-parse
+    //         console.log("TODO: should I be properly catching this?")
+    //         // console.log(await rawFetchResponse);
+    //         // const resp = await rawFetchResponse;
+    //         // console.log((await rawFetchResponse.status));
+    //         // const resp = await awaitedResponse;
+    //         // // const respText = await resp.text();
+    //         // // console.log(resp);
+    //         // // console.log(respText);
+    //         // // debugger;
+    //         // const jsonResponse: Promise<any> = awaitedResponse.clone().json();
+    //         // const parsedJSONResponse = await jsonResponse;
+    //         if(fetchFailed(awaitedResponse, 200, true)) {
+    //             if (awaitedResponse.status === 401) {
+    //                 console.warn("no cookie, user not logged in!");
+    //                 return null
+    //             }
+    //             return loginResponseStrongType(await awaitedResponse.json());
+    //         }
+    //         console.log("TODO: to strong type check for undefined");
+    //         // console.assert((parsedJSONResponse as LoginResponse).email !== undefined);
+    //         // console.log("got initial username/email from server:", parsedJSONResponse.email);
+    //         return loginResponseStrongType(await awaitedResponse.json());
+    //     }
+    //     catch (awaitError) {
+    //         console.log(awaitError);
+    //         console.log(await (rawResponseForErrors.text()));
+    //         // rawResponseForErrorsMessage.
+    //         dumpResponse(rawResponseForErrorsMessage);
+
+    //         // debugger;
+            
+    //     }
+    //     //TODO: for debugging?
+    //     return null;
+    // }
+    // catch(error) {
+    //     debugger;
+    //     fetchFilter(error);
+    // }
 }
 
 export async function logout(): Promise<LogoutResponse> {
-    try {
-        const rawFetchResponse: Promise<Response> = fetch(LOGIN_URL, logoutRequestOptions());
-        const awaitedResponse = await rawFetchResponse;
-        const jsonResponse: Promise<any> = awaitedResponse.json();
-        const response = await jsonResponse;
-        if (fetchFailed(awaitedResponse, response, 200, true)) {
-            console.log("Logged out successfully, but request returned a failed response?")
-        }
-        // debugger;
+    const fetchFailedCallback = async (awaitedResponse: Response): Promise<LogoutResponse> => {
+        console.log("Logged out successfully, but request returned a failed response?");
         console.log("TODO: to strong type check for undefined");
-        return response;
+        return await awaitedResponse.json();
     }
-    catch(error) {
-        fetchFilter(error);
+    const fetchSuccessCallback = async (awaitedResponse: Response): Promise<LogoutResponse> => {
+        console.log("TODO: to strong type check for undefined");
+        return await awaitedResponse.json();
     }
+
+    const result = fetchJSONWithChecks(LOGIN_URL, logoutRequestOptions(), 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<LogoutResponse>;
+    return result;
+    // try {
+    //     const rawFetchResponse: Promise<Response> = fetch(LOGIN_URL, logoutRequestOptions());
+    //     const awaitedResponse = await rawFetchResponse;
+    //     // const jsonResponse: Promise<any> = awaitedResponse.json();
+    //     // const parsedJSONResponse = await jsonResponse;
+    //     if (fetchFailed(awaitedResponse, 200, true)) {
+    //         console.log("Logged out successfully, but request returned a failed response?")
+    //     }
+    //     // debugger;
+    //     console.log("TODO: to strong type check for undefined");
+    //     return await awaitedResponse.json();
+    // }
+    // catch(error) {
+    //     fetchFilter(error);
+    // }
 }
 
 
 export async function signup(email: string, password: string): Promise<SignupResponse> {
+    const fetchCallback = async (awaitedResponse: Response): Promise<SignupResponse> => {
+        return await awaitedResponse.json();
+    }
+
     const requestOptions: RequestInit = signUpRequestOptions(email, password);
-    try {
-        const rawFetchResponse: Promise<Response> = fetch(SIGNUP_URL, requestOptions);
-        const awaitedResponse = await rawFetchResponse;
-        const jsonResponse: Promise<any> = awaitedResponse.json();
-        const response = await jsonResponse;
-        // render json: { jwt: token }, status: :created
-        if (fetchFailed(awaitedResponse, response, 201, true)) {
-            debugger;
-            // return response;
-            return response;
-        }
-        console.assert(response.errors === undefined);
-        console.assert(awaitedResponse.status === 201);
-        // localStorage.setItem('currentUser', response.jwt);
-        console.log("Successful response from server: ", response)
-        return response;
-    }
-    catch(error) {
-        fetchFilter(error);
-    }
+
+    const result = fetchJSONWithChecks(SIGNUP_URL, requestOptions, 201, true, fetchCallback, fetchCallback) as Promise<SignupResponse>;
+    return result;
+    // try {
+    //     const rawFetchResponse: Promise<Response> = fetch(SIGNUP_URL, requestOptions);
+    //     const awaitedResponse = await rawFetchResponse;
+    //     // const jsonResponse: Promise<any> = awaitedResponse.json();
+    //     // const parsedJSONResponse = await jsonResponse;
+    //     // render json: { jwt: token }, status: :created
+    //     if (fetchFailed(awaitedResponse, 201, true)) {
+    //         debugger;
+    //         // return response;
+    //         return await awaitedResponse.json();
+    //     }
+    //     // console.assert(parsedJSONResponse.errors === undefined);
+    //     console.assert(awaitedResponse.status === 201);
+    //     // localStorage.setItem('currentUser', response.jwt);
+    //     // console.log("Successful response from server: ", parsedJSONResponse)
+    //     return await awaitedResponse.json();
+    // }
+    // catch(error) {
+    //     fetchFilter(error);
+    // }
 }

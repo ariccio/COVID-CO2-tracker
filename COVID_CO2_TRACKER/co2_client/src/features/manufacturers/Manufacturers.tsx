@@ -5,7 +5,7 @@ import {Link, useLocation} from 'react-router-dom';
 
 import {ManufacturerDeviceModelsTable} from '../deviceModels/DeviceModelsTable';
 
-import {ErrorObjectType, exceptionToErrorObject} from '../../utils/ErrorObject';
+import {ErrorObjectType, exceptionToErrorObject, formatErrors} from '../../utils/ErrorObject';
 
 import {SingleManufacturerInfoResponse} from './manufacturerSlice';
 
@@ -63,22 +63,22 @@ function manufacturersToDropdown(manufacturers_: ManufacturersArray) {
 }
 
 
-const getAndSetManufacturers = (setKnownManufacturers: React.Dispatch<React.SetStateAction<ManufacturersArray>>, setErrors: React.Dispatch<React.SetStateAction<ErrorObjectType[] | null>>) => {
+const getAndSetManufacturers = (setKnownManufacturers: React.Dispatch<React.SetStateAction<ManufacturersArray>>, setErrors: React.Dispatch<React.SetStateAction<string>>) => {
     const getAllManufacturersPromise = queryManufacturers();
     getAllManufacturersPromise.then(result => {
         if (result.errors !== undefined) {
-            setErrors(result.errors);
+            setErrors(formatErrors(result.errors));
         }
         else {
             setKnownManufacturers(result);
         }
     }).catch((error) => {
-        setErrors([exceptionToErrorObject(error)])
+        setErrors(formatErrors([exceptionToErrorObject(error)]))
     })
 
 }
 
-const getSingleManufacturer = (selectedManufacturer: number | null, setManufacturerModels: React.Dispatch<React.SetStateAction<SingleManufacturerInfoResponse>>, setErrors: React.Dispatch<React.SetStateAction<ErrorObjectType[] | null>>) => {
+const getSingleManufacturer = (selectedManufacturer: number | null, setManufacturerModels: React.Dispatch<React.SetStateAction<SingleManufacturerInfoResponse>>, setErrors: React.Dispatch<React.SetStateAction<string>>) => {
     if ((selectedManufacturer !== null) && (selectedManufacturer !== -1)) {
         const getManufacturerInfoPromise = queryManufacturerInfo(selectedManufacturer);
         getManufacturerInfoPromise.then(manufacturerInfo => {
@@ -87,9 +87,9 @@ const getSingleManufacturer = (selectedManufacturer: number | null, setManufactu
                 setManufacturerModels(manufacturerInfo);
                 return;
             }
-            setErrors(manufacturerInfo.errors);
+            setErrors(formatErrors(manufacturerInfo.errors));
         }).catch((error) => {
-            setErrors([exceptionToErrorObject(error)])
+            setErrors(formatErrors([exceptionToErrorObject(error)]))
         }) 
     }
 
@@ -145,7 +145,7 @@ export const CreateManufacturerOrModel: React.FC<CreateManufacturerOrModelProps>
     const [knownManufacturers, setKnownManufacturers] = useState(defaultManufacturersArray);
     //TODO: this is not how you do nested routes.
     const [showAddManufacturer, setShowAddManufacturer] = useState(location.pathname.endsWith('create'));
-    const [errors, setErrors] = useState(null as (Array<ErrorObjectType> | null));
+    const [errors, setErrors] = useState('');
     const [manufacturerModels, setManufacturerModels] = useState(initSingleManufactuerInfo as SingleManufacturerInfoResponse);
     const selectedManufacturer = useSelector(selectSelectedManufacturer);
     const selectedModel = useSelector(selectSelectedModel);
@@ -166,7 +166,7 @@ export const CreateManufacturerOrModel: React.FC<CreateManufacturerOrModelProps>
             <br/>
             <br/>
             <br/>
-            {errors === null ? <ManufacturerDeviceModelsTable models={manufacturerModels.models}/>  : errors}
+            {errors === '' ? <ManufacturerDeviceModelsTable models={manufacturerModels.models}/>  : errors}
             {renderNewModelForManufacturer(manufacturerModels, location)}
         </>
     )

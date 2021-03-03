@@ -12,6 +12,7 @@ export const HomePage: FunctionComponent<{}> = (props: any) => {
     const currentPlace = useSelector(selectSelectedPlace);
     useEffect(() => {
         getGoogleMapsJavascriptAPIKey().then((key: string) => setMapsAPIKey(key)).catch((error) => {
+            // debugger;
             setErrorState(error.message);
         })
     }, []);

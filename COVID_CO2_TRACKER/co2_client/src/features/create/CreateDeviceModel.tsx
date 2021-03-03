@@ -6,7 +6,7 @@ import {selectSelectedManufacturer} from '../manufacturers/manufacturerSlice';
 import {setEnteredModelText, selectEnteredModelText} from '../create/creationSlice';
 import {setSelectedModel, setSelectedModelName} from '../deviceModels/deviceModelsSlice';
 import {postRequestOptions} from '../../utils/DefaultRequestOptions';
-import { fetchFailed, fetchFilter } from '../../utils/FetchHelpers';
+import { fetchFailed, fetchFilter, fetchJSONWithChecks } from '../../utils/FetchHelpers';
 
 import {ErrorObjectType, formatErrors} from '../../utils/ErrorObject';
 
@@ -68,21 +68,30 @@ function newModelRequestInit(newModelName: string, manufacturer_id: number): Req
 
 
 async function createNewModel(name: string, manufacturer: number): Promise<NewModelResponse> {
-    try {
-        const rawResponse: Promise<Response> = fetch(NEW_MODEL_URL, newModelRequestInit(name, manufacturer));
-        const awaitedResponse = await rawResponse;
-        const jsonResponse = await awaitedResponse.json();
-        const response = await jsonResponse;
-        if (fetchFailed(awaitedResponse, response, 201, true)) {
-            console.error("failed to create new model");
-        }
-        return responseToNewModelStrongType(response);
+    const fetchFailedCallback = async (awaitedResponse: Response): Promise<NewModelResponse> => {
+        console.error("failed to create new model");
+        return responseToNewModelStrongType(await awaitedResponse.json());
     }
-    catch(error) {
-        fetchFilter(error);
+    const fetchSuccessCallback =  async (awaitedResponse: Response): Promise<NewModelResponse> => {
+        return responseToNewModelStrongType(await awaitedResponse.json());
     }
-    finally{
-    }
+    const result = fetchJSONWithChecks(NEW_MODEL_URL, newModelRequestInit(name, manufacturer), 201, true, fetchFailedCallback, fetchSuccessCallback) as Promise<NewModelResponse>;
+    return result;
+    // try {
+    //     const rawResponse: Promise<Response> = fetch(NEW_MODEL_URL, newModelRequestInit(name, manufacturer));
+    //     const awaitedResponse = await rawResponse;
+    //     // const jsonResponse = await awaitedResponse.json();
+    //     // const parsedJSONResponse = await jsonResponse;
+    //     if (fetchFailed(awaitedResponse, 201, true)) {
+    //         console.error("failed to create new model");
+    //     }
+    //     return responseToNewModelStrongType(await awaitedResponse.json());
+    // }
+    // catch(error) {
+    //     fetchFilter(error);
+    // }
+    // finally{
+    // }
 }
 
 const submitHandler = (enteredModelText: string, setShowAddModel: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>, selectedManufacturer: number, dispatch: ReturnType<typeof useDispatch>) => {

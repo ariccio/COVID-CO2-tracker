@@ -78,6 +78,7 @@ export const Devices: React.FC<{}> = () => {
             // console.log(userInfo);
             setUserInfo(userInfo)
         }).catch((errors) => {
+            // debugger;
             setErrorState(errors.message);
         })
     }, [])
@@ -92,15 +93,22 @@ export const Devices: React.FC<{}> = () => {
                     {errorState}
                 </p>
             </>
-        )
+        );
     }
 
     if (userInfo === defaultUserInfo) {
+        if (errorState !== '') {
+            return (
+                <>
+                    {errorState}
+                </>
+            );
+        }
          return (
             <h3>
                 Loading...
             </h3>
-        )
+        );
     }
 
     return (

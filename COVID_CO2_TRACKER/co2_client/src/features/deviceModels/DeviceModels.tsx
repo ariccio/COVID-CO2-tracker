@@ -5,7 +5,7 @@ import {Link, useLocation} from 'react-router-dom';
 import {RouteComponentProps} from 'react-router-dom';
 // import {deviceModelsPath} from '../../paths/paths';
 import {userRequestOptions} from '../../utils/DefaultRequestOptions';
-import { fetchFailed, fetchFilter } from '../../utils/FetchHelpers';
+import { fetchFailed, fetchFilter, fetchJSONWithChecks } from '../../utils/FetchHelpers';
 import {API_URL} from '../../utils/UrlPath';
 import {ErrorObjectType, formatErrors} from '../../utils/ErrorObject';
 
@@ -40,22 +40,29 @@ const defaultQueryDeviceModelInfoResponse: QueryDeviceModelInfoResponse = {
 }
 
 async function queryDeviceModelInfo(deviceModelId: string): Promise<any> {
-    try {
-        // debugger;
-        const rawResponse: Promise<Response> = fetch(`${SHOW_DEVICE_MODEL_URL}/${deviceModelId}`, userRequestOptions());
-        const awaitedResponse = await rawResponse;
-        const jsonResponse = awaitedResponse.json();
-        const response = await jsonResponse;
-        console.log(response);
-        if(fetchFailed(awaitedResponse, response, 200, true)) {
-            debugger;
-        }
 
-        return response;
+    const fetchCallback = async (awaitedResponse: Response): Promise<any> => {
+        console.log("TODO: strong types")
+        return await awaitedResponse.json();
     }
-    catch(error) {
-        fetchFilter(error);
-    }
+    const result = fetchJSONWithChecks(`${SHOW_DEVICE_MODEL_URL}/${deviceModelId}`, userRequestOptions(), 200, true, fetchCallback, fetchCallback);
+    return result;
+    // try {
+    //     // debugger;
+    //     const rawResponse: Promise<Response> = fetch(`${SHOW_DEVICE_MODEL_URL}/${deviceModelId}`, userRequestOptions());
+    //     const awaitedResponse = await rawResponse;
+    //     // const jsonResponse = awaitedResponse.json();
+    //     // const parsedJSONResponse = await jsonResponse;
+    //     // console.log(parsedJSONResponse);
+    //     if(fetchFailed(awaitedResponse, 200, true)) {
+    //         debugger;
+    //     }
+
+    //     return await awaitedResponse.json();
+    // }
+    // catch(error) {
+    //     fetchFilter(error);
+    // }
 }
 
 const basicDeviceModelInfo = (deviceModelInfo: QueryDeviceModelInfoResponse, errorState: any) => {
@@ -105,8 +112,9 @@ export const DeviceModels: React.FC<RouteComponentProps<DeviceModelsProps>> = (p
                 if (response.errors !== undefined) {
                     setErrorState(formatErrors(response.errors));
                 }
-                // debugger;
+                debugger;
             }).catch((errors) => {
+                debugger;
                 setErrorState(errors.message);
                 debugger;
             })

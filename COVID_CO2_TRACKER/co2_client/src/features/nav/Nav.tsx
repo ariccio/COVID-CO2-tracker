@@ -135,7 +135,7 @@ const loadEmail = (dispatch: ReturnType<typeof useDispatch>) => {
   }).catch((error) => {
     console.error(`Failed to get email from server! fetch itself failed with error ${error}`);
     alert(error.message);
-    debugger;
+    // debugger;
     // throw error;
   })
 }

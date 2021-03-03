@@ -7,7 +7,7 @@ import {useLocation, useHistory} from 'react-router-dom'
 import {API_URL} from '../../utils/UrlPath';
 import {postRequestOptions, userRequestOptions} from '../../utils/DefaultRequestOptions';
 import {formatErrors, exceptionToErrorObject, ErrorObjectType} from '../../utils/ErrorObject';
-import {fetchFailed, fetchFilter} from '../../utils/FetchHelpers';
+import {fetchFailed, fetchFilter, fetchJSONWithChecks} from '../../utils/FetchHelpers';
 import {setEnteredManufacturerText/*, setManufacturerFeedbackText*/} from './creationSlice';
 import {selectEnteredManufacturerText} from './creationSlice';
 
@@ -75,44 +75,55 @@ export async function queryManufacturerInfo(manufacturer_id: number): Promise<Si
     //     return null;
     // }
     const MANUFACTURER_SHOW_URL = (MANUFACTURERS_URL + `/${manufacturer_id}`);
-    try {
-        const rawResponse: Promise<Response> = fetch(MANUFACTURER_SHOW_URL, userRequestOptions() );
-        const awaitedResponse = await rawResponse;
-        const jsonResponse = await awaitedResponse.json();
-        const response = await jsonResponse;
-        if (fetchFailed(awaitedResponse, response, 200, false)) {
-            //Errors handled up the stack.
-            // if (response.errors !== undefined) {
-            //     return manufacturerInfoResponseToStrongType(response);
-            // }
-        }
-        
-        // debugger;
-        return manufacturerInfoResponseToStrongType(response);
+    const fetchCallback = async (awaitedResponse: Response): Promise<SingleManufacturerInfoResponse> => {
+        return manufacturerInfoResponseToStrongType(await awaitedResponse.json());
     }
-    catch (error) {
-        fetchFilter(error);
-      }
+    const result = fetchJSONWithChecks(MANUFACTURER_SHOW_URL, userRequestOptions(), 200, false, fetchCallback, fetchCallback) as Promise<SingleManufacturerInfoResponse>;
+    return result;
+    // try {
+    //     const rawResponse: Promise<Response> = fetch(MANUFACTURER_SHOW_URL, userRequestOptions() );
+    //     const awaitedResponse = await rawResponse;
+    //     // const jsonResponse = await awaitedResponse.json();
+    //     // const parsedJSONResponse = await jsonResponse;
+    //     if (fetchFailed(awaitedResponse, 200, false)) {
+    //         //Errors handled up the stack.
+    //         // if (response.errors !== undefined) {
+    //         //     return manufacturerInfoResponseToStrongType(response);
+    //         // }
+    //     }
+        
+    //     // debugger;
+    //     return manufacturerInfoResponseToStrongType(await awaitedResponse.json());
+    // }
+    // catch (error) {
+    //     fetchFilter(error);
+    //   }
 }
 
 
 export async function queryManufacturers(): Promise<ManufacturersArray> {
     const ALL_MANUFACTURERS_URL = (API_URL + '/all_manufacturers');
-    try {
-        const rawResponse: Promise<Response> = fetch(ALL_MANUFACTURERS_URL, userRequestOptions() );
-        const awaitedResponse = await rawResponse;
-        const jsonResponse = await awaitedResponse.json();
-        const response = await jsonResponse;
-        if(fetchFailed(awaitedResponse, response, 200, false)) {
-            //errors handled up the stack.
-            // debugger;
-            // throw new Error("hmm");
-        }
-        return responseToManufacturersArrayStrongType(response);
+    const fetchCallback = async (awaitedResponse: Response): Promise<ManufacturersArray> => {
+        return responseToManufacturersArrayStrongType(await awaitedResponse.json());
     }
-    catch (error) {
-        fetchFilter(error);
-    }
+
+    const result = fetchJSONWithChecks(ALL_MANUFACTURERS_URL, userRequestOptions(), 200, false, fetchCallback, fetchCallback) as Promise<ManufacturersArray>;
+    return result;
+    // try {
+    //     const rawResponse: Promise<Response> = fetch(ALL_MANUFACTURERS_URL, userRequestOptions() );
+    //     const awaitedResponse = await rawResponse;
+    //     // const jsonResponse = await awaitedResponse.json();
+    //     // const parsedJSONResponse = await jsonResponse;
+    //     if(fetchFailed(awaitedResponse, 200, false)) {
+    //         //errors handled up the stack.
+    //         // debugger;
+    //         // throw new Error("hmm");
+    //     }
+    //     return responseToManufacturersArrayStrongType(await awaitedResponse.json());
+    // }
+    // catch (error) {
+    //     fetchFilter(error);
+    // }
 }
 
 function newManufacturerRequestInit(newManufacturerName: string): RequestInit {
@@ -137,20 +148,30 @@ function responseToNewManufacturerStrongType(response: any): NewManufacturerResp
 }
 
 async function createNewManufacturer(name: string): Promise<NewManufacturerResponse> {
-    try {
-        const rawResponse: Promise<Response> = fetch(MANUFACTURERS_URL, newManufacturerRequestInit(name));
-        const awaitedResponse = await rawResponse;
-        const jsonResponse = await awaitedResponse.json();
-        const response = await jsonResponse;
-        if(fetchFailed(awaitedResponse, response, 201, true)) {
-            // Now handled kinda correctly by frontend
-            console.error("failed to create new manufacturer");
-        }
-        return responseToNewManufacturerStrongType(response);
+    const fetchFailedCallback = async (awaitedResponse: Response): Promise<NewManufacturerResponse> => {
+        console.error("failed to create new manufacturer");
+        return responseToNewManufacturerStrongType(await awaitedResponse.json());
     }
-    catch (error) {
-        fetchFilter(error);
+    const fetchSuccessCallback = async (awaitedResponse: Response): Promise<NewManufacturerResponse> => {
+        return responseToNewManufacturerStrongType(await awaitedResponse.json());
     }
+
+    const result = fetchJSONWithChecks(MANUFACTURERS_URL, newManufacturerRequestInit(name), 201, true, fetchFailedCallback, fetchSuccessCallback) as Promise<NewManufacturerResponse>;
+    return result;
+    // try {
+    //     const rawResponse: Promise<Response> = fetch(MANUFACTURERS_URL, newManufacturerRequestInit(name));
+    //     const awaitedResponse = await rawResponse;
+    //     // const jsonResponse = await awaitedResponse.json();
+    //     // const parsedJSONResponse = await jsonResponse;
+    //     if(fetchFailed(awaitedResponse, 201, true)) {
+    //         // Now handled kinda correctly by frontend
+    //         console.error("failed to create new manufacturer");
+    //     }
+    //     return responseToNewManufacturerStrongType(await awaitedResponse.json());
+    // }
+    // catch (error) {
+    //     fetchFilter(error);
+    // }
 }
 
 
