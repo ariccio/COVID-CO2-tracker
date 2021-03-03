@@ -99,19 +99,23 @@ __proto__: Object
 -----------
 parts we're interested in:
 formatted_address: "1066 3rd Ave, New York, NY 10065, USA"
-formatted_phone_number: "(212) 935-9551"
-geometry: {location: _.I, viewport: _.Rf}
 icon: "https://maps.gstatic.com/mapfiles/place_api/icons/v1/png_71/shopping-71.png"
-international_phone_number: "+1 212-935-9551"
 name: "Morton Williams Supermarkets"
-photos: (10) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
 place_id: "ChIJQyEH0ehYwokRdBbXzsOGYmQ"
-plus_code: {compound_code: "Q27P+Q3 New York, NY, USA", global_code: "87G8Q27P+Q3"}
-reference: "ChIJQyEH0ehYwokRdBbXzsOGYmQ"
 types: (6) ["supermarket", "grocery_or_supermarket", "food", "point_of_interest", "store", "establishment"]
 url: "https://maps.google.com/?cid=7233492127057385076"
 vicinity: "1066 3rd Avenue, New York"
 */
+
+export const interestingFields = [
+    "place_id",
+    "formatted_address",
+    "icon",
+    "name",
+    "types",
+    "url",
+    "vicinity"
+];
 
 interface googlePlacesState {
     // google.maps.places.

@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {useDispatch} from 'react-redux';
-// import {useSelector} from 'react-redux';
-// import {selectSelectedPlace} from '../google/googleSlice';
+import {useSelector} from 'react-redux';
+import {selectSelectedPlace} from '../google/googleSlice';
 
 import { GoogleMap, useJsApiLoader, Autocomplete } from '@react-google-maps/api';
 import { Button, Form } from 'react-bootstrap';
 
-import {setSelectedPlace} from './googleSlice';
+import {setSelectedPlace, interestingFields} from './googleSlice';
 
 // import { getGooglePlacesScriptAPIKey } from '../../utils/GoogleAPIKeys';
 // import {GeolocationPosition} from 'typescript/lib/lib.dom'
@@ -151,7 +151,7 @@ const invokeBrowserGeolocation = (setCenter: React.Dispatch<React.SetStateAction
     }
 }
 
-const loadCallback = (map: google.maps.Map, setMap: React.Dispatch<React.SetStateAction<google.maps.Map | null>>) => {
+const loadCallback = (map: google.maps.Map, setMap: React.Dispatch<React.SetStateAction<google.maps.Map | null>>, setService: React.Dispatch<React.SetStateAction<google.maps.places.PlacesService | null>>) => {
     if ((window as any).google === undefined) {
         throw new Error("window.google is undefined!")
     }
@@ -167,6 +167,9 @@ const loadCallback = (map: google.maps.Map, setMap: React.Dispatch<React.SetStat
     //   console.log("map zoom " + map.getZoom());
     //   debugger;
     console.log("maps successfully loaded!");
+    const service = new google.maps.places.PlacesService(map);
+    setService(service);
+
 }
 
 type autocompleteLoadType = (autocompleteEvent: google.maps.places.Autocomplete) => void;
@@ -194,8 +197,11 @@ const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (pr
         console.log("no bounds yet");
         return (null);
     }
+
+    //Warning: If you do not specify at least one field with a request, or if you omit the fields parameter from a request, ALL possible fields will be returned, and you will be billed accordingly. This applies only to Place Details requests (including Place Details requests made from the Place Autocomplete widget).
+
     return (
-        <Autocomplete onLoad={props.autoCompleteLoad} onPlaceChanged={props.placeChange} bounds={bounds}>
+        <Autocomplete onLoad={(event) => props.autoCompleteLoad(event)} onPlaceChanged={props.placeChange} bounds={bounds} fields={interestingFields}>
             <>
 
                 <Form>
@@ -214,101 +220,162 @@ const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (pr
     );
 }
 
-export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props) => {
-    const dispatch = useDispatch();
-    const containerStyle = {
-        width: '400px',
-        height: '400px'
-    };
+const placeChange = (autocomplete: google.maps.places.Autocomplete | null, dispatch: ReturnType<typeof useDispatch>, map: google.maps.Map<Element> | null) => {
+    if (autocomplete === null) {
+        return;
+    }
+    console.log(autocomplete.getPlace())
+    console.log(`id: ${autocomplete.getPlace().id}`);
+    console.log(`place_id: ${autocomplete.getPlace().place_id}`);
+    console.log(`geometry.location.toString: ${autocomplete.getPlace().geometry?.location.toString()}`);
+    console.log(`geometry.viewport.toString: ${autocomplete.getPlace().geometry?.viewport.toString()}`)
+    // autocomplete.getPlace()
+    // debugger;
+    dispatch(setSelectedPlace(autocomplete.getPlace()));
+    if (map) {
+        const placeLocation = autocomplete.getPlace().geometry;
+        if (placeLocation) {
+            map.setCenter(placeLocation.location)
+        }
+    }
+}
 
+const onClickMaps = (e: google.maps.MapMouseEvent, setSelectedPlaceIdString: React.Dispatch<React.SetStateAction<string>>) => {
+    console.log(`dynamic type of event: ${typeof e}?`)
+    if ((e as any).placeId === undefined) {
+        console.warn("placeId missing?");
+    }
+    else {
+        console.log(`User clicked in google maps container on place ${(e as any).placeId}`);
+        console.log(e);
+        setSelectedPlaceIdString((e as any).placeId)
+        // debugger;
+    }
+}
+
+const containerStyle = {
+    width: '400px',
+    height: '400px'
+};
+
+const options = (center: CenterType): google.maps.MapOptions => {
+    return {
+        //default tweaked for manhattan
+        zoom: 18,
+        center: center
+    }
+};
+
+const autoCompleteLoadThunk = (autocompleteEvent: google.maps.places.Autocomplete, setAutocomplete: React.Dispatch<React.SetStateAction<google.maps.places.Autocomplete | null>>) => {
+    setAutocomplete(autocompleteEvent);
+    console.log("autocomplete loaded!");
+}
+
+
+export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props) => {
+
+    //TODO: streetview service?
+    // https://developers.google.com/maps/documentation/javascript/streetview
+
+
+    const dispatch = useDispatch();
     const [center, setCenter] = useState(defaultCenter);
+    const [autocomplete, setAutocomplete] = useState(null as google.maps.places.Autocomplete | null);
+    const [map, setMap] = React.useState(null as google.maps.Map | null);
+    const [_zoomLevel, setZoomlevel] = useState(0);
+    const [selectedPlaceIdString, setSelectedPlaceIdString] = useState('');
+    const [service, setService] = useState(null as google.maps.places.PlacesService | null);
+    const [placesServiceStatus, setPlacesServiceStatus] = useState(null as google.maps.places.PlacesServiceStatus | null);
+    const selectedPlace = useSelector(selectSelectedPlace);
+
     const { isLoaded, loadError } = useJsApiLoader({
         id: 'google-map-script',
         googleMapsApiKey: props.api_key,
         libraries: GOOGLE_LIBRARIES
     })
 
-    const [autocomplete, setAutocomplete] = useState(null as google.maps.places.Autocomplete | null);
-    const [map, setMap] = React.useState(null as google.maps.Map | null);
-
     const onLoad = React.useCallback((map: google.maps.Map) => {
-        loadCallback(map, setMap);
+        loadCallback(map, setMap, setService);
     }, [])
 
     const onUnmount = React.useCallback(function callback(map: google.maps.Map) {
         setMap(null);
     }, [])
 
-    const autoCompleteLoad: autocompleteLoadType = (autocompleteEvent: google.maps.places.Autocomplete) => {
-        //   debugger;
-        setAutocomplete(autocompleteEvent);
-        console.log("autocomplete loaded!");
-    }
 
-    const placeChange = () => {
-        if (autocomplete === null) {
-            return;
-        }
-        console.log(autocomplete.getPlace())
-        console.log(`id: ${autocomplete.getPlace().id}`);
-        console.log(`place_id: ${autocomplete.getPlace().place_id}`);
-        console.log(`geometry.location.toString: ${autocomplete.getPlace().geometry?.location.toString()}`);
-        console.log(`geometry.viewport.toString: ${autocomplete.getPlace().geometry?.viewport.toString()}`)
-        // autocomplete.getPlace()
-        // debugger;
-        dispatch(setSelectedPlace(autocomplete.getPlace()));
-        if (map) {
-            const placeLocation = autocomplete.getPlace().geometry;
-            if (placeLocation) {
-                map.setCenter(placeLocation.location)
-            }
-        }
-    }
-
-    const [_zoomLevel, setZoomlevel] = useState(0);
     const onZoomChange = () => {
         if (map) {
-            setZoomlevel(map?.getZoom());
-            // console.log("map zoom: " + map.getZoom())
+            setZoomlevel(map.getZoom());
         }
     }
-    const options: google.maps.MapOptions = {
-        //default tweaked for manhattan
-        zoom: 18,
-        center: center
-    };
 
-    //   if (map) {
-    //       debugger;
-    //     map.setZoom(1000);
-    //   }
+    const getDetailsCallback = (result: google.maps.places.PlaceResult, status: google.maps.places.PlacesServiceStatus) => {
+        if (status !== "OK") {
+            console.error(`Google places query returned ${status}`);
+            setPlacesServiceStatus(status);
+            if (status === google.maps.places.PlacesServiceStatus.OVER_QUERY_LIMIT) {
+                alert('Used entire budgeted google places/maps API quota! File an issue on github or contact me.');
+            }
+            return;
+        }
+        setPlacesServiceStatus(status);
+        dispatch(setSelectedPlace(result));
+        // debugger;
+    }
+
+    useEffect(() => {
+        if (service === null) {
+            return;
+        }
+        if (selectedPlaceIdString === '') {
+            return;
+        }
+        // debugger;
+        //Warning: If you do not specify at least one field with a request, or if you omit the fields parameter from a request, ALL possible fields will be returned, and you will be billed accordingly. This applies only to Place Details requests (including Place Details requests made from the Place Autocomplete widget).
+        const request: google.maps.places.PlaceDetailsRequest = {
+            placeId: selectedPlaceIdString,
+            fields: interestingFields
+        } 
+        service.getDetails(request, getDetailsCallback)
+
+    }, [service, selectedPlaceIdString])
+
+    useEffect(() => {
+        console.log("legal notice to self:");
+        console.log("(a)  No Scraping. Customer will not export, extract, or otherwise scrape Google Maps Content for use outside the Services. For example, Customer will not: (i) pre-fetch, index, store, reshare, or rehost Google Maps Content outside the services; (ii) bulk download Google Maps tiles, Street View images, geocodes, directions, distance matrix results, roads information, places information, elevation values, and time zone details; (iii) copy and save business names, addresses, or user reviews; or (iv) use Google Maps Content with text-to-speech services.");    
+    }, [])
 
     if (isLoaded) {
         return (
             <>
-
                 <div className="map">
                     <div className="map-container">
 
-                        <GoogleMap mapContainerStyle={containerStyle} center={center} onLoad={onLoad} onUnmount={onUnmount} options={options} onZoomChanged={onZoomChange} >
+                        <GoogleMap mapContainerStyle={containerStyle} center={center} onLoad={onLoad} onUnmount={onUnmount} options={options(center)} onZoomChanged={onZoomChange} onClick={(e: google.maps.MapMouseEvent) => onClickMaps(e, setSelectedPlaceIdString)}>
                             { /* Child components, such as markers, info windows, etc. */}
                             <></>
                         </GoogleMap>
                     </div>
-
                 </div>
-                <RenderAutoComplete autoCompleteLoad={autoCompleteLoad} placeChange={placeChange} map={map} />
+                Selected place ID string from google maps: {selectedPlaceIdString}
+                <br/>
+                <RenderAutoComplete autoCompleteLoad={(event) => autoCompleteLoadThunk(event, setAutocomplete)} placeChange={() => placeChange(autocomplete, dispatch, map)} map={map} />
                 <Button onClick={() => invokeBrowserGeolocation(setCenter)}>
                     Find me!
                 </Button>
+                {/* {selectedPlace.toString()} */}
+                <br/>
+                {placesServiceStatus !== null ? `Last google places query status: ${placesServiceStatus}` : null}
             </>
-        )
+        );
     }
-    else if (loadError) {
-        return <>
-            Google maps load failed!
-            {loadError}
-        </>
+    if (loadError) {
+        return (
+            <>
+                Google maps load failed!
+                {loadError}
+            </>
+        );
     }
     return (
         <>
