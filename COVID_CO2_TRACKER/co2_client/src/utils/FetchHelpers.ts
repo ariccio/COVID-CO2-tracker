@@ -81,7 +81,7 @@ export async function fetchFailed(awaitedResponseOriginal: Response, expectedSta
     const awaitedResponseCloned = awaitedResponseOriginal.clone();
 
 
-    const parsedJSONResponse = await checkJSONparsingErrors(awaitedResponseOriginal);
+    const parsedJSONResponse = await checkJSONparsingErrors(awaitedResponseCloned);
     if ((!awaitedResponseCloned.ok) || (parsedJSONResponse.errors !== undefined) ) {
         // debugger;
         awaitedResponseCloned.text().then((awaitedResponseText) => {
@@ -90,10 +90,10 @@ export async function fetchFailed(awaitedResponseOriginal: Response, expectedSta
         })
         if (awaitedResponseCloned.status !== expectedStatus) {
             console.assert(parsedJSONResponse.errors !== undefined);
-            console.warn(`server returned a response (${awaitedResponseCloned.status}, ${awaitedResponseCloned.statusText}) with a status field, and it wasn't a ${expectedStatus} status.`);
+            console.error(`server returned a response (${awaitedResponseCloned.status}, ${awaitedResponseCloned.statusText}) with a status field, and it wasn't a ${expectedStatus} status.`);
         }
         if (parsedJSONResponse.errors !== undefined) {
-            console.assert(awaitedResponseCloned.status !== 200);
+            // console.assert(awaitedResponseCloned.status !== 200);
             console.error(formatErrors(parsedJSONResponse.errors));
             if(alertErrors) {
                 alert(formatErrors(parsedJSONResponse.errors));
@@ -103,6 +103,7 @@ export async function fetchFailed(awaitedResponseOriginal: Response, expectedSta
         return true;
         // return null;
     }
+    // debugger;
     return false;
 }
 
@@ -162,12 +163,14 @@ export async function fetchJSONWithChecks(input: RequestInfo, init: RequestInit,
             
             try {
                 const awaitedResponse = await awaitRawResponse(rawFetchResponse_);
-                if (fetchFailed(awaitedResponse, expectedStatus, alert)) {
+
+                //WHY DOES JAVASCRIPT LET ME DO THIS WITHOUT AWAIT? Annoyed debugging.
+                if (await fetchFailed(awaitedResponse, expectedStatus, alert)) {
                     // debugger;
                     return fetchFailedCallback(awaitedResponse)
                 }
-                // debugger;
                 return fetchSuccessCallback(awaitedResponse);
+                // debugger;
             }
             catch(awaitError) {
                 console.warn(`bailed here`)
@@ -180,7 +183,8 @@ export async function fetchJSONWithChecks(input: RequestInfo, init: RequestInit,
             }
         }).catch((catchError) => {
             //YESS
-            console.error("Ultimate cause of network error: ")
+            console.error("Ultimate cause of network error: ");
+            debugger;
             console.error(catchError);
             throw new Error(catchError);
         })
