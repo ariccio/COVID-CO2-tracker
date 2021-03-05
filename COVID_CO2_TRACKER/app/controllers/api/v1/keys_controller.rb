@@ -14,6 +14,9 @@ def places_script_url_api_key_from_disk
 end
 
 def maps_javascript_api_key_from_disk
+  return Rails.application.credentials.config.maps.maps_javascript_api_key!
+
+
   key = ::IO.binread(::MAPS_JAVASCRIPT_API_KEY_PATH)
   if key.blank?
     ::Rails.logging.error("Check your key file in #{::MAPS_JAVASCRIPT_API_KEY_PATH}")

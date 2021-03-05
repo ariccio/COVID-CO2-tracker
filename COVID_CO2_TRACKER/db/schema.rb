@@ -12,6 +12,9 @@
 
 ActiveRecord::Schema.define(version: 2021_02_16_010340) do
 
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "plpgsql"
+
   create_table "device_models", force: :cascade do |t|
     t.string "name"
     t.integer "manufacturer_id", null: false

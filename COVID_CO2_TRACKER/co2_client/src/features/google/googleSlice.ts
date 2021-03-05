@@ -108,10 +108,10 @@ vicinity: "1066 3rd Avenue, New York"
 */
 
 export const interestingFields = [
+    "name",
     "place_id",
     "formatted_address",
     "icon",
-    "name",
     "types",
     "url",
     "vicinity"

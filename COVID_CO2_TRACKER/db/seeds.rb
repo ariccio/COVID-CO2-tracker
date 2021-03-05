@@ -14,6 +14,8 @@
 
 contoso = ::Manufacturer.find_or_create_by!(name: 'Contoso')
 
+first_user = ::User.find_or_create_by!(email: 'alexander@alexander', password_digest: BCrypt::Password.create('fart'))
+
 contoso_one =
   ::Model.find_or_create_by!(name: 'Contoso 1') do |dm|
     dm.manufacturer = contoso
@@ -25,10 +27,10 @@ first_device =
     di.user = ::User.first
   end
 
-::Rails.logging.info(first_device)
+::Rails.logger.info(first_device)
 
-me = ::User.find_by(usename: 'alexander@alexander')
-me.devices.first.measurements.create!(co2ppm: 500)
+me = ::User.find_by!(email: 'alexander@alexander')
+me.devices.first.measurement.create!(co2ppm: 500)
 
 # YES THIS WORKS!:
 # irb(main):005:0> User.first.devices.first.measurements.create!(co2ppm: 400)
