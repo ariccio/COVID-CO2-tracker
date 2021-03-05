@@ -140,6 +140,15 @@ async function awaitRawResponse(rawFetchResponse: Promise<Response>): Promise<Re
 
 
 export async function fetchJSONWithChecks(input: RequestInfo, init: RequestInit, expectedStatus: number, alert: boolean, fetchFailedCallback: (awaitedResponse: Response) => unknown, fetchSuccessCallback: (awaitedResponse: Response) => unknown): Promise<ReturnType<typeof fetchSuccessCallback> | ReturnType<typeof fetchFailedCallback>> {
+    // Ok, so this monstrosity exists for a good reason, believe it or not.
+    // Simply put, I haven't figured out anu other way to get the internal underlying error out of fetch requests
+    // If a fetch request fails because of a network error, without this, I will usually get an error while parsing the json.
+    // Something like missing token or unexpected end of input.
+    // This is useless for debugging AND useless to users.
+    // With this monstrosity, I can get the actual error!
+    // e.g. ECONNREFUSED when the server isn't running!
+    // This is great, and provides much better, well, everything.
+    // Someday I'll figure out how to do this in a better, less ugly way.
     try {
         const rawFetchResponse_: Promise<Response> = fetch(input, init);
         // const rawFetchResponse = (await rawFetchResponse_).clone();
