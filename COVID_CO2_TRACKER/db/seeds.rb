@@ -33,7 +33,9 @@ first_device =
 ::Rails.logger.info(first_device)
 
 me = ::User.find_by!(email: 'alexander@alexander')
-me.devices.first.measurement.create!(co2ppm: 500)
+
+a_place = ::Place.find_or_create_by!(google_place_id: 'lfasieufielaiejf;aiewefjeoif;wief;jewfiwof;afewijf;aief;wef')
+me.devices.first.measurement.create!(co2ppm: 500, google_place_id: a_place)
 
 # YES THIS WORKS!:
 # irb(main):005:0> User.first.devices.first.measurements.create!(co2ppm: 400)
