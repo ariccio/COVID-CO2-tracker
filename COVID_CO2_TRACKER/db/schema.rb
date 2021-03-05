@@ -10,14 +10,14 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_02_16_010340) do
+ActiveRecord::Schema.define(version: 2021_03_05_224113) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
   create_table "device_models", force: :cascade do |t|
     t.string "name"
-    t.integer "manufacturer_id", null: false
+    t.bigint "manufacturer_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["manufacturer_id"], name: "index_device_models_on_manufacturer_id"
@@ -25,8 +25,8 @@ ActiveRecord::Schema.define(version: 2021_02_16_010340) do
 
   create_table "devices", force: :cascade do |t|
     t.string "serial"
-    t.integer "model_id", null: false
-    t.integer "user_id", null: false
+    t.bigint "model_id", null: false
+    t.bigint "user_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["model_id"], name: "index_devices_on_model_id"
@@ -40,20 +40,30 @@ ActiveRecord::Schema.define(version: 2021_02_16_010340) do
   end
 
   create_table "measurements", force: :cascade do |t|
-    t.integer "device_id", null: false
+    t.bigint "device_id", null: false
     t.integer "co2ppm"
     t.datetime "measurementtime"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.bigint "place_id", null: false
     t.index ["device_id"], name: "index_measurements_on_device_id"
+    t.index ["place_id"], name: "index_measurements_on_place_id"
   end
 
   create_table "models", force: :cascade do |t|
     t.string "name"
-    t.integer "manufacturer_id", null: false
+    t.bigint "manufacturer_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["manufacturer_id"], name: "index_models_on_manufacturer_id"
+  end
+
+  create_table "places", force: :cascade do |t|
+    t.string "google_place_id"
+    t.datetime "last_fetched"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["google_place_id"], name: "index_places_on_google_place_id", unique: true
   end
 
   create_table "users", force: :cascade do |t|
@@ -68,5 +78,6 @@ ActiveRecord::Schema.define(version: 2021_02_16_010340) do
   add_foreign_key "devices", "models"
   add_foreign_key "devices", "users"
   add_foreign_key "measurements", "devices"
+  add_foreign_key "measurements", "places"
   add_foreign_key "models", "manufacturers"
 end
