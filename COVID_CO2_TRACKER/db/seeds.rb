@@ -11,6 +11,9 @@
 # Device.destroy_by(serial: "fart")
 # Model.destroy_by(name: "Contoso 1")
 # Manufacturer.destroy_by(name: "Contoso")
+if ::ENV.fetch('RAILS_ENV', 'development') != 'development'
+  return
+end
 
 contoso = ::Manufacturer.find_or_create_by!(name: 'Contoso')
 
