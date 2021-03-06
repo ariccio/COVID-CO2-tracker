@@ -166,8 +166,8 @@ const loadCallback = (map: google.maps.Map, setMap: React.Dispatch<React.SetStat
         throw new Error("window.google is null!")
     }
     //   debugger;
-    const bounds = new (window as any).google.maps.LatLngBounds();
-    map.fitBounds(bounds);
+    // const bounds = new (window as any).google.maps.LatLngBounds();
+    // map.fitBounds(bounds);
     setMap(map);
     //   map.panTo(center);
     //   map.setZoom(100);
@@ -314,7 +314,8 @@ const options = (center: CenterType): google.maps.MapOptions => {
     return {
         //default tweaked for manhattan
         zoom: 18,
-        center: center
+        center: center,
+        zoomControl: true
     }
 };
 
@@ -382,15 +383,15 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
         setMap(null);
     }, [])
 
-
     const onZoomChange = () => {
         if (map) {
-            // debugger;
-            const zoom = map.getZoom();
-            console.log(`setting zoom ${zoom}`);
-            setZoomlevel(zoom);
+            setZoomlevel(map.getZoom());
         }
     }
+
+    useEffect(() => {
+        map?.setZoom(_zoomLevel);
+    }, [_zoomLevel])
 
 
     useEffect(() => {
@@ -413,23 +414,34 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
 
     }, [service, selectedPlaceIdString])
 
-    useEffect(legalNoticeNote, [])
+    useEffect(legalNoticeNote, []);
+
+    const googleMapInContainer = () => {
+        return (
+            <div className="map">
+                <div className="map-container">
+                    <GoogleMap mapContainerStyle={containerStyle} onLoad={onLoad} onUnmount={onUnmount} options={options(center)} onZoomChanged={onZoomChange} onClick={(e: google.maps.MapMouseEvent) => onClickMaps(e, setSelectedPlaceIdString)}>
+                        { /* Child components, such as markers, info windows, etc. */}
+                    </GoogleMap>
+                </div>
+            </div>
+        );
+    }
+
+    const autocompleteElement = () => {
+        return (
+            <RenderAutoComplete autoCompleteLoad={(event) => autoCompleteLoadThunk(event, setAutocomplete)} placeChange={() => placeChangeHandler(autocomplete, dispatch, map)} map={map} />
+        );
+    }
 
     if (isLoaded) {
         console.log('loaded render');
         return (
             <>
-                <div className="map">
-                    <div className="map-container">
-
-                        <GoogleMap mapContainerStyle={containerStyle} center={center} onLoad={onLoad} onUnmount={onUnmount} options={options(center)} onZoomChanged={onZoomChange} onClick={(e: google.maps.MapMouseEvent) => onClickMaps(e, setSelectedPlaceIdString)}>
-                            { /* Child components, such as markers, info windows, etc. */}
-                        </GoogleMap>
-                    </div>
-                </div>
+                {googleMapInContainer()}
                 Selected place ID string from google maps: {selectedPlaceIdString}
                 <br/>
-                <RenderAutoComplete autoCompleteLoad={(event) => autoCompleteLoadThunk(event, setAutocomplete)} placeChange={() => placeChangeHandler(autocomplete, dispatch, map)} map={map} />
+                {autocompleteElement()}
                 <Button onClick={() => invokeBrowserGeolocation(setCenter)}>
                     Find me!
                 </Button>
