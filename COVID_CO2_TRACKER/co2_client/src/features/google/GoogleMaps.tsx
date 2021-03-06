@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {useDispatch} from 'react-redux';
 import {useSelector} from 'react-redux';
-import {selectSelectedPlace} from '../google/googleSlice';
+import {selectSelectedPlace, selectPlacesServiceStatus, setPlacesServiceStatus} from '../google/googleSlice';
 
 import { GoogleMap, useJsApiLoader, Autocomplete } from '@react-google-maps/api';
 import { Button, Form } from 'react-bootstrap';
@@ -217,6 +217,7 @@ const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (pr
     }
 
     //Warning: If you do not specify at least one field with a request, or if you omit the fields parameter from a request, ALL possible fields will be returned, and you will be billed accordingly. This applies only to Place Details requests (including Place Details requests made from the Place Autocomplete widget).
+    //https://developers.google.com/maps/documentation/javascript/places-autocomplete
 
     return (
         <Autocomplete onLoad={(event) => props.autoCompleteLoad(event)} onPlaceChanged={props.placeChange} bounds={bounds} fields={interestingFields}>
@@ -249,11 +250,27 @@ const queryPlacesBackend = (placeId: string) => {
     return result;
 }
 
-const placeChange = (autocomplete: google.maps.places.Autocomplete | null, dispatch: ReturnType<typeof useDispatch>, map: google.maps.Map<Element> | null) => {
+const updatePlacesInfoFromBackend = (place_id: string, dispatch: ReturnType<typeof useDispatch>) => {
+    const placeInfoPromise = queryPlacesBackend(place_id);
+    placeInfoPromise.then((placeInfo) => {
+        // if (placeInfo.errors !== undefined)
+        // debugger;
+        dispatch(setPlacesInfoFromDatabase(placeInfo));
+    }).catch((error) => {
+        dispatch(setPlacesInfoErrors(error.message));
+    });
+}
+
+const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null, dispatch: ReturnType<typeof useDispatch>, map: google.maps.Map<Element> | null) => {
     if (autocomplete === null) {
         return;
     }
-    console.log(autocomplete.getPlace())
+    // debugger;
+    // https://developers.google.com/maps/documentation/javascript/reference/places-widget
+    // Returns the details of the Place selected by user if the details were successfully retrieved.
+    // Otherwise returns a stub Place object, with the name property set to the current value of the input field.
+    console.log(autocomplete.getPlace());
+    // autocomplete.
     console.log(`id: ${autocomplete.getPlace().id}`);
     console.log(`place_id: ${autocomplete.getPlace().place_id}`);
     console.log(`geometry.location.toString: ${autocomplete.getPlace().geometry?.location.toString()}`);
@@ -272,14 +289,7 @@ const placeChange = (autocomplete: google.maps.places.Autocomplete | null, dispa
         console.log('no place to query');
         return;
     }
-
-    const placeInfoPromise = queryPlacesBackend(placeId);
-    placeInfoPromise.then((placeInfo) => {
-        // if (placeInfo.errors !== undefined)
-        dispatch(setPlacesInfoFromDatabase(placeInfo))
-    }).catch((error) => {
-        dispatch(setPlacesInfoErrors(error.message));
-    })
+    updatePlacesInfoFromBackend(placeId, dispatch);
 }
 
 const onClickMaps = (e: google.maps.MapMouseEvent, setSelectedPlaceIdString: React.Dispatch<React.SetStateAction<string>>) => {
@@ -313,6 +323,33 @@ const autoCompleteLoadThunk = (autocompleteEvent: google.maps.places.Autocomplet
     console.log("autocomplete loaded!");
 }
 
+const getDetailsCallback = (result: google.maps.places.PlaceResult, status: google.maps.places.PlacesServiceStatus, dispatch: ReturnType<typeof useDispatch>) => {
+    dispatch(setPlacesServiceStatus(status));
+    if (status !== google.maps.places.PlacesServiceStatus.OK) {
+        console.error(`Google places query returned ${status}`);
+        
+        if (status === google.maps.places.PlacesServiceStatus.OVER_QUERY_LIMIT) {
+            alert('Used entire budgeted google places/maps API quota! File an issue on github or contact me.');
+        }
+        return;
+    }
+    // setPlacesServiceStatus(status);
+    dispatch(setSelectedPlace(result));
+    if (result.place_id === undefined) {
+        console.error("missing place_id?");
+        return;
+    }
+    updatePlacesInfoFromBackend(result.place_id, dispatch);
+}
+
+function legalNoticeNote() {
+    console.log("legal notice to self:");
+    console.log("(a)  No Scraping. Customer will not export, extract, or otherwise scrape Google Maps Content for use outside the Services. For example, Customer will not: (i) pre-fetch, index, store, reshare, or rehost Google Maps Content outside the services; (ii) bulk download Google Maps tiles, Street View images, geocodes, directions, distance matrix results, roads information, places information, elevation values, and time zone details; (iii) copy and save business names, addresses, or user reviews; or (iv) use Google Maps Content with text-to-speech services.");
+}
+
+const renderLoadedMapsContainer = () => {
+    
+}
 
 export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props) => {
 
@@ -327,7 +364,8 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
     const [_zoomLevel, setZoomlevel] = useState(0);
     const [selectedPlaceIdString, setSelectedPlaceIdString] = useState('');
     const [service, setService] = useState(null as google.maps.places.PlacesService | null);
-    const [placesServiceStatus, setPlacesServiceStatus] = useState(null as google.maps.places.PlacesServiceStatus | null);
+    // const [placesServiceStatus, setPlacesServiceStatus] = useState(null as google.maps.places.PlacesServiceStatus | null);
+    const placesServiceStatus = useSelector(selectPlacesServiceStatus);
     const selectedPlace = useSelector(selectSelectedPlace);
 
     const { isLoaded, loadError } = useJsApiLoader({
@@ -347,26 +385,13 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
 
     const onZoomChange = () => {
         if (map) {
-            setZoomlevel(map.getZoom());
+            // debugger;
+            const zoom = map.getZoom();
+            console.log(`setting zoom ${zoom}`);
+            setZoomlevel(zoom);
         }
     }
 
-    const getDetailsCallback = (result: google.maps.places.PlaceResult, status: google.maps.places.PlacesServiceStatus) => {
-        if (status !== "OK") {
-            console.error(`Google places query returned ${status}`);
-            setPlacesServiceStatus(status);
-            if (status === google.maps.places.PlacesServiceStatus.OVER_QUERY_LIMIT) {
-                alert('Used entire budgeted google places/maps API quota! File an issue on github or contact me.');
-            }
-            return;
-        }
-        setPlacesServiceStatus(status);
-        dispatch(setSelectedPlace(result));
-        if (result.place_id !== undefined) {
-            queryPlacesBackend(result.place_id);
-        }
-        // debugger;
-    }
 
     useEffect(() => {
         if (service === null) {
@@ -381,16 +406,17 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
             placeId: selectedPlaceIdString,
             fields: interestingFields
         } 
-        service.getDetails(request, getDetailsCallback)
+        const detailsCallbackThunk = (result: google.maps.places.PlaceResult, status: google.maps.places.PlacesServiceStatus) => {
+            getDetailsCallback(result, status, dispatch);
+        }
+        service.getDetails(request, detailsCallbackThunk);
 
     }, [service, selectedPlaceIdString])
 
-    useEffect(() => {
-        console.log("legal notice to self:");
-        console.log("(a)  No Scraping. Customer will not export, extract, or otherwise scrape Google Maps Content for use outside the Services. For example, Customer will not: (i) pre-fetch, index, store, reshare, or rehost Google Maps Content outside the services; (ii) bulk download Google Maps tiles, Street View images, geocodes, directions, distance matrix results, roads information, places information, elevation values, and time zone details; (iii) copy and save business names, addresses, or user reviews; or (iv) use Google Maps Content with text-to-speech services.");    
-    }, [])
+    useEffect(legalNoticeNote, [])
 
     if (isLoaded) {
+        console.log('loaded render');
         return (
             <>
                 <div className="map">
@@ -398,17 +424,15 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
 
                         <GoogleMap mapContainerStyle={containerStyle} center={center} onLoad={onLoad} onUnmount={onUnmount} options={options(center)} onZoomChanged={onZoomChange} onClick={(e: google.maps.MapMouseEvent) => onClickMaps(e, setSelectedPlaceIdString)}>
                             { /* Child components, such as markers, info windows, etc. */}
-                            <></>
                         </GoogleMap>
                     </div>
                 </div>
                 Selected place ID string from google maps: {selectedPlaceIdString}
                 <br/>
-                <RenderAutoComplete autoCompleteLoad={(event) => autoCompleteLoadThunk(event, setAutocomplete)} placeChange={() => placeChange(autocomplete, dispatch, map)} map={map} />
+                <RenderAutoComplete autoCompleteLoad={(event) => autoCompleteLoadThunk(event, setAutocomplete)} placeChange={() => placeChangeHandler(autocomplete, dispatch, map)} map={map} />
                 <Button onClick={() => invokeBrowserGeolocation(setCenter)}>
                     Find me!
                 </Button>
-                {/* {selectedPlace.toString()} */}
                 <br/>
                 {placesServiceStatus !== null ? `Last google places query status: ${placesServiceStatus}` : null}
             </>

@@ -4,36 +4,159 @@ import {Link, useLocation} from 'react-router-dom';
 import {Button} from 'react-bootstrap';
 
 
-import {selectSelectedPlace} from '../google/googleSlice';
+import {selectSelectedPlace, defaultGooglePlacesState, selectPlacesServiceStatus} from '../google/googleSlice';
 import {getGoogleMapsJavascriptAPIKey} from '../../utils/GoogleAPIKeys';
 
 import {GoogleMapsContainer} from '../google/GoogleMaps';
 
 import {CreateNewMeasurementModal} from '../create/CreateMeasurement';
 
-import {selectPlacesInfoFromDatabase, selectPlacesInfoErrors, SelectedPlaceDatabaseInfo} from '../places/placesSlice';
+import {selectPlacesInfoFromDatabase, selectPlacesInfoErrors, SelectedPlaceDatabaseInfo, defaultPlaceInfo} from '../places/placesSlice';
 
 import {MeasurementsTable} from '../measurements/MeasurementsTable';
+import { current } from '@reduxjs/toolkit';
 
-const renderSelectedPlaceInfo = (currentPlace: google.maps.places.PlaceResult) => {
+const renderLinkWithName = (url?: string, name?: string) => {
+    if (url === undefined) {
+        return (
+            <>
+                Missing url!
+                <br/>
+            </>
+        );
+    }
+    if (name === undefined) {
+        return (
+            <>
+                Missing name!
+                <br/>
+            </>
+        );
+    }
     return (
         <>
-            {(currentPlace.url && currentPlace.name ) ? (<><a href={currentPlace.url}><b>{currentPlace.name}</b></a></>) : null}
+            <a href={url}>
+                <b>{name}</b>
+            </a>
             <br/>
-            {currentPlace.place_id ? <> current selected place_id: <i>{currentPlace.place_id}</i></> : null}
+        </>
+    );
+}
+
+const renderPlaceId = (place_id?: string) => {
+    if (place_id === undefined) {
+        return (
+            <>
+                Missing place ID!
+                <br/>
+            </>
+        );
+    }
+    return (
+        <>
+            current selected place_id: <i>{place_id}</i>
             <br/>
-            {currentPlace.formatted_address ? <> address: <i>{currentPlace.formatted_address}</i></> : null}
+        </>
+    );
+}
+
+const renderFormattedAddress = (formatted_address?: string) => {
+    if (formatted_address === undefined) {
+        return (
+            <>
+                Formatted address missing!
+                <br/>
+            </>
+        );
+    }
+    return (
+        <>
+            address: <i>{formatted_address}</i>
             <br/>
+        </>
+    );
+}
+
+const renderTypes = (types?: Array<string>) => {
+    if (types === undefined) {
+        return (
+            <>
+                Missing types!
+                <br/>
+            </>
+        );
+    }
+    return (
+        <>
+            types <i>{types.join(', ')}</i>
+            <br/>
+        </>
+    );
+}
+
+const renderVicinity = (vicinity?: string) => {
+    if (vicinity === undefined) {
+        return (
+            <>
+                Missing vicinity!
+                <br/>
+            </>
+        );
+    }
+    return (
+        <>
+            currentPlace.vicinity <i>{vicinity}</i>
+            <br/>
+        </>
+    );
+}
+
+const renderName = (name?: string) => {
+    if (name === undefined) {
+        return (
+            <>
+                Missing place name!
+                <br/>
+            </>
+        );
+    };
+    return (
+        <>
+            currentPlace.name: <i>{name}</i>
+            <br/>
+        </>
+    );
+}
+
+const renderSelectedPlaceInfo = (currentPlace: google.maps.places.PlaceResult, placesServiceStatus: google.maps.places.PlacesServiceStatus | null) => {
+    if (currentPlace === defaultGooglePlacesState.selected) {
+        return null;
+        // return (
+        //     <>
+        //         No place selected.
+        //     </>
+        // );
+    }
+    if (placesServiceStatus === null) {
+        return (
+            <>
+                Places service still loading response, null status...
+            </>
+        )
+    }
+    return (
+        <>
+            Service status: {placesServiceStatus}
+            {renderLinkWithName(currentPlace.url, currentPlace.name)}
+            {renderPlaceId(currentPlace.place_id)}
+            {renderFormattedAddress(currentPlace.formatted_address)}
             {/* {currentPlace.icon ? `currentPlace.icon: ${currentPlace.icon}` : null} 
             {currentPlace.icon ? <img src={currentPlace.icon} alt={`google supplied icon for ${currentPlace.name}`}/> : null}
             <br/> */}
-            {currentPlace.types ? <> currentPlace.types <i>{currentPlace.types.join(', ')}</i> </> : null}
+            {renderTypes(currentPlace.types)}
+            {renderVicinity(currentPlace.vicinity)}
+            {renderName(currentPlace.name)}
             <br/>
-            {currentPlace.vicinity ? <> currentPlace.vicinity <i>{currentPlace.vicinity}</i> </>: null}
-            <br/>
-            {currentPlace.name ? <> currentPlace.name: <i>{currentPlace.name}</i> </> : null}
-            <br/>
-
         </>
     )
 }
@@ -83,7 +206,11 @@ const renderNewMeasurementButton = (currentPlace: google.maps.places.PlaceResult
 }
 
 
-const renderInfoFromDatabase = (selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo, selectedPlaceInfoErrors: string) => {
+const renderInfoFromDatabase = (selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo, selectedPlaceInfoErrors: string, currentPlace: google.maps.places.PlaceResult) => {
+    if (currentPlace === defaultGooglePlacesState.selected) {
+        //No place selected yet.
+        return null;
+    }
     if (selectedPlaceInfoErrors !== '') {
         return (
             <>
@@ -93,8 +220,20 @@ const renderInfoFromDatabase = (selectedPlaceInfoFromDatabase: SelectedPlaceData
             </>
         )
     }
+    if (selectedPlaceInfoFromDatabase.measurements === null) {
+        return (
+            <>
+                Loading place info from database...
+            </>
+        );
+    }
     if (selectedPlaceInfoFromDatabase.measurements.length === 0) {
-        return null;
+        // debugger;
+        return (
+            <div>
+                Zero measurements recorded for this place.
+            </div>
+        )
     }
     return (
         <>
@@ -103,12 +242,12 @@ const renderInfoFromDatabase = (selectedPlaceInfoFromDatabase: SelectedPlaceData
     )
 }
 
-const renderPlace = (currentPlace: google.maps.places.PlaceResult, location: ReturnType<typeof useLocation>, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, showCreateNewMeasurement: boolean, selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo, selectedPlaceInfoErrors: string) => {
+const renderPlace = (currentPlace: google.maps.places.PlaceResult, location: ReturnType<typeof useLocation>, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, showCreateNewMeasurement: boolean, selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo, selectedPlaceInfoErrors: string, placesServiceStatus: google.maps.places.PlacesServiceStatus | null) => {
     return (
         <>
-            {renderSelectedPlaceInfo(currentPlace)}
+            {renderSelectedPlaceInfo(currentPlace, placesServiceStatus)}
+            {renderInfoFromDatabase(selectedPlaceInfoFromDatabase, selectedPlaceInfoErrors, currentPlace)}
             {renderNewMeasurementButton(currentPlace, location, setShowCreateNewMeasurement, showCreateNewMeasurement)}
-            {renderInfoFromDatabase(selectedPlaceInfoFromDatabase, selectedPlaceInfoErrors)}
         </>
     );
 }
@@ -120,14 +259,15 @@ export const HomePage: FunctionComponent<{}> = (props: any) => {
     const [showCreateNewMeasurement, setShowCreateNewMeasurement] = useState(false);
     const location = useLocation();
     const selectedPlaceInfoFromDatabase = useSelector(selectPlacesInfoFromDatabase);
-    const selectedPlaceInfoErrors = useSelector(selectPlacesInfoErrors);
-
+    const selectedPlaceInfoFromDatabaseErrors = useSelector(selectPlacesInfoErrors);
+    const placesServiceStatus = useSelector(selectPlacesServiceStatus);
 
     useEffect(() => {
-        getGoogleMapsJavascriptAPIKey().then((key: string) => setMapsAPIKey(key)).catch((error) => {
-            // debugger;
+        getGoogleMapsJavascriptAPIKey().then((key: string) => {
+            setMapsAPIKey(key)
+        }).catch((error) => {
             setErrorState(error.message);
-        })
+        });
     }, []);
   
     if (errorState !== '') {
@@ -152,7 +292,7 @@ export const HomePage: FunctionComponent<{}> = (props: any) => {
                 <br/>
                 {errorState}
                 <div style={{justifyContent: 'right'}}>
-                    {renderPlace(currentPlace, location, setShowCreateNewMeasurement, showCreateNewMeasurement, selectedPlaceInfoFromDatabase, selectedPlaceInfoErrors)}
+                    {renderPlace(currentPlace, location, setShowCreateNewMeasurement, showCreateNewMeasurement, selectedPlaceInfoFromDatabase, selectedPlaceInfoFromDatabaseErrors, placesServiceStatus)}
                     {showCreateNewMeasurement ? <CreateNewMeasurementModal showCreateNewMeasurement={showCreateNewMeasurement} setShowCreateNewMeasurement={setShowCreateNewMeasurement}/> : null}
                 </div>
             </div>

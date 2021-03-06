@@ -119,28 +119,34 @@ export const interestingFields = [
 
 interface googlePlacesState {
     // google.maps.places.
-    selected: google.maps.places.PlaceResult   
+    selected: google.maps.places.PlaceResult,
+    placesServiceStatus: google.maps.places.PlacesServiceStatus | null
 }
 
-const initialState: googlePlacesState = {
+export const defaultGooglePlacesState: googlePlacesState = {
     selected: {
         name: ''
-    }
+    },
+    placesServiceStatus: null
 }
 
 export const googlePlacesSlice = createSlice({
     name: 'places', // TODO: change?
-    initialState,
+    initialState: defaultGooglePlacesState,
     reducers: {
         setSelectedPlace: (state, action: PayloadAction<google.maps.places.PlaceResult>) => {
             state.selected = action.payload;
+        },
+        setPlacesServiceStatus: (state, action: PayloadAction<google.maps.places.PlacesServiceStatus>) => {
+            state.placesServiceStatus = action.payload;
         }
-    }
+    },
+
 });
 
 
-export const {setSelectedPlace} = googlePlacesSlice.actions;
+export const {setSelectedPlace, setPlacesServiceStatus} = googlePlacesSlice.actions;
 
 export const selectSelectedPlace = (state: RootState) => state.places.selected;
-
+export const selectPlacesServiceStatus = (state: RootState) => state.places.placesServiceStatus;
 export const placesReducer = googlePlacesSlice.reducer;

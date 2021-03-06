@@ -9,11 +9,11 @@ import {UserInfoMeasurements, defaultMeasurementInfo} from '../../utils/QueryDev
 
 
 export interface SelectedPlaceDatabaseInfo {
-    measurements: Array<UserInfoMeasurements>
+    measurements: Array<UserInfoMeasurements> | null
 }
 
-const defaultPlaceInfo: SelectedPlaceDatabaseInfo = {
-    measurements: []
+export const defaultPlaceInfo: SelectedPlaceDatabaseInfo = {
+    measurements: null
 }
 
 export interface PlacesSlice {
