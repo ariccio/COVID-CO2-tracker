@@ -13,6 +13,8 @@ import {API_URL} from '../../utils/UrlPath';
 import {fetchJSONWithChecks} from '../../utils/FetchHelpers';
 import { userRequestOptions } from '../../utils/DefaultRequestOptions';
 
+import {SelectedPlaceDatabaseInfo, setPlacesInfoFromDatabase, setPlacesInfoErrors} from '../places/placesSlice';
+
 // import { getGooglePlacesScriptAPIKey } from '../../utils/GoogleAPIKeys';
 // import {GeolocationPosition} from 'typescript/lib/lib.dom'
 
@@ -226,19 +228,13 @@ const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (pr
 }
 const placesByGooglePlaceID: string = '/places_by_google_place_id';
 
-const queryPlacesBackend = (placeId?: string) => {
-    if (placeId === undefined) {
-        console.log('no place to query');
-        return;
-    }
+const queryPlacesBackend = (placeId: string) => {
     const SHOW_PLACES_BY_GOOGLE_PLACE_ID_PATH = (API_URL + placesByGooglePlaceID);
     const thisPlace = (SHOW_PLACES_BY_GOOGLE_PLACE_ID_PATH + `/${placeId}`);
     const fetchCallback = async (awaitedResponse: Response) => {
-        const parsed = await awaitedResponse.json();
-        console.log(parsed);
-        debugger;
+        return awaitedResponse.json();
     }
-    const result = fetchJSONWithChecks(thisPlace, userRequestOptions(), 200, true,  fetchCallback, fetchCallback);
+    const result = fetchJSONWithChecks(thisPlace, userRequestOptions(), 200, true,  fetchCallback, fetchCallback) as Promise<SelectedPlaceDatabaseInfo>;
     return result;
 }
 
@@ -260,7 +256,19 @@ const placeChange = (autocomplete: google.maps.places.Autocomplete | null, dispa
             map.setCenter(placeLocation.location)
         }
     }
-    queryPlacesBackend(autocomplete.getPlace().place_id);
+    const placeId = autocomplete.getPlace().place_id;
+    if (placeId === undefined) {
+        console.log('no place to query');
+        return;
+    }
+
+    const placeInfoPromise = queryPlacesBackend(placeId);
+    placeInfoPromise.then((placeInfo) => {
+        // if (placeInfo.errors !== undefined)
+        dispatch(setPlacesInfoFromDatabase(placeInfo))
+    }).catch((error) => {
+        dispatch(setPlacesInfoErrors(error.message));
+    })
 }
 
 const onClickMaps = (e: google.maps.MapMouseEvent, setSelectedPlaceIdString: React.Dispatch<React.SetStateAction<string>>) => {
@@ -343,7 +351,9 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
         }
         setPlacesServiceStatus(status);
         dispatch(setSelectedPlace(result));
-        queryPlacesBackend(result.place_id);
+        if (result.place_id !== undefined) {
+            queryPlacesBackend(result.place_id);
+        }
         // debugger;
     }
 

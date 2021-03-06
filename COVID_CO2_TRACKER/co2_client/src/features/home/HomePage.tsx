@@ -1,13 +1,19 @@
 import React, {CSSProperties, FunctionComponent, useEffect, useState} from 'react';
 import {useSelector} from 'react-redux';
 import {Link, useLocation} from 'react-router-dom';
-
+import {Button} from 'react-bootstrap';
 
 
 import {selectSelectedPlace} from '../google/googleSlice';
 import {getGoogleMapsJavascriptAPIKey} from '../../utils/GoogleAPIKeys';
 
 import {GoogleMapsContainer} from '../google/GoogleMaps';
+
+import {CreateNewMeasurementModal} from '../create/CreateMeasurement';
+
+import {selectPlacesInfoFromDatabase, selectPlacesInfoErrors, SelectedPlaceDatabaseInfo} from '../places/placesSlice';
+
+import {MeasurementsTable} from '../measurements/MeasurementsTable';
 
 const renderSelectedPlaceInfo = (currentPlace: google.maps.places.PlaceResult) => {
     return (
@@ -53,25 +59,56 @@ const mapsDivStyle: CSSProperties = {
     justifyContent: "left"
 }
 
-const renderNewMeasurementButton = (currentPlace: google.maps.places.PlaceResult, location: ReturnType<typeof useLocation>) => {
+const clickHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, showCreateNewMeasurement: boolean) => {
+    event.stopPropagation();
+    event.preventDefault();
+    setShowCreateNewMeasurement(!showCreateNewMeasurement);
+}
+
+const renderNewMeasurementButton = (currentPlace: google.maps.places.PlaceResult, location: ReturnType<typeof useLocation>, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, showCreateNewMeasurement: boolean) => {
     if (!currentPlace.place_id) {
         console.log('not rendering button to add measurement.');
         return null;
     }
     return (
         <>
-            <Link to={{pathname:`/places/???/createmeasurement`, state: {background: location}}} className="btn btn-primary">
+            <Button variant="primary" onClick={(event) => clickHandler(event, setShowCreateNewMeasurement, showCreateNewMeasurement)}>
                 <b>Upload a new measurement for <i>{currentPlace.name}</i></b>
-            </Link>
+            </Button>
+            {/* <Link to={{pathname:`/places/???/createmeasurement`, state: {background: location}}} className="btn btn-primary">
+                
+            </Link> */}
         </>
     )
 }
 
-const renderPlace = (currentPlace: google.maps.places.PlaceResult, location: ReturnType<typeof useLocation>) => {
+
+const renderInfoFromDatabase = (selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo, selectedPlaceInfoErrors: string) => {
+    if (selectedPlaceInfoErrors !== '') {
+        return (
+            <>
+                <div>
+                    Failed to fetch measurement info from the database! {selectedPlaceInfoErrors}
+                </div>
+            </>
+        )
+    }
+    if (selectedPlaceInfoFromDatabase.measurements.length === 0) {
+        return null;
+    }
+    return (
+        <>
+            <MeasurementsTable measurements={selectedPlaceInfoFromDatabase.measurements}/>
+        </>
+    )
+}
+
+const renderPlace = (currentPlace: google.maps.places.PlaceResult, location: ReturnType<typeof useLocation>, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, showCreateNewMeasurement: boolean, selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo, selectedPlaceInfoErrors: string) => {
     return (
         <>
             {renderSelectedPlaceInfo(currentPlace)}
-            {renderNewMeasurementButton(currentPlace, location)}
+            {renderNewMeasurementButton(currentPlace, location, setShowCreateNewMeasurement, showCreateNewMeasurement)}
+            {renderInfoFromDatabase(selectedPlaceInfoFromDatabase, selectedPlaceInfoErrors)}
         </>
     );
 }
@@ -80,8 +117,12 @@ export const HomePage: FunctionComponent<{}> = (props: any) => {
     const [mapsAPIKey, setMapsAPIKey] = useState("");
     const [errorState, setErrorState] = useState("");
     const currentPlace = useSelector(selectSelectedPlace);
-
+    const [showCreateNewMeasurement, setShowCreateNewMeasurement] = useState(false);
     const location = useLocation();
+    const selectedPlaceInfoFromDatabase = useSelector(selectPlacesInfoFromDatabase);
+    const selectedPlaceInfoErrors = useSelector(selectPlacesInfoErrors);
+
+
     useEffect(() => {
         getGoogleMapsJavascriptAPIKey().then((key: string) => setMapsAPIKey(key)).catch((error) => {
             // debugger;
@@ -111,7 +152,8 @@ export const HomePage: FunctionComponent<{}> = (props: any) => {
                 <br/>
                 {errorState}
                 <div style={{justifyContent: 'right'}}>
-                    {renderPlace(currentPlace, location)}
+                    {renderPlace(currentPlace, location, setShowCreateNewMeasurement, showCreateNewMeasurement, selectedPlaceInfoFromDatabase, selectedPlaceInfoErrors)}
+                    {showCreateNewMeasurement ? <CreateNewMeasurementModal showCreateNewMeasurement={showCreateNewMeasurement} setShowCreateNewMeasurement={setShowCreateNewMeasurement}/> : null}
                 </div>
             </div>
         </>

@@ -11,11 +11,11 @@ import {API_URL} from './UrlPath';
 import {UserInfoDevice, UserInfoMeasurements} from './QueryDeviceInfo';
 import {userRequestOptions} from './DefaultRequestOptions';
 
-import {formatErrors} from './ErrorObject'
+import {ErrorObjectType, formatErrors} from './ErrorObject'
 import { fetchJSONWithChecks } from './FetchHelpers';
 
 const SHOW_USER_URL = API_URL + '/users/show';
-
+const USER_DEVICES_URL = (API_URL + '/my_devices');
 
 
 interface UserInfoInternal {
@@ -26,7 +26,7 @@ interface UserInfoInternal {
 
 export interface UserInfoType {
     user_info: UserInfoInternal,
-    errors?: any
+    errors?: Array<ErrorObjectType>
 }
 
 export const defaultUserInfo: UserInfoType = {
@@ -37,6 +37,14 @@ export const defaultUserInfo: UserInfoType = {
     }
 }
 
+export interface UserDevicesInfo {
+    devices: Array<UserInfoDevice>
+    errors?: Array<ErrorObjectType>
+}
+
+export const defaultDevicesInfo: UserDevicesInfo = {
+    devices: []
+}
 
 function userInfoToStrongType(userInfo: any): UserInfoType {
     console.assert(userInfo !== undefined);
@@ -74,29 +82,19 @@ export async function queryUserInfo(): Promise<UserInfoType> {
     }
     const result = fetchJSONWithChecks(SHOW_USER_URL, userRequestOptions(), 200, false, fetchFailedCallback, fetchSuccessCallback) as Promise<UserInfoType>;
     return result;
-    // try {
-    //     const rawResponse: Promise<Response> = fetch(SHOW_USER_URL, userRequestOptions());
-    //     // console.log("body: ", (await rawResponse).body)
-    //     const awaitedResponse = await rawResponse;
-    //     // const jsonResponse = awaitedResponse.json();
-    //     // const parsedJSONResponse = await jsonResponse;
-    //     // console.log(response);
-    //     if (fetchFailed(awaitedResponse, 200, false)) {
-    //         if (awaitedResponse.status === 401) {
-    //             console.warn("user not logged in!");
-    //             const parsedJSONResponse = await awaitedResponse.json();
-    //             if (parsedJSONResponse.errors !== undefined) {
-    //                 console.error(formatErrors(parsedJSONResponse.errors));
-    //                 // return null;
-    //             }
-    //         }
-    
-    //     }
-    //     return userInfoToStrongType(await awaitedResponse.json());
-    // }
-    // catch(error) {
-    //     fetchFilter(error);
-    // }
-    // return response;
 }
 
+export async function queryUserDevices(): Promise<UserDevicesInfo> {
+    const fetchFailedCallback = async (awaitedResponse: Response): Promise<UserDevicesInfo> => {
+        console.error("failed to fetch user devices");
+        return awaitedResponse.json();
+    }
+
+    const fetchSuccessCallback = async (awaitedResponse: Response): Promise<UserDevicesInfo> => {
+        //TODO: strong types
+        console.log("TODO: parse user devices as strong type");
+        return awaitedResponse.json();
+    }
+    const result = fetchJSONWithChecks(USER_DEVICES_URL, userRequestOptions(), 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<UserDevicesInfo>;
+    return result;
+}

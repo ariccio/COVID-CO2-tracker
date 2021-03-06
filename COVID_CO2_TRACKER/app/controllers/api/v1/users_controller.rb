@@ -5,6 +5,16 @@ module Api
     class UsersController < ApplicationController
       skip_before_action :authorized, only: [:create]
 
+
+      def render_user_not_found(e)
+        render(
+          json: {
+            errors: [create_activerecord_error('User info not valid!', e)]
+          },
+          status: :unauthorized
+        )
+      end
+
       # Note to self: https://philna.sh/blog/2020/01/15/test-signed-cookies-in-rails/
       def create
         @user = ::User.create!(user_params)
@@ -19,12 +29,20 @@ module Api
           status: :created
         )
       rescue ::ActiveRecord::RecordInvalid => e
+        render_user_not_found(e)
+      end
+
+      def my_devices
+        @user = current_user
+        devices = @user.my_devices
         render(
           json: {
-            errors: [create_activerecord_error('User info not valid!', e)]
+            devices: devices,
           },
-          status: :unauthorized
+          status: :ok
         )
+      rescue ::ActiveRecord::RecordInvalid => e
+        render_user_not_found(e)
       end
 
       def show
@@ -40,12 +58,7 @@ module Api
           status: :ok
         )
       rescue ::ActiveRecord::RecordInvalid => e
-        render(
-          json: {
-            errors: [create_activerecord_error('User somehow not found.', e)]
-          },
-          status: :unauthorized
-        )
+        render_user_not_found(e)
       end
 
       def user_params

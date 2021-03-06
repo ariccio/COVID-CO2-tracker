@@ -18,6 +18,7 @@
       delete '/auth', to: 'auth#destroy'
       get '/email', to: 'auth#email'
       get '/places_by_google_place_id/:google_place_id', to: 'places#show_by_google_place_id'
+      get '/my_devices', to: 'users#my_devices'
       resources :keys, only: [:show]
     end
   end

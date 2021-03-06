@@ -28,12 +28,7 @@ class User < ApplicationRecord
     devices.each.map do |device|
       # byebug
       device.measurement.order('measurementtime DESC').each.map do |measurement|
-        measurements << {
-          device_id: device.id,
-          measurement_id: measurement.id,
-          co2ppm: measurement.co2ppm,
-          measurementtime: measurement.measurementtime
-        }
+        measurements << Measurement.measurement_with_device_place_as_json(measurement, device)
       end
     end
     measurements

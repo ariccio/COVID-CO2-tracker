@@ -129,7 +129,7 @@ const initialState: googlePlacesState = {
 }
 
 export const googlePlacesSlice = createSlice({
-    name: 'places',
+    name: 'places', // TODO: change?
     initialState,
     reducers: {
         setSelectedPlace: (state, action: PayloadAction<google.maps.places.PlaceResult>) => {
