@@ -81,9 +81,13 @@ const basicDeviceModelInfo = (deviceModelInfo: QueryDeviceModelInfoResponse, err
     }
     if (errorState === '') {
         return (
-            <h3>
-                Loading infor for device model from database...
-            </h3>
+            <p>
+                <b>
+                    <i>
+                        Loading infor for device model from database...
+                    </i>
+                </b>
+            </p>
         )
     }
     return (

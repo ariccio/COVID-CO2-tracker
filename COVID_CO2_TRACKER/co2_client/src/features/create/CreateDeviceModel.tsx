@@ -26,6 +26,7 @@ interface NewModelResponse {
 
 function responseToNewModelStrongType(response: any): NewModelResponse {
     console.assert(response.model_id !== undefined);
+    console.assert(typeof response.model_id === 'number');
     console.assert(response.manufacturer_id !== undefined);
     console.assert(response.name !== undefined);
     if (response.errors !== undefined) {
@@ -75,23 +76,9 @@ async function createNewModel(name: string, manufacturer: number): Promise<NewMo
     const fetchSuccessCallback =  async (awaitedResponse: Response): Promise<NewModelResponse> => {
         return responseToNewModelStrongType(await awaitedResponse.json());
     }
+    // instead of alert, we need to handle this in the modal.
     const result = fetchJSONWithChecks(NEW_MODEL_URL, newModelRequestInit(name, manufacturer), 201, true, fetchFailedCallback, fetchSuccessCallback) as Promise<NewModelResponse>;
     return result;
-    // try {
-    //     const rawResponse: Promise<Response> = fetch(NEW_MODEL_URL, newModelRequestInit(name, manufacturer));
-    //     const awaitedResponse = await rawResponse;
-    //     // const jsonResponse = await awaitedResponse.json();
-    //     // const parsedJSONResponse = await jsonResponse;
-    //     if (fetchFailed(awaitedResponse, 201, true)) {
-    //         console.error("failed to create new model");
-    //     }
-    //     return responseToNewModelStrongType(await awaitedResponse.json());
-    // }
-    // catch(error) {
-    //     fetchFilter(error);
-    // }
-    // finally{
-    // }
 }
 
 const submitHandler = (enteredModelText: string, setShowAddModel: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>, selectedManufacturer: number, dispatch: ReturnType<typeof useDispatch>) => {
@@ -149,6 +136,10 @@ export const CreateDeviceModelModalDialog: React.FC<modelDialogProps> = (props: 
 
     if (selectedManufacturer === null) {
         alert("Select a manufacturer first!");
+        props.setShowAddModel(false);
+        if (location.pathname.endsWith('create')) {
+            history.goBack();
+        }
         return null;
     }
     return (

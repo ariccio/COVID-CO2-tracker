@@ -71,6 +71,7 @@ export const Devices: React.FC<{}> = () => {
     const [notLoggedIn, setNotLoggedIn] = useState(false);
     const [errorState, setErrorState] = useState('');
     const selectedModelName = useSelector(selectSelectedModelName);
+    const [showAddDeviceInstance, setShowAddDeviceInstance] = useState(selectedModelName !== '');
 
     useEffect(() => {
 
@@ -136,7 +137,7 @@ export const Devices: React.FC<{}> = () => {
                 Selected device:
             </p>
 
-            <CreateMyDeviceInstance show={selectedModelName !== ''}/>
+            {showAddDeviceInstance ? <CreateMyDeviceInstance showAddDeviceInstance={showAddDeviceInstance} setShowAddDeviceInstance={setShowAddDeviceInstance}/> : null}
             
 
             <p>

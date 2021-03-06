@@ -8,6 +8,11 @@ import { Button, Form } from 'react-bootstrap';
 
 import {setSelectedPlace, interestingFields} from './googleSlice';
 
+import {API_URL} from '../../utils/UrlPath';
+
+import {fetchJSONWithChecks} from '../../utils/FetchHelpers';
+import { userRequestOptions } from '../../utils/DefaultRequestOptions';
+
 // import { getGooglePlacesScriptAPIKey } from '../../utils/GoogleAPIKeys';
 // import {GeolocationPosition} from 'typescript/lib/lib.dom'
 
@@ -219,6 +224,23 @@ const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (pr
         </Autocomplete>
     );
 }
+const placesByGooglePlaceID: string = '/places_by_google_place_id';
+
+const queryPlacesBackend = (placeId?: string) => {
+    if (placeId === undefined) {
+        console.log('no place to query');
+        return;
+    }
+    const SHOW_PLACES_BY_GOOGLE_PLACE_ID_PATH = (API_URL + placesByGooglePlaceID);
+    const thisPlace = (SHOW_PLACES_BY_GOOGLE_PLACE_ID_PATH + `/${placeId}`);
+    const fetchCallback = async (awaitedResponse: Response) => {
+        const parsed = await awaitedResponse.json();
+        console.log(parsed);
+        debugger;
+    }
+    const result = fetchJSONWithChecks(thisPlace, userRequestOptions(), 200, true,  fetchCallback, fetchCallback);
+    return result;
+}
 
 const placeChange = (autocomplete: google.maps.places.Autocomplete | null, dispatch: ReturnType<typeof useDispatch>, map: google.maps.Map<Element> | null) => {
     if (autocomplete === null) {
@@ -238,6 +260,7 @@ const placeChange = (autocomplete: google.maps.places.Autocomplete | null, dispa
             map.setCenter(placeLocation.location)
         }
     }
+    queryPlacesBackend(autocomplete.getPlace().place_id);
 }
 
 const onClickMaps = (e: google.maps.MapMouseEvent, setSelectedPlaceIdString: React.Dispatch<React.SetStateAction<string>>) => {
@@ -320,6 +343,7 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
         }
         setPlacesServiceStatus(status);
         dispatch(setSelectedPlace(result));
+        queryPlacesBackend(result.place_id);
         // debugger;
     }
 

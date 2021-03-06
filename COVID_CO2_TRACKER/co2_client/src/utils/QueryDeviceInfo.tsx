@@ -8,14 +8,22 @@ export interface UserInfoMeasurements {
     device_id: number,
     measurement_id: number,
     co2ppm: number,
-    measurementtime: string
+    measurementtime: string,
+    place: {
+        id: number,
+        google_place_id: string
+    }
 }
 
 export const defaultMeasurementInfo: UserInfoMeasurements = {
     device_id: -1,
     measurement_id: -1,
     co2ppm: -1,
-    measurementtime: ''
+    measurementtime: '',
+    place: {
+        id: -1,
+        google_place_id: ''
+    }
 }
 
 export interface UserInfoDevice {

@@ -11,6 +11,16 @@ export function userRequestOptions(): RequestInit {
     return requestOptions;
 }
 
+export function deleteRequestOptions(): RequestInit {
+    const requestOptions = {
+        method: 'delete',
+        credentials: includeCreds,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    }
+    return requestOptions;
+}
 
 export function postRequestOptions(): RequestInit {
     const requestOptions = {

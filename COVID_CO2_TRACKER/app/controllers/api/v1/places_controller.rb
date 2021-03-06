@@ -2,7 +2,7 @@
 module Api
   module V1
     class PlacesController < ApplicationController
-      before_action :set_place, only: [:show, :update, :destroy]
+      # before_action :set_place, only: [:show, :update, :destroy]
       # Don't want much of the scaffolding generated stuff
 
       # # GET /places
@@ -14,7 +14,39 @@ module Api
     
       # GET /places/1
       def show
+        @place = Place.find(params[:id])
+
+        if @place.last_fetched < 30.days.ago
+          Rails.logging.warn("Last fetched #{time_ago_in_words(@place.last_fetch)} - Need to update to comply with google caching restrictions!")
+        end
         render json: @place
+      rescue ::ActiveRecord::RecordNotFound => e
+        # TODO: query from the backend too to validate input is correct
+
+      end
+
+      def show_by_google_place_id
+        # byebug
+        @place = Place.find_by!(google_place_id: params[:google_place_id])
+        measurements = @place.measurement.order('measurementtime DESC').each.map do |measurement|
+          measurement_with_device_place_as_json(measurement, measurement.device)
+        end
+        render(
+          json: {
+            created: false,
+            measurements: measurements
+          }, status: :ok
+        )
+      rescue ::ActiveRecord::RecordNotFound => e
+        # TODO: query from the backend too to validate input is correct
+        # byebug
+        @place = Place.create!(google_place_id: params[:google_place_id])
+        render(
+          json: {
+            created: true,
+            measurements: @place.measurement
+          }, status: :ok
+        )
       end
     
       # POST /places
@@ -43,10 +75,10 @@ module Api
       # end
     
       private
-        # Use callbacks to share common setup or constraints between actions.
-        def set_place
-          @place = Place.find(params[:id])
-        end
+        # # Use callbacks to share common setup or constraints between actions.
+        # def set_place
+        #   @place = Place.find(params[:id])
+        # end
     
         # Only allow a list of trusted parameters through.
         def place_params

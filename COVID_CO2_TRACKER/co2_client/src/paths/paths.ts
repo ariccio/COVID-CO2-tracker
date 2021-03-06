@@ -1,3 +1,4 @@
+// React route paths. NOT rails paths.
 //Should these be in the files where the compoents are defined, or here all together?
 
 export const manufacturersPath: string = '/manufacturers';

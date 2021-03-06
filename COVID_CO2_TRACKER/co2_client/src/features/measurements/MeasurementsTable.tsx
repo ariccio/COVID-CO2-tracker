@@ -14,6 +14,7 @@ const measurementTableHeader = () =>
             <th>Device ID</th>
             <th>CO2 PPM</th>
             <th>measurement time</th>
+            <th>measured at</th>
         </tr>
     </thead>
 
@@ -32,6 +33,7 @@ const mapMeasurementsToTableBody = (measurements: Array<UserInfoMeasurements>)/*
                 <td>{measurement.device_id}</td>
                 <td>{measurement.co2ppm}</td>
                 <td>{measurement.measurementtime}</td>
+                <td>{measurement.place}</td>
             </tr>
         )
     })

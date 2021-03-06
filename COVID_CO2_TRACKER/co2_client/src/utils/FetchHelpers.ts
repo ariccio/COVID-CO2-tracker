@@ -74,8 +74,114 @@ async function checkJSONparsingErrors(awaitedResponseOriginal: Response): Promis
     }
 }
 
-//SEE FULL fetch SPEC HERE: https://fetch.spec.whatwg.org/#http-network-fetch
-//AND HERE: https://fetch.spec.whatwg.org/#fetch-method
+// SEE FULL fetch SPEC HERE: https://fetch.spec.whatwg.org/#http-network-fetch
+// AND HERE: https://fetch.spec.whatwg.org/#fetch-method
+
+// Chrome can create many kinds of network errors while executing a fetch. Chrome explicitly throws these:
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/fetch/fetch_manager.cc;drc=565fcbece543b05e304bc2b8d8fdc24b00ac16d7;bpv=1;bpt=1;l=655
+//  "Fetch API cannot load " ... ". URL scheme \"" ... "\" is not supported."
+//
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/fetch/fetch_manager.cc;drc=565fcbece543b05e304bc2b8d8fdc24b00ac16d7;l=224
+//  "Unknown error occurred while trying to verify integrity."
+//
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/fetch/fetch_manager.cc;l=535;drc=565fcbece543b05e304bc2b8d8fdc24b00ac16d7
+//  "Refused to connect to '" ... "' because it violates the document's Content Security Policy."
+//
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/fetch/fetch_manager.cc;l=560;drc=565fcbece543b05e304bc2b8d8fdc24b00ac16d7
+//  "Fetch API cannot load " ... ". Request mode is \"same-origin\" but the URL\'s " ... "origin is not same as the request origin "
+//
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/fetch/fetch_manager.cc;l=573;drc=565fcbece543b05e304bc2b8d8fdc24b00ac16d7
+//  "Fetch API cannot load " ... ". Request mode is \"no-cors\" but the redirect mode " ... "is not \"follow\"."
+//
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/fetch/fetch_manager.cc;l=595;drc=565fcbece543b05e304bc2b8d8fdc24b00ac16d7
+//  "Fetch API cannot load " ... ". URL scheme must be \"http\" or \"https\" for CORS request."
+//
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/fetch/fetch_manager.cc;l=655;drc=565fcbece543b05e304bc2b8d8fdc24b00ac16d7
+//  "Fetch API cannot load " ... ". URL scheme \"" ... "\" is not supported."
+//
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/fetch/fetch_manager.cc;l=573;drc=565fcbece543b05e304bc2b8d8fdc24b00ac16d7
+//  "Fetch API cannot load " ... ". Request mode is \"no-cors\" but the redirect mode " ... "is not \"follow\"."
+//
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/fetch/fetch_manager.cc;l=655;drc=565fcbece543b05e304bc2b8d8fdc24b00ac16d7
+//  "Fetch API cannot load " ... ". URL scheme \"" ..."\" is not supported."
+//
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/fetch/trust_token_to_mojom.cc;l=110;drc=565fcbece543b05e304bc2b8d8fdc24b00ac16d7
+//  "Redemption operation aborted due to Signed Redemption Record " ... "cache hit"
+//  DOMExceptionCode::kNoModificationAllowedError
+//
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/fetch/trust_token_to_mojom.cc;l=117;drc=565fcbece543b05e304bc2b8d8fdc24b00ac16d7
+//  "Trust Tokens operation satisfied locally, without needing to send " ... "the request to its initial destination"
+//  DOMExceptionCode::kNoModificationAllowedError
+//
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/fetch/trust_token_to_mojom.cc;l=123;drc=565fcbece543b05e304bc2b8d8fdc24b00ac16d7
+//  "Precondition failed during Trust Tokens operation"
+//  DOMExceptionCode::kInvalidStateError
+//
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/fetch/trust_token_to_mojom.cc;l=127;drc=565fcbece543b05e304bc2b8d8fdc24b00ac16d7
+//  "Error executing Trust Tokens operation"
+//  DOMExceptionCode::kOperationError
+//
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/fetch/body.cc;l=47;bpv=1;bpt=1?q=%22failed%20to%20fetch%22&start=11
+//  "Failed to fetch"
+//
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/streams/readable_byte_stream_controller.cc;l=1054?q=CreateTypeError&ss=chromium%2Fchromium%2Fsrc
+//  "close requested
+//
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/fetch/body_stream_buffer.cc;l=428?q=CreateTypeError&ss=chromium%2Fchromium%2Fsrc&start=11
+//  "network error"
+//
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/fetch/body.cc;l=291?q=CreateTypeError&ss=chromium%2Fchromium%2Fsrc&start=11
+//  "Invalid MIME type"
+//
+//  quic
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/modules/webtransport/quic_transport.cc;l=513?q=CreateTypeError&ss=chromium%2Fchromium%2Fsrc&start=21
+//  "Connection closed."
+//
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/modules/webtransport/quic_transport.cc;l=397?q=CreateTypeError&ss=chromium%2Fchromium%2Fsrc&start=21
+//  "No connection."
+//
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/modules/webtransport/quic_transport.cc;l=555?q=CreateTypeError&ss=chromium%2Fchromium%2Fsrc&start=21
+//  "Connection lost."
+//
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/modules/webtransport/quic_transport.cc;l=656?q=CreateTypeError&ss=chromium%2Fchromium%2Fsrc&start=21
+//  "The URL '" ... "' is invalid."
+//
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/modules/webtransport/quic_transport.cc;l=661?q=CreateTypeError&ss=chromium%2Fchromium%2Fsrc&start=21
+//  "The URL's scheme must be 'quic-transport'. '" ... "' is not allowed."
+//
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/modules/webtransport/quic_transport.cc;l=672?q=CreateTypeError&ss=chromium%2Fchromium%2Fsrc&start=21
+//  "The URL contains a fragment identifier ('#" ... "'). Fragment identifiers are not allowed in QuicTransport URLs."
+//
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/modules/webtransport/quic_transport.cc;l=690?q=CreateTypeError&ss=chromium%2Fchromium%2Fsrc&start=21
+//  "Failed to connect to '" ... "Refused to connect to '" ... "' because it violates the document's Content Security Policy"
+//
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/modules/webtransport/quic_transport.cc;l=799?q=CreateTypeError&ss=chromium%2Fchromium%2Fsrc&start=21
+//  "Connection lost."
+//
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/modules/webtransport/quic_transport.cc;l=818?q=CreateTypeError&ss=chromium%2Fchromium%2Fsrc&start=21
+//  "Connection lost."
+//
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/modules/webtransport/quic_transport.cc;l=843?q=CreateTypeError&ss=chromium%2Fchromium%2Fsrc&start=21
+//  "Failed to create send stream."
+//
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/modules/webtransport/quic_transport.cc;l=881?q=CreateTypeError&ss=chromium%2Fchromium%2Fsrc&start=21
+//  "Failed to create bidirectional stream."
+//
+// ...background fetch manager... (who cares) https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/modules/background_fetch/background_fetch_manager.cc;l=319?q=CreateTypeError&ss=chromium%2Fchromium%2Fsrc&start=21
+//
+// .json() or reading from body can fail a few ways:
+//  CreateSyntaxError
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/fetch/body.cc;l=320;bpv=0;bpt=1
+//  "Unexpected end of input"
+//
+//  Locked
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/fetch/body.cc;l=391;bpv=0;bpt=1
+//  "body stream is locked"
+//
+//  already used
+//  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/fetch/body.cc;l=395;bpv=0;bpt=1
+//  "body stream already read"
+//
 
 export async function fetchFailed(awaitedResponseOriginal: Response, expectedStatus: number, alertErrors: boolean): Promise<boolean> {
     const awaitedResponseCloned = awaitedResponseOriginal.clone();
@@ -85,7 +191,13 @@ export async function fetchFailed(awaitedResponseOriginal: Response, expectedSta
     if ((!awaitedResponseCloned.ok) || (parsedJSONResponse.errors !== undefined) ) {
         // debugger;
         awaitedResponseCloned.text().then((awaitedResponseText) => {
-            console.error(`response has text: ${awaitedResponseText}`);
+            const responseText = awaitedResponseText.toString()
+            if (responseText.length > 200) {
+                console.error(`response has text (truncated): ${responseText.slice(0, 200)}`)
+            }
+            else {
+                console.error(`response has text: ${awaitedResponseText}`);
+            }
             debugger;
         })
         if (awaitedResponseCloned.status !== expectedStatus) {
@@ -118,6 +230,11 @@ export function fetchFilter(error: any): never {
     }
     else if (error instanceof TypeError) {
         console.error("fetch itself failed, likely a network issue.");
+
+        // FetchManager::Loader::Failed:
+        // https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/fetch/fetch_manager.cc;l=261;bpv=1;bpt=1?q=%22failed%20to%20fetch%22
+
+        console.error(`type error message: ${error.message}`);
         alert("fetch itself failed, are you connected? is the server running? Did you manually interrupt it with a refresh?");
     }
     else if (error instanceof DOMException)
@@ -169,7 +286,13 @@ export async function fetchJSONWithChecks(input: RequestInfo, init: RequestInit,
                 throw Error(body);
             }
             // debugger;
-            console.error(`await clonedResponseforResponseErrorMessage.text() ${body}`);
+            // if (body.length > 200) {
+            //     console.error(`await clonedResponseforResponseErrorMessage.text() (truncated) ${body.slice(0, 200)}`);
+            // }
+            // else {
+            //     console.error(`await clonedResponseforResponseErrorMessage.text() ${body}`);
+            // }
+            
             // debugger;
             // debugger;
             
