@@ -1,12 +1,17 @@
 # frozen_string_literal: true
 
 def measurements_serializer(measurements, device_id)
+  # byebug
   measurements.each.map do |measurement|
     {
       device_id: measurement.device.id, # device_id?
       measurement_id: measurement.id,
       co2ppm: measurement.co2ppm,
-      measurementtime: measurement.id
+      measurementtime: measurement.id,
+      place: {
+        id: measurement.place.id,
+        google_place_id: measurement.place.google_place_id
+      }
     }
   end
 end

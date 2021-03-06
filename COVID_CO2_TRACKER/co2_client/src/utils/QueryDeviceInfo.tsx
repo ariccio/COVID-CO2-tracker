@@ -63,6 +63,12 @@ function deviceInfoToStrongType(deviceInfoResponse: any): DeviceInfoResponse {
         console.assert(deviceInfoResponse.device_model !== undefined);
         console.assert(deviceInfoResponse.user_id !== undefined);
         console.assert(deviceInfoResponse.measurements !== undefined);
+        if (deviceInfoResponse.measurements.length > 0) {
+
+            console.assert(deviceInfoResponse.measurements[0].place !== undefined);
+            console.assert(deviceInfoResponse.measurements[0].place.id !== undefined);
+            console.assert(deviceInfoResponse.measurements[0].place.google_place_id !== undefined);
+        }
     }
     const return_value: DeviceInfoResponse = {
         device_id: deviceInfoResponse.device_id,

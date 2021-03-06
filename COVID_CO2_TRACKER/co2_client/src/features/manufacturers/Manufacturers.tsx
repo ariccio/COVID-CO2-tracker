@@ -95,10 +95,15 @@ const getSingleManufacturer = (selectedManufacturer: number | null, setManufactu
 
 }
 
-const selectManufacturerHandler = (eventKey: any, event: Object, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, dispatch: ReturnType<typeof useDispatch>) => {
+const selectManufacturerHandler = (eventKey: string | null, event: React.SyntheticEvent<unknown>, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, dispatch: ReturnType<typeof useDispatch>) => {
     if (eventKey === "-1") {
         console.log(`user selected create manufacturer`);
         setShowAddManufacturer(true);
+        return;
+    }
+    console.assert(eventKey !== null);
+    if (eventKey === null) {
+        alert("TODO: I need to handle this. Event key null.");
         return;
     }
     const selected = dropdownKeyToManufacturerID(eventKey);
@@ -109,7 +114,7 @@ const selectManufacturerHandler = (eventKey: any, event: Object, setShowAddManuf
 }
 
 const renderDropdown = (manufacturerModels: SingleManufacturerInfoResponse, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, knownManufacturers: ManufacturersArray, location: ReturnType<typeof useLocation>, dispatch: ReturnType<typeof useDispatch>) => 
-    <Dropdown onSelect={(eventKey: any, event: Object) => {selectManufacturerHandler(eventKey, event, setShowAddManufacturer, dispatch)}}>
+    <Dropdown onSelect={(eventKey: string | null, event: React.SyntheticEvent<unknown>) => {selectManufacturerHandler(eventKey, event, setShowAddManufacturer, dispatch)}}>
         <Dropdown.Toggle variant="success" id="dropdown-basic">
             {manufacturerModels.name === '' ? "Select manufacturer:" : manufacturerModels.name} 
         </Dropdown.Toggle>

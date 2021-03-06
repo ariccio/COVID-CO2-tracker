@@ -188,6 +188,17 @@ interface AutoCompleteRenderProps {
     map: google.maps.Map | null
 }
 
+const formFieldSubmitHandler = (event: React.FormEvent<HTMLInputElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+}
+
+const formSubmitHandler = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+}
+
+
 const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (props) => {
     // In theory I can add another level of indirection so that this works even if maps fails.
     if (props.map === null) {
@@ -211,9 +222,9 @@ const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (pr
         <Autocomplete onLoad={(event) => props.autoCompleteLoad(event)} onPlaceChanged={props.placeChange} bounds={bounds} fields={interestingFields}>
             <>
 
-                <Form>
+                <Form onSubmit={(event: React.FormEvent<HTMLFormElement>) => formSubmitHandler(event)}>
                     <Form.Group>
-                        <Form.Control type="text" />
+                        <Form.Control type="text" onSubmit={(event: React.FormEvent<HTMLInputElement>) => formFieldSubmitHandler(event)}/>
                     </Form.Group>
                 </Form>
 

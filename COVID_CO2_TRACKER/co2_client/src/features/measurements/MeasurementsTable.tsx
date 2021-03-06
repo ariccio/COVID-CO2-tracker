@@ -26,6 +26,9 @@ function measurementRowKey(device: number): string {
 
 const mapMeasurementsToTableBody = (measurements: Array<UserInfoMeasurements>)/*: JSX.Element*/ => {
     return measurements.map((measurement, index: number) => {
+        if (measurement.place === undefined) {
+            debugger;
+        }
         return (
             <tr key={measurementRowKey(measurement.measurement_id)}>
                 <td>{index}</td>
@@ -33,7 +36,7 @@ const mapMeasurementsToTableBody = (measurements: Array<UserInfoMeasurements>)/*
                 <td>{measurement.device_id}</td>
                 <td>{measurement.co2ppm}</td>
                 <td>{measurement.measurementtime}</td>
-                <td>{measurement.place}</td>
+                <td>{measurement.place.google_place_id}</td>
             </tr>
         )
     })
@@ -52,6 +55,7 @@ interface MeasurementsTableProps {
 
 
 export const MeasurementsTable: React.FC<MeasurementsTableProps> = (props: MeasurementsTableProps): JSX.Element => {
+    // debugger;
     return (
         <>
             <Table striped bordered hover>
