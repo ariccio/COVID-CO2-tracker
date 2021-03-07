@@ -14,7 +14,7 @@ const measurementTableHeader = () =>
             <th>Device ID</th>
             <th>CO2 PPM</th>
             <th>measurement time</th>
-            <th>measured at</th>
+            <th>measured at google place:</th>
         </tr>
     </thead>
 
