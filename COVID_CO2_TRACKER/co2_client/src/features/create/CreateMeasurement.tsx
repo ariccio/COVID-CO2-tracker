@@ -8,7 +8,7 @@ import {selectSelectedDevice, selectSelectedDeviceSerialNumber, selectSelectedMo
 import {selectSelectedPlace} from '../google/googleSlice';
 import { defaultDevicesInfo, queryUserDevices, queryUserInfo, UserDevicesInfo } from '../../utils/QueryUserInfo';
 import { Errors, formatErrors } from '../../utils/ErrorObject';
-import {selectPlacesInfoFromDatabase, selectPlacesInfoErrors} from '../places/placesSlice';
+import {selectPlacesInfoFromDatabase, selectPlacesInfoErrors, selectPlaceExistsInDatabase} from '../places/placesSlice';
 import {UserInfoDevice} from '../../utils/QueryDeviceInfo';
 
 
@@ -126,7 +126,7 @@ function newMeasurementRequestInit(selectedDevice: number, enteredCO2: string, p
             measurement: {
                 device_id: selectedDevice,
                 co2ppm: enteredCO2,
-                place_id: placeId
+                google_place_id: placeId
                 // measurementtime: new Date().toUTCString()
             }
         })
@@ -144,7 +144,46 @@ interface NewMeasurmentResponseType {
 
 }
 
-const submitHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>) => {
+function newPlaceRequestInit(place_id: string): RequestInit {
+    const defaultOptions = postRequestOptions();
+    const newOptions = {
+        ...defaultOptions,
+        body: JSON.stringify({
+            place: {
+                google_place_id: place_id
+            }
+        })
+    };
+    return newOptions;
+}
+
+interface PlaceCreateResponseType {
+    place_id: number,
+    errors?: Errors
+}
+
+const CREATE_PATH = (API_URL + `/places`);
+
+
+const createPlaceIfNotExist = (placeExistsInDatabase: boolean, place_id: string): Promise<PlaceCreateResponseType> | null => {
+    if (placeExistsInDatabase) {
+        return null;
+    }
+    // const thisPlace = (CREATE_PATH + `/${place_id}`);
+    const init = newPlaceRequestInit(place_id);
+    const fetchFailedCallback = async (awaitedResponse: Response): Promise<PlaceCreateResponseType> => {
+        console.error("Failed to create place!");
+        return awaitedResponse.json();
+    }
+    const fetchSuccessCallback = async (awaitedResponse: Response): Promise<PlaceCreateResponseType> => {
+        return awaitedResponse.json();
+    }
+
+    const result = fetchJSONWithChecks(CREATE_PATH,  init, 201, true, fetchFailedCallback, fetchSuccessCallback ) as Promise<PlaceCreateResponseType>;
+    return result;
+}
+
+const createMeasurementHandler = (selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>) => {
     debugger;
     const init = newMeasurementRequestInit(selectedDevice, enteredCO2Text, place_id);
     
@@ -165,6 +204,23 @@ const submitHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, selecte
             debugger;
         }
     })
+}
+
+const submitHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, placeExistsInDatabase: boolean) => {
+    debugger;
+
+    const placeExistsPromiseOrNull = createPlaceIfNotExist(placeExistsInDatabase, place_id);
+    if (placeExistsPromiseOrNull === null) {
+        createMeasurementHandler(selectedDevice, enteredCO2Text, place_id, setShowCreateNewMeasurement);
+        return;
+    }
+    placeExistsPromiseOrNull.then((existsPromise) => {
+        createMeasurementHandler(selectedDevice, enteredCO2Text, place_id, setShowCreateNewMeasurement);
+    }).catch((errors) => {
+        //TODO: set errors state?
+        alert(errors.message);
+    });
+
 }
 
 const renderFormIfReady = (selectedDevice: number, enteredCO2Text: string, setEnteredCO2Text: React.Dispatch<React.SetStateAction<string>>, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>) => {
@@ -189,6 +245,7 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
     const selectedModelName = useSelector(selectSelectedModelName);
     const selectedDevice = useSelector(selectSelectedDevice);
     const selectedDeviceSerialNumber = useSelector(selectSelectedDeviceSerialNumber);
+    const placeExistsInDatabase = useSelector(selectPlaceExistsInDatabase);
 
     // const selectedPlacesInfo = useSelector(selectPlacesInfoFromDatabase);
     // const selectedPlacesInfoErrors = useSelector(selectPlacesInfoErrors);
@@ -225,6 +282,11 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
         debugger;
         return null;
     }
+    console.assert(placeExistsInDatabase !== null);
+    if (placeExistsInDatabase === null) {
+        debugger;
+        return null;
+    }
     return (
         <>
             <Modal show={props.showCreateNewMeasurement} onHide={() => hideHandler(props.setShowCreateNewMeasurement)}>
@@ -238,7 +300,7 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
                     <Button variant="secondary" onClick={(event) => hideHandler(props.setShowCreateNewMeasurement)}>
                         Cancel
                     </Button>
-                    <Button variant="primary" onClick={(event) => submitHandler(event, selectedDevice, enteredCO2Text, place_id, props.setShowCreateNewMeasurement)}>
+                    <Button variant="primary" onClick={(event) => submitHandler(event, selectedDevice, enteredCO2Text, place_id, props.setShowCreateNewMeasurement, placeExistsInDatabase)}>
                         Submit new measurement
                     </Button>
                 </Modal.Footer>

@@ -302,6 +302,7 @@ const updatePlacesInfoFromBackend = (place_id: string, dispatch: ReturnType<type
                 dispatch(setPlacesInfoErrors(formatErrors(placeInfo.errors)))
             }
             else {
+                debugger;
                 dispatch(setPlacesInfoFromDatabase(placeInfo));
             }
         }).catch((error) => {

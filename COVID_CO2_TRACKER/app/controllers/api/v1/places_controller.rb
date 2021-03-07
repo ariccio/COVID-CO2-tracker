@@ -44,7 +44,7 @@ module Api
         # byebug
         @place = Place.find_by!(google_place_id: params[:google_place_id])
         measurements = @place.measurement.order('measurementtime DESC').each.map do |measurement|
-          measurement_with_device_place_as_json(measurement, measurement.device)
+          Measurement.measurement_with_device_place_as_json(measurement, measurement.device)
         end
         render(
           json: {
@@ -75,7 +75,7 @@ module Api
     
       # POST /places
       def create
-        @place = Place.create!(google_place_id: params[:google_place_id])
+        @place = Place.create!(google_place_id: place_params[:google_place_id])
         render(
           json: {
             place_id: @place.id

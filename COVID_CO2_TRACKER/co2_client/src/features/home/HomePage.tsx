@@ -271,6 +271,7 @@ const renderInfoFromDatabase = (selectedPlaceInfoFromDatabase: SelectedPlaceData
     }
     console.assert(selectedPlaceExistsInDatabase !== null);
     console.assert(selectedPlaceExistsInDatabase !== false);
+    //TODO: need strong type in updatePlacesInfoFromBackend, else this can be undefined!
     if (selectedPlaceInfoFromDatabase.measurements.length === 0) {
         // debugger;
         return (
@@ -290,8 +291,8 @@ const renderPlace = (currentPlace: google.maps.places.PlaceResult, location: Ret
     return (
         <>
             {renderSelectedPlaceInfo(currentPlace, placesServiceStatus)}
-            {renderInfoFromDatabase(selectedPlaceInfoFromDatabase, selectedPlaceInfoErrors, currentPlace, selectedPlaceExistsInDatabase)}
             {renderNewMeasurementButton(currentPlace, location, setShowCreateNewMeasurement, showCreateNewMeasurement)}
+            {renderInfoFromDatabase(selectedPlaceInfoFromDatabase, selectedPlaceInfoErrors, currentPlace, selectedPlaceExistsInDatabase)}
         </>
     );
 }

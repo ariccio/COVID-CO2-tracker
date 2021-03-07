@@ -7,7 +7,7 @@ class Measurement < ApplicationRecord
 
 
   # GODDAMNIT I NEED TO WRITE A SERIALIZER
-  def measurement_with_device_place_as_json(measurement, device)
+  def self.measurement_with_device_place_as_json(measurement, device)
     {
       device_id: device.id,
       measurement_id: measurement.id,
