@@ -25,6 +25,21 @@ module Api
 
       end
 
+      def place_by_google_place_id_exists
+        @place = Place.find_by!(google_place_id: params[:google_place_id])
+        render(
+          json: {
+            exists: true
+          }, status: :ok
+        )
+      rescue ::ActiveRecord::RecordNotFound => _e
+        render(
+          json: {
+            exists: false
+          }, status: :ok
+        )
+      end
+
       def show_by_google_place_id
         # byebug
         @place = Place.find_by!(google_place_id: params[:google_place_id])
@@ -34,31 +49,45 @@ module Api
         render(
           json: {
             created: false,
-            measurements: measurements
+            measurements: measurements,
+            place_id: @place.id
           }, status: :ok
         )
       rescue ::ActiveRecord::RecordNotFound => e
         # TODO: query from the backend too to validate input is correct
         # byebug
-        @place = Place.create!(google_place_id: params[:google_place_id])
+        error_array = [create_error("#{params[:google_place_id]} does not exist in database. Not necessarily an error!", :not_acceptable.to_s)]
+        error_array << create_activerecord_notfound_error("not found", e)
         render(
           json: {
-            created: true,
-            measurements: @place.measurement
-          }, status: :ok
+            errors: error_array
+          }, status: :not_found
         )
+        # @place = Place.create!(google_place_id: params[:google_place_id])
+        # render(
+        #   json: {
+        #     created: true,
+        #     measurements: @place.measurement,
+        #     place_id: @place.id
+        #   }, status: :ok
+        # )
       end
     
       # POST /places
-      # def create
-      #   @place = Place.new(place_params)
-    
-      #   if @place.save
-      #     render json: @place, status: :created, location: @place
-      #   else
-      #     render json: @place.errors, status: :unprocessable_entity
-      #   end
-      # end
+      def create
+        @place = Place.create!(google_place_id: params[:google_place_id])
+        render(
+          json: {
+            place_id: @place.id
+          }, status: :created
+        )
+      rescue ::ActiveRecord::RecordInvalid => e
+        render(
+          json: {
+            errors: [create_activerecord_error("creation failed!", e)]
+          }
+        )
+      end
     
       # PATCH/PUT /places/1
       # def update

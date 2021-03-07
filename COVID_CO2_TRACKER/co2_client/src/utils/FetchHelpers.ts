@@ -198,8 +198,9 @@ export async function fetchFailed(awaitedResponseOriginal: Response, expectedSta
             else {
                 console.error(`response has text: ${awaitedResponseText}`);
             }
-            debugger;
+            // debugger;
         })
+        //TODO: multiple expected statuses
         if (awaitedResponseCloned.status !== expectedStatus) {
             console.assert(parsedJSONResponse.errors !== undefined);
             console.error(`server returned a response (${awaitedResponseCloned.status}, ${awaitedResponseCloned.statusText}) with a status field, and it wasn't a ${expectedStatus} status.`);

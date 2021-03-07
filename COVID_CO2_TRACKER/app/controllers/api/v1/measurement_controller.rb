@@ -5,12 +5,17 @@ module Api
     class MeasurementController < ApplicationController
       skip_before_action :authorized, only: [:show]
       def create
-        @new_measurement = ::Measurement.create!(device: measurement_params[:device_id], co2ppm: measurement_params[:co2ppm], measurementtime: measurement_params[:measurementtime])
+        # https://discuss.rubyonrails.org/t/time-now-vs-time-current-vs-datetime-now/75183/15
+        # ALSO, TODO: check to see if I should disable timezone conversion on backend?
+        # https://discuss.rubyonrails.org/t/time-now-vs-time-current-vs-datetime-now/75183/15
+
+        @new_measurement = ::Measurement.create!(device_id: measurement_params[:device_id], co2ppm: measurement_params[:co2ppm], measurementtime: Time.current, place_id: measurement_params[:place_id])
         render(
           json: {
             measurement_id: @new_measurement.id,
             device_id: @new_measurement.device.id,
             co2ppm: @new_measurement.co2ppm,
+            place_id: @new_measurement.place,
             measurementtime: @new_measurement.measurementtime
           },
           status: :created
@@ -44,7 +49,7 @@ module Api
       end
 
       def measurement_params
-        params.require[:measurement].permit(:id, :device_id, :co2ppm, :measurementtime)
+        params.require(:measurement).permit(:id, :device_id, :co2ppm, :measurementtime, :place_id)
       end
     end
   end

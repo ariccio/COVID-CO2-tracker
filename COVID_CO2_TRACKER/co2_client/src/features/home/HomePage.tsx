@@ -11,7 +11,7 @@ import {GoogleMapsContainer} from '../google/GoogleMaps';
 
 import {CreateNewMeasurementModal} from '../create/CreateMeasurement';
 
-import {selectPlacesInfoFromDatabase, selectPlacesInfoErrors, SelectedPlaceDatabaseInfo, defaultPlaceInfo} from '../places/placesSlice';
+import {selectPlacesInfoFromDatabase, selectPlacesInfoErrors, SelectedPlaceDatabaseInfo, defaultPlaceInfo, selectPlaceExistsInDatabase} from '../places/placesSlice';
 
 import {MeasurementsTable} from '../measurements/MeasurementsTable';
 import { current } from '@reduxjs/toolkit';
@@ -88,7 +88,7 @@ const renderTypes = (types?: Array<string>) => {
     }
     return (
         <>
-            types <i>{types.join(', ')}</i>
+            types: <i>{types.join(', ')}</i>
             <br/>
         </>
     );
@@ -128,6 +128,34 @@ const renderName = (name?: string) => {
     );
 }
 
+const renderPlacesServiceStatus = (placesServiceStatus: google.maps.places.PlacesServiceStatus) => {
+    return (
+        <>
+            <div>
+                Google Places service status: {placesServiceStatus}
+                <br/>
+            </div>
+        </>
+    );
+}
+
+const renderPlacesServiceStatusWithHighlight = (placesServiceStatus: google.maps.places.PlacesServiceStatus) => {
+    if (placesServiceStatus !== google.maps.places.PlacesServiceStatus.OK) {
+        return (
+            <>
+                <b><i><u>
+                    {renderPlacesServiceStatus(placesServiceStatus)}
+                </u></i></b>
+            </>
+        )
+    }
+    return (
+        <>
+            {renderPlacesServiceStatus(placesServiceStatus)}
+        </>
+    )
+}
+
 const renderSelectedPlaceInfo = (currentPlace: google.maps.places.PlaceResult, placesServiceStatus: google.maps.places.PlacesServiceStatus | null) => {
     if (currentPlace === defaultGooglePlacesState.selected) {
         return null;
@@ -146,7 +174,7 @@ const renderSelectedPlaceInfo = (currentPlace: google.maps.places.PlaceResult, p
     }
     return (
         <>
-            Service status: {placesServiceStatus}
+            {renderPlacesServiceStatusWithHighlight(placesServiceStatus)}
             {renderLinkWithName(currentPlace.url, currentPlace.name)}
             {renderPlaceId(currentPlace.place_id)}
             {renderFormattedAddress(currentPlace.formatted_address)}
@@ -206,7 +234,7 @@ const renderNewMeasurementButton = (currentPlace: google.maps.places.PlaceResult
 }
 
 
-const renderInfoFromDatabase = (selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo, selectedPlaceInfoErrors: string, currentPlace: google.maps.places.PlaceResult) => {
+const renderInfoFromDatabase = (selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo, selectedPlaceInfoErrors: string, currentPlace: google.maps.places.PlaceResult, selectedPlaceExistsInDatabase: boolean | null) => {
     if (currentPlace === defaultGooglePlacesState.selected) {
         //No place selected yet.
         return null;
@@ -221,12 +249,28 @@ const renderInfoFromDatabase = (selectedPlaceInfoFromDatabase: SelectedPlaceData
         )
     }
     if (selectedPlaceInfoFromDatabase.measurements === null) {
+        if (selectedPlaceExistsInDatabase === null) {
+            return (
+                <>
+                    Querying database to see if we already know about this place...
+                </>
+            )
+        }
+        if (selectedPlaceExistsInDatabase === false) {
+            return (
+                <div>
+                    No measurements uploaded for this place yet.
+                </div>
+            )    
+        }
         return (
             <>
                 Loading place info from database...
             </>
         );
     }
+    console.assert(selectedPlaceExistsInDatabase !== null);
+    console.assert(selectedPlaceExistsInDatabase !== false);
     if (selectedPlaceInfoFromDatabase.measurements.length === 0) {
         // debugger;
         return (
@@ -242,11 +286,11 @@ const renderInfoFromDatabase = (selectedPlaceInfoFromDatabase: SelectedPlaceData
     )
 }
 
-const renderPlace = (currentPlace: google.maps.places.PlaceResult, location: ReturnType<typeof useLocation>, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, showCreateNewMeasurement: boolean, selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo, selectedPlaceInfoErrors: string, placesServiceStatus: google.maps.places.PlacesServiceStatus | null) => {
+const renderPlace = (currentPlace: google.maps.places.PlaceResult, location: ReturnType<typeof useLocation>, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, showCreateNewMeasurement: boolean, selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo, selectedPlaceInfoErrors: string, placesServiceStatus: google.maps.places.PlacesServiceStatus | null, selectedPlaceExistsInDatabase: boolean | null) => {
     return (
         <>
             {renderSelectedPlaceInfo(currentPlace, placesServiceStatus)}
-            {renderInfoFromDatabase(selectedPlaceInfoFromDatabase, selectedPlaceInfoErrors, currentPlace)}
+            {renderInfoFromDatabase(selectedPlaceInfoFromDatabase, selectedPlaceInfoErrors, currentPlace, selectedPlaceExistsInDatabase)}
             {renderNewMeasurementButton(currentPlace, location, setShowCreateNewMeasurement, showCreateNewMeasurement)}
         </>
     );
@@ -261,6 +305,7 @@ export const HomePage: FunctionComponent<{}> = (props: any) => {
     const selectedPlaceInfoFromDatabase = useSelector(selectPlacesInfoFromDatabase);
     const selectedPlaceInfoFromDatabaseErrors = useSelector(selectPlacesInfoErrors);
     const placesServiceStatus = useSelector(selectPlacesServiceStatus);
+    const selectedPlaceExistsInDatabase = useSelector(selectPlaceExistsInDatabase);
 
     useEffect(() => {
         getGoogleMapsJavascriptAPIKey().then((key: string) => {
@@ -279,6 +324,7 @@ export const HomePage: FunctionComponent<{}> = (props: any) => {
             </>
         );
     }
+    //TODO: google maps goes to default (wrong) center on selecting different location
 
     return (
         <>
@@ -292,7 +338,7 @@ export const HomePage: FunctionComponent<{}> = (props: any) => {
                 <br/>
                 {errorState}
                 <div style={{justifyContent: 'right'}}>
-                    {renderPlace(currentPlace, location, setShowCreateNewMeasurement, showCreateNewMeasurement, selectedPlaceInfoFromDatabase, selectedPlaceInfoFromDatabaseErrors, placesServiceStatus)}
+                    {renderPlace(currentPlace, location, setShowCreateNewMeasurement, showCreateNewMeasurement, selectedPlaceInfoFromDatabase, selectedPlaceInfoFromDatabaseErrors, placesServiceStatus, selectedPlaceExistsInDatabase)}
                     {showCreateNewMeasurement ? <CreateNewMeasurementModal showCreateNewMeasurement={showCreateNewMeasurement} setShowCreateNewMeasurement={setShowCreateNewMeasurement}/> : null}
                 </div>
             </div>

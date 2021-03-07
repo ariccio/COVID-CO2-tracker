@@ -18,12 +18,14 @@ export const defaultPlaceInfo: SelectedPlaceDatabaseInfo = {
 
 export interface PlacesSlice {
     placesInfoFromDatabase: SelectedPlaceDatabaseInfo,
-    placesInfoErrors: string
+    placesInfoErrors: string,
+    placeExistsInDatabase: boolean | null
 }
 
 const initialState: PlacesSlice = {
     placesInfoFromDatabase: defaultPlaceInfo,
-    placesInfoErrors: ''
+    placesInfoErrors: '',
+    placeExistsInDatabase: null
 }
 
 //TODO: pull in google places slice
@@ -36,13 +38,16 @@ export const placesSlice = createSlice({
         },
         setPlacesInfoErrors: (state, action: PayloadAction<string>) => {
             state.placesInfoErrors = action.payload;
+        },
+        setPlaceExistsInDatabase: (state, action: PayloadAction<boolean>) => {
+            state.placeExistsInDatabase = action.payload;
         }
     }
 })
 
 
-export const {setPlacesInfoFromDatabase, setPlacesInfoErrors} = placesSlice.actions;
+export const {setPlacesInfoFromDatabase, setPlacesInfoErrors, setPlaceExistsInDatabase} = placesSlice.actions;
 export const selectPlacesInfoFromDatabase = (state: RootState) => state.placesInfo.placesInfoFromDatabase;
 export const selectPlacesInfoErrors = (state: RootState) => state.placesInfo.placesInfoErrors;
-
+export const selectPlaceExistsInDatabase = (state: RootState) => state.placesInfo.placeExistsInDatabase;
 export const placesInfoReducer = placesSlice.reducer;

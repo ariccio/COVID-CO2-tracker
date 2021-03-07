@@ -13,7 +13,8 @@ import {API_URL} from '../../utils/UrlPath';
 import {fetchJSONWithChecks} from '../../utils/FetchHelpers';
 import { userRequestOptions } from '../../utils/DefaultRequestOptions';
 
-import {SelectedPlaceDatabaseInfo, setPlacesInfoFromDatabase, setPlacesInfoErrors} from '../places/placesSlice';
+import {SelectedPlaceDatabaseInfo, setPlacesInfoFromDatabase, setPlacesInfoErrors, setPlaceExistsInDatabase} from '../places/placesSlice';
+import { Errors, formatErrors } from '../../utils/ErrorObject';
 
 // import { getGooglePlacesScriptAPIKey } from '../../utils/GoogleAPIKeys';
 // import {GeolocationPosition} from 'typescript/lib/lib.dom'
@@ -238,27 +239,75 @@ const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (pr
         </Autocomplete>
     );
 }
-const placesByGooglePlaceID: string = '/places_by_google_place_id';
+const PLACES_BY_GOOGLE_PLACE_ID_ROUTE: string = '/places_by_google_place_id';
+const PLACES_BY_GOOGLE_PLACE_ID_EXISTS_ROUTE: string = '/places_by_google_place_id_exists';
+
+type responseType = SelectedPlaceDatabaseInfo & {
+    errors: Errors
+};
 
 const queryPlacesBackend = (placeId: string) => {
-    const SHOW_PLACES_BY_GOOGLE_PLACE_ID_PATH = (API_URL + placesByGooglePlaceID);
+    const SHOW_PLACES_BY_GOOGLE_PLACE_ID_PATH = (API_URL + PLACES_BY_GOOGLE_PLACE_ID_ROUTE);
     const thisPlace = (SHOW_PLACES_BY_GOOGLE_PLACE_ID_PATH + `/${placeId}`);
     const fetchCallback = async (awaitedResponse: Response) => {
+        //TODO: strong type?
         return awaitedResponse.json();
     }
-    const result = fetchJSONWithChecks(thisPlace, userRequestOptions(), 200, true,  fetchCallback, fetchCallback) as Promise<SelectedPlaceDatabaseInfo>;
+    const result = fetchJSONWithChecks(thisPlace, userRequestOptions(), 200, false,  fetchCallback, fetchCallback) as Promise<responseType>;
     return result;
 }
 
-const updatePlacesInfoFromBackend = (place_id: string, dispatch: ReturnType<typeof useDispatch>) => {
-    const placeInfoPromise = queryPlacesBackend(place_id);
-    placeInfoPromise.then((placeInfo) => {
-        // if (placeInfo.errors !== undefined)
-        // debugger;
-        dispatch(setPlacesInfoFromDatabase(placeInfo));
+interface placeExistsResponseType {
+    exists: boolean
+}
+
+const queryPlacesBackendExists = (placeId: string) => {
+    const CHECK_IF_PLACE_IN_DATABASE_PATH = (API_URL + PLACES_BY_GOOGLE_PLACE_ID_EXISTS_ROUTE);
+    const thisPlace = (CHECK_IF_PLACE_IN_DATABASE_PATH + `/${placeId}`);
+    const fetchCallback = async (awaitedResponse: Response) => {
+        return awaitedResponse.json();
+    }
+    const result = fetchJSONWithChecks(thisPlace, userRequestOptions(), 200, false, fetchCallback, fetchCallback) as Promise<placeExistsResponseType>;
+    return result;
+}
+
+const checkIfExists = (place_id: string, dispatch: ReturnType<typeof useDispatch>): Promise<boolean> => {
+    const placeExistsPromise = queryPlacesBackendExists(place_id);
+    return placeExistsPromise.then((existsResponse) => {
+        if (existsResponse.exists === false) {
+            console.log("Place does not yet exist in database.")
+            dispatch(setPlaceExistsInDatabase(false));
+            return false;
+        }
+        console.log("Place exists in database!")
+        dispatch(setPlaceExistsInDatabase(true));
+        return true
     }).catch((error) => {
-        dispatch(setPlacesInfoErrors(error.message));
-    });
+        console.warn("Couldn't check if the place exists for some reason.")
+        dispatch(setPlacesInfoErrors(`Failed checking if the place exists! Error message: ${error}`));
+        return false;
+    })
+
+}
+
+const updatePlacesInfoFromBackend = (place_id: string, dispatch: ReturnType<typeof useDispatch>) => {
+    const existsPromise = checkIfExists(place_id, dispatch);
+    existsPromise.then((exists_or_continue) => {
+        if (!exists_or_continue) {
+            return;
+        }
+        const placeInfoPromise = queryPlacesBackend(place_id);
+        placeInfoPromise.then((placeInfo) => {
+            if (placeInfo.errors !== undefined) {
+                dispatch(setPlacesInfoErrors(formatErrors(placeInfo.errors)))
+            }
+            else {
+                dispatch(setPlacesInfoFromDatabase(placeInfo));
+            }
+        }).catch((error) => {
+            dispatch(setPlacesInfoErrors(error.message));
+        });
+    })
 }
 
 const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null, dispatch: ReturnType<typeof useDispatch>, map: google.maps.Map<Element> | null) => {
@@ -346,6 +395,8 @@ const getDetailsCallback = (result: google.maps.places.PlaceResult, status: goog
 function legalNoticeNote() {
     console.log("legal notice to self:");
     console.log("(a)  No Scraping. Customer will not export, extract, or otherwise scrape Google Maps Content for use outside the Services. For example, Customer will not: (i) pre-fetch, index, store, reshare, or rehost Google Maps Content outside the services; (ii) bulk download Google Maps tiles, Street View images, geocodes, directions, distance matrix results, roads information, places information, elevation values, and time zone details; (iii) copy and save business names, addresses, or user reviews; or (iv) use Google Maps Content with text-to-speech services.");
+    console.log("I need to be very careful about how I store data.");
+    console.log("apparently, I can keep lat/lon if I update every 30 days?");
 }
 
 const renderLoadedMapsContainer = () => {
@@ -435,7 +486,6 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
     }
 
     if (isLoaded) {
-        console.log('loaded render');
         return (
             <>
                 {googleMapInContainer()}

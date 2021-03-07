@@ -1,15 +1,20 @@
 import React, {useState, useEffect} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 import {Modal, Button, Form, Dropdown} from 'react-bootstrap';
-import {useLocation, useHistory} from 'react-router-dom'
+// import {useLocation, useHistory} from 'react-router-dom'
 
 
 import {selectSelectedDevice, selectSelectedDeviceSerialNumber, selectSelectedModel, selectSelectedModelName, setSelectedDevice, setSelectedDeviceSerialNumber, setSelectedModel, setSelectedModelName} from '../deviceModels/deviceModelsSlice';
 import {selectSelectedPlace} from '../google/googleSlice';
 import { defaultDevicesInfo, queryUserDevices, queryUserInfo, UserDevicesInfo } from '../../utils/QueryUserInfo';
-import { formatErrors } from '../../utils/ErrorObject';
+import { Errors, formatErrors } from '../../utils/ErrorObject';
 import {selectPlacesInfoFromDatabase, selectPlacesInfoErrors} from '../places/placesSlice';
 import {UserInfoDevice} from '../../utils/QueryDeviceInfo';
+
+
+import {postRequestOptions} from '../../utils/DefaultRequestOptions';
+import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
+import { API_URL } from '../../utils/UrlPath';
 
 const ModalHeader = (props: {placeName: string}) =>
     <Modal.Header closeButton>
@@ -106,17 +111,73 @@ const hideHandler = (setShowCreateNewMeasurement: React.Dispatch<React.SetStateA
     setShowCreateNewMeasurement(false);
 }
 
-const renderFormIfReady = (selectedDevice: number) => {
+const onChangeEvent = (event: React.FormEvent<HTMLFormElement>, setEnteredCO2Text: React.Dispatch<React.SetStateAction<string>>) => {
+    const text = (event.currentTarget.elements[0] as HTMLInputElement).value;
+    setEnteredCO2Text(text);
+}
+
+const NEW_MEASUREMENT_URL = (API_URL + '/measurement');
+
+function newMeasurementRequestInit(selectedDevice: number, enteredCO2: string, placeId: string): RequestInit {
+    const defaultOptions = postRequestOptions();
+    const newOptions = {
+        ...defaultOptions,
+        body: JSON.stringify({
+            measurement: {
+                device_id: selectedDevice,
+                co2ppm: enteredCO2,
+                place_id: placeId
+                // measurementtime: new Date().toUTCString()
+            }
+        })
+    };
+    return newOptions;
+}
+
+interface NewMeasurmentResponseType {
+    measurement_id: number,
+    device_id: number,
+    co2ppm: number,
+    place_id: number,
+    measurementtime: string,
+    errors?: Errors
+
+}
+
+const submitHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>) => {
+    debugger;
+    const init = newMeasurementRequestInit(selectedDevice, enteredCO2Text, place_id);
+    
+    const fetchFailedCallback = async (awaitedResponse: Response): Promise<NewMeasurmentResponseType> => {
+        console.error("failed to create measurement!");
+        return awaitedResponse.json();
+    }
+    const fetchSuccessCallback = async (awaitedResponse: Response): Promise<NewMeasurmentResponseType> => {
+        return awaitedResponse.json();
+    }
+
+    const result = fetchJSONWithChecks(NEW_MEASUREMENT_URL, init, 201, true,fetchFailedCallback, fetchSuccessCallback) as Promise<NewMeasurmentResponseType>;
+    result.then((result) => {
+        if (result.errors === undefined) {
+            setShowCreateNewMeasurement(false);
+        }
+        else {
+            debugger;
+        }
+    })
+}
+
+const renderFormIfReady = (selectedDevice: number, enteredCO2Text: string, setEnteredCO2Text: React.Dispatch<React.SetStateAction<string>>, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>) => {
     if (selectedDevice === -1) {
         return null;
     }
     return (
         <>
-            <Form>
+            <Form onChange={(event) => onChangeEvent(event, setEnteredCO2Text)}>
                 <Form.Label>
                     CO2 level (ppm)
                 </Form.Label>
-                <Form.Control type="text" placeholder="400"/>
+                <Form.Control type="number" placeholder="400" min={0}/>
             </Form>
         </>
     )
@@ -124,19 +185,21 @@ const renderFormIfReady = (selectedDevice: number) => {
 
 export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (props: CreateNewMeasurementProps) => {
     const selectedPlace = useSelector(selectSelectedPlace);
-    const selectedModel = useSelector(selectSelectedModel);
+    // const selectedModel = useSelector(selectSelectedModel);
     const selectedModelName = useSelector(selectSelectedModelName);
     const selectedDevice = useSelector(selectSelectedDevice);
     const selectedDeviceSerialNumber = useSelector(selectSelectedDeviceSerialNumber);
 
-    const selectedPlacesInfo = useSelector(selectPlacesInfoFromDatabase);
-    const selectedPlacesInfoErrors = useSelector(selectPlacesInfoErrors);
+    // const selectedPlacesInfo = useSelector(selectPlacesInfoFromDatabase);
+    // const selectedPlacesInfoErrors = useSelector(selectPlacesInfoErrors);
 
     const [userDevices, setUserDevices] = useState(defaultDevicesInfo);
     const [errorState, setErrorState] = useState('');
 
-    const placeName = selectedPlace.name;
+    const [enteredCO2Text, setEnteredCO2Text] = useState('');
 
+    const placeName = selectedPlace.name;    
+    const place_id = selectedPlace.place_id
     const dispatch = useDispatch();
     useEffect(() => {
         const userDeviceInfoPromise: Promise<UserDevicesInfo> = queryUserDevices();
@@ -151,7 +214,17 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
         })
     }, [])
 
-
+    console.assert(place_id !== null);
+    console.assert(place_id !== undefined);
+    if (place_id === undefined) {
+        debugger;
+        return (null);
+    }
+    console.assert(placeName !== undefined);
+    if (placeName === undefined) {
+        debugger;
+        return null;
+    }
     return (
         <>
             <Modal show={props.showCreateNewMeasurement} onHide={() => hideHandler(props.setShowCreateNewMeasurement)}>
@@ -159,13 +232,13 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
                 <Modal.Body>
                     {renderErrors(errorState)}
                     {renderSelectDeviceDropdown(userDevices, selectedDevice, selectedModelName, selectedDeviceSerialNumber, dispatch)}
-                    {renderFormIfReady(selectedDevice)}
+                    {renderFormIfReady(selectedDevice, enteredCO2Text, setEnteredCO2Text, place_id, props.setShowCreateNewMeasurement)}
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={(event) => hideHandler(props.setShowCreateNewMeasurement)}>
                         Cancel
                     </Button>
-                    <Button variant="primary">
+                    <Button variant="primary" onClick={(event) => submitHandler(event, selectedDevice, enteredCO2Text, place_id, props.setShowCreateNewMeasurement)}>
                         Submit new measurement
                     </Button>
                 </Modal.Footer>
