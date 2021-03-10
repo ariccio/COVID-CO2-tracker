@@ -8,13 +8,7 @@ import { Button, Form } from 'react-bootstrap';
 
 import {setSelectedPlace, interestingFields} from './googleSlice';
 
-import {API_URL} from '../../utils/UrlPath';
-
-import {fetchJSONWithChecks} from '../../utils/FetchHelpers';
-import { userRequestOptions } from '../../utils/DefaultRequestOptions';
-
-import {SelectedPlaceDatabaseInfo, setPlacesInfoFromDatabase, setPlacesInfoErrors, setPlaceExistsInDatabase} from '../places/placesSlice';
-import { Errors, formatErrors } from '../../utils/ErrorObject';
+import {updatePlacesInfoFromBackend} from '../../utils/QueryPlacesInfo';
 
 // import { getGooglePlacesScriptAPIKey } from '../../utils/GoogleAPIKeys';
 // import {GeolocationPosition} from 'typescript/lib/lib.dom'
@@ -170,6 +164,8 @@ const loadCallback = (map: google.maps.Map, setMap: React.Dispatch<React.SetStat
     // const bounds = new (window as any).google.maps.LatLngBounds();
     // map.fitBounds(bounds);
     setMap(map);
+    // console.log(`map zoom ${map.getZoom()}`)
+    map.setZoom(18);
     //   map.panTo(center);
     //   map.setZoom(100);
     //   console.log("map zoom " + map.getZoom());
@@ -186,7 +182,8 @@ type placeChangeType = () => void;
 interface AutoCompleteRenderProps {
     autoCompleteLoad: autocompleteLoadType,
     placeChange: placeChangeType,
-    map: google.maps.Map | null
+    map: google.maps.Map | null,
+    mapLoaded: boolean
 }
 
 const formFieldSubmitHandler = (event: React.FormEvent<HTMLInputElement>) => {
@@ -208,12 +205,18 @@ const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (pr
     const bounds = props.map.getBounds();
     if (bounds === undefined) {
         // throw new Error("invariant");
-        console.log("no bounds yet");
+        console.log("no bounds yet (undefined), maps not ready yet.");
+        if (props.mapLoaded) {
+            console.error("hmm, we should have bounds by now.");
+        }
         return (null);
     }
     if (bounds === null) {
         // throw new Error("invariant");
-        console.log("no bounds yet");
+        console.log("no bounds yet (null), maps not ready yet.");
+        if (props.mapLoaded) {
+            console.error("hmm, we should have bounds by now.");
+        }
         return (null);
     }
 
@@ -238,77 +241,6 @@ const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (pr
             </>
         </Autocomplete>
     );
-}
-const PLACES_BY_GOOGLE_PLACE_ID_ROUTE: string = '/places_by_google_place_id';
-const PLACES_BY_GOOGLE_PLACE_ID_EXISTS_ROUTE: string = '/places_by_google_place_id_exists';
-
-type responseType = SelectedPlaceDatabaseInfo & {
-    errors: Errors
-};
-
-const queryPlacesBackend = (placeId: string) => {
-    const SHOW_PLACES_BY_GOOGLE_PLACE_ID_PATH = (API_URL + PLACES_BY_GOOGLE_PLACE_ID_ROUTE);
-    const thisPlace = (SHOW_PLACES_BY_GOOGLE_PLACE_ID_PATH + `/${placeId}`);
-    const fetchCallback = async (awaitedResponse: Response) => {
-        //TODO: strong type?
-        return awaitedResponse.json();
-    }
-    const result = fetchJSONWithChecks(thisPlace, userRequestOptions(), 200, false,  fetchCallback, fetchCallback) as Promise<responseType>;
-    return result;
-}
-
-interface placeExistsResponseType {
-    exists: boolean
-}
-
-const queryPlacesBackendExists = (placeId: string) => {
-    const CHECK_IF_PLACE_IN_DATABASE_PATH = (API_URL + PLACES_BY_GOOGLE_PLACE_ID_EXISTS_ROUTE);
-    const thisPlace = (CHECK_IF_PLACE_IN_DATABASE_PATH + `/${placeId}`);
-    const fetchCallback = async (awaitedResponse: Response) => {
-        return awaitedResponse.json();
-    }
-    const result = fetchJSONWithChecks(thisPlace, userRequestOptions(), 200, false, fetchCallback, fetchCallback) as Promise<placeExistsResponseType>;
-    return result;
-}
-
-const checkIfExists = (place_id: string, dispatch: ReturnType<typeof useDispatch>): Promise<boolean> => {
-    const placeExistsPromise = queryPlacesBackendExists(place_id);
-    return placeExistsPromise.then((existsResponse) => {
-        if (existsResponse.exists === false) {
-            console.log("Place does not yet exist in database.")
-            dispatch(setPlaceExistsInDatabase(false));
-            return false;
-        }
-        console.log("Place exists in database!")
-        dispatch(setPlaceExistsInDatabase(true));
-        return true
-    }).catch((error) => {
-        console.warn("Couldn't check if the place exists for some reason.")
-        dispatch(setPlacesInfoErrors(`Failed checking if the place exists! Error message: ${error}`));
-        return false;
-    })
-
-}
-
-const updatePlacesInfoFromBackend = (place_id: string, dispatch: ReturnType<typeof useDispatch>) => {
-    const existsPromise = checkIfExists(place_id, dispatch);
-    existsPromise.then((exists_or_continue) => {
-        if (!exists_or_continue) {
-            return;
-        }
-        const placeInfoPromise = queryPlacesBackend(place_id);
-        placeInfoPromise.then((placeInfo) => {
-            if (placeInfo.errors !== undefined) {
-                dispatch(setPlacesInfoErrors(formatErrors(placeInfo.errors)))
-            }
-            else {
-                debugger;
-                dispatch(setPlacesInfoFromDatabase(placeInfo));
-            }
-        }).catch((error) => {
-            dispatch(setPlacesInfoErrors(error.message));
-        });
-    })
 }
 
 const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null, dispatch: ReturnType<typeof useDispatch>, map: google.maps.Map<Element> | null) => {
@@ -371,6 +303,7 @@ const options = (center: CenterType): google.maps.MapOptions => {
 
 const autoCompleteLoadThunk = (autocompleteEvent: google.maps.places.Autocomplete, setAutocomplete: React.Dispatch<React.SetStateAction<google.maps.places.Autocomplete | null>>) => {
     setAutocomplete(autocompleteEvent);
+    // debugger;
     console.log("autocomplete loaded!");
 }
 
@@ -420,6 +353,7 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
     // const [placesServiceStatus, setPlacesServiceStatus] = useState(null as google.maps.places.PlacesServiceStatus | null);
     const placesServiceStatus = useSelector(selectPlacesServiceStatus);
     const selectedPlace = useSelector(selectSelectedPlace);
+    const [mapLoaded, setMapLoaded] = useState(false);
 
     const { isLoaded, loadError } = useJsApiLoader({
         id: 'google-map-script',
@@ -429,10 +363,16 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
 
     const onLoad = React.useCallback((map: google.maps.Map) => {
         loadCallback(map, setMap, setService);
-    }, [])
+        // debugger;
+    }, []);
+
+    // useEffect(() => {
+    //     setMapLoaded(true);
+    // }, [map])
 
     const onUnmount = React.useCallback(function callback(map: google.maps.Map) {
         setMap(null);
+        setMapLoaded(false);
     }, [])
 
     const onZoomChange = () => {
@@ -443,8 +383,15 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
 
     useEffect(() => {
         map?.setZoom(_zoomLevel);
+        // debugger;
     }, [_zoomLevel])
 
+    const onMapIdle = () => {
+        //map onLoad isn't really ready. There are no bounds yet. Thus, autocomplete will fail to load. Wait until idle.
+        if (!mapLoaded) {
+            setMapLoaded(true);
+        }
+    }
 
     useEffect(() => {
         if (service === null) {
@@ -472,7 +419,7 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
         return (
             <div className="map">
                 <div className="map-container">
-                    <GoogleMap mapContainerStyle={containerStyle} onLoad={onLoad} onUnmount={onUnmount} options={options(center)} onZoomChanged={onZoomChange} onClick={(e: google.maps.MapMouseEvent) => onClickMaps(e, setSelectedPlaceIdString)}>
+                    <GoogleMap mapContainerStyle={containerStyle} onLoad={onLoad} onUnmount={onUnmount} options={options(center)} onZoomChanged={onZoomChange} onClick={(e: google.maps.MapMouseEvent) => onClickMaps(e, setSelectedPlaceIdString)} onIdle={onMapIdle}>
                         { /* Child components, such as markers, info windows, etc. */}
                     </GoogleMap>
                 </div>
@@ -481,8 +428,9 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
     }
 
     const autocompleteElement = () => {
+        // debugger;
         return (
-            <RenderAutoComplete autoCompleteLoad={(event) => autoCompleteLoadThunk(event, setAutocomplete)} placeChange={() => placeChangeHandler(autocomplete, dispatch, map)} map={map} />
+            <RenderAutoComplete autoCompleteLoad={(event) => autoCompleteLoadThunk(event, setAutocomplete)} placeChange={() => placeChangeHandler(autocomplete, dispatch, map)} map={map} mapLoaded={mapLoaded} />
         );
     }
 

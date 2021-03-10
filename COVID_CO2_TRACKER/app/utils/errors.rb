@@ -15,6 +15,10 @@ module Errors
     }
   end
 
+  def google_places_error(message, errors)
+    single_error(message, errors)
+  end
+
   def create_error(message, error)
     # puts error.class
     single_error(message, error)
