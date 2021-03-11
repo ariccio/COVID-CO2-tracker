@@ -8,7 +8,7 @@ import { Button, Form } from 'react-bootstrap';
 
 import {setSelectedPlace, interestingFields} from './googleSlice';
 
-import {updatePlacesInfoFromBackend, queryPlacesNearbyFromBackend} from '../../utils/QueryPlacesInfo';
+import {updatePlacesInfoFromBackend, queryPlacesNearbyFromBackend, queryPlacesInBoundsFromBackend} from '../../utils/QueryPlacesInfo';
 import { defaultPlaceMarkers, EachPlaceFromDatabaseForMarker, placesFromDatabaseForMarker, selectPlaceMarkersFromDatabase, selectPlacesMarkersErrors } from '../places/placesSlice';
 
 // import { getGooglePlacesScriptAPIKey } from '../../utils/GoogleAPIKeys';
@@ -282,7 +282,7 @@ const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null
     updatePlacesInfoFromBackend(placeId, dispatch);
 }
 
-const onClickMaps = (e: google.maps.MapMouseEvent, setSelectedPlaceIdString: React.Dispatch<React.SetStateAction<string>>) => {
+const onClickMaps = (e: google.maps.MapMouseEvent, setSelectedPlaceIdString: React.Dispatch<React.SetStateAction<string>>, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>) => {
     console.log(`dynamic type of event: ${typeof e}?`)
     if ((e as any).placeId === undefined) {
         console.warn("placeId missing?");
@@ -290,7 +290,12 @@ const onClickMaps = (e: google.maps.MapMouseEvent, setSelectedPlaceIdString: Rea
     else {
         console.log(`User clicked in google maps container on place ${(e as any).placeId}`);
         console.log(e);
-        setSelectedPlaceIdString((e as any).placeId)
+        setSelectedPlaceIdString((e as any).placeId);
+        const latlng: google.maps.LatLngLiteral = {
+            lat: e.latLng.lat(),
+            lng: e.latLng.lng()
+        }
+        setCenter(latlng);
         // debugger;
     }
 }
@@ -301,6 +306,7 @@ const containerStyle = {
 };
 
 const options = (center: google.maps.LatLngLiteral): google.maps.MapOptions => {
+    console.log(`new options ${center}`)
     return {
         //default tweaked for manhattan
         zoom: 18,
@@ -332,6 +338,7 @@ const getDetailsCallback = (result: google.maps.places.PlaceResult, status: goog
         console.error("missing place_id?");
         return;
     }
+    // result.
     updatePlacesInfoFromBackend(result.place_id, dispatch);
 }
 
@@ -350,19 +357,21 @@ function markerKey(lat: number, lng: number, index: number): string {
     return `marker-${lat}-${lng}-${index}-key`;
 }
 
-const renderEachMarker = (place: EachPlaceFromDatabaseForMarker, index: number, clusterer: /*clusterType*/ any) => {
+const renderEachMarker = (place: EachPlaceFromDatabaseForMarker, index: number, clusterer: /*clusterType*/ any, setSelectedPlaceIdString: React.Dispatch<React.SetStateAction<string>>) => {
     const pos: google.maps.LatLngLiteral = {
         lat: parseFloat(place.place_lat),
         lng: parseFloat(place.place_lng)
     }
     // debugger;
     return (
-        <Marker position={pos} key={markerKey(pos.lat, pos.lng, index)} clusterer={clusterer}/>
+        <Marker position={pos} key={markerKey(pos.lat, pos.lng, index)} clusterer={clusterer} onClick={(e: google.maps.MapMouseEvent) => {
+            setSelectedPlaceIdString(place.google_place_id);
+        }}/>
     )
 }
 
 
-const renderMarkers = (placeMarkersFromDatabase: placesFromDatabaseForMarker, placeMarkerErrors: string) => {
+const renderMarkers = (placeMarkersFromDatabase: placesFromDatabaseForMarker, placeMarkerErrors: string, setSelectedPlaceIdString: React.Dispatch<React.SetStateAction<string>>) => {
     if (placeMarkerErrors !== '') {
         console.error("cant render markers, got errors:");
         console.error(placeMarkerErrors);
@@ -397,23 +406,25 @@ const renderMarkers = (placeMarkersFromDatabase: placesFromDatabaseForMarker, pl
         //     </>
         // );
     }
-    console.log(`Rendering ${placeMarkersFromDatabase.places.length} markers...`);
+    // console.log(`Rendering ${placeMarkersFromDatabase.places.length} markers...`);
     return (
         <>
-            <MarkerClusterer averageCenter={true} minimumClusterSize={2}>
+            <MarkerClusterer averageCenter={true} minimumClusterSize={2} maxZoom={14}>
                 {(clusterer) => {
                     console.assert(placeMarkersFromDatabase.places !== null);
                     if (placeMarkersFromDatabase.places === null) {
                         return null;
                     }
                     // interface clusterType = typeof clusterer;
-                    return placeMarkersFromDatabase.places.map((place, index) => {return renderEachMarker(place, index, clusterer)})
+                    return placeMarkersFromDatabase.places.map((place, index) => {return renderEachMarker(place, index, clusterer, setSelectedPlaceIdString)})
                 }}
             </MarkerClusterer>
             {}
         </>
     )
 }
+
+const mapOptions = options(defaultCenter);
 
 export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props) => {
 
@@ -459,7 +470,9 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
             console.log("map not loaded, not setting center");
             return;
         }
+        console.log(`center changed ${center}`);
         map.setCenter(center);
+        updateMarkers();
     }, [center])
 
     const onUnmount = React.useCallback(function callback(map: google.maps.Map) {
@@ -476,23 +489,15 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
     useEffect(() => {
         map?.setZoom(_zoomLevel);
         // debugger;
+        // console.log(_zoomLevel);
     }, [_zoomLevel])
 
     const onMapIdle = () => {
         //map onLoad isn't really ready. There are no bounds yet. Thus, autocomplete will fail to load. Wait until idle.
         if (!mapLoaded) {
+            console.log("map idle callback...")
             setMapLoaded(true);
-            if (!map) {
-                console.log("no map for center yet");
-                return;
-            }
-            const center = map?.getCenter();
-            if (!center) {
-                console.log("no center for markers yet");
-                return;
-            }
-
-            queryPlacesNearbyFromBackend(center.lat(), center.lng(), dispatch);
+            updateMarkers()
         }
     }
 
@@ -513,18 +518,44 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
             getDetailsCallback(result, status, dispatch);
         }
         service.getDetails(request, detailsCallbackThunk);
+        
 
     }, [service, selectedPlaceIdString])
 
     useEffect(legalNoticeNote, []);
+    const updateMarkers = () => {
+        if (!map) {
+            console.log("no map for center yet");
+            return;
+        }
+        const center = map?.getCenter();
+        if (!center) {
+            console.log("no center for markers yet");
+            return;
+        }
+        const bounds = map?.getBounds();
+        if (!bounds) {
+            console.warn("bounds falsy, can't query places");
+            return;
+        }
+        // queryPlacesNearbyFromBackend(center.lat(), center.lng(), dispatch);
+        // console.log(`getting bounds for ne lat: ${bounds.getNorthEast().lat} ne lng: ${bounds.getNorthEast().lng()}, sw lat: ${bounds.getSouthWest().lat}, sw lng: ${bounds.getSouthWest().lng}`)
+        // debugger;
+        queryPlacesInBoundsFromBackend(bounds.getNorthEast(), bounds.getSouthWest(), dispatch);
+    }
 
+    const onDrag = () => {
+        // updateMarkers();
+    }
+    
     const googleMapInContainer = () => {
+        // console.log("rerender map")
         return (
             <div className="map">
                 <div className="map-container">
-                    <GoogleMap mapContainerStyle={containerStyle} onLoad={onLoad} onUnmount={onUnmount} options={options(center)} onZoomChanged={onZoomChange} onClick={(e: google.maps.MapMouseEvent) => onClickMaps(e, setSelectedPlaceIdString)} onIdle={onMapIdle}>
+                    <GoogleMap mapContainerStyle={containerStyle} onLoad={onLoad} onUnmount={onUnmount} options={mapOptions} onZoomChanged={onZoomChange} onClick={(e: google.maps.MapMouseEvent) => {onClickMaps(e, setSelectedPlaceIdString, setCenter); updateMarkers()}} onIdle={onMapIdle} onTilesLoaded={() => updateMarkers()}>
                         { /* Child components, such as markers, info windows, etc. */}
-                        {renderMarkers(placeMarkersFromDatabase, placeMarkerErrors)}
+                        {renderMarkers(placeMarkersFromDatabase, placeMarkerErrors, setSelectedPlaceIdString)}
                     </GoogleMap>
                 </div>
             </div>

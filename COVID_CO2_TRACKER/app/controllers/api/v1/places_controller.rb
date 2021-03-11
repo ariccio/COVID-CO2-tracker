@@ -185,6 +185,21 @@ module Api
           }, status: :ok
         )
       end
+
+      def in_bounds
+        @sw = Geokit::LatLng.new(place_bounds_params[:south], place_bounds_params[:west])
+        @ne = Geokit::LatLng.new(place_bounds_params[:north], place_bounds_params[:east])
+        found = Place.in_bounds([@sw, @ne])
+        places_as_json = found.each.map do |place|
+          Place.as_json_for_markers(place)
+        end
+        # byebug
+        render(
+          json: {
+            places: places_as_json
+          }, status: :ok
+        )
+      end
     
       # PATCH/PUT /places/1
       # def update
@@ -209,6 +224,10 @@ module Api
         # Only allow a list of trusted parameters through.
         def place_params
           params.require(:place).permit(:google_place_id, :last_fetched, :lat, :lng)
+        end
+
+        def place_bounds_params
+          params.require(:place).permit(:east, :north, :west, :south)
         end
 
         def setup_places_client

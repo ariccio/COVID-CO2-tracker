@@ -9,6 +9,7 @@ import {useDispatch} from 'react-redux';
 const PLACES_BY_GOOGLE_PLACE_ID_ROUTE: string = '/places_by_google_place_id';
 const PLACES_BY_GOOGLE_PLACE_ID_EXISTS_ROUTE: string = '/places_by_google_place_id_exists';
 const PLACES_NEAR: string = (API_URL + '/places_near');
+const PLACES_IN_BOUNDS: string = (API_URL + '/places_in_bounds');
 
 type responseType = SelectedPlaceDatabaseInfo & {
     errors?: Errors
@@ -104,6 +105,90 @@ type nearbyPlacesResponseType = placesFromDatabaseForMarker & {
     errors?: Errors
 }
 
+function inBoundsPlaceRequestInit(northEast: google.maps.LatLng, southWest: google.maps.LatLng): RequestInit {
+    const defaultOptions = postRequestOptions()
+    const newOptions = {
+        ...defaultOptions,
+        body: JSON.stringify({
+            place: {
+                east: northEast.lng(),
+                north: northEast.lat(),
+                south: southWest.lng(),
+                west: southWest.lat()
+            }
+        })
+    };
+    return newOptions;
+}
+
+// interface LatLngBoundsLiteral {
+//     /**
+//      * East longitude in degrees. Values outside the range [-180, 180] will be wrapped to the range [-180, 180]. For
+//      * example, a value of -190 will be converted to 170. A value of 190 will be converted to -170. This reflects
+//      * the fact that longitudes wrap around the globe.
+//      * @see {@link https://developers.google.com/maps/documentation/javascript/reference/coordinates#LatLngBoundsLiteral.east Maps JavaScript API}
+//      */
+//     east: number;
+
+//     /**
+//      * North latitude in degrees. Values will be clamped to the range [-90, 90]. This means that if the value
+//      * specified is less than -90, it will be set to -90. And if the value is greater than 90, it will be set to 90.
+//      * @see {@link https://developers.google.com/maps/documentation/javascript/reference/coordinates#LatLngBoundsLiteral.north Maps JavaScript API}
+//      */
+//     north: number;
+
+//     /**
+//      * South latitude in degrees. Values will be clamped to the range [-90, 90]. This means that if the value
+//      * specified is less than -90, it will be set to -90. And if the value is greater than 90, it will be set to 90.
+//      * @see {@link https://developers.google.com/maps/documentation/javascript/reference/coordinates#LatLngBoundsLiteral.south Maps JavaScript API}
+//      */
+//     south: number;
+
+//     /**
+//      * West longitude in degrees. Values outside the range [-180, 180] will be wrapped to the range [-180, 180]. For
+//      * example, a value of -190 will be converted to 170. A value of 190 will be converted to -170. This reflects
+//      * the fact that longitudes wrap around the globe.
+//      * @see {@link https://developers.google.com/maps/documentation/javascript/reference/coordinates#LatLngBoundsLiteral.west Maps JavaScript API}
+//      */
+//     west: number;
+// }
+
+// This may end up being too slow
+export const queryPlacesInBoundsFromBackend = (northEast: google.maps.LatLng, southWest: google.maps.LatLng, dispatch: ReturnType<typeof useDispatch>) => {
+    const init = inBoundsPlaceRequestInit(northEast, southWest);
+    const fetchFailedCallback = async (awaitedResponse: Response): Promise<nearbyPlacesResponseType> => {
+        console.error("Failed to find nearby places!");
+        return awaitedResponse.json();
+    }
+    const fetchSuccessCallback = async (awaitedResponse: Response): Promise<nearbyPlacesResponseType> => {
+        console.log("TODO: strong type");
+        return awaitedResponse.json();
+    }
+    const result = fetchJSONWithChecks(PLACES_IN_BOUNDS, init, 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<nearbyPlacesResponseType>;
+    return nearbyResultsFetchedCallback(result, dispatch);
+
+}
+
+const nearbyResultsFetchedCallback = (result: Promise<nearbyPlacesResponseType>, dispatch: ReturnType<typeof useDispatch>) => {
+    return result.then((response) => {
+        if (response.errors !== undefined) {
+            console.warn("some kind of error while fetching place markers")
+            dispatch(setPlaceMarkersErrors(formatErrors(response.errors)));
+            dispatch(setPlaceMarkersFromDatabase(defaultPlaceMarkers));
+        }
+        else {
+            // console.log("successfully queried place markers");
+            dispatch(setPlaceMarkersFromDatabase(response));
+            // debugger;
+        }
+        // debugger;
+    }).catch((errors) => {
+        console.error("error getting place markers");
+        dispatch(setPlaceMarkersErrors(errors.message))  
+    })
+
+}
+
 export const queryPlacesNearbyFromBackend = (lat: number, lng: number, dispatch: ReturnType<typeof useDispatch>) => {
     const init = nearPlaceRequestInit(lat, lng);
     const fetchFailedCallback = async (awaitedResponse: Response): Promise<nearbyPlacesResponseType> => {
@@ -114,20 +199,5 @@ export const queryPlacesNearbyFromBackend = (lat: number, lng: number, dispatch:
         return awaitedResponse.json();
     }
     const result = fetchJSONWithChecks(PLACES_NEAR, init, 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<nearbyPlacesResponseType>;
-    result.then((response) => {
-        if (response.errors !== undefined) {
-            console.warn("some kind of error while fetching place markers")
-            dispatch(setPlaceMarkersErrors(formatErrors(response.errors)));
-            dispatch(setPlaceMarkersFromDatabase(defaultPlaceMarkers));
-        }
-        else {
-            console.log("successfully queried place markers");
-            dispatch(setPlaceMarkersFromDatabase(response));
-            // debugger;
-        }
-        // debugger;
-    }).catch((errors) => {
-        console.error("error getting place markers");
-        dispatch(setPlaceMarkersErrors(errors.message))  
-    })
+    nearbyResultsFetchedCallback(result, dispatch);
 }

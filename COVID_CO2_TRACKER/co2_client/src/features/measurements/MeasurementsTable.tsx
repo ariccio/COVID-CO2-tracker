@@ -9,12 +9,12 @@ import {UserInfoMeasurements} from '../../utils/QueryDeviceInfo';
 const measurementTableHeader = () =>
     <thead>
         <tr>
-            <th>#</th>
+            {/* <th>#</th> */}
             <th>Measurement ID</th>
             <th>Device ID</th>
             <th>CO2 PPM</th>
             <th>measurement time</th>
-            <th>measured at google place:</th>
+            {/* <th>measured at google place:</th> */}
         </tr>
     </thead>
 
@@ -31,12 +31,12 @@ const mapMeasurementsToTableBody = (measurements: Array<UserInfoMeasurements>)/*
         }
         return (
             <tr key={measurementRowKey(measurement.measurement_id)}>
-                <td>{index}</td>
+                {/* <td>{index}</td> */}
                 <td>{measurement.measurement_id}</td>
                 <td>{measurement.device_id}</td>
                 <td>{measurement.co2ppm}</td>
                 <td>{measurement.measurementtime}</td>
-                <td>{measurement.place.google_place_id}</td>
+                {/* <td>{measurement.place.google_place_id}</td> */}
             </tr>
         )
     })
