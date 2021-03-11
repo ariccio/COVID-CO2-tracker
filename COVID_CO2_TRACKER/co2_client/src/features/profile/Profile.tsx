@@ -29,6 +29,7 @@ export const Profile: React.FC<ProfileProps> = () => {
             // debugger;
             setUserInfo(userInfo);
         }).catch((error) => {
+            debugger;
             setErrorState(error.message);
         })
     }, [])

@@ -52,6 +52,9 @@ function userInfoToStrongType(userInfo: any): UserInfoType {
         console.assert(userInfo.user_info !== undefined);
         console.assert(userInfo.devices !== undefined);
     }
+    if (userInfo.errors !== undefined) {
+        return userInfo;
+    }
     // debugger;
     const return_value: UserInfoType =  {
         user_info: {
@@ -66,12 +69,14 @@ function userInfoToStrongType(userInfo: any): UserInfoType {
 
 export async function queryUserInfo(): Promise<UserInfoType> {
     const fetchFailedCallback = async (awaitedResponse: Response): Promise<UserInfoType> => {
-        if (awaitedResponse.status === 401) {
+        const copyForErrors = awaitedResponse.clone();
+        if (copyForErrors.status === 401) {
             console.warn("user not logged in!");
-            const parsedJSONResponse = await awaitedResponse.json();
+            const parsedJSONResponse = await copyForErrors.json();
             if (parsedJSONResponse.errors !== undefined) {
                 console.error(formatErrors(parsedJSONResponse.errors));
                 // return null;
+                
             }
         }
         return userInfoToStrongType(await awaitedResponse.json());

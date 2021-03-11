@@ -81,7 +81,7 @@ export const Devices: React.FC<{}> = () => {
         const userInfoPromise: Promise<UserInfoType> = queryUserInfo();
         userInfoPromise.then((userInfo) => {
             if (userInfo.errors !== undefined) {
-                setNotLoggedIn(true);
+                // setNotLoggedIn(true);
                 setErrorState(formatErrors(userInfo.errors));
                 return;
             }
@@ -93,23 +93,24 @@ export const Devices: React.FC<{}> = () => {
         })
     }, [])
 
-    if (notLoggedIn) {
-        return (
-            <>
-                <h1>
-                    Not logged in!
-                </h1>
-                <p>
-                    {errorState}
-                </p>
-            </>
-        );
-    }
+    // if (notLoggedIn) {
+    //     return (
+    //         <>
+    //             <h1>
+    //                 Not logged in!
+    //             </h1>
+    //             <p>
+    //                 {errorState}
+    //             </p>
+    //         </>
+    //     );
+    // }
 
     if (userInfo === defaultUserInfo) {
         if (errorState !== '') {
             return (
                 <>
+                    Not logged in, or error:
                     {errorState}
                 </>
             );

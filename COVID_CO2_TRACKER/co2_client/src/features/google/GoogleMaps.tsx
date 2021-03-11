@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {useDispatch} from 'react-redux';
 import {useSelector} from 'react-redux';
-import {selectSelectedPlace, selectPlacesServiceStatus, setPlacesServiceStatus, autocompleteSelectedPlaceToAction} from '../google/googleSlice';
+import {selectSelectedPlace, selectPlacesServiceStatus, setPlacesServiceStatus, autocompleteSelectedPlaceToAction, placeResultWithTranslatedType} from '../google/googleSlice';
 
 import { GoogleMap, useJsApiLoader, Autocomplete, Marker, MarkerClusterer } from '@react-google-maps/api';
 import { Button, Form } from 'react-bootstrap';
@@ -9,7 +9,7 @@ import { Button, Form } from 'react-bootstrap';
 import {setSelectedPlace, interestingFields} from './googleSlice';
 
 import {updatePlacesInfoFromBackend, queryPlacesInBoundsFromBackend} from '../../utils/QueryPlacesInfo';
-import { defaultPlaceMarkers, EachPlaceFromDatabaseForMarker, placesFromDatabaseForMarker, selectPlaceMarkersFromDatabase, selectPlacesMarkersErrors } from '../places/placesSlice';
+import { defaultPlaceMarkers, EachPlaceFromDatabaseForMarker, placesFromDatabaseForMarker, selectPlaceExistsInDatabase, selectPlaceMarkersFromDatabase, selectPlacesInfoErrors, selectPlacesInfoFromDatabase, selectPlacesMarkersErrors } from '../places/placesSlice';
 
 // import { getGooglePlacesScriptAPIKey } from '../../utils/GoogleAPIKeys';
 // import {GeolocationPosition} from 'typescript/lib/lib.dom'
@@ -260,12 +260,13 @@ const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null
     console.log(`geometry.viewport.toString: ${autocomplete.getPlace().geometry?.viewport.toString()}`)
     // autocomplete.getPlace()
     // debugger;
+    // const geometry = autocomplete.getPlace()
     dispatch(setSelectedPlace(autocompleteSelectedPlaceToAction(autocomplete.getPlace())));
     if (map) {
-        debugger;
+        // debugger;
         const placeLocation = autocomplete.getPlace().geometry;
         if (placeLocation) {
-            debugger;
+            // debugger;
             // map.setCenter(placeLocation.location)
             const loc: google.maps.LatLngLiteral = {
                 lat: placeLocation.location.lat(),
@@ -426,6 +427,44 @@ const renderMarkers = (placeMarkersFromDatabase: placesFromDatabaseForMarker, pl
 
 const mapOptions = options(defaultCenter);
 
+function warnFieldMessage(): void {
+    console.warn(`Warning: If you do not specify at least one field with a request, or if you omit the fields parameter from a request, ALL possible fields will be returned, and you will be billed accordingly. This applies only to Place Details requests (including Place Details requests made from the Place Autocomplete widget).`);
+}
+
+function checkInterestingFields(interestingFields: Array<string>): void {
+    if (interestingFields === undefined) {
+        warnFieldMessage();
+    }
+    if (interestingFields === null) {
+        warnFieldMessage();
+        return;
+    }
+    if (interestingFields.length === 0) {
+        warnFieldMessage();
+        return;
+    }
+    if (interestingFields[0] === null) {
+        warnFieldMessage();
+        return;
+    }
+    if (interestingFields[0].length === 0) {
+        warnFieldMessage();
+    }
+
+}
+
+function placeIdFromSelectionOrFromMarker(selectedPlaceIdString: string, selectedPlace?: string): string | null {
+    if (selectedPlaceIdString !== '') {
+        console.log(`Selecting place id string ${selectedPlaceIdString} from marker`);
+        return selectedPlaceIdString;
+    }
+    if (selectedPlace !== undefined) {
+        console.log(`Selecting place id string ${selectedPlace} from autocomplete`);
+        return selectedPlace;
+    }
+    return null;
+}
+
 export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props) => {
 
     //TODO: streetview service?
@@ -437,7 +476,7 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
     const [autocomplete, setAutocomplete] = useState(null as google.maps.places.Autocomplete | null);
     const [map, setMap] = React.useState(null as google.maps.Map | null);
     const [_zoomLevel, setZoomlevel] = useState(0);
-    const [selectedPlaceIdString, setSelectedPlaceIdString] = useState('');
+    
     const [service, setService] = useState(null as google.maps.places.PlacesService | null);
     // const [placesServiceStatus, setPlacesServiceStatus] = useState(null as google.maps.places.PlacesServiceStatus | null);
     const placesServiceStatus = useSelector(selectPlacesServiceStatus);
@@ -445,6 +484,15 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
     const [mapLoaded, setMapLoaded] = useState(false);
     const placeMarkersFromDatabase = useSelector(selectPlaceMarkersFromDatabase);
     const placeMarkerErrors = useSelector(selectPlacesMarkersErrors);
+
+    const selectedPlaceInfoFromDatabase = useSelector(selectPlacesInfoFromDatabase);
+    const selectedPlaceInfoFromDatabaseErrors = useSelector(selectPlacesInfoErrors);
+    const selectedPlaceExistsInDatabase = useSelector(selectPlaceExistsInDatabase);
+
+
+    //Needed (for now) to update on clicking markers
+    const [selectedPlaceIdString, setSelectedPlaceIdString] = useState('');
+
 
     const { isLoaded, loadError } = useJsApiLoader({
         id: 'google-map-script',
@@ -503,15 +551,34 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
 
     useEffect(() => {
         if (service === null) {
+            // debugger;
+            console.log("places service not ready yet");
             return;
         }
-        if (selectedPlaceIdString === '') {
+        if (selectedPlace.place_id === undefined) {
+            console.log("no placeId from autocomplete yet.");
+            // return;
+        }
+        if (selectedPlace.place_id === null) {
+            // debugger;
+            console.warn("place_id is null from autocomplete?");
             return;
         }
+
+        if (selectedPlaceIdString !== '') {
+            // debugger;
+        }
+        checkInterestingFields(interestingFields);
         // debugger;
-        //Warning: If you do not specify at least one field with a request, or if you omit the fields parameter from a request, ALL possible fields will be returned, and you will be billed accordingly. This applies only to Place Details requests (including Place Details requests made from the Place Autocomplete widget).
+        //
+
+        const placeIDForRequest = placeIdFromSelectionOrFromMarker(selectedPlaceIdString, selectedPlace.place_id);
+        if (placeIDForRequest === null) {
+            console.log("no place id from either source.");
+            return;
+        }
         const request: google.maps.places.PlaceDetailsRequest = {
-            placeId: selectedPlaceIdString,
+            placeId: placeIDForRequest,
             fields: interestingFields
         } 
         const detailsCallbackThunk = (result: google.maps.places.PlaceResult, status: google.maps.places.PlacesServiceStatus) => {
@@ -520,7 +587,7 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
         service.getDetails(request, detailsCallbackThunk);
         
 
-    }, [service, selectedPlaceIdString])
+    }, [service, selectedPlaceIdString, dispatch, selectedPlaceInfoFromDatabaseErrors, selectedPlaceExistsInDatabase, selectedPlace.place_id])
 
     useEffect(legalNoticeNote, []);
     const updateMarkers = () => {
@@ -573,7 +640,7 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
         return (
             <>
                 {googleMapInContainer()}
-                Selected place ID string from google maps: {selectedPlaceIdString}
+                Selected place ID string from google maps: {selectedPlace.place_id}
                 <br/>
                 {autocompleteElement()}
                 <Button onClick={() => invokeBrowserGeolocation(setCenter)}>

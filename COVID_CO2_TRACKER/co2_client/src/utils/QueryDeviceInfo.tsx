@@ -88,7 +88,7 @@ export async function queryDeviceInfo(device_id: number): Promise<DeviceInfoResp
 
     const fetchFailedCallback = async (awaitedResponse: Response): Promise<never> => {
         debugger;
-        throw new Error(formatErrors((await awaitedResponse.json()).errors));
+        throw new Error(formatErrors((await awaitedResponse.clone().json()).errors));
     }
 
     const fetchSuccessCallback = async (awaitedResponse: Response): Promise<DeviceInfoResponse> => {

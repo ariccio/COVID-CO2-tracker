@@ -125,7 +125,7 @@ type geometryPODType = {
     }
 }
 
-type placeResultWithTranslatedType = google.maps.places.PlaceResult & geometryPODType;
+export type placeResultWithTranslatedType = google.maps.places.PlaceResult & geometryPODType;
 
 interface googlePlacesState {
     // google.maps.places.

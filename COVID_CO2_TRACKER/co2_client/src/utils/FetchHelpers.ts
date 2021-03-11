@@ -194,13 +194,13 @@ export async function fetchFailed(awaitedResponseOriginal: Response, expectedSta
             debugger;
         }
         // debugger;
-        awaitedResponseCloned.text().then((awaitedResponseText) => {
+        awaitedResponseCloned.clone().text().then((awaitedResponseText) => {
             const responseText = awaitedResponseText.toString()
             if (responseText.length > 200) {
                 console.error(`response has text (truncated): ${responseText.slice(0, 200)}`)
             }
             else {
-                console.error(`response has text: ${awaitedResponseText}`);
+                console.error(`response has text: ${responseText}`);
             }
             // if (awaitedResponseText.error !== undefined) {
             //     console.log("maybe internal server error?");
@@ -262,6 +262,7 @@ async function awaitRawResponse(rawFetchResponse: Promise<Response>): Promise<Re
         return awaitedResponse;
     }
     catch (error) {
+        debugger;
         console.warn(`caught awaiting raw response!`);
         console.warn(error);
         debugger;
@@ -280,6 +281,8 @@ export async function fetchJSONWithChecks(input: RequestInfo, init: RequestInit,
     // e.g. ECONNREFUSED when the server isn't running!
     // This is great, and provides much better, well, everything.
     // Someday I'll figure out how to do this in a better, less ugly way.
+
+    // Some of these clone()s are likely unnecessary. If you can figure out which ones, you deserve a medal. 
     try {
         const rawFetchResponse_: Promise<Response> = fetch(input, init);
         // const rawFetchResponse = (await rawFetchResponse_).clone();
@@ -312,13 +315,15 @@ export async function fetchJSONWithChecks(input: RequestInfo, init: RequestInit,
             
             try {
                 const awaitedResponse = await awaitRawResponse(rawFetchResponse_);
-
+                
                 //WHY DOES JAVASCRIPT LET ME DO THIS WITHOUT AWAIT? Annoyed debugging.
-                if (await fetchFailed(awaitedResponse, expectedStatus, alert)) {
+                if (await fetchFailed(awaitedResponse.clone(), expectedStatus, alert)) {
                     // debugger;
-                    return fetchFailedCallback(awaitedResponse)
+                    // If you DO NOT clone the result and try to use it for error handling, reading it again for later use will cause it to fail by reading it twice. 
+                    console.warn("failure callback must clone response if checking for errors!");
+                    return fetchFailedCallback(awaitedResponse.clone())
                 }
-                return fetchSuccessCallback(awaitedResponse);
+                return fetchSuccessCallback(awaitedResponse.clone());
                 // debugger;
             }
             catch(awaitError) {
@@ -332,7 +337,7 @@ export async function fetchJSONWithChecks(input: RequestInfo, init: RequestInit,
             }
         }).catch((catchError) => {
             //YESS
-            console.error("Ultimate cause of network error: ");
+            console.error("Network error OR error in fetch callback, ultimate cause: ");
             // debugger;
             console.error(catchError);
             throw new Error(catchError);

@@ -1,6 +1,6 @@
 import React, {CSSProperties, FunctionComponent, useEffect, useState} from 'react';
 import {useSelector} from 'react-redux';
-import {useLocation} from 'react-router-dom';
+import {Link, useLocation} from 'react-router-dom';
 import {Button} from 'react-bootstrap';
 
 
@@ -309,8 +309,8 @@ export const HomePage: FunctionComponent<{}> = (props: any) => {
     const location = useLocation();
     const selectedPlaceInfoFromDatabase = useSelector(selectPlacesInfoFromDatabase);
     const selectedPlaceInfoFromDatabaseErrors = useSelector(selectPlacesInfoErrors);
-    const placesServiceStatus = useSelector(selectPlacesServiceStatus);
     const selectedPlaceExistsInDatabase = useSelector(selectPlaceExistsInDatabase);
+    const placesServiceStatus = useSelector(selectPlacesServiceStatus);
 
     useEffect(() => {
         getGoogleMapsJavascriptAPIKey().then((key: string) => {
