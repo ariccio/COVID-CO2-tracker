@@ -3,7 +3,7 @@ import {useDispatch} from 'react-redux';
 import {useSelector} from 'react-redux';
 import {selectSelectedPlace, selectPlacesServiceStatus, setPlacesServiceStatus} from '../google/googleSlice';
 
-import { GoogleMap, useJsApiLoader, Autocomplete, Marker } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, Autocomplete, Marker, MarkerClusterer } from '@react-google-maps/api';
 import { Button, Form } from 'react-bootstrap';
 
 import {setSelectedPlace, interestingFields} from './googleSlice';
@@ -346,14 +346,18 @@ const renderLoadedMapsContainer = () => {
     
 }
 
-const renderEachMarker = (place: EachPlaceFromDatabaseForMarker) => {
+function markerKey(lat: number, lng: number, index: number): string {
+    return `marker-${lat}-${lng}-${index}-key`;
+}
+
+const renderEachMarker = (place: EachPlaceFromDatabaseForMarker, index: number, clusterer: /*clusterType*/ any) => {
     const pos: google.maps.LatLngLiteral = {
         lat: parseFloat(place.place_lat),
         lng: parseFloat(place.place_lng)
     }
     // debugger;
     return (
-        <Marker position={pos}/>
+        <Marker position={pos} key={markerKey(pos.lat, pos.lng, index)} clusterer={clusterer}/>
     )
 }
 
@@ -378,6 +382,11 @@ const renderMarkers = (placeMarkersFromDatabase: placesFromDatabaseForMarker, pl
         //     </>
         // );
     }
+    if (placeMarkersFromDatabase === null) {
+        console.log("default state?");
+        debugger;
+        return null;
+    }
 
     if (placeMarkersFromDatabase.places === null) {
         console.log("No markers.");
@@ -391,7 +400,17 @@ const renderMarkers = (placeMarkersFromDatabase: placesFromDatabaseForMarker, pl
     console.log(`Rendering ${placeMarkersFromDatabase.places.length} markers...`);
     return (
         <>
-            {placeMarkersFromDatabase.places.map((place, index) => {return renderEachMarker(place)})}
+            <MarkerClusterer averageCenter={true} minimumClusterSize={2}>
+                {(clusterer) => {
+                    console.assert(placeMarkersFromDatabase.places !== null);
+                    if (placeMarkersFromDatabase.places === null) {
+                        return null;
+                    }
+                    // interface clusterType = typeof clusterer;
+                    return placeMarkersFromDatabase.places.map((place, index) => {return renderEachMarker(place, index, clusterer)})
+                }}
+            </MarkerClusterer>
+            {}
         </>
     )
 }

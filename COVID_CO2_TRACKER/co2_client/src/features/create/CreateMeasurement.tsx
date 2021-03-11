@@ -179,6 +179,7 @@ const createPlaceIfNotExist = (placeExistsInDatabase: boolean, place_id: string)
         return awaitedResponse.json();
     }
     const fetchSuccessCallback = async (awaitedResponse: Response): Promise<PlaceCreateResponseType> => {
+        console.log("TODO: strong type");
         return awaitedResponse.json();
     }
 
@@ -209,7 +210,7 @@ const createMeasurementHandler = (selectedDevice: number, enteredCO2Text: string
     })
 }
 
-const submitHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, placeExistsInDatabase: boolean, dispatch: ReturnType<typeof useDispatch>) => {
+const submitHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, placeExistsInDatabase: boolean, dispatch: ReturnType<typeof useDispatch>, setErrorState: React.Dispatch<React.SetStateAction<string>>) => {
     // debugger;
 
     const placeExistsPromiseOrNull = createPlaceIfNotExist(placeExistsInDatabase, place_id);
@@ -220,12 +221,13 @@ const submitHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, selecte
         return;
     }
     placeExistsPromiseOrNull.then((existsPromise) => {
-        debugger;
+        // debugger;
         createMeasurementHandler(selectedDevice, enteredCO2Text, place_id, setShowCreateNewMeasurement);
         updatePlacesInfoFromBackend(place_id, dispatch);
     }).catch((errors) => {
         //TODO: set errors state?
-        alert(errors.message);
+        // alert(errors.message);
+        setErrorState(errors.message);
     });
 
 }
@@ -307,7 +309,7 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
                     <Button variant="secondary" onClick={(event) => hideHandler(props.setShowCreateNewMeasurement)}>
                         Cancel
                     </Button>
-                    <Button variant="primary" onClick={(event) => submitHandler(event, selectedDevice, enteredCO2Text, place_id, props.setShowCreateNewMeasurement, placeExistsInDatabase, dispatch)}>
+                    <Button variant="primary" onClick={(event) => submitHandler(event, selectedDevice, enteredCO2Text, place_id, props.setShowCreateNewMeasurement, placeExistsInDatabase, dispatch, setErrorState)}>
                         Submit new measurement
                     </Button>
                 </Modal.Footer>
