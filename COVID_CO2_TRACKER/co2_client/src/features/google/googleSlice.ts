@@ -115,12 +115,21 @@ export const interestingFields = [
     "types",
     "url",
     "vicinity",
-    // "geometry"
+    "geometry"
 ];
+
+type geometryPODType = {
+    geometry_translated?: {
+        lat?: number,
+        lng?: number
+    }
+}
+
+type placeResultWithTranslatedType = google.maps.places.PlaceResult & geometryPODType;
 
 interface googlePlacesState {
     // google.maps.places.
-    selected: google.maps.places.PlaceResult,
+    selected: placeResultWithTranslatedType,
     placesServiceStatus: google.maps.places.PlacesServiceStatus | null
 }
 
@@ -135,7 +144,10 @@ export const googlePlacesSlice = createSlice({
     name: 'places', // TODO: change?
     initialState: defaultGooglePlacesState,
     reducers: {
-        setSelectedPlace: (state, action: PayloadAction<google.maps.places.PlaceResult>) => {
+        setSelectedPlace: (state, action: PayloadAction<placeResultWithTranslatedType>) => {
+            if (action.payload.geometry !== undefined) {
+                throw new Error("needs translation");
+            }
             state.selected = action.payload;
         },
         setPlacesServiceStatus: (state, action: PayloadAction<google.maps.places.PlacesServiceStatus>) => {
@@ -144,6 +156,25 @@ export const googlePlacesSlice = createSlice({
     },
 
 });
+
+//lat and lng are functions because google loves OO. Redux does not like functions as data. They aren't serializable.
+export function autocompleteSelectedPlaceToAction(action_: google.maps.places.PlaceResult): placeResultWithTranslatedType {
+    const action = Object.assign({}, action_);
+    const lat = action.geometry?.location.lat();
+    const lng = action.geometry?.location.lng();
+    const geo: geometryPODType = {
+        geometry_translated: {
+            lat: lat,
+            lng: lng
+        }
+    }
+    action.geometry = undefined;
+    const newSelected: placeResultWithTranslatedType = {
+        ...action,
+        ...geo
+    }
+    return newSelected;
+}
 
 
 export const {setSelectedPlace, setPlacesServiceStatus} = googlePlacesSlice.actions;

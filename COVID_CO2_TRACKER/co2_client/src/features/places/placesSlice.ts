@@ -1,8 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
 
-
-import {ErrorObjectType} from '../../utils/ErrorObject';
 import {UserInfoMeasurements, defaultMeasurementInfo} from '../../utils/QueryDeviceInfo';
 
 //Ok, so, the places stuff should come OUT of the googleslice and be here.

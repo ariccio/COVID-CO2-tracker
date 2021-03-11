@@ -4,6 +4,7 @@ module Api
   module V1
     class PlacesController < ApplicationController
       include ::GooglePlaces
+      skip_before_action :authorized, only: [:show, :place_by_google_place_id_exists, :show_by_google_place_id, :in_bounds, :near]
 
       before_action :setup_places_client
       # after_action :refresh_latlng_from_google, only: [:place_by_google_place_id_exists, :show_by_google_place_id]

@@ -168,7 +168,7 @@ export async function get_email(): Promise<LoginResponse | null> {
 
     }
 
-    const result = fetchJSONWithChecks(EMAIL_URL, requestOptions, 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<ReturnType<typeof fetchSuccessCallback> | ReturnType<typeof fetchFailedCallback>>;
+    const result = fetchJSONWithChecks(EMAIL_URL, requestOptions, 200, false, fetchFailedCallback, fetchSuccessCallback) as Promise<ReturnType<typeof fetchSuccessCallback> | ReturnType<typeof fetchFailedCallback>>;
     return result;
     // try {
     //     const rawFetchResponse: Promise<Response> = fetch(EMAIL_URL, requestOptions);

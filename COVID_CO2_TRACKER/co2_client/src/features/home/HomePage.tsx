@@ -1,6 +1,6 @@
 import React, {CSSProperties, FunctionComponent, useEffect, useState} from 'react';
 import {useSelector} from 'react-redux';
-import {Link, useLocation} from 'react-router-dom';
+import {useLocation} from 'react-router-dom';
 import {Button} from 'react-bootstrap';
 
 
@@ -272,7 +272,7 @@ const renderInfoFromDatabase = (selectedPlaceInfoFromDatabase: SelectedPlaceData
     console.assert(selectedPlaceExistsInDatabase !== null);
     console.assert(selectedPlaceExistsInDatabase !== false);
     if (selectedPlaceInfoFromDatabase.measurements === undefined) {
-        console.assert(selectedPlaceInfoFromDatabase === defaultPlaceInfo)
+        console.assert(selectedPlaceInfoFromDatabase === defaultPlaceInfo);
         debugger;
     }
     //TODO: need strong type in updatePlacesInfoFromBackend, else this can be undefined!

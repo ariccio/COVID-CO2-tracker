@@ -4,11 +4,11 @@ import {Modal, Button, Form, Dropdown} from 'react-bootstrap';
 // import {useLocation, useHistory} from 'react-router-dom'
 
 
-import {selectSelectedDevice, selectSelectedDeviceSerialNumber, selectSelectedModel, selectSelectedModelName, setSelectedDevice, setSelectedDeviceSerialNumber, setSelectedModel, setSelectedModelName} from '../deviceModels/deviceModelsSlice';
+import {selectSelectedDevice, selectSelectedDeviceSerialNumber, selectSelectedModelName, setSelectedDevice, setSelectedDeviceSerialNumber, setSelectedModel, setSelectedModelName} from '../deviceModels/deviceModelsSlice';
 import {selectSelectedPlace} from '../google/googleSlice';
-import { defaultDevicesInfo, queryUserDevices, queryUserInfo, UserDevicesInfo } from '../../utils/QueryUserInfo';
+import { defaultDevicesInfo, queryUserDevices, UserDevicesInfo } from '../../utils/QueryUserInfo';
 import { Errors, formatErrors } from '../../utils/ErrorObject';
-import {selectPlacesInfoFromDatabase, selectPlacesInfoErrors, selectPlaceExistsInDatabase} from '../places/placesSlice';
+import {selectPlaceExistsInDatabase} from '../places/placesSlice';
 import {UserInfoDevice} from '../../utils/QueryDeviceInfo';
 
 
@@ -16,10 +16,16 @@ import {postRequestOptions} from '../../utils/DefaultRequestOptions';
 import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
 import { API_URL } from '../../utils/UrlPath';
 import { updatePlacesInfoFromBackend } from '../../utils/QueryPlacesInfo';
+import { selectUsername } from '../login/loginSlice';
 
 const ModalHeader = (props: {placeName: string}) =>
     <Modal.Header closeButton>
         <Modal.Title>Add a measurement for {props.placeName}</Modal.Title>
+    </Modal.Header>
+
+const ModalHeaderNotLoggedIn = () =>
+    <Modal.Header closeButton>
+        <Modal.Title>Not logged in. Please log in.</Modal.Title>
     </Modal.Header>
 
 
@@ -255,7 +261,8 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
     const selectedDevice = useSelector(selectSelectedDevice);
     const selectedDeviceSerialNumber = useSelector(selectSelectedDeviceSerialNumber);
     const placeExistsInDatabase = useSelector(selectPlaceExistsInDatabase);
-
+    const username = useSelector(selectUsername);
+    
     // const selectedPlacesInfo = useSelector(selectPlacesInfoFromDatabase);
     // const selectedPlacesInfoErrors = useSelector(selectPlacesInfoErrors);
 
@@ -268,6 +275,10 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
     const place_id = selectedPlace.place_id
     const dispatch = useDispatch();
     useEffect(() => {
+        if (username === '') {
+            setErrorState("Not logged in, must be logged in to create measurements!");
+            return;
+        }
         const userDeviceInfoPromise: Promise<UserDevicesInfo> = queryUserDevices();
         userDeviceInfoPromise.then((userDeviceInfo) => {
             if (userDeviceInfo.errors !== undefined) {
@@ -295,6 +306,17 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
     if (placeExistsInDatabase === null) {
         debugger;
         return null;
+    }
+    if (username === '') {
+        console.log("not logged in to create measurement, rendering error modal.");
+        return (
+            <Modal onHide={() => hideHandler(props.setShowCreateNewMeasurement)} show={props.showCreateNewMeasurement}>
+                <ModalHeaderNotLoggedIn/>
+                <Modal.Body>
+                    Not logged in.
+                </Modal.Body>
+            </Modal>
+        );
     }
     return (
         <>

@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {useDispatch} from 'react-redux';
 import {useSelector} from 'react-redux';
-import {selectSelectedPlace, selectPlacesServiceStatus, setPlacesServiceStatus} from '../google/googleSlice';
+import {selectSelectedPlace, selectPlacesServiceStatus, setPlacesServiceStatus, autocompleteSelectedPlaceToAction} from '../google/googleSlice';
 
 import { GoogleMap, useJsApiLoader, Autocomplete, Marker, MarkerClusterer } from '@react-google-maps/api';
 import { Button, Form } from 'react-bootstrap';
 
 import {setSelectedPlace, interestingFields} from './googleSlice';
 
-import {updatePlacesInfoFromBackend, queryPlacesNearbyFromBackend, queryPlacesInBoundsFromBackend} from '../../utils/QueryPlacesInfo';
+import {updatePlacesInfoFromBackend, queryPlacesInBoundsFromBackend} from '../../utils/QueryPlacesInfo';
 import { defaultPlaceMarkers, EachPlaceFromDatabaseForMarker, placesFromDatabaseForMarker, selectPlaceMarkersFromDatabase, selectPlacesMarkersErrors } from '../places/placesSlice';
 
 // import { getGooglePlacesScriptAPIKey } from '../../utils/GoogleAPIKeys';
@@ -260,7 +260,7 @@ const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null
     console.log(`geometry.viewport.toString: ${autocomplete.getPlace().geometry?.viewport.toString()}`)
     // autocomplete.getPlace()
     // debugger;
-    dispatch(setSelectedPlace(autocomplete.getPlace()));
+    dispatch(setSelectedPlace(autocompleteSelectedPlaceToAction(autocomplete.getPlace())));
     if (map) {
         debugger;
         const placeLocation = autocomplete.getPlace().geometry;
@@ -333,7 +333,7 @@ const getDetailsCallback = (result: google.maps.places.PlaceResult, status: goog
     }
     // debugger;
     // setPlacesServiceStatus(status);
-    dispatch(setSelectedPlace(result));
+    dispatch(setSelectedPlace(autocompleteSelectedPlaceToAction(result)));
     if (result.place_id === undefined) {
         console.error("missing place_id?");
         return;

@@ -89,7 +89,7 @@ const submitHandler = (enteredModelText: string, setShowAddModel: React.Dispatch
         }
         else {
             setShowAddModel(false);
-            history.goBack();
+            // history.goBack();
             dispatch(setSelectedModel(response.model_id));
             dispatch(setSelectedModelName(response.name));
         }

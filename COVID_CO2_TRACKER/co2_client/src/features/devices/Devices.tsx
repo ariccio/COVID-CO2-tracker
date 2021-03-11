@@ -37,7 +37,7 @@ export function Device(props: RouteComponentProps<deviceProps>) {
                 setErrorState(formatErrors(deviceInfoResponse.errors));
             }
             // console.log(deviceInfoResponse);
-            setDeviceInfo(deviceInfoResponse)
+            setDeviceInfo(deviceInfoResponse);
         }).catch((error) => {
             setErrorState(error.message);
         })
@@ -71,7 +71,9 @@ export const Devices: React.FC<{}> = () => {
     const [notLoggedIn, setNotLoggedIn] = useState(false);
     const [errorState, setErrorState] = useState('');
     const selectedModelName = useSelector(selectSelectedModelName);
-    const [showAddDeviceInstance, setShowAddDeviceInstance] = useState(selectedModelName !== '');
+
+    //Buggy.
+    const [showAddDeviceInstance, setShowAddDeviceInstance] = useState((selectedModelName !== '') && createDeviceClicked);
 
     useEffect(() => {
 
@@ -119,15 +121,38 @@ export const Devices: React.FC<{}> = () => {
         );
     }
 
+
+    const renderAddDeviceButton = () => {
+        return (
+            <>
+                <Button variant={createDeviceClicked ? "secondary" : "primary"} onClick={() => {setCreateClicked(!createDeviceClicked); setShowAddDeviceInstance(true)}}>
+                    Add my device:
+                </Button>
+            </>
+        )
+    }
+
+    const renderShowAddDevice = () => {
+        if (showAddDeviceInstance) {
+            return (
+                <>
+                    <CreateMyDeviceInstance showAddDeviceInstance={showAddDeviceInstance} setShowAddDeviceInstance={setShowAddDeviceInstance}/>
+                </>
+            )
+        }
+        return null;
+    }
+    
     return (
         <>
-            <Button variant={createDeviceClicked ? "secondary" : "primary"} onClick={() => {setCreateClicked(!createDeviceClicked)}}>
-                Add my device:
-            </Button>
+            TODO: this flow is bad
+
+            <CreateManufacturerOrModel/>
             <br/>
             <br/>
             <br/>
-            {createDeviceClicked ? <CreateManufacturerOrModel/> : null}
+            <br/>
+            {selectedModelName !== '' ?  renderAddDeviceButton() : null}
 
 
             <br/>
@@ -136,8 +161,7 @@ export const Devices: React.FC<{}> = () => {
             <p>
                 Selected device:
             </p>
-
-            {showAddDeviceInstance ? <CreateMyDeviceInstance showAddDeviceInstance={showAddDeviceInstance} setShowAddDeviceInstance={setShowAddDeviceInstance}/> : null}
+            {renderShowAddDevice()}
             
 
             <p>

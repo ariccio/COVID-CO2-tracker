@@ -8,6 +8,7 @@ import { ErrorObjectType, formatErrors } from '../../utils/ErrorObject';
 import { API_URL } from '../../utils/UrlPath';
 import { postRequestOptions } from '../../utils/DefaultRequestOptions';
 import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
+import { profilePath } from '../../paths/paths';
 
 
 interface NewDeviceResponse {
@@ -76,6 +77,7 @@ const submitHandler = (enteredDeviceSerialNumberText: string, setShowAddDeviceIn
         if (location.pathname.endsWith('create')) {
             history.goBack();
         }
+        history.push(profilePath);
     })
 }
 
