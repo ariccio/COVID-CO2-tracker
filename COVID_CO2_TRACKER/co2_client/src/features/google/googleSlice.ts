@@ -114,7 +114,8 @@ export const interestingFields = [
     "icon",
     "types",
     "url",
-    "vicinity"
+    "vicinity",
+    // "geometry"
 ];
 
 interface googlePlacesState {

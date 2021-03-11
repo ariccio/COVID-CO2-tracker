@@ -189,6 +189,10 @@ export async function fetchFailed(awaitedResponseOriginal: Response, expectedSta
 
     const parsedJSONResponse = await checkJSONparsingErrors(awaitedResponseCloned);
     if ((!awaitedResponseCloned.ok) || (parsedJSONResponse.errors !== undefined) ) {
+        if (parsedJSONResponse.error !== undefined) {
+            console.log("maybe internal server error?");
+            debugger;
+        }
         // debugger;
         awaitedResponseCloned.text().then((awaitedResponseText) => {
             const responseText = awaitedResponseText.toString()
@@ -198,6 +202,10 @@ export async function fetchFailed(awaitedResponseOriginal: Response, expectedSta
             else {
                 console.error(`response has text: ${awaitedResponseText}`);
             }
+            // if (awaitedResponseText.error !== undefined) {
+            //     console.log("maybe internal server error?");
+            //     debugger;
+            // }
             // debugger;
         })
         //TODO: multiple expected statuses
@@ -205,6 +213,11 @@ export async function fetchFailed(awaitedResponseOriginal: Response, expectedSta
             console.assert(parsedJSONResponse.errors !== undefined);
             console.error(`server returned a response (${awaitedResponseCloned.status}, ${awaitedResponseCloned.statusText}) with a status field, and it wasn't a ${expectedStatus} status.`);
         }
+        if (parsedJSONResponse.error !== undefined) {
+            console.log("maybe internal server error?");
+            debugger;
+        }
+
         if (parsedJSONResponse.errors !== undefined) {
             // console.assert(awaitedResponseCloned.status !== 200);
             console.error(formatErrors(parsedJSONResponse.errors));

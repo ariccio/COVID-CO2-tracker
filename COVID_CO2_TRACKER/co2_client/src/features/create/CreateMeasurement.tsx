@@ -182,7 +182,7 @@ const createPlaceIfNotExist = (placeExistsInDatabase: boolean, place_id: string)
         return awaitedResponse.json();
     }
 
-    const result = fetchJSONWithChecks(CREATE_PATH,  init, 201, true, fetchFailedCallback, fetchSuccessCallback ) as Promise<PlaceCreateResponseType>;
+    const result = fetchJSONWithChecks(CREATE_PATH, init, 201, true, fetchFailedCallback, fetchSuccessCallback ) as Promise<PlaceCreateResponseType>;
     return result;
 }
 

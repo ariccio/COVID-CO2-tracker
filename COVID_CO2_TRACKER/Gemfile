@@ -52,3 +52,4 @@ gem 'jwt', '~> 2.2'
 
 # Open source is wonderful.
 gem 'google_places'
+gem 'geokit-rails'

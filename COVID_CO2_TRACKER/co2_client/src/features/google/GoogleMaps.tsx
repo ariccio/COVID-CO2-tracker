@@ -3,12 +3,13 @@ import {useDispatch} from 'react-redux';
 import {useSelector} from 'react-redux';
 import {selectSelectedPlace, selectPlacesServiceStatus, setPlacesServiceStatus} from '../google/googleSlice';
 
-import { GoogleMap, useJsApiLoader, Autocomplete } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, Autocomplete, Marker } from '@react-google-maps/api';
 import { Button, Form } from 'react-bootstrap';
 
 import {setSelectedPlace, interestingFields} from './googleSlice';
 
-import {updatePlacesInfoFromBackend} from '../../utils/QueryPlacesInfo';
+import {updatePlacesInfoFromBackend, queryPlacesNearbyFromBackend} from '../../utils/QueryPlacesInfo';
+import { defaultPlaceMarkers, EachPlaceFromDatabaseForMarker, placesFromDatabaseForMarker, selectPlaceMarkersFromDatabase, selectPlacesMarkersErrors } from '../places/placesSlice';
 
 // import { getGooglePlacesScriptAPIKey } from '../../utils/GoogleAPIKeys';
 // import {GeolocationPosition} from 'typescript/lib/lib.dom'
@@ -78,11 +79,11 @@ interface APIKeyProps {
 // const renderMap = (containerStyle: containterStyleType, center: centerType, zoom: number, onLoad: (map: any) => void, onUnmount: (map: any) => void) =>
 
 
-interface CenterType {
-    lat: number,
-    lng: number
-}
-const defaultCenter: CenterType = {
+// interface google.maps.LatLngLiteral {
+//     lat: number,
+//     lng: number
+// }
+const defaultCenter: google.maps.LatLngLiteral = {
     lat: 40.769,
     lng: -73.966
 };
@@ -138,7 +139,7 @@ const errorPositionCallback: PositionErrorCallback = (error: /*GeolocationPositi
     // alert(`Position failed! ${error.message}`);
 }
 
-const invokeBrowserGeolocation = (setCenter: React.Dispatch<React.SetStateAction<CenterType>>) => {
+const invokeBrowserGeolocation = (setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>) => {
     if ('geolocation' in navigator) {
         const validPositionCallback = (position: /*GeolocationPosition*/ GeolocationPositionShadowType) => {
             console.log("got position!");
@@ -243,7 +244,7 @@ const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (pr
     );
 }
 
-const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null, dispatch: ReturnType<typeof useDispatch>, map: google.maps.Map<Element> | null) => {
+const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null, dispatch: ReturnType<typeof useDispatch>, map: google.maps.Map<Element> | null, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>) => {
     if (autocomplete === null) {
         return;
     }
@@ -261,9 +262,16 @@ const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null
     // debugger;
     dispatch(setSelectedPlace(autocomplete.getPlace()));
     if (map) {
+        debugger;
         const placeLocation = autocomplete.getPlace().geometry;
         if (placeLocation) {
-            map.setCenter(placeLocation.location)
+            debugger;
+            // map.setCenter(placeLocation.location)
+            const loc: google.maps.LatLngLiteral = {
+                lat: placeLocation.location.lat(),
+                lng: placeLocation.location.lng()
+            }
+            setCenter(loc);
         }
     }
     const placeId = autocomplete.getPlace().place_id;
@@ -292,7 +300,7 @@ const containerStyle = {
     height: '400px'
 };
 
-const options = (center: CenterType): google.maps.MapOptions => {
+const options = (center: google.maps.LatLngLiteral): google.maps.MapOptions => {
     return {
         //default tweaked for manhattan
         zoom: 18,
@@ -317,6 +325,7 @@ const getDetailsCallback = (result: google.maps.places.PlaceResult, status: goog
         }
         return;
     }
+    // debugger;
     // setPlacesServiceStatus(status);
     dispatch(setSelectedPlace(result));
     if (result.place_id === undefined) {
@@ -337,6 +346,56 @@ const renderLoadedMapsContainer = () => {
     
 }
 
+const renderEachMarker = (place: EachPlaceFromDatabaseForMarker) => {
+    const pos: google.maps.LatLngLiteral = {
+        lat: parseFloat(place.place_lat),
+        lng: parseFloat(place.place_lng)
+    }
+    // debugger;
+    return (
+        <Marker position={pos}/>
+    )
+}
+
+
+const renderMarkers = (placeMarkersFromDatabase: placesFromDatabaseForMarker, placeMarkerErrors: string) => {
+    if (placeMarkerErrors !== '') {
+        console.error("cant render markers, got errors:");
+        console.error(placeMarkerErrors);
+        return null;
+        // return (
+        //     <>
+        //         {placeMarkerErrors}
+        //     </>
+        // );
+    }
+    if (placeMarkersFromDatabase === defaultPlaceMarkers) {
+        console.log("Loading place markers from database...");
+        return null;
+        // return (
+        //     <>
+        //         Loading place markers from placeMarkersFromDatabase.places..
+        //     </>
+        // );
+    }
+
+    if (placeMarkersFromDatabase.places === null) {
+        console.log("No markers.");
+        return null;
+        // return (
+        //     <>
+        //         No markers.
+        //     </>
+        // );
+    }
+    console.log(`Rendering ${placeMarkersFromDatabase.places.length} markers...`);
+    return (
+        <>
+            {placeMarkersFromDatabase.places.map((place, index) => {return renderEachMarker(place)})}
+        </>
+    )
+}
+
 export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props) => {
 
     //TODO: streetview service?
@@ -354,6 +413,8 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
     const placesServiceStatus = useSelector(selectPlacesServiceStatus);
     const selectedPlace = useSelector(selectSelectedPlace);
     const [mapLoaded, setMapLoaded] = useState(false);
+    const placeMarkersFromDatabase = useSelector(selectPlaceMarkersFromDatabase);
+    const placeMarkerErrors = useSelector(selectPlacesMarkersErrors);
 
     const { isLoaded, loadError } = useJsApiLoader({
         id: 'google-map-script',
@@ -369,6 +430,18 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
     // useEffect(() => {
     //     setMapLoaded(true);
     // }, [map])
+
+    useEffect(() => {
+        if (!map) {
+            console.log("map falsy, not setting center");
+            return;
+        }
+        if (!mapLoaded) {
+            console.log("map not loaded, not setting center");
+            return;
+        }
+        map.setCenter(center);
+    }, [center])
 
     const onUnmount = React.useCallback(function callback(map: google.maps.Map) {
         setMap(null);
@@ -390,6 +463,17 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
         //map onLoad isn't really ready. There are no bounds yet. Thus, autocomplete will fail to load. Wait until idle.
         if (!mapLoaded) {
             setMapLoaded(true);
+            if (!map) {
+                console.log("no map for center yet");
+                return;
+            }
+            const center = map?.getCenter();
+            if (!center) {
+                console.log("no center for markers yet");
+                return;
+            }
+
+            queryPlacesNearbyFromBackend(center.lat(), center.lng(), dispatch);
         }
     }
 
@@ -421,6 +505,7 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
                 <div className="map-container">
                     <GoogleMap mapContainerStyle={containerStyle} onLoad={onLoad} onUnmount={onUnmount} options={options(center)} onZoomChanged={onZoomChange} onClick={(e: google.maps.MapMouseEvent) => onClickMaps(e, setSelectedPlaceIdString)} onIdle={onMapIdle}>
                         { /* Child components, such as markers, info windows, etc. */}
+                        {renderMarkers(placeMarkersFromDatabase, placeMarkerErrors)}
                     </GoogleMap>
                 </div>
             </div>
@@ -430,7 +515,7 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
     const autocompleteElement = () => {
         // debugger;
         return (
-            <RenderAutoComplete autoCompleteLoad={(event) => autoCompleteLoadThunk(event, setAutocomplete)} placeChange={() => placeChangeHandler(autocomplete, dispatch, map)} map={map} mapLoaded={mapLoaded} />
+            <RenderAutoComplete autoCompleteLoad={(event) => autoCompleteLoadThunk(event, setAutocomplete)} placeChange={() => placeChangeHandler(autocomplete, dispatch, map, setCenter)} map={map} mapLoaded={mapLoaded} />
         );
     }
 

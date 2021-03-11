@@ -6,6 +6,7 @@ module Api
       include ::GooglePlaces
 
       before_action :setup_places_client
+      # after_action :refresh_latlng_from_google, only: [:place_by_google_place_id_exists, :show_by_google_place_id]
       # before_action :set_place, only: [:show, :update, :destroy]
       # Don't want much of the scaffolding generated stuff
 
@@ -16,11 +17,22 @@ module Api
       #   render json: @places
       # end
     
+      def refresh_latlng_from_google
+        # byebug
+        return if @place.nil?
+        if (@place.place_lat.nil?) || (@place.place_lng.nil?) || (@place.last_fetched && (@place.last_fetched > 30.days.ago))
+          @spot = get_spot(@place.google_place_id)
+          @place.place_lat = @spot.lat
+          @place.place_lng = @spot.lng
+          # byebug
+          @place.save!
+        end
+      end
       
       # GET /places/1
       def show
         @place = Place.find(params[:id])
-
+        refresh_latlng_from_google()
         if @place.last_fetched < 30.days.ago
           Rails.logging.warn("Last fetched #{time_ago_in_words(@place.last_fetch)} - Need to update to comply with google caching restrictions!")
         end
@@ -32,6 +44,7 @@ module Api
 
       def place_by_google_place_id_exists
         @place = Place.find_by!(google_place_id: params[:google_place_id])
+        refresh_latlng_from_google()
         render(
           json: {
             exists: true
@@ -48,6 +61,7 @@ module Api
       def show_by_google_place_id
         # byebug
         @place = Place.find_by!(google_place_id: params[:google_place_id])
+        refresh_latlng_from_google()
         measurements = @place.measurement.order('measurementtime DESC').each.map do |measurement|
           Measurement.measurement_with_device_place_as_json(measurement, measurement.device)
         end
@@ -77,35 +91,25 @@ module Api
         #   }, status: :ok
         # )
       end
-    
-      # POST /places
-      def create
+
+      def get_spot(place_id)
         options = {
           fields: 'geometry'
         }
-        # byebug
-        @spot = @place_client.spot(place_params[:google_place_id], options)
-        # byebug
-        # @spot.lat, @spot.lng
 
-        @place = Place.create!(google_place_id: place_params[:google_place_id])
-        render(
-          json: {
-            place_id: @place.id
-          }, status: :created
-        )
+        return @place_client.spot(place_id, options)
         # From: C:\Ruby30-x64\lib\ruby\gems\3.0.0\gems\google_places-2.0.0\lib\google_places\request.rb
-      # when 'OVER_QUERY_LIMIT'
-      #   raise OverQueryLimitError.new(@response)
-      # when 'REQUEST_DENIED'
-      #   raise RequestDeniedError.new(@response)
-      # when 'INVALID_REQUEST'
-      #   raise InvalidRequestError.new(@response)
-      # when 'UNKNOWN_ERROR'
-      #   raise UnknownError.new(@response)
-      # when 'NOT_FOUND'
-      #   raise NotFoundError.new(@response)
-      # end
+        # when 'OVER_QUERY_LIMIT'
+        #   raise OverQueryLimitError.new(@response)
+        # when 'REQUEST_DENIED'
+        #   raise RequestDeniedError.new(@response)
+        # when 'INVALID_REQUEST'
+        #   raise InvalidRequestError.new(@response)
+        # when 'UNKNOWN_ERROR'
+        #   raise UnknownError.new(@response)
+        # when 'NOT_FOUND'
+        #   raise NotFoundError.new(@response)
+        # end
 
       rescue GooglePlaces::OverQueryLimitError => e
         render(
@@ -143,11 +147,42 @@ module Api
             errors: [google_places_error("Some kind of lower level API break in google places gem", e)]
           }
         )
+      end
+    
+      # POST /places
+      def create
+        # byebug
+        # byebug
+        # @spot.lat, @spot.lng
+        @spot = get_spot(place_params[:google_place_id])
+        
+        @place = Place.create!(google_place_id: place_params[:google_place_id], place_lat: @spot.lat, place_lng: @spot.lng)
+        render(
+          json: {
+            place_id: @place.id
+          }, status: :created
+        )
       rescue ::ActiveRecord::RecordInvalid => e
         render(
           json: {
             errors: [create_activerecord_error("creation failed!", e)]
           }, status: :bad_request
+        )
+      end
+
+      def near
+        found = Place.within(1, units: :miles, origin: [
+          place_params[:lat],
+          place_params[:lng]
+        ] )
+        places_as_json = found.each.map do |place|
+          Place.as_json_for_markers(place)
+        end
+        # byebug
+        render(
+          json: {
+            places: places_as_json
+          }, status: :ok
         )
       end
     
@@ -173,7 +208,7 @@ module Api
     
         # Only allow a list of trusted parameters through.
         def place_params
-          params.require(:place).permit(:google_place_id, :last_fetched)
+          params.require(:place).permit(:google_place_id, :last_fetched, :lat, :lng)
         end
 
         def setup_places_client
