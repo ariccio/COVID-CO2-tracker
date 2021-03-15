@@ -118,22 +118,40 @@ const hideHandler = (setShowCreateNewMeasurement: React.Dispatch<React.SetStateA
     setShowCreateNewMeasurement(false);
 }
 
-const onChangeEvent = (event: React.FormEvent<HTMLFormElement>, setEnteredCO2Text: React.Dispatch<React.SetStateAction<string>>) => {
+const onChangeCo2Event = (event: React.FormEvent<HTMLFormElement>, setEnteredCO2Text: React.Dispatch<React.SetStateAction<string>>) => {
+    //TODO: this sucks.
+    // event.target.value
     const text = (event.currentTarget.elements[0] as HTMLInputElement).value;
     setEnteredCO2Text(text);
 }
 
+const onChangeCrowdingEvent = (event: React.FormEvent<HTMLFormElement>, setEnteredCrowding: React.Dispatch<React.SetStateAction<string>>) => {
+    //TODO: this sucks. 
+    // debugger;
+    const text = (event.currentTarget.elements[0] as HTMLInputElement).value;
+    setEnteredCrowding(text);
+}
+
+const onChangeInnerLocationEvent = (event: React.FormEvent<HTMLFormElement>, setEnteredLocationDetails: React.Dispatch<React.SetStateAction<string>>) => {
+    //TODO: this sucks. 
+    const text = (event.currentTarget.elements[0] as HTMLInputElement).value;
+    setEnteredLocationDetails(text);
+}
+
 const NEW_MEASUREMENT_URL = (API_URL + '/measurement');
 
-function newMeasurementRequestInit(selectedDevice: number, enteredCO2: string, placeId: string): RequestInit {
+function newMeasurementRequestInit(selectedDevice: number, enteredCO2: string, placeId: string, enteredCrowding: string, enteredLocationDetails: string): RequestInit {
     const defaultOptions = postRequestOptions();
+    debugger;
     const newOptions = {
         ...defaultOptions,
         body: JSON.stringify({
             measurement: {
                 device_id: selectedDevice,
                 co2ppm: enteredCO2,
-                google_place_id: placeId
+                google_place_id: placeId,
+                crowding: enteredCrowding,
+                location_where_inside_info: enteredLocationDetails
                 // measurementtime: new Date().toUTCString()
             }
         })
@@ -194,9 +212,9 @@ const createPlaceIfNotExist = (placeExistsInDatabase: boolean, place_id: string)
     return result;
 }
 
-const createMeasurementHandler = (selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>) => {
+const createMeasurementHandler = (selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, enteredCrowding: string, enteredLocationDetails: string) => {
     // debugger;
-    const init = newMeasurementRequestInit(selectedDevice, enteredCO2Text, place_id);
+    const init = newMeasurementRequestInit(selectedDevice, enteredCO2Text, place_id, enteredCrowding, enteredLocationDetails);
     
     const fetchFailedCallback = async (awaitedResponse: Response): Promise<NewMeasurmentResponseType> => {
         console.error("failed to create measurement!");
@@ -224,19 +242,19 @@ const createMeasurementHandler = (selectedDevice: number, enteredCO2Text: string
     })
 }
 
-const submitHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, placeExistsInDatabase: boolean, dispatch: ReturnType<typeof useDispatch>, setErrorState: React.Dispatch<React.SetStateAction<string>>) => {
+const submitHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, placeExistsInDatabase: boolean, dispatch: ReturnType<typeof useDispatch>, setErrorState: React.Dispatch<React.SetStateAction<string>>, enteredCrowding: string, enteredLocationDetails: string) => {
     // debugger;
 
     const placeExistsPromiseOrNull = createPlaceIfNotExist(placeExistsInDatabase, place_id);
     if (placeExistsPromiseOrNull === null) {
         // debugger;
-        createMeasurementHandler(selectedDevice, enteredCO2Text, place_id, setShowCreateNewMeasurement);
+        createMeasurementHandler(selectedDevice, enteredCO2Text, place_id, setShowCreateNewMeasurement, enteredCrowding, enteredLocationDetails);
         updatePlacesInfoFromBackend(place_id, dispatch);
         return;
     }
     placeExistsPromiseOrNull.then((existsPromise) => {
         // debugger;
-        createMeasurementHandler(selectedDevice, enteredCO2Text, place_id, setShowCreateNewMeasurement);
+        createMeasurementHandler(selectedDevice, enteredCO2Text, place_id, setShowCreateNewMeasurement, enteredCrowding, enteredLocationDetails);
         updatePlacesInfoFromBackend(place_id, dispatch);
     }).catch((errors) => {
         //TODO: set errors state?
@@ -246,17 +264,34 @@ const submitHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, selecte
 
 }
 
-const renderFormIfReady = (selectedDevice: number, enteredCO2Text: string, setEnteredCO2Text: React.Dispatch<React.SetStateAction<string>>, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>) => {
+function ignoreDefault(event: React.FormEvent<HTMLFormElement>): void {
+    event.preventDefault();
+    event.stopPropagation();
+}
+
+const renderFormIfReady = (selectedDevice: number, enteredCO2Text: string, setEnteredCO2Text: React.Dispatch<React.SetStateAction<string>>, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, setEnteredCrowding: React.Dispatch<React.SetStateAction<string>>, placeName: string, setEnteredLocationDetails: React.Dispatch<React.SetStateAction<string>>) => {
     if (selectedDevice === -1) {
         return null;
     }
     return (
         <>
-            <Form onChange={(event) => onChangeEvent(event, setEnteredCO2Text)} onSubmit={(event) => {event.preventDefault(); event.stopPropagation();}}>
+            <Form onChange={(event) => onChangeCo2Event(event, setEnteredCO2Text)} onSubmit={ignoreDefault}>
                 <Form.Label>
                     CO2 level (ppm)
                 </Form.Label>
-                <Form.Control type="number" placeholder="400" min={0}/>
+                <Form.Control type="number" placeholder="400" min={0} max={80000} name={"co2ppm"}/>
+            </Form>
+            <Form onChange={(event) => onChangeCrowdingEvent(event, setEnteredCrowding)} onSubmit={ignoreDefault}>
+                <Form.Label>
+                    Crowding 1-5 (1 is empty, 5 full)
+                </Form.Label>
+                <Form.Control type="number" min={1} max={5} name={"crowding"}/>
+            </Form>
+            <Form onChange={(event) => onChangeInnerLocationEvent(event, setEnteredLocationDetails)} onSubmit={ignoreDefault}>
+                <Form.Label>
+                    Where inside {placeName} did you take the measurement?
+                </Form.Label>
+                <Form.Control type="text" name={"where"}/>
             </Form>
         </>
     )
@@ -278,6 +313,8 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
     const [errorState, setErrorState] = useState('');
 
     const [enteredCO2Text, setEnteredCO2Text] = useState('');
+    const [enteredCrowding, setEnteredCrowding] = useState('');
+    const [enteredLocationDetails, setEnteredLocationDetails] = useState('');
 
     const placeName = selectedPlace.name;    
     const place_id = selectedPlace.place_id
@@ -333,13 +370,13 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
                 <Modal.Body>
                     {renderErrors(errorState)}
                     {renderSelectDeviceDropdown(userDevices, selectedDevice, selectedModelName, selectedDeviceSerialNumber, dispatch)}
-                    {renderFormIfReady(selectedDevice, enteredCO2Text, setEnteredCO2Text, place_id, props.setShowCreateNewMeasurement)}
+                    {renderFormIfReady(selectedDevice, enteredCO2Text, setEnteredCO2Text, place_id, props.setShowCreateNewMeasurement, setEnteredCrowding, placeName, setEnteredLocationDetails)}
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={(event) => hideHandler(props.setShowCreateNewMeasurement)}>
                         Cancel
                     </Button>
-                    <Button variant="primary" onClick={(event) => submitHandler(event, selectedDevice, enteredCO2Text, place_id, props.setShowCreateNewMeasurement, placeExistsInDatabase, dispatch, setErrorState)}>
+                    <Button variant="primary" onClick={(event) => submitHandler(event, selectedDevice, enteredCO2Text, place_id, props.setShowCreateNewMeasurement, placeExistsInDatabase, dispatch, setErrorState, enteredCrowding, enteredLocationDetails)}>
                         Submit new measurement
                     </Button>
                 </Modal.Footer>

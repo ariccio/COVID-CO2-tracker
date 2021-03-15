@@ -12,7 +12,9 @@ export interface UserInfoMeasurements {
     place: {
         id: number,
         google_place_id: string
-    }
+    },
+    crowding: number,
+    location_where_inside_info: string
 }
 
 export const defaultMeasurementInfo: UserInfoMeasurements = {
@@ -23,7 +25,9 @@ export const defaultMeasurementInfo: UserInfoMeasurements = {
     place: {
         id: -1,
         google_place_id: ''
-    }
+    },
+    crowding: -1,
+    location_where_inside_info: ''
 }
 
 export interface UserInfoDevice {

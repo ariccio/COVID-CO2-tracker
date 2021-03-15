@@ -14,7 +14,7 @@ module Api
         # https://discuss.rubyonrails.org/t/time-now-vs-time-current-vs-datetime-now/75183/15
         # ALSO, TODO: check to see if I should disable timezone conversion on backend?
         # https://discuss.rubyonrails.org/t/time-now-vs-time-current-vs-datetime-now/75183/15
-        @new_measurement = ::Measurement.create!(device_id: measurement_params[:device_id], co2ppm: measurement_params[:co2ppm], measurementtime: Time.current, place_id: @place.id)
+        @new_measurement = ::Measurement.create!(device_id: measurement_params[:device_id], co2ppm: measurement_params[:co2ppm], measurementtime: Time.current, place_id: @place.id, crowding: measurement_params[:crowding], location_where_inside_info: measurement_params[:location_where_inside_info])
         
         render(
           json: {
@@ -41,7 +41,9 @@ module Api
           json: {
             device_id: @measurement.device.id,
             co2ppm: @measurement.co2ppm,
-            measurementtime: @measurement.measurementtime
+            measurementtime: @measurement.measurementtime,
+            crowding: @measurement.crowding,
+            location_where_inside_info: @measurement.location_where_inside_info
           },
           status: :ok
         )
@@ -55,7 +57,7 @@ module Api
       end
 
       def measurement_params
-        params.require(:measurement).permit(:id, :device_id, :co2ppm, :measurementtime, :google_place_id)
+        params.require(:measurement).permit(:id, :device_id, :co2ppm, :measurementtime, :google_place_id, :crowding, :location_where_inside_info)
       end
     end
   end

@@ -13,7 +13,9 @@ const measurementTableHeader = () =>
             <th>Measurement ID</th>
             <th>Device ID</th>
             <th>CO2 PPM</th>
-            <th>measurement time</th>
+            <th>time</th>
+            <th>crowding</th>
+            <th>inner location</th>
             {/* <th>measured at google place:</th> */}
         </tr>
     </thead>
@@ -36,6 +38,8 @@ const mapMeasurementsToTableBody = (measurements: Array<UserInfoMeasurements>)/*
                 <td>{measurement.device_id}</td>
                 <td>{measurement.co2ppm}</td>
                 <td>{measurement.measurementtime}</td>
+                <td>{measurement.crowding}</td>
+                <td>{measurement.location_where_inside_info}</td>
                 {/* <td>{measurement.place.google_place_id}</td> */}
             </tr>
         )
