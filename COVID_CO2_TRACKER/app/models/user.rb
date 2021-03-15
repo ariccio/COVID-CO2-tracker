@@ -28,7 +28,7 @@ class User < ApplicationRecord
     devices.each.map do |device|
       # byebug
       device.measurement.order('measurementtime DESC').each.map do |measurement|
-        measurements << Measurement.measurement_with_device_place_as_json(measurement, device)
+        measurements << ::Measurement.measurement_with_device_place_as_json(measurement, device)
       end
     end
     measurements

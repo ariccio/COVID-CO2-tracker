@@ -14,15 +14,15 @@ module Api
       # # GET /places
       # def index
       #   @places = Place.all
-    
+
       #   render json: @places
       # end
-    
+
       def refresh_latlng_from_google
         # byebug
         return if @place.nil?
         if (@place.place_lat.nil?) || (@place.place_lng.nil?) || (@place.last_fetched.nil?) || (@place.last_fetched && (@place.last_fetched < 30.days.ago))
-          Rails.logger.debug "\r\n\tUpdating #{@place.google_place_id}...\r\n"
+          ::Rails.logger.debug "\r\n\tUpdating #{@place.google_place_id}...\r\n"
           # byebug
           @spot = get_spot(@place.google_place_id)
           @place.place_lat = @spot.lat
@@ -34,19 +34,19 @@ module Api
       
       # GET /places/1
       def show
-        @place = Place.find(params[:id])
+        @place = ::Place.find(params[:id])
         refresh_latlng_from_google()
         if @place.last_fetched < 30.days.ago
           Rails.logging.warn("Last fetched #{time_ago_in_words(@place.last_fetch)} - Need to update to comply with google caching restrictions!")
         end
-        render json: @place
+        render(json: @place)
       rescue ::ActiveRecord::RecordNotFound => e
         # TODO: query from the backend too to validate input is correct
 
       end
 
       def place_by_google_place_id_exists
-        @place = Place.find_by!(google_place_id: params[:google_place_id])
+        @place = ::Place.find_by!(google_place_id: params[:google_place_id])
         refresh_latlng_from_google()
         render(
           json: {
@@ -63,10 +63,10 @@ module Api
 
       def show_by_google_place_id
         # byebug
-        @place = Place.find_by!(google_place_id: params[:google_place_id])
+        @place = ::Place.find_by!(google_place_id: params[:google_place_id])
         refresh_latlng_from_google()
         measurements = @place.measurement.order('measurementtime DESC').each.map do |measurement|
-          Measurement.measurement_with_device_place_as_json(measurement, measurement.device)
+          ::Measurement.measurement_with_device_place_as_json(measurement, measurement.device)
         end
         render(
           json: {
@@ -79,7 +79,7 @@ module Api
         # TODO: query from the backend too to validate input is correct
         # byebug
         error_array = [create_error("#{params[:google_place_id]} does not exist in database. Not necessarily an error!", :not_acceptable.to_s)]
-        error_array << create_activerecord_notfound_error("not found", e)
+        error_array << create_activerecord_notfound_error('not found', e)
         render(
           json: {
             errors: error_array
@@ -114,40 +114,40 @@ module Api
         #   raise NotFoundError.new(@response)
         # end
 
-      rescue GooglePlaces::OverQueryLimitError => e
+      rescue ::GooglePlaces::OverQueryLimitError => e
         render(
           json: {
-            errors: [google_places_error("Too many queries for backend API!", e)]
+            errors: [google_places_error('Too many queries for backend API!', e)]
           }, status: :bad_request
         )
-      rescue GooglePlaces::RequestDeniedError => e
+      rescue ::GooglePlaces::RequestDeniedError => e
         render(
           json: {
-            errors: [google_places_error("backend request denied", e)]
+            errors: [google_places_error('backend request denied', e)]
           }, status: :bad_request
         )
-      rescue GooglePlaces::InvalidRequestError => e
+      rescue ::GooglePlaces::InvalidRequestError => e
         render(
           json: {
-            errors: [google_places_error("backend invalid request to google places", e)]
+            errors: [google_places_error('backend invalid request to google places', e)]
           }, status: :bad_request
         )
-      rescue GooglePlaces::UnknownError => e
+      rescue ::GooglePlaces::UnknownError => e
         render(
           json: {
-            errors: [google_places_error("unknown error on backend querying google", e)]
+            errors: [google_places_error('unknown error on backend querying google', e)]
           }, status: :bad_request
         )
-      rescue GooglePlaces::NotFoundError => e
+      rescue ::GooglePlaces::NotFoundError => e
         render(
           json: {
-            errors: [google_places_error("place not found on backend?", e)]
+            errors: [google_places_error('place not found on backend?', e)]
           }
         )
-      rescue GooglePlaces::APIConnectionError => e
+      rescue ::GooglePlaces::APIConnectionError => e
         render(
           json: {
-            errors: [google_places_error("Some kind of lower level API break in google places gem", e)]
+            errors: [google_places_error('Some kind of lower level API break in google places gem', e)]
           }
         )
       end
@@ -160,7 +160,7 @@ module Api
         @spot = get_spot(place_params[:google_place_id])
         
         # https://discuss.rubyonrails.org/t/time-now-vs-time-current-vs-datetime-now/75183/2
-        @place = Place.create!(google_place_id: place_params[:google_place_id], place_lat: @spot.lat, place_lng: @spot.lng, last_fetched: Time.current)
+        @place = ::Place.create!(google_place_id: place_params[:google_place_id], place_lat: @spot.lat, place_lng: @spot.lng, last_fetched: Time.current)
         render(
           json: {
             place_id: @place.id
@@ -169,18 +169,18 @@ module Api
       rescue ::ActiveRecord::RecordInvalid => e
         render(
           json: {
-            errors: [create_activerecord_error("creation failed!", e)]
+            errors: [create_activerecord_error('creation failed!', e)]
           }, status: :bad_request
         )
       end
 
       def near
-        found = Place.within(1, units: :miles, origin: [
+        found = ::Place.within(1, units: :miles, origin: [
           place_params[:lat],
           place_params[:lng]
         ] )
         places_as_json = found.each.map do |place|
-          Place.as_json_for_markers(place)
+          ::Place.as_json_for_markers(place)
         end
         # byebug
         render(
@@ -191,11 +191,11 @@ module Api
       end
 
       def in_bounds
-        @sw = Geokit::LatLng.new(place_bounds_params[:south], place_bounds_params[:west])
-        @ne = Geokit::LatLng.new(place_bounds_params[:north], place_bounds_params[:east])
-        found = Place.in_bounds([@sw, @ne])
+        @sw = ::Geokit::LatLng.new(place_bounds_params[:south], place_bounds_params[:west])
+        @ne = ::Geokit::LatLng.new(place_bounds_params[:north], place_bounds_params[:east])
+        found = ::Place.in_bounds([@sw, @ne])
         places_as_json = found.each.map do |place|
-          Place.as_json_for_markers(place)
+          ::Place.as_json_for_markers(place)
         end
         # byebug
         render(
@@ -238,10 +238,10 @@ module Api
           options = {
             fields: 'geometry'
           }
-            @place_client ||= GooglePlaces::Client.new(Rails.application.credentials.maps![:places_backend_api_key], options)
+            @place_client ||= ::GooglePlaces::Client.new(Rails.application.credentials.maps![:places_backend_api_key], options)
         end
-  
-      end
+
+    end
   end
 end
 

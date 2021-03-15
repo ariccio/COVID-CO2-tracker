@@ -14,8 +14,8 @@ module Api
         # https://discuss.rubyonrails.org/t/time-now-vs-time-current-vs-datetime-now/75183/15
         # ALSO, TODO: check to see if I should disable timezone conversion on backend?
         # https://discuss.rubyonrails.org/t/time-now-vs-time-current-vs-datetime-now/75183/15
-        @new_measurement = ::Measurement.create!(device_id: measurement_params[:device_id], co2ppm: measurement_params[:co2ppm], measurementtime: Time.current, place_id: @place.id, crowding: measurement_params[:crowding], location_where_inside_info: measurement_params[:location_where_inside_info])
-        
+        @new_measurement = ::Measurement.create!(device_id: measurement_params[:device_id], co2ppm: measurement_params[:co2ppm], measurementtime: ::Time.current, place_id: @place.id, crowding: measurement_params[:crowding], location_where_inside_info: measurement_params[:location_where_inside_info])
+
         render(
           json: {
             measurement_id: @new_measurement.id,

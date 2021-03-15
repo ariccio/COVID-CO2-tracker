@@ -2,12 +2,15 @@
 
 def measurements_serializer(measurements, device_id)
   # byebug
+  # TODO: DEDUP with version in measurement controller, like an actual serializer :D
   measurements.each.map do |measurement|
     {
       device_id: measurement.device.id, # device_id?
       measurement_id: measurement.id,
       co2ppm: measurement.co2ppm,
       measurementtime: measurement.id,
+      crowding: measurement.crowding,
+      location_where_inside_info: measurement.location_where_inside_info,
       place: {
         id: measurement.place.id,
         google_place_id: measurement.place.google_place_id
@@ -26,7 +29,7 @@ module Api
     class DeviceController < ApplicationController
       skip_before_action :authorized, only: [:show]
       def create
-        @model = Model.find_by(id: device_params[:model_id])
+        @model = ::Model.find_by(id: device_params[:model_id])
         @new_device_instance = ::Device.create!(serial: device_params[:serial], model_id: device_params[:model_id], user: current_user)
         render(
           json: {
@@ -87,7 +90,7 @@ module Api
           )
         end
         measurement_count = @device_instance.measurement.count
-        if measurement_count > 0
+        if measurement_count.positive?
           return render(
             json: {
               errors: [create_error("I haven't built the functionality to delete devices with measurements yet. Device has #{measurement_count} measurements")]
