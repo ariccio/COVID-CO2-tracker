@@ -13,7 +13,7 @@ class Measurement < ApplicationRecord
   validates :crowding, numericality: { less_than_or_equal_to: 5 }
   validates :device_id, presence: true
   validates :crowding, presence: true
-  
+
   validates_associated :device, :place
 
   # GODDAMNIT I NEED TO WRITE A SERIALIZER

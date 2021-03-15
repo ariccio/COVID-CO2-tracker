@@ -22,7 +22,7 @@ module Api
         # byebug
         return if @place.nil?
         if (@place.place_lat.nil?) || (@place.place_lng.nil?) || (@place.last_fetched.nil?) || (@place.last_fetched && (@place.last_fetched < 30.days.ago))
-          ::Rails.logger.debug "\r\n\tUpdating #{@place.google_place_id}...\r\n"
+          ::Rails.logger.debug("\r\n\tUpdating #{@place.google_place_id}...\r\n")
           # byebug
           @spot = get_spot(@place.google_place_id)
           @place.place_lat = @spot.lat
@@ -35,7 +35,7 @@ module Api
       # GET /places/1
       def show
         @place = ::Place.find(params[:id])
-        refresh_latlng_from_google()
+        refresh_latlng_from_google
         if @place.last_fetched < 30.days.ago
           ::Rails.logging.warn("Last fetched #{time_ago_in_words(@place.last_fetch)} - Need to update to comply with google caching restrictions!")
         end
@@ -151,7 +151,7 @@ module Api
           }
         )
       end
-    
+
       # POST /places
       def create
         # byebug

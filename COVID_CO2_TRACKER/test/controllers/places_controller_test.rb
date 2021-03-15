@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class PlacesControllerTest < ActionDispatch::IntegrationTest
+class PlacesControllerTest < ::ActionDispatch::IntegrationTest
   setup do
     @place = places(:one)
   end

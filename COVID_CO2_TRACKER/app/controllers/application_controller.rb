@@ -42,7 +42,7 @@ class ApplicationController < ::ActionController::API
   def authenticate_user
     # byebug
     if (cookies.signed[:jwt].nil?)
-      return nil
+      return
     end
     jwt = cookies.signed[:jwt]
     decode_with_jwt(jwt)
