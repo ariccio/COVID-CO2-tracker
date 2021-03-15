@@ -10,13 +10,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_03_10_222333) do
+ActiveRecord::Schema.define(version: 2021_03_15_204356) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
   create_table "device_models", force: :cascade do |t|
-    t.string "name"
+    t.string "name", null: false
     t.bigint "manufacturer_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
@@ -24,7 +24,7 @@ ActiveRecord::Schema.define(version: 2021_03_10_222333) do
   end
 
   create_table "devices", force: :cascade do |t|
-    t.string "serial"
+    t.string "serial", null: false
     t.bigint "model_id", null: false
     t.bigint "user_id", null: false
     t.datetime "created_at", precision: 6, null: false
@@ -34,7 +34,7 @@ ActiveRecord::Schema.define(version: 2021_03_10_222333) do
   end
 
   create_table "manufacturers", force: :cascade do |t|
-    t.string "name"
+    t.string "name", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["name"], name: "index_manufacturers_on_name", unique: true
@@ -42,8 +42,8 @@ ActiveRecord::Schema.define(version: 2021_03_10_222333) do
 
   create_table "measurements", force: :cascade do |t|
     t.bigint "device_id", null: false
-    t.integer "co2ppm"
-    t.datetime "measurementtime"
+    t.integer "co2ppm", null: false
+    t.datetime "measurementtime", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.bigint "place_id", null: false
@@ -52,7 +52,7 @@ ActiveRecord::Schema.define(version: 2021_03_10_222333) do
   end
 
   create_table "models", force: :cascade do |t|
-    t.string "name"
+    t.string "name", null: false
     t.bigint "manufacturer_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
@@ -60,8 +60,8 @@ ActiveRecord::Schema.define(version: 2021_03_10_222333) do
   end
 
   create_table "places", force: :cascade do |t|
-    t.string "google_place_id"
-    t.datetime "last_fetched"
+    t.string "google_place_id", null: false
+    t.datetime "last_fetched", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.decimal "place_lat", precision: 10, scale: 6

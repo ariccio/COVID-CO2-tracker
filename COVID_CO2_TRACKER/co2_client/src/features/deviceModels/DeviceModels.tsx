@@ -84,7 +84,7 @@ const basicDeviceModelInfo = (deviceModelInfo: QueryDeviceModelInfoResponse, err
             <p>
                 <b>
                     <i>
-                        Loading infor for device model from database...
+                        Loading info for device model from database...
                     </i>
                 </b>
             </p>

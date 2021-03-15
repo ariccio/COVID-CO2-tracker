@@ -33,6 +33,8 @@ const routes = () =>
     <Route exact path={profilePath} component={Profile}/>
     <Route exact path={loginPath} component={LoginComponent} />
     <Route exact path={signupPath} component={SignupComponent}/>
+    
+    {/* TODO: manufactureres nested route for each manufacturer */}
     <Route path={manufacturersPath} component={CreateManufacturerOrModel}/>
     <Route path={`${deviceModelsPath}/:deviceModelId`} component={DeviceModels}/>
     <Route path={`${devicesPath}/:deviceId`} component={Device}/>

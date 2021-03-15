@@ -89,9 +89,10 @@ const submitHandler = (enteredModelText: string, setShowAddModel: React.Dispatch
         }
         else {
             setShowAddModel(false);
-            // history.goBack();
             dispatch(setSelectedModel(response.model_id));
             dispatch(setSelectedModelName(response.name));
+            history.goBack();
+
         }
     }).catch((errors) => {
         alert(errors.message)
@@ -138,7 +139,8 @@ export const CreateDeviceModelModalDialog: React.FC<modelDialogProps> = (props: 
         alert("Select a manufacturer first!");
         props.setShowAddModel(false);
         if (location.pathname.endsWith('create')) {
-            history.goBack();
+            debugger;
+            history.replace('/');
         }
         return null;
     }

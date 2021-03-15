@@ -197,7 +197,7 @@ const submitHandler = (enteredManufacturerText: string, setShowAddManufacturer: 
             console.log(history);
             history.goBack();
             console.log(history);
-            debugger;
+            // debugger;
         }
     }).catch((errors) => {
         alert(errors.message);

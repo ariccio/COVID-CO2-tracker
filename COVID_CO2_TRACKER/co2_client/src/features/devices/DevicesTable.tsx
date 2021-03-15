@@ -3,7 +3,7 @@ import {Table, Button} from 'react-bootstrap';
 import {UserInfoDevice} from '../../utils/QueryDeviceInfo';
 import {Link} from 'react-router-dom';
 
-import {devicesPath} from '../../paths/paths';
+import {deviceModelsPath, devicesPath} from '../../paths/paths';
 import {deleteRequestOptions} from '../../utils/DefaultRequestOptions';
 import { API_URL } from '../../utils/UrlPath';
 import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
@@ -70,7 +70,7 @@ const mapDevicesToTableBody = (devices: Array<UserInfoDevice>)/*: JSX.Element*/ 
                 <td><Link to={`${devicesPath}/${device.device_id}`}>{index}</Link></td>
                 <td><Link to={`${devicesPath}/${device.device_id}`}>{device.device_id}</Link></td>
                 <td><Link to={`${devicesPath}/${device.device_id}`}>{device.serial}</Link></td>
-                <td><Link to={`${devicesPath}/${device.device_id}`}>{device.device_model}</Link></td>
+                <td><Link to={`${deviceModelsPath}/${device.device_model_id}`}>{device.device_model}</Link></td>
                 <td><Link to={`${devicesPath}/${device.device_id}`}>{device.device_manufacturer}</Link></td>
                 <td><Button onClick={(event) => handleDeleteDeviceClick(event, device.device_id)}>Delete device?</Button></td>
             </tr>

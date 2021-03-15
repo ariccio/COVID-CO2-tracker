@@ -229,7 +229,7 @@ const submitHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, selecte
 
     const placeExistsPromiseOrNull = createPlaceIfNotExist(placeExistsInDatabase, place_id);
     if (placeExistsPromiseOrNull === null) {
-        debugger;
+        // debugger;
         createMeasurementHandler(selectedDevice, enteredCO2Text, place_id, setShowCreateNewMeasurement);
         updatePlacesInfoFromBackend(place_id, dispatch);
         return;

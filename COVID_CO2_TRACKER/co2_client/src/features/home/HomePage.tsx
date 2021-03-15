@@ -275,7 +275,17 @@ const renderInfoFromDatabase = (selectedPlaceInfoFromDatabase: SelectedPlaceData
     console.assert(selectedPlaceExistsInDatabase !== false);
     if (selectedPlaceInfoFromDatabase.measurements === undefined) {
         console.assert(selectedPlaceInfoFromDatabase === defaultPlaceInfo);
+        console.error("invalid state, maybe internal server error.");
         debugger;
+        if ((selectedPlaceInfoFromDatabase as any).error !== undefined) {
+
+            return (
+                <>
+                    {(selectedPlaceInfoFromDatabase as any).error}
+                </>
+            )
+        }
+        return null;
     }
     //TODO: need strong type in updatePlacesInfoFromBackend, else this can be undefined!
     if (selectedPlaceInfoFromDatabase.measurements.length === 0) {

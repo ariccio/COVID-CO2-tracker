@@ -21,7 +21,9 @@ module Api
       def refresh_latlng_from_google
         # byebug
         return if @place.nil?
-        if (@place.place_lat.nil?) || (@place.place_lng.nil?) || (@place.last_fetched && (@place.last_fetched > 30.days.ago))
+        if (@place.place_lat.nil?) || (@place.place_lng.nil?) || (@place.last_fetched.nil?) || (@place.last_fetched && (@place.last_fetched < 30.days.ago))
+          Rails.logger.debug "\r\n\tUpdating #{@place.google_place_id}...\r\n"
+          # byebug
           @spot = get_spot(@place.google_place_id)
           @place.place_lat = @spot.lat
           @place.place_lng = @spot.lng
@@ -157,7 +159,8 @@ module Api
         # @spot.lat, @spot.lng
         @spot = get_spot(place_params[:google_place_id])
         
-        @place = Place.create!(google_place_id: place_params[:google_place_id], place_lat: @spot.lat, place_lng: @spot.lng)
+        # https://discuss.rubyonrails.org/t/time-now-vs-time-current-vs-datetime-now/75183/2
+        @place = Place.create!(google_place_id: place_params[:google_place_id], place_lat: @spot.lat, place_lng: @spot.lng, last_fetched: Time.current)
         render(
           json: {
             place_id: @place.id
