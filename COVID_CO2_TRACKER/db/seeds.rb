@@ -17,7 +17,7 @@ end
 
 contoso = ::Manufacturer.find_or_create_by!(name: 'Contoso')
 
-first_user = ::User.find_or_create_by!(email: 'alexander@alexander', password_digest: BCrypt::Password.create('fart'))
+first_user = ::User.find_or_create_by!(email: 'alexander@alexander', password_digest: ::BCrypt::Password.create('fart'))
 
 contoso_one =
   ::Model.find_or_create_by!(name: 'Contoso 1') do |dm|
@@ -27,7 +27,7 @@ contoso_one =
 first_device =
   ::Device.find_or_create_by!(serial: 'fart') do |di|
     di.model = contoso_one
-    di.user = ::User.first
+    di.user = first_user
   end
 
 ::Rails.logger.info(first_device)

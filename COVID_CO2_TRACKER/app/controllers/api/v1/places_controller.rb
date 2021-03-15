@@ -47,7 +47,7 @@ module Api
 
       def place_by_google_place_id_exists
         @place = ::Place.find_by!(google_place_id: params[:google_place_id])
-        refresh_latlng_from_google()
+        refresh_latlng_from_google
         render(
           json: {
             exists: true
@@ -158,7 +158,7 @@ module Api
         # byebug
         # @spot.lat, @spot.lng
         @spot = get_spot(place_params[:google_place_id])
-        
+
         # https://discuss.rubyonrails.org/t/time-now-vs-time-current-vs-datetime-now/75183/2
         @place = ::Place.create!(google_place_id: place_params[:google_place_id], place_lat: @spot.lat, place_lng: @spot.lng, last_fetched: ::Time.current)
         render(

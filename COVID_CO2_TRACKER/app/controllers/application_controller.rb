@@ -52,7 +52,7 @@ class ApplicationController < ::ActionController::API
     # byebug
     result = authenticate_user
     if (result.nil?)
-      return nil
+      return
     end
     result[0]['user_id']
   end
@@ -92,7 +92,7 @@ class ApplicationController < ::ActionController::API
   def current_user
     # byebug
     if (!cookie?)
-      return nil
+      return
     end
     @id_from_token = user_id_from_jwt_token
 

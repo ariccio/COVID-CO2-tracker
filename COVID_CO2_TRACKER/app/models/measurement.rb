@@ -3,6 +3,7 @@
 class Measurement < ApplicationRecord
   belongs_to :device
   belongs_to :place
+
   # needs validation of positivity, fatal levels
   validates :co2ppm, numericality: { greater_than_or_equal_to: 0 }
   validates :co2ppm, numericality: { less_than: 80_000, message: "co2ppm is greater than lethal level, if you're not dead, your meter is wrong." }
