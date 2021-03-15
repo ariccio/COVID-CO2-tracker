@@ -265,7 +265,9 @@ const renderInfoFromDatabase = (selectedPlaceInfoFromDatabase: SelectedPlaceData
         }
         return (
             <>
+                <br/>
                 Loading place info from database...
+                <br/>
             </>
         );
     }
@@ -296,7 +298,10 @@ const renderPlace = (currentPlace: google.maps.places.PlaceResult, location: Ret
         <>
             {renderSelectedPlaceInfo(currentPlace, placesServiceStatus)}
             {renderNewMeasurementButton(currentPlace, location, setShowCreateNewMeasurement, showCreateNewMeasurement)}
+            <br/>
+            <br/>
             {renderInfoFromDatabase(selectedPlaceInfoFromDatabase, selectedPlaceInfoErrors, currentPlace, selectedPlaceExistsInDatabase)}
+            <br/>
         </>
     );
 }
@@ -331,6 +336,15 @@ export const HomePage: FunctionComponent<{}> = (props: any) => {
     }
     //TODO: google maps goes to default (wrong) center on selecting different location
 
+    if (mapsAPIKey === '') {
+        return (
+            <>
+                <h3>Welcome!</h3>
+                <br/>
+                Loading maps API key...
+            </>
+        );     
+    }
     return (
         <>
             <h3>Welcome!</h3>
@@ -344,6 +358,8 @@ export const HomePage: FunctionComponent<{}> = (props: any) => {
                 {errorState}
                 <div style={{justifyContent: 'right'}}>
                     {renderPlace(currentPlace, location, setShowCreateNewMeasurement, showCreateNewMeasurement, selectedPlaceInfoFromDatabase, selectedPlaceInfoFromDatabaseErrors, placesServiceStatus, selectedPlaceExistsInDatabase)}
+                    <br/>
+                    <br/>
                     {showCreateNewMeasurement ? <CreateNewMeasurementModal showCreateNewMeasurement={showCreateNewMeasurement} setShowCreateNewMeasurement={setShowCreateNewMeasurement}/> : null}
                 </div>
             </div>

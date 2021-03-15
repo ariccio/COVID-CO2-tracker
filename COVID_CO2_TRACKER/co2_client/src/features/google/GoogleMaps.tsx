@@ -637,10 +637,10 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
     }
 
     if (isLoaded) {
+        console.log(`Selected place ID string from google maps: ${selectedPlace.place_id}`);
         return (
             <>
                 {googleMapInContainer()}
-                Selected place ID string from google maps: {selectedPlace.place_id}
                 <br/>
                 {autocompleteElement()}
                 <Button onClick={() => invokeBrowserGeolocation(setCenter)}>

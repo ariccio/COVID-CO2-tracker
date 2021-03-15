@@ -68,7 +68,7 @@ export const Devices: React.FC<{}> = () => {
     
     const [userInfo, setUserInfo] = useState(defaultUserInfo);
     const [createDeviceClicked, setCreateClicked] = useState(false);
-    const [notLoggedIn, setNotLoggedIn] = useState(false);
+    // const [notLoggedIn, setNotLoggedIn] = useState(false);
     const [errorState, setErrorState] = useState('');
     const selectedModelName = useSelector(selectSelectedModelName);
 
