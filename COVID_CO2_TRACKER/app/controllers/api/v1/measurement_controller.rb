@@ -6,7 +6,7 @@ module Api
       skip_before_action :authorized, only: [:show]
       def create
         # byebug
-        @place = Place.find_by!(google_place_id: measurement_params[:google_place_id])
+        @place = ::Place.find_by!(google_place_id: measurement_params[:google_place_id])
 
         # places_backend_api_key
 

@@ -31,13 +31,13 @@ module Api
           @place.save!
         end
       end
-      
+
       # GET /places/1
       def show
         @place = ::Place.find(params[:id])
         refresh_latlng_from_google()
         if @place.last_fetched < 30.days.ago
-          Rails.logging.warn("Last fetched #{time_ago_in_words(@place.last_fetch)} - Need to update to comply with google caching restrictions!")
+          ::Rails.logging.warn("Last fetched #{time_ago_in_words(@place.last_fetch)} - Need to update to comply with google caching restrictions!")
         end
         render(json: @place)
       rescue ::ActiveRecord::RecordNotFound => e
@@ -160,7 +160,7 @@ module Api
         @spot = get_spot(place_params[:google_place_id])
         
         # https://discuss.rubyonrails.org/t/time-now-vs-time-current-vs-datetime-now/75183/2
-        @place = ::Place.create!(google_place_id: place_params[:google_place_id], place_lat: @spot.lat, place_lng: @spot.lng, last_fetched: Time.current)
+        @place = ::Place.create!(google_place_id: place_params[:google_place_id], place_lat: @spot.lat, place_lng: @spot.lng, last_fetched: ::Time.current)
         render(
           json: {
             place_id: @place.id
@@ -238,10 +238,9 @@ module Api
           options = {
             fields: 'geometry'
           }
-            @place_client ||= ::GooglePlaces::Client.new(Rails.application.credentials.maps![:places_backend_api_key], options)
+            @place_client ||= ::GooglePlaces::Client.new(::Rails.application.credentials.maps![:places_backend_api_key], options)
         end
 
     end
   end
 end
-

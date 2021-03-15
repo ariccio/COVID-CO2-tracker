@@ -85,7 +85,7 @@ module Api
         if @device_instance.user != current_user
           return render(
             json: {
-              errors: [create_error("you can only delete your own devices!")]
+              errors: [create_error('you can only delete your own devices!')]
             }, status: :unauthorized
           )
         end

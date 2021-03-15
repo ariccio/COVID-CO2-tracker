@@ -37,7 +37,7 @@ module Api
         devices = @user.my_devices
         render(
           json: {
-            devices: devices,
+            devices: devices
           },
           status: :ok
         )
