@@ -40,9 +40,13 @@ module Api
           ::Rails.logging.warn("Last fetched #{time_ago_in_words(@place.last_fetch)} - Need to update to comply with google caching restrictions!")
         end
         render(json: @place)
-      rescue ::ActiveRecord::RecordNotFound => e
+      rescue ::ActiveRecord::RecordNotFound => exception
         # TODO: query from the backend too to validate input is correct
-
+        render(
+          json: {
+            errors: create_activerecord_notfound_error('Not found!', exception)
+          }, status: :not_found
+        )
       end
 
       def place_by_google_place_id_exists
@@ -65,9 +69,10 @@ module Api
         # byebug
         @place = ::Place.find_by!(google_place_id: params[:google_place_id])
         refresh_latlng_from_google()
-        measurements = @place.measurement.order('measurementtime DESC').each.map do |measurement|
-          ::Measurement.measurement_with_device_place_as_json(measurement, measurement.device)
-        end
+        measurements =
+          @place.measurement.order('measurementtime DESC').each.map do |measurement|
+            ::Measurement.measurement_with_device_place_as_json(measurement, measurement.device)
+          end
         render(
           json: {
             created: false,
@@ -175,10 +180,12 @@ module Api
       end
 
       def near
-        found = ::Place.within(1, units: :miles, origin: [
-          place_params[:lat],
-          place_params[:lng]
-        ] )
+        found = ::Place.within(
+          1, units: :miles,
+          origin: [
+            place_params[:lat],
+            place_params[:lng]
+          ])
         places_as_json = found.each.map do |place|
           ::Place.as_json_for_markers(place)
         end
@@ -194,9 +201,10 @@ module Api
         @sw = ::Geokit::LatLng.new(place_bounds_params[:south], place_bounds_params[:west])
         @ne = ::Geokit::LatLng.new(place_bounds_params[:north], place_bounds_params[:east])
         found = ::Place.in_bounds([@sw, @ne])
-        places_as_json = found.each.map do |place|
-          ::Place.as_json_for_markers(place)
-        end
+        places_as_json =
+          found.each.map do |place|
+            ::Place.as_json_for_markers(place)
+          end
         # byebug
         render(
           json: {
@@ -204,7 +212,7 @@ module Api
           }, status: :ok
         )
       end
-    
+
       # PATCH/PUT /places/1
       # def update
       #   if @place.update(place_params)

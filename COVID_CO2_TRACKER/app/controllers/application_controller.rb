@@ -41,9 +41,7 @@ class ApplicationController < ::ActionController::API
 
   def authenticate_user
     # byebug
-    if (cookies.signed[:jwt].nil?)
-      return
-    end
+    return if (cookies.signed[:jwt].nil?)
     jwt = cookies.signed[:jwt]
     decode_with_jwt(jwt)
   end
@@ -51,9 +49,10 @@ class ApplicationController < ::ActionController::API
   def user_id_from_jwt_token
     # byebug
     result = authenticate_user
-    if (result.nil?)
-      return
-    end
+    return if result.nil?
+    # if (result.nil?)
+    #   return
+    # end
     result[0]['user_id']
   end
 
@@ -91,12 +90,13 @@ class ApplicationController < ::ActionController::API
 
   def current_user
     # byebug
-    if (!cookie?)
+
+    unless cookie?
       return
     end
     @id_from_token = user_id_from_jwt_token
 
-    if (!@id_from_token)
+    unless @id_from_token
       render_falsy_decoded_token
     end
     # byebug

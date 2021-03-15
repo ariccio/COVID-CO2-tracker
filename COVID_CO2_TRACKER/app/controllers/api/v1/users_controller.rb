@@ -6,10 +6,10 @@ module Api
       skip_before_action :authorized, only: [:create]
 
 
-      def render_user_not_found(e)
+      def render_user_not_found(exception)
         render(
           json: {
-            errors: [create_activerecord_error('User info not valid!', e)]
+            errors: [create_activerecord_error('User info not valid!', exception)]
           },
           status: :unauthorized
         )
@@ -28,8 +28,8 @@ module Api
           },
           status: :created
         )
-      rescue ::ActiveRecord::RecordInvalid => e
-        render_user_not_found(e)
+      rescue ::ActiveRecord::RecordInvalid => exception
+        render_user_not_found(exception)
       end
 
       def my_devices
@@ -41,8 +41,8 @@ module Api
           },
           status: :ok
         )
-      rescue ::ActiveRecord::RecordInvalid => e
-        render_user_not_found(e)
+      rescue ::ActiveRecord::RecordInvalid => exception
+        render_user_not_found(exception)
       end
 
       def show
@@ -57,8 +57,8 @@ module Api
           },
           status: :ok
         )
-      rescue ::ActiveRecord::RecordInvalid => e
-        render_user_not_found(e)
+      rescue ::ActiveRecord::RecordInvalid => exception
+        render_user_not_found(exception)
       end
 
       def user_params
