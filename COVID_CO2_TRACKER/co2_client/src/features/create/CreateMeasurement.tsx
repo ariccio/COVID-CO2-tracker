@@ -175,6 +175,7 @@ const CREATE_PATH = (API_URL + `/places`);
 const createPlaceIfNotExist = (placeExistsInDatabase: boolean, place_id: string): Promise<PlaceCreateResponseType> | null => {
     if (placeExistsInDatabase) {
         // debugger;
+        console.log("place exists, not creating...");
         return null;
     }
     // debugger;
@@ -202,15 +203,22 @@ const createMeasurementHandler = (selectedDevice: number, enteredCO2Text: string
         return awaitedResponse.json();
     }
     const fetchSuccessCallback = async (awaitedResponse: Response): Promise<NewMeasurmentResponseType> => {
+        console.log("fetch to create measurement succeeded!");
         return awaitedResponse.json();
     }
 
-    const result = fetchJSONWithChecks(NEW_MEASUREMENT_URL, init, 201, true,fetchFailedCallback, fetchSuccessCallback) as Promise<NewMeasurmentResponseType>;
+    const result = fetchJSONWithChecks(NEW_MEASUREMENT_URL, init, 201, true, fetchFailedCallback, fetchSuccessCallback) as Promise<NewMeasurmentResponseType>;
     result.then((result) => {
         if (result.errors === undefined) {
             setShowCreateNewMeasurement(false);
+            // debugger;
+            console.log("new measurement successfully created. We currently throw the result away.");
+            console.log("to use it, please remove this message.");
+            console.log("here it is anyways:");
+            console.log(result);
         }
         else {
+            console.log("TODO: set form invalid.")
             debugger;
         }
     })
@@ -244,7 +252,7 @@ const renderFormIfReady = (selectedDevice: number, enteredCO2Text: string, setEn
     }
     return (
         <>
-            <Form onChange={(event) => onChangeEvent(event, setEnteredCO2Text)}>
+            <Form onChange={(event) => onChangeEvent(event, setEnteredCO2Text)} onSubmit={(event) => {event.preventDefault(); event.stopPropagation();}}>
                 <Form.Label>
                     CO2 level (ppm)
                 </Form.Label>

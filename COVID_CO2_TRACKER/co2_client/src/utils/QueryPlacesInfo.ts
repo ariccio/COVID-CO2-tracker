@@ -50,6 +50,7 @@ const checkIfExists = (place_id: string, dispatch: ReturnType<typeof useDispatch
             return false;
         }
         console.log("Place exists in database!")
+        // debugger;
         dispatch(setPlaceExistsInDatabase(true));
         // dispatch()
         return true
@@ -74,10 +75,12 @@ export const updatePlacesInfoFromBackend = (place_id: string, dispatch: ReturnTy
             if (placeInfo.errors !== undefined) {
                 console.warn("some kind of error encountered");
                 dispatch(setPlacesInfoErrors(formatErrors(placeInfo.errors)));
+                debugger;
                 dispatch(setPlacesInfoFromDatabase(defaultPlaceInfo));
             }
             else {
                 // dispatch(setPlaceExistsInDatabase(false))
+                // debugger;
                 dispatch(setPlacesInfoFromDatabase(placeInfo));
             }
         }).catch((error) => {
