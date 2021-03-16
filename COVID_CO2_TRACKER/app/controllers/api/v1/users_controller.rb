@@ -28,8 +28,8 @@ module Api
           },
           status: :created
         )
-      rescue ::ActiveRecord::RecordInvalid => exception
-        render_user_not_found(exception)
+      rescue ::ActiveRecord::RecordInvalid => e
+        render_user_not_found(e)
       end
 
       def my_devices
@@ -41,8 +41,8 @@ module Api
           },
           status: :ok
         )
-      rescue ::ActiveRecord::RecordInvalid => exception
-        render_user_not_found(exception)
+      rescue ::ActiveRecord::RecordInvalid => e
+        render_user_not_found(e)
       end
 
       def show
@@ -57,8 +57,8 @@ module Api
           },
           status: :ok
         )
-      rescue ::ActiveRecord::RecordInvalid => exception
-        render_user_not_found(exception)
+      rescue ::ActiveRecord::RecordInvalid => e
+        render_user_not_found(e)
       end
 
       def user_params

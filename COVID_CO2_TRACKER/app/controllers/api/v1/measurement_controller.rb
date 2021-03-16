@@ -36,21 +36,19 @@ module Api
       end
 
       def show
+        # TODO: what reaches this route?
+        ::Rails.loggger.debug('What hit this route?')
+        byebug
         @measurement = ::Measurement.find(measurement_params[:id])
+        as_json_result = Measurement.measurement_with_device_place_as_json(@measurement)
         render(
-          json: {
-            device_id: @measurement.device.id,
-            co2ppm: @measurement.co2ppm,
-            measurementtime: @measurement.measurementtime,
-            crowding: @measurement.crowding,
-            location_where_inside_info: @measurement.location_where_inside_info
-          },
+          json: as_json_result,
           status: :ok
         )
       rescue ::ActiveRecord::RecordNotFound => e
         render(
           json: {
-            errors: [create_activerecord_error('manufacturer not found!', e)]
+            errors: [create_activerecord_error('measurement not found!', e)]
           },
           status: :not_found
         )

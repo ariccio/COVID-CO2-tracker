@@ -68,7 +68,7 @@ module Api
       def show_by_google_place_id
         # byebug
         @place = ::Place.find_by!(google_place_id: params[:google_place_id])
-        refresh_latlng_from_google()
+        refresh_latlng_from_google
         measurements =
           @place.measurement.order('measurementtime DESC').each.map do |measurement|
             ::Measurement.measurement_with_device_place_as_json(measurement, measurement.device)
@@ -182,10 +182,12 @@ module Api
       def near
         found = ::Place.within(
           1, units: :miles,
-          origin: [
-            place_params[:lat],
-            place_params[:lng]
-          ])
+          origin:
+            [
+              place_params[:lat],
+              place_params[:lng]
+            ]
+        )
         places_as_json = found.each.map do |place|
           ::Place.as_json_for_markers(place)
         end
@@ -221,18 +223,18 @@ module Api
       #     render json: @place.errors, status: :unprocessable_entity
       #   end
       # end
-    
+
       # DELETE /places/1
       # def destroy
       #   @place.destroy
       # end
-    
+
       private
         # # Use callbacks to share common setup or constraints between actions.
         # def set_place
         #   @place = Place.find(params[:id])
         # end
-    
+
         # Only allow a list of trusted parameters through.
         def place_params
           params.require(:place).permit(:google_place_id, :last_fetched, :lat, :lng)

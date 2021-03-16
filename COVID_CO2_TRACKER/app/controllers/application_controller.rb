@@ -91,14 +91,12 @@ class ApplicationController < ::ActionController::API
   def current_user
     # byebug
 
-    unless cookie?
-      return
-    end
+    return unless cookie?
+
     @id_from_token = user_id_from_jwt_token
 
-    unless @id_from_token
-      render_falsy_decoded_token
-    end
+    render_falsy_decoded_token unless @id_from_token
+
     # byebug
     user_id = @id_from_token
     # byebug
