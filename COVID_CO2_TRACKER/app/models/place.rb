@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 class Place < ApplicationRecord
-  has_many :measurement
+  has_many :measurement, dependent: :restrict_with_exception
+
   acts_as_mappable(default_units: :miles, default_formula: :sphere, distance_field_name: :distance, lat_column_name: :place_lat, lng_column_name: :place_lng)
 
   def self.as_json_for_markers(place)

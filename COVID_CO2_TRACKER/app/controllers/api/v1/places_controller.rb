@@ -1,5 +1,17 @@
 # frozen_string_literal: true
 
+def place_needs_refresh?(place)
+  return true if place.place_lat.nil?
+
+  return true if place.place_lng.nil?
+
+  return true if place.last_fetched.nil?
+
+  return true if (place.last_fetched && (place.last_fetched < 30.days.ago))
+
+  false
+end
+
 module Api
   module V1
     class PlacesController < ApplicationController
@@ -22,7 +34,7 @@ module Api
         # byebug
         return if @place.nil?
 
-        if (@place.place_lat.nil?) || (@place.place_lng.nil?) || (@place.last_fetched.nil?) || (@place.last_fetched && (@place.last_fetched < 30.days.ago))
+        if place_needs_refresh?(@place)
           ::Rails.logger.debug("\r\n\tUpdating #{@place.google_place_id}...\r\n")
           # byebug
           @spot = get_spot(@place.google_place_id)
@@ -64,14 +76,17 @@ module Api
         )
       end
 
+      def place_measurementtime_desc
+        @place.measurement.order('measurementtime DESC').each.map do |measurement|
+          ::Measurement.measurement_with_device_place_as_json(measurement)
+        end
+      end
+
       def show_by_google_place_id
         # byebug
         @place = ::Place.find_by!(google_place_id: params[:google_place_id])
         refresh_latlng_from_google
-        measurements =
-          @place.measurement.order('measurementtime DESC').each.map do |measurement|
-            ::Measurement.measurement_with_device_place_as_json(measurement, measurement.device)
-          end
+        measurements = place_measurementtime_desc
         render(
           json: {
             created: false,
@@ -103,20 +118,8 @@ module Api
         options = {
           fields: 'geometry'
         }
-
-        @place_client.spot(place_id, options)
-        # From: C:\Ruby30-x64\lib\ruby\gems\3.0.0\gems\google_places-2.0.0\lib\google_places\request.rb
-        # when 'OVER_QUERY_LIMIT'
-        #   raise OverQueryLimitError.new(@response)
-        # when 'REQUEST_DENIED'
-        #   raise RequestDeniedError.new(@response)
-        # when 'INVALID_REQUEST'
-        #   raise InvalidRequestError.new(@response)
-        # when 'UNKNOWN_ERROR'
-        #   raise UnknownError.new(@response)
-        # when 'NOT_FOUND'
-        #   raise NotFoundError.new(@response)
-        # end
+        @setup_places_client.spot(place_id, options)
+      # From: C:\Ruby30-x64\lib\ruby\gems\3.0.0\gems\google_places-2.0.0\lib\google_places\request.rb
       rescue ::GooglePlaces::OverQueryLimitError => e
         render(
           json: {
@@ -247,7 +250,7 @@ module Api
         options = {
           fields: 'geometry'
         }
-        @place_client ||= ::GooglePlaces::Client.new(::Rails.application.credentials.maps![:places_backend_api_key], options)
+        @setup_places_client ||= ::GooglePlaces::Client.new(::Rails.application.credentials.maps![:places_backend_api_key], options)
       end
     end
   end

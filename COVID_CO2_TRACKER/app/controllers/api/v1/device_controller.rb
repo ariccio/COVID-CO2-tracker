@@ -15,6 +15,15 @@ def first_ten_measurements(device_id)
   ::Measurement.measurements_as_json(measurements)
 end
 
+def device_create_response_as_json(new_device_instance)
+  {
+    serial: new_device_instance.serial,
+    model_id: new_device_instance.model.id,
+    user_id: new_device_instance.user.id,
+    device_id: new_device_instance.id
+  }
+end
+
 module Api
   module V1
     class DeviceController < ApplicationController
@@ -23,12 +32,7 @@ module Api
         @model = ::Model.find_by(id: device_params[:model_id])
         @new_device_instance = ::Device.create!(serial: device_params[:serial], model_id: device_params[:model_id], user: current_user)
         render(
-          json: {
-            serial: @new_device_instance.serial,
-            model_id: @new_device_instance.model.id,
-            user_id: @new_device_instance.user.id,
-            device_id: @new_device_instance.id
-          },
+          json: device_create_response_as_json(@new_device_instance),
           status: :created
         )
       rescue ::ActiveRecord::RecordNotFound => e

@@ -1,5 +1,15 @@
 # frozen_string_literal: true
 
+def measurement_controller_create_response_as_json(new_measurement)
+  {
+    measurement_id: new_measurement.id,
+    device_id: new_measurement.device.id,
+    co2ppm: new_measurement.co2ppm,
+    place_id: new_measurement.place,
+    measurementtime: new_measurement.measurementtime
+  }
+end
+
 module Api
   module V1
     class MeasurementController < ApplicationController
@@ -16,13 +26,7 @@ module Api
         @new_measurement = ::Measurement.create!(device_id: measurement_params[:device_id], co2ppm: measurement_params[:co2ppm], measurementtime: ::Time.current, place_id: @place.id, crowding: measurement_params[:crowding], location_where_inside_info: measurement_params[:location_where_inside_info])
 
         render(
-          json: {
-            measurement_id: @new_measurement.id,
-            device_id: @new_measurement.device.id,
-            co2ppm: @new_measurement.co2ppm,
-            place_id: @new_measurement.place,
-            measurementtime: @new_measurement.measurementtime
-          },
+          json: measurement_controller_create_response_as_json(@new_measurement),
           status: :created
         )
       rescue ::ActiveRecord::RecordInvalid => e
