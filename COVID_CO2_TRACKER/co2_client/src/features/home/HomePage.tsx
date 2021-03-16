@@ -1,6 +1,6 @@
 import React, {CSSProperties, FunctionComponent, useEffect, useState} from 'react';
 import {useSelector} from 'react-redux';
-import {Link, useLocation} from 'react-router-dom';
+import {useLocation} from 'react-router-dom';
 import {Button} from 'react-bootstrap';
 
 
@@ -14,7 +14,7 @@ import {CreateNewMeasurementModal} from '../create/CreateMeasurement';
 import {selectPlacesInfoFromDatabase, selectPlacesInfoErrors, SelectedPlaceDatabaseInfo, defaultPlaceInfo, selectPlaceExistsInDatabase} from '../places/placesSlice';
 
 import {MeasurementsTable} from '../measurements/MeasurementsTable';
-import { current } from '@reduxjs/toolkit';
+// import { current } from '@reduxjs/toolkit';
 
 const renderLinkWithName = (url?: string, name?: string) => {
     if (url === undefined) {
@@ -248,7 +248,8 @@ const renderInfoFromDatabase = (selectedPlaceInfoFromDatabase: SelectedPlaceData
             </>
         )
     }
-    if (selectedPlaceInfoFromDatabase.measurements === null) {
+    if (selectedPlaceInfoFromDatabase === defaultPlaceInfo) {
+        // console.assert(selectedPlaceInfoFromDatabase.measurements === null);
         if (selectedPlaceExistsInDatabase === null) {
             return (
                 <>
@@ -319,6 +320,8 @@ const renderPlace = (currentPlace: google.maps.places.PlaceResult, location: Ret
 export const HomePage: FunctionComponent<{}> = (props: any) => {
     const [mapsAPIKey, setMapsAPIKey] = useState("");
     const [errorState, setErrorState] = useState("");
+
+    //Transparently uses placeResultWithTranslatedType
     const currentPlace = useSelector(selectSelectedPlace);
     const [showCreateNewMeasurement, setShowCreateNewMeasurement] = useState(false);
     const location = useLocation();

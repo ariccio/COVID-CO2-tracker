@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {useDispatch} from 'react-redux';
 import {useSelector} from 'react-redux';
-import {selectSelectedPlace, selectPlacesServiceStatus, setPlacesServiceStatus, autocompleteSelectedPlaceToAction, placeResultWithTranslatedType} from '../google/googleSlice';
+import {selectSelectedPlace, selectPlacesServiceStatus, setPlacesServiceStatus, autocompleteSelectedPlaceToAction} from '../google/googleSlice';
 
 import { GoogleMap, useJsApiLoader, Autocomplete, Marker, MarkerClusterer } from '@react-google-maps/api';
 import { Button, Form } from 'react-bootstrap';
@@ -9,7 +9,7 @@ import { Button, Form } from 'react-bootstrap';
 import {setSelectedPlace, interestingFields} from './googleSlice';
 
 import {updatePlacesInfoFromBackend, queryPlacesInBoundsFromBackend} from '../../utils/QueryPlacesInfo';
-import { defaultPlaceMarkers, EachPlaceFromDatabaseForMarker, placesFromDatabaseForMarker, selectPlaceExistsInDatabase, selectPlaceMarkersFromDatabase, selectPlacesInfoErrors, selectPlacesInfoFromDatabase, selectPlacesMarkersErrors } from '../places/placesSlice';
+import { defaultPlaceMarkers, EachPlaceFromDatabaseForMarker, placesFromDatabaseForMarker, selectPlaceExistsInDatabase, selectPlaceMarkersFromDatabase, selectPlacesInfoErrors, selectPlacesMarkersErrors } from '../places/placesSlice';
 
 // import { getGooglePlacesScriptAPIKey } from '../../utils/GoogleAPIKeys';
 // import {GeolocationPosition} from 'typescript/lib/lib.dom'
@@ -350,10 +350,6 @@ function legalNoticeNote() {
     console.log("apparently, I can keep lat/lon if I update every 30 days?");
 }
 
-const renderLoadedMapsContainer = () => {
-    
-}
-
 function markerKey(lat: number, lng: number, index: number): string {
     return `marker-${lat}-${lng}-${index}-key`;
 }
@@ -485,7 +481,7 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
     const placeMarkersFromDatabase = useSelector(selectPlaceMarkersFromDatabase);
     const placeMarkerErrors = useSelector(selectPlacesMarkersErrors);
 
-    const selectedPlaceInfoFromDatabase = useSelector(selectPlacesInfoFromDatabase);
+    // const selectedPlaceInfoFromDatabase = useSelector(selectPlacesInfoFromDatabase);
     const selectedPlaceInfoFromDatabaseErrors = useSelector(selectPlacesInfoErrors);
     const selectedPlaceExistsInDatabase = useSelector(selectPlaceExistsInDatabase);
 
@@ -609,10 +605,6 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
         // console.log(`getting bounds for ne lat: ${bounds.getNorthEast().lat} ne lng: ${bounds.getNorthEast().lng()}, sw lat: ${bounds.getSouthWest().lat}, sw lng: ${bounds.getSouthWest().lng}`)
         // debugger;
         queryPlacesInBoundsFromBackend(bounds.getNorthEast(), bounds.getSouthWest(), dispatch);
-    }
-
-    const onDrag = () => {
-        // updateMarkers();
     }
     
     const googleMapInContainer = () => {

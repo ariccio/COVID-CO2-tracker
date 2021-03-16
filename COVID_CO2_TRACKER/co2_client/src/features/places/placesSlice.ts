@@ -7,11 +7,11 @@ import {UserInfoMeasurements, defaultMeasurementInfo} from '../../utils/QueryDev
 
 
 export interface SelectedPlaceDatabaseInfo {
-    measurements: Array<UserInfoMeasurements> | null
+    measurements: Array<UserInfoMeasurements>
 }
 
 export const defaultPlaceInfo: SelectedPlaceDatabaseInfo = {
-    measurements: null
+    measurements: [defaultMeasurementInfo]
 }
 
 export interface EachPlaceFromDatabaseForMarker {
