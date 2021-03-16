@@ -27,10 +27,15 @@ class User < ApplicationRecord
     measurements = []
     devices.each.map do |device|
       # byebug
-      device.measurement.order('measurementtime DESC').each.map do |measurement|
-        measurements << ::Measurement.measurement_with_device_place_as_json(measurement, device)
-      end
+      @mine = device.measurement.order('measurementtime DESC')
+      
+
+      # NOTE this can be a very slow query TODO: faster
+      result = Measurement.measurements_as_json(@mine)
+      # byebug
+      measurements << result.flatten
     end
-    measurements
+    # byebug
+    measurements.flatten
   end
 end

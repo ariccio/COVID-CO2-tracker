@@ -55,7 +55,7 @@ function userInfoToStrongType(userInfo: any): UserInfoType {
     if (userInfo.errors !== undefined) {
         return userInfo;
     }
-    debugger;
+    // debugger;
     const return_value: UserInfoType =  {
         user_info: {
             username: userInfo.user_info.email,

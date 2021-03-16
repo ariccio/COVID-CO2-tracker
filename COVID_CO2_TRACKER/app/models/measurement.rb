@@ -18,18 +18,24 @@ class Measurement < ApplicationRecord
   validates_associated :device, :place
 
   # GODDAMNIT I NEED TO WRITE A SERIALIZER
-  def self.measurement_with_device_place_as_json(measurement, device)
+  def self.measurement_with_device_place_as_json(measurement)
     {
-      device_id: device.id,
+      device_id: measurement.device.id,
       measurement_id: measurement.id,
       co2ppm: measurement.co2ppm,
       measurementtime: measurement.measurementtime,
+      crowding: measurement.crowding,
+      location_where_inside_info: measurement.location_where_inside_info,
       place: {
         id: measurement.place.id,
         google_place_id: measurement.place.google_place_id
-      },
-      crowding: measurement.crowding,
-      location_where_inside_info: measurement.location_where_inside_info
+      }
     }
+  end
+
+  def self.measurements_as_json(measurements)
+    measurements.each.map do |measurement|
+      measurement_with_device_place_as_json(measurement)
+    end
   end
 end

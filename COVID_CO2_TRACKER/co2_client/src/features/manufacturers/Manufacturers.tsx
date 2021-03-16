@@ -208,6 +208,7 @@ export const CreateManufacturerOrModel: React.FC<CreateManufacturerOrModelProps>
 
     return (
         <>
+            TODO: this tab seems kinda redundant as a separate nav item?
             {(showAddManufacturer) ? <CreateManufacturerModalDialog showAddManufacturer={showAddManufacturer} setShowAddManufacturer={setShowAddManufacturer}/> : null}
             {renderDropdownOrLoading(knownManufacturers, manufacturerModels, setShowAddManufacturer, location, dispatch, errors)}
             <br/>

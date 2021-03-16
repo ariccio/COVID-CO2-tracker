@@ -1,27 +1,18 @@
 # frozen_string_literal: true
 
-def measurements_serializer(measurements, device_id)
-  # byebug
-  # TODO: DEDUP with version in measurement controller, like an actual serializer :D
-  measurements.each.map do |measurement|
-    {
-      device_id: measurement.device.id, # device_id?
-      measurement_id: measurement.id,
-      co2ppm: measurement.co2ppm,
-      measurementtime: measurement.id,
-      crowding: measurement.crowding,
-      location_where_inside_info: measurement.location_where_inside_info,
-      place: {
-        id: measurement.place.id,
-        google_place_id: measurement.place.google_place_id
-      }
-    }
-  end
-end
+# def measurements_serializer(measurements)
+#   # byebug
+#   # TODO: DEDUP with version in measurement controller, like an actual serializer :D
+#   measurements.each.map do |measurement|
+#     # byebug
+#     Measurement.measurement_with_device_place_as_json(measurement, measurement.device)
+#   end
+# end
 
 def first_ten_measurements(device_id)
   measurements = ::Measurement.where(device_id: device_id).first(10)
-  measurements_serializer(measurements, device_id)
+  # NOTE this can be a very slow query TODO: faster
+  Measurement.measurements_as_json(measurements)
 end
 
 module Api
@@ -111,6 +102,7 @@ module Api
         # byebug
         params.require(:device).permit(:id, :serial, :model_id)
       end
+
     end
   end
 end
