@@ -34,22 +34,24 @@ module Api
         # byebug
         return if @place.nil?
 
-        if place_needs_refresh?(@place)
-          ::Rails.logger.debug("\r\n\tUpdating #{@place.google_place_id}...\r\n")
-          # byebug
-          @spot = get_spot(@place.google_place_id)
-          @place.place_lat = @spot.lat
-          @place.place_lng = @spot.lng
-          # byebug
-          @place.save!
-        end
+        return unless place_needs_refresh?(@place)
+
+        ::Rails.logger.debug("\r\n\tUpdating #{@place.google_place_id}...\r\n")
+        # byebug
+        @spot = get_spot(@place.google_place_id)
+        @place.place_lat = @spot.lat
+        @place.place_lng = @spot.lng
+        # byebug
+        @place.save!
       end
 
       # GET /places/1
       def show
         @place = ::Place.find(params[:id])
         refresh_latlng_from_google
-        ::Rails.logging.warn("Last fetched #{time_ago_in_words(@place.last_fetch)} - Need to update to comply with google caching restrictions!") if @place.last_fetched < 30.days.ago
+        if @place.last_fetched < 30.days.ago
+          ::Rails.logging.warn("Last fetched #{time_ago_in_words(@place.last_fetch)} - Need to update to comply with google caching restrictions!")
+        end
         render(json: @place)
       rescue ::ActiveRecord::RecordNotFound => e
         # TODO: query from the backend too to validate input is correct
@@ -189,9 +191,10 @@ module Api
               place_params[:lng]
             ]
         )
-        places_as_json = found.each.map do |place|
-          ::Place.as_json_for_markers(place)
-        end
+        places_as_json =
+          found.each.map do |place|
+            ::Place.as_json_for_markers(place)
+          end
         # byebug
         render(
           json: {
