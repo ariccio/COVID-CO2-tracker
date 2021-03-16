@@ -6,5 +6,4 @@ class Manufacturer < ApplicationRecord
   has_many :device, through: :model
 
   validates :name, presence: true, uniqueness: true
-
 end

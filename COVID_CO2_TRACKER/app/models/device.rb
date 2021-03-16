@@ -11,5 +11,5 @@ class Device < ApplicationRecord
   validates :model_id, presence: true
   validates :user_id, presence: true
 
-  validates_uniqueness_of :user_id, scope: :model_id, message: 'each device can only belong to single user!'
+  validates :user_id, uniqueness: { scope: :model_id, message: 'each device can only belong to single user!' }
 end

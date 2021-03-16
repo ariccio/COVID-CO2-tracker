@@ -49,7 +49,6 @@ gem 'rbnacl', '~> 7.1'
 
 gem 'jwt', '~> 2.2'
 
-
 # Open source is wonderful.
 gem 'geokit-rails'
 gem 'google_places'

@@ -37,9 +37,7 @@ module Api
       def show
         @place = ::Place.find(params[:id])
         refresh_latlng_from_google
-        if @place.last_fetched < 30.days.ago
-          ::Rails.logging.warn("Last fetched #{time_ago_in_words(@place.last_fetch)} - Need to update to comply with google caching restrictions!")
-        end
+        ::Rails.logging.warn("Last fetched #{time_ago_in_words(@place.last_fetch)} - Need to update to comply with google caching restrictions!") if @place.last_fetched < 30.days.ago
         render(json: @place)
       rescue ::ActiveRecord::RecordNotFound => e
         # TODO: query from the backend too to validate input is correct
@@ -182,7 +180,7 @@ module Api
       def near
         found = ::Place.within(
           1, units: :miles,
-          origin: # no idea what rubocop wants here?
+             origin: # no idea what rubocop wants here?
             [
               place_params[:lat],
               place_params[:lng]
@@ -249,7 +247,7 @@ module Api
         options = {
           fields: 'geometry'
         }
-          @place_client ||= ::GooglePlaces::Client.new(::Rails.application.credentials.maps![:places_backend_api_key], options)
+        @place_client ||= ::GooglePlaces::Client.new(::Rails.application.credentials.maps![:places_backend_api_key], options)
       end
     end
   end
