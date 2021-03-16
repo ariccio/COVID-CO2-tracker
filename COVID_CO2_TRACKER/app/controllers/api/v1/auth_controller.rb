@@ -5,7 +5,6 @@ module Api
     class AuthController < ApplicationController
       skip_before_action :authorized, only: [:create, :email]
 
-
       def render_failed_authentication
         error_array = [create_error('authentication failed! Wrong password.', :not_acceptable.to_s)]
         render(

@@ -34,8 +34,8 @@ end
 group :development do
   # Use sqlite3 as the database for Active Record
   # gem 'sqlite3', '~> 1.4'
-  gem 'rails-erd'
   gem 'active_record_doctor', group: :development
+  gem 'rails-erd'
 end
 
 # group :production do
@@ -51,5 +51,5 @@ gem 'jwt', '~> 2.2'
 
 
 # Open source is wonderful.
-gem 'google_places'
 gem 'geokit-rails'
+gem 'google_places'

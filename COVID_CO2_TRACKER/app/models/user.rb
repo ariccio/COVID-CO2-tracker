@@ -28,9 +28,9 @@ class User < ApplicationRecord
     devices.each.map do |device|
       # byebug
       @mine = device.measurement.order('measurementtime DESC')
-      
 
-      # NOTE this can be a very slow query TODO: faster
+
+      # NOTE: this can be a very slow query TODO: faster
       result = Measurement.measurements_as_json(@mine)
       # byebug
       measurements << result.flatten

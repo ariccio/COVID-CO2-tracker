@@ -1,4 +1,4 @@
-# require 'httparty'
+# frozen_string_literal: true
 
 module Api
   module V1
@@ -21,6 +21,7 @@ module Api
       def refresh_latlng_from_google
         # byebug
         return if @place.nil?
+
         if (@place.place_lat.nil?) || (@place.place_lng.nil?) || (@place.last_fetched.nil?) || (@place.last_fetched && (@place.last_fetched < 30.days.ago))
           ::Rails.logger.debug("\r\n\tUpdating #{@place.google_place_id}...\r\n")
           # byebug
@@ -40,11 +41,11 @@ module Api
           ::Rails.logging.warn("Last fetched #{time_ago_in_words(@place.last_fetch)} - Need to update to comply with google caching restrictions!")
         end
         render(json: @place)
-      rescue ::ActiveRecord::RecordNotFound => exception
+      rescue ::ActiveRecord::RecordNotFound => e
         # TODO: query from the backend too to validate input is correct
         render(
           json: {
-            errors: create_activerecord_notfound_error('Not found!', exception)
+            errors: create_activerecord_notfound_error('Not found!', e)
           }, status: :not_found
         )
       end
@@ -105,7 +106,7 @@ module Api
           fields: 'geometry'
         }
 
-        return @place_client.spot(place_id, options)
+        @place_client.spot(place_id, options)
         # From: C:\Ruby30-x64\lib\ruby\gems\3.0.0\gems\google_places-2.0.0\lib\google_places\request.rb
         # when 'OVER_QUERY_LIMIT'
         #   raise OverQueryLimitError.new(@response)
@@ -118,7 +119,6 @@ module Api
         # when 'NOT_FOUND'
         #   raise NotFoundError.new(@response)
         # end
-
       rescue ::GooglePlaces::OverQueryLimitError => e
         render(
           json: {
@@ -182,7 +182,7 @@ module Api
       def near
         found = ::Place.within(
           1, units: :miles,
-          origin:
+          origin: # no idea what rubocop wants here?
             [
               place_params[:lat],
               place_params[:lng]
@@ -230,27 +230,27 @@ module Api
       # end
 
       private
-        # # Use callbacks to share common setup or constraints between actions.
-        # def set_place
-        #   @place = Place.find(params[:id])
-        # end
 
-        # Only allow a list of trusted parameters through.
-        def place_params
-          params.require(:place).permit(:google_place_id, :last_fetched, :lat, :lng)
-        end
+      # # Use callbacks to share common setup or constraints between actions.
+      # def set_place
+      #   @place = Place.find(params[:id])
+      # end
 
-        def place_bounds_params
-          params.require(:place).permit(:east, :north, :west, :south)
-        end
+      # Only allow a list of trusted parameters through.
+      def place_params
+        params.require(:place).permit(:google_place_id, :last_fetched, :lat, :lng)
+      end
 
-        def setup_places_client
-          options = {
-            fields: 'geometry'
-          }
-            @place_client ||= ::GooglePlaces::Client.new(::Rails.application.credentials.maps![:places_backend_api_key], options)
-        end
+      def place_bounds_params
+        params.require(:place).permit(:east, :north, :west, :south)
+      end
 
+      def setup_places_client
+        options = {
+          fields: 'geometry'
+        }
+          @place_client ||= ::GooglePlaces::Client.new(::Rails.application.credentials.maps![:places_backend_api_key], options)
+      end
     end
   end
 end

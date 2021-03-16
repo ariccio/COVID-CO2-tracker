@@ -4,9 +4,7 @@ MAPS_JAVASCRIPT_API_KEY_PATH = ::Rails.root.join('config', 'keys', 'google_maps_
 
 def maps_javascript_api_key_from_disk
   # byebug
-  return ::Rails.application.credentials.maps![:maps_javascript_api_key]
-
-
+  ::Rails.application.credentials.maps![:maps_javascript_api_key]
   # key = ::IO.binread(::MAPS_JAVASCRIPT_API_KEY_PATH)
   # if key.blank?
   #   ::Rails.logging.error("Check your key file in #{::MAPS_JAVASCRIPT_API_KEY_PATH}")

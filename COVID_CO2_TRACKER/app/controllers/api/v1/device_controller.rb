@@ -11,8 +11,8 @@
 
 def first_ten_measurements(device_id)
   measurements = ::Measurement.where(device_id: device_id).first(10)
-  # NOTE this can be a very slow query TODO: faster
-  Measurement.measurements_as_json(measurements)
+  # NOTE: this can be a very slow query TODO: faster
+  ::Measurement.measurements_as_json(measurements)
 end
 
 module Api
@@ -102,7 +102,6 @@ module Api
         # byebug
         params.require(:device).permit(:id, :serial, :model_id)
       end
-
     end
   end
 end

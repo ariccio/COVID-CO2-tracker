@@ -5,7 +5,6 @@ module Api
     class UsersController < ApplicationController
       skip_before_action :authorized, only: [:create]
 
-
       def render_user_not_found(exception)
         render(
           json: {

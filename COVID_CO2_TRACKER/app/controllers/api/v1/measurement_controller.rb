@@ -10,7 +10,6 @@ module Api
 
         # places_backend_api_key
 
-
         # https://discuss.rubyonrails.org/t/time-now-vs-time-current-vs-datetime-now/75183/15
         # ALSO, TODO: check to see if I should disable timezone conversion on backend?
         # https://discuss.rubyonrails.org/t/time-now-vs-time-current-vs-datetime-now/75183/15
@@ -40,7 +39,7 @@ module Api
         ::Rails.loggger.debug('What hit this route?')
         byebug
         @measurement = ::Measurement.find(measurement_params[:id])
-        as_json_result = Measurement.measurement_with_device_place_as_json(@measurement)
+        as_json_result = ::Measurement.measurement_with_device_place_as_json(@measurement)
         render(
           json: as_json_result,
           status: :ok
