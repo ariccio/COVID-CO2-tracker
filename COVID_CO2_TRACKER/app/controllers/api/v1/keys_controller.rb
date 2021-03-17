@@ -31,7 +31,7 @@ module Api
         when 'GOOGLE_LOGIN_CLIENT_ID'
         render(
           json: {
-            key: ::Rails.application.credentials.google_login![:client_id]
+            key: ::Rails.application.credentials.google_sign_in![:client_id]
           },
           status: :ok
         )

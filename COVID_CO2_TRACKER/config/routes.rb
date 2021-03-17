@@ -23,6 +23,7 @@
       get '/my_devices', to: 'users#my_devices'
       post '/places_near', to: 'places#near'
       post '/places_in_bounds', to: 'places#in_bounds'
+      post '/google_login_token', to: 'auth#token_from_google'
       resources :keys, only: [:show]
     end
   end

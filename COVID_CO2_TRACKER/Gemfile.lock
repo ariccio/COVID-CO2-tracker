@@ -72,6 +72,11 @@ GEM
     concurrent-ruby (1.1.8)
     crass (1.0.6)
     erubi (1.10.0)
+    faraday (1.3.0)
+      faraday-net_http (~> 1.0)
+      multipart-post (>= 1.2, < 3)
+      ruby2_keywords
+    faraday-net_http (1.0.1)
     ffi (1.14.2-x64-mingw32)
     geokit (1.13.1)
     geokit-rails (2.3.2)
@@ -79,8 +84,14 @@ GEM
       rails (>= 3.0)
     globalid (0.4.2)
       activesupport (>= 4.2.0)
+    google-id-token (1.4.2)
+      jwt (>= 1)
     google_places (2.0.0)
       httparty (>= 0.13.1)
+    google_sign_in (1.2.0)
+      google-id-token (>= 1.4.0)
+      oauth2 (>= 1.4.0)
+      rails (>= 5.2.0)
     httparty (0.18.1)
       mime-types (~> 3.0)
       multi_xml (>= 0.5.2)
@@ -102,10 +113,18 @@ GEM
     mini_mime (1.0.2)
     minitest (5.14.3)
     msgpack (1.4.2)
+    multi_json (1.15.0)
     multi_xml (0.6.0)
+    multipart-post (2.1.1)
     nio4r (2.5.5)
     nokogiri (1.11.1-x64-mingw32)
       racc (~> 1.4)
+    oauth2 (1.4.4)
+      faraday (>= 0.8, < 2.0)
+      jwt (>= 1.0, < 3.0)
+      multi_json (~> 1.3)
+      multi_xml (~> 0.5)
+      rack (>= 1.2, < 3)
     pg (1.2.3)
     puma (5.2.1)
       nio4r (~> 2.0)
@@ -152,6 +171,7 @@ GEM
     rexml (3.2.4)
     ruby-graphviz (1.2.5)
       rexml
+    ruby2_keywords (0.0.4)
     sprockets (4.0.2)
       concurrent-ruby (~> 1.0)
       rack (> 1, < 3)
@@ -179,6 +199,7 @@ DEPENDENCIES
   byebug
   geokit-rails
   google_places
+  google_sign_in
   jwt (~> 2.2)
   pg
   puma (~> 5.0)

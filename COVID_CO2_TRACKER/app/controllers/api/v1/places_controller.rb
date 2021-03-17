@@ -50,7 +50,7 @@ module Api
         @place = ::Place.find(params[:id])
         refresh_latlng_from_google
         if @place.last_fetched < 30.days.ago
-          ::Rails.logging.warn("Last fetched #{time_ago_in_words(@place.last_fetch)} - Need to update to comply with google caching restrictions!")
+          ::Rails.logger.warn("Last fetched #{time_ago_in_words(@place.last_fetch)} - Need to update to comply with google caching restrictions!")
         end
         render(json: @place)
       rescue ::ActiveRecord::RecordNotFound => e

@@ -21,6 +21,9 @@ import {manufacturersPath, homePath, devicesPath, profilePath, deviceModelsPath,
 
 import './App.css';
 import { getGoogleLoginClientAPIKey } from './utils/GoogleAPIKeys';
+import { postRequestOptions } from './utils/DefaultRequestOptions';
+import { fetchJSONWithChecks } from './utils/FetchHelpers';
+import { API_URL } from './utils/UrlPath';
 
 
 const renderRedirect = () =>
@@ -44,6 +47,39 @@ const routes = () =>
     <Route exact path='/' render={renderRedirect}/>
   </>
 
+const sendIDTokenToServer = (id_token: string) => {
+  const def = postRequestOptions();
+  const options = {
+    ...def,
+    body: JSON.stringify({id_token})
+  };
+
+  const fetchFailedCallback = async (awaitedResponse: Response): Promise<any> => {
+    console.error("login to server with google failed");
+    debugger;
+    return awaitedResponse.json();
+  }
+
+  const fetchSuccessCallback = async (awaitedResponse: Response): Promise<any> => {
+    return awaitedResponse.json();
+  }
+
+  const url = (API_URL + '/google_login_token');
+  const result = fetchJSONWithChecks(url, options, 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<any>;
+  result.then((response) => {
+    console.log(response);
+    debugger;
+  }).catch((error) => {
+    console.error(error);
+    debugger;
+  })
+}
+
+const sendToServer = (response: GoogleLoginResponse | GoogleLoginResponseOffline) => {
+  const id_token = (response as GoogleLoginResponse).getAuthResponse().id_token;
+  sendIDTokenToServer(id_token);
+}
+
 const googleLoginSuccessCallback = (response: GoogleLoginResponse | GoogleLoginResponseOffline) => {
   //https://developers.google.com/identity/sign-in/web/backend-auth
   console.log(response);
@@ -52,7 +88,9 @@ const googleLoginSuccessCallback = (response: GoogleLoginResponse | GoogleLoginR
     return;
   }
   // If I dont pass a responseType, it's undefined, and thus, I ge ta GoogleLoginResponse.
-  console.log((response as GoogleLoginResponse).getAuthResponse().id_token)
+  console.log((response as GoogleLoginResponse).getAuthResponse().id_token);
+  sendToServer(response);
+
   debugger;
 }
 

@@ -52,3 +52,5 @@ gem 'jwt', '~> 2.2'
 # Open source is wonderful.
 gem 'geokit-rails'
 gem 'google_places'
+
+gem 'google_sign_in'

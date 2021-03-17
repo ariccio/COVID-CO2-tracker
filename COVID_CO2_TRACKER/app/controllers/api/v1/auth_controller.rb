@@ -97,6 +97,24 @@ module Api
         )
       end
 
+      def token_from_google
+        # only one param
+        decoded = GoogleSignIn::Identity.new(params[:id_token])
+        
+        # The ID token payload is very confusing. See here under "An ID token's payload":
+        # https://developers.google.com/identity/protocols/oauth2/openid-connect
+        # GoogleSignIn::Identity maps sub to user_id, (see https://github.com/basecamp/google_sign_in/blob/12d9fea3ab409f7c3aff2972f9bff96b765ec721/lib/google_sign_in/identity.rb#L5)
+        # where sub is 
+        # "An identifier for the user, unique among all Google accounts and never reused.
+        # A Google account can have multiple email addresses at different points in time,
+        # but the sub value is never changed. Use sub within your application as the unique-identifier key for the user.
+        # Maximum length of 255 case-sensitive ASCII characters."
+        Rails.logger.debug decoded
+        byebug
+
+      end
+
+
       private
 
       def user_login_params
