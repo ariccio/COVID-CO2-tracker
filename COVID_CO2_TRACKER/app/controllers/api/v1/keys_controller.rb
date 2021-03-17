@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-MAPS_JAVASCRIPT_API_KEY_PATH = ::Rails.root.join('config', 'keys', 'google_maps_javascript_api_key.txt.key')
+# MAPS_JAVASCRIPT_API_KEY_PATH = ::Rails.root.join('config', 'keys', 'google_maps_javascript_api_key.txt.key')
 
 def maps_javascript_api_key_from_disk
   # byebug
@@ -28,6 +28,13 @@ module Api
             },
             status: :ok
           )
+        when 'GOOGLE_LOGIN_CLIENT_ID'
+        render(
+          json: {
+            key: ::Rails.application.credentials.google_login![:client_id]
+          },
+          status: :ok
+        )
         else
           render(
             json: {
