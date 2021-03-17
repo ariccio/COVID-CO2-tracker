@@ -71,19 +71,19 @@ export function logoutRequestOptions(): RequestInit {
 // Very helpful:
 // https://jasonwatmore.com/post/2019/04/06/react-jwt-authentication-tutorial-example#authentication-service-js
 // Return String is jwt token 
-// export function fromLocalStorage(): string {
-//     const item: string | null = localStorage.getItem('currentUser');
-//     if ((item === null) || (item === undefined) || (item === "undefined")) {
-//         console.log('No cached login credentials.');
-//         return '';
-//     }
-//     return item;
-// }
+export function fromLocalStorage(): string {
+    const item: string | null = localStorage.getItem('currentUser');
+    if ((item === null) || (item === undefined) || (item === "undefined")) {
+        console.log('No cached login credentials.');
+        return '';
+    }
+    return item;
+}
 
-// export function clearLocalStorage(): void {
-//     // https://developer.mozilla.org/en-US/docs/Web/API/Storage/clear
-//     localStorage.clear();
-// }
+export function clearLocalStorage(): void {
+    // https://developer.mozilla.org/en-US/docs/Web/API/Storage/clear
+    localStorage.clear();
+}
 
 export interface LoginResponse {
     email: string,
