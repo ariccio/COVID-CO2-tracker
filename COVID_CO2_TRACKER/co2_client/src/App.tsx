@@ -3,7 +3,11 @@ import React, {useEffect, useState} from 'react';
 // import {useSelector, useDispatch} from 'react-redux';
 import {Route, Redirect} from 'react-router-dom';
 
-import {GoogleLogin, GoogleLogout, GoogleLoginResponse, GoogleLoginResponseOffline} from 'react-google-login';
+// import {GoogleLogin, GoogleLogout, GoogleLoginResponse, GoogleLoginResponseOffline} from 'react-google-login';
+
+import GoogleOneTapLogin from 'react-google-one-tap-login';
+import { IGoogleEndPointResponse } from 'react-google-one-tap-login/dist/types/types';
+
 
 // import {RootState} from './app/rootReducer';
 // import {selectUsername, setUsername} from './features/login/loginSlice';
@@ -44,20 +48,20 @@ const routes = () =>
     <Route exact path='/' render={renderRedirect}/>
   </>
 
-const googleLoginSuccessCallback = (response: GoogleLoginResponse | GoogleLoginResponseOffline) => {
+const googleLoginSuccessCallback = (response: IGoogleEndPointResponse) => {
   //https://developers.google.com/identity/sign-in/web/backend-auth
   console.log(response);
-  if (response.code) {
-    debugger;
-    return;
-  }
+  // if (response.code) {
+  //   debugger;
+  //   return;
+  // }
   // If I dont pass a responseType, it's undefined, and thus, I ge ta GoogleLoginResponse.
-  console.log((response as GoogleLoginResponse).getAuthResponse().id_token)
+  // console.log((response as GoogleLoginResponse).getAuthResponse().id_token)
   debugger;
 }
 
-const googleLoginFailedCallback = (response: GoogleLoginResponse | GoogleLoginResponseOffline) => {
-  console.log(response);
+const googleLoginFailedCallback = (error?: string | Error) => {
+  console.log(error);
   debugger;
 }
 
@@ -84,8 +88,10 @@ const renderLogin = (loginAPIKey: string, errorState: string) => {
   }
   return (
     <>
-      <GoogleLogin clientId={loginAPIKey} onSuccess={googleLoginSuccessCallback} onFailure={googleLoginFailedCallback}/>
-      <GoogleLogout clientId={loginAPIKey} onLogoutSuccess={googleLogoutSuccessCallback} />
+      <GoogleOneTapLogin onError={googleLoginFailedCallback} onSuccess={googleLoginSuccessCallback} googleAccountConfigs={{client_id: loginAPIKey}}>
+        <>
+        </>
+      </GoogleOneTapLogin>
     </>
   )
 }
