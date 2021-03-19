@@ -39,15 +39,6 @@ class ApplicationController < ::ActionController::API
     encode_with_jwt(payload)
   end
 
-  def auth_header
-    # { Authorization: 'Bearer <token>' }
-    request.headers['Authorization']
-  end
-
-  def decoded_token
-
-  end
-
   def authenticate_user
     # byebug
     return if (cookies.signed[:jwt].nil?)
