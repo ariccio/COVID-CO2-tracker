@@ -4,10 +4,12 @@ import { RootState } from '../../app/store';
 
 interface LoginState {
     username: string;
+    jwt: string;
 }
 
 const initialState: LoginState = {
-    username: ''
+    username: '',
+    jwt: ''
 }
 
 
@@ -17,6 +19,9 @@ export const loginSlice = createSlice({
     reducers: {
         setUsername: (state, action: PayloadAction<string>) => {
             state.username = action.payload;
+        },
+        setJWT: (state, action: PayloadAction<string>) => {
+            state.jwt = action.payload;
         }
     }
 })
@@ -24,5 +29,5 @@ export const loginSlice = createSlice({
 export const {setUsername} = loginSlice.actions;
 
 export const selectUsername = (state: RootState) => state.login.username;
-
+export const selectJWT = (state: RootState) => state.login.jwt;
 export const loginReducer = loginSlice.reducer;

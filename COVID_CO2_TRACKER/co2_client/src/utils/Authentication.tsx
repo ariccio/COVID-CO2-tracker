@@ -69,12 +69,14 @@ export function logoutRequestOptions(): RequestInit {
 
 export interface LoginResponse {
     email: string,
+    jwt: string,
     errors?: Array<ErrorObjectType>
     // jwt: string
 }
 
 export interface SignupResponse {
     email: string,
+    jwt: string,
     errors?: Array<ErrorObjectType>
 }
 
