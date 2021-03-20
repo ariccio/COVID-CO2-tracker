@@ -102,6 +102,14 @@ module Api
         # decoded = GoogleSignIn::Identity.new(params[:id_token])
         
         decoded_with_googleauth = Google::Auth::IDTokens.verify_oidc(params[:id_token])
+        Rails.logger.debug decoded_with_googleauth
+        byebug
+        # NOTE: "jti" field is a neat security event identifier: https://developers.google.com/identity/protocols/risc#python
+        # See more in the RFC for JWT: https://tools.ietf.org/html/rfc7519
+        # Would be more useful if I did sessions server side, but in theory I could revoke with blacklisting,
+        # and prune the blacklist frequently with cookie/jwt expiration.
+
+
         # The ID token payload is very confusing. See here under "An ID token's payload":
         # https://developers.google.com/identity/protocols/oauth2/openid-connect
         # GoogleSignIn::Identity maps sub to user_id, (see https://github.com/basecamp/google_sign_in/blob/12d9fea3ab409f7c3aff2972f9bff96b765ec721/lib/google_sign_in/identity.rb#L5)
@@ -110,8 +118,25 @@ module Api
         # A Google account can have multiple email addresses at different points in time,
         # but the sub value is never changed. Use sub within your application as the unique-identifier key for the user.
         # Maximum length of 255 case-sensitive ASCII characters."
-        # Rails.logger.debug decoded
-        byebug
+        # ...
+        # "sub" is likely the same "sub" from the JWT RFC?
+        # https://tools.ietf.org/html/rfc7519
+
+        # at_hash: "Access token hash. Provides validation that the access token is tied to the identity token. 
+        # If the ID token is issued with an access_token value in the server flow, this claim is always included.
+        # This claim can be used as an alternate mechanism to protect against cross-site request forgery attacks,
+        # but if you follow Step 1 and Step 3 it is not necessary to verify the access token."
+        # NOTE: I'm PRETTY SURE on the frontend this is all handled by the components below me (e.g. gapi through react-google-login)
+        # pretty sure as in I've spent several days investigating and I'm about 85% sure, even though I can't really
+        # reverse engineer the gapi code right now. Have you seen how obfuscated it is?
+        # 
+        # ON THE BACK END, here, at_hash is validated by Google::Auth::IDTokens.verify_oidc.
+
+        # NOTE: (TO SELF): client_secret isn't needed when using this flow. The google oauth docs suggest it is, but
+        # REMEMBER, we're not using that.
+
+        # iat: The time the ID token was issued. Represented in Unix time (integer seconds).
+        # This may be useful in the future for dealing with sessions. Would be more useful if I did sessions server side.
 
       end
 

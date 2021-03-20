@@ -191,6 +191,7 @@ export async function fetchFailed(awaitedResponseOriginal: Response, expectedSta
     if ((!awaitedResponseCloned.ok) || (parsedJSONResponse.errors !== undefined) ) {
         if (parsedJSONResponse.error !== undefined) {
             console.error("maybe internal server error?");
+            console.error(parsedJSONResponse.error);
             if (alertErrors) {
                 alert("possible internal server error, check debugger for details!");
             }
@@ -218,6 +219,7 @@ export async function fetchFailed(awaitedResponseOriginal: Response, expectedSta
         }
         if (parsedJSONResponse.error !== undefined) {
             console.error("maybe internal server error?");
+            console.error(parsedJSONResponse.error);
             if (alertErrors) {
                 alert("possible internal server error, check debugger for details!");
             }

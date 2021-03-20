@@ -24,6 +24,7 @@ import { getGoogleLoginClientAPIKey } from './utils/GoogleAPIKeys';
 import { postRequestOptions } from './utils/DefaultRequestOptions';
 import { fetchJSONWithChecks } from './utils/FetchHelpers';
 import { API_URL } from './utils/UrlPath';
+import { setGoogleAuthResponse, setGoogleProfile } from './features/login/loginSlice';
 
 
 const renderRedirect = () =>
@@ -75,21 +76,29 @@ const sendIDTokenToServer = (id_token: string) => {
   })
 }
 
-const sendToServer = (response: GoogleLoginResponse | GoogleLoginResponseOffline) => {
-  const id_token = (response as GoogleLoginResponse).getAuthResponse().id_token;
+const sendToServer = (response: GoogleLoginResponse) => {
+  const id_token = response.getAuthResponse().id_token;
   sendIDTokenToServer(id_token);
 }
 
-const googleLoginSuccessCallback = (response: GoogleLoginResponse | GoogleLoginResponseOffline) => {
+const googleLoginSuccessCallback = (originalResponse: GoogleLoginResponse | GoogleLoginResponseOffline) => {
   //https://developers.google.com/identity/sign-in/web/backend-auth
-  console.log(response);
-  if (response.code) {
+  console.log(originalResponse);
+  if (originalResponse.code) {
+    console.warn("refresh token?");
+    console.warn("https://github.com/anthonyjgrove/react-google-login/blob/master/README.md: If responseType is 'code', callback will return the authorization code that can be used to retrieve a refresh token from the server.");
+    
     debugger;
     return;
   }
-  // If I dont pass a responseType, it's undefined, and thus, I ge ta GoogleLoginResponse.
-  console.log((response as GoogleLoginResponse).getAuthResponse().id_token);
-  sendToServer(response);
+  // If I dont pass a responseType, code is undefined, and thus the type is a GoogleLoginResponse.
+  //https://developers.google.com/identity/sign-in/web/reference#gapiauth2authresponse
+  const castedResponse = originalResponse as GoogleLoginResponse; 
+  // debugger;
+  setGoogleProfile(castedResponse.profileObj);
+  setGoogleAuthResponse(castedResponse.getAuthResponse());
+  console.log(castedResponse.getAuthResponse().id_token);
+  sendToServer(castedResponse);
 
   debugger;
 }
@@ -120,9 +129,10 @@ const renderLogin = (loginAPIKey: string, errorState: string) => {
       </>
     );
   }
+  // https://github.com/anthonyjgrove/react-google-login/blob/master/README.md
   return (
     <>
-      <GoogleLogin clientId={loginAPIKey} onSuccess={googleLoginSuccessCallback} onFailure={googleLoginFailedCallback}/>
+      <GoogleLogin clientId={loginAPIKey} onSuccess={googleLoginSuccessCallback} onFailure={googleLoginFailedCallback} isSignedIn={true}/>
       <GoogleLogout clientId={loginAPIKey} onLogoutSuccess={googleLogoutSuccessCallback} />
     </>
   )
