@@ -1,13 +1,15 @@
 # frozen_string_literal: true
 
 class User < ApplicationRecord
-  has_secure_password
+  # has_secure_password
   # app/models/user.rb:6:3: C: Rails/HasManyOrHasOneDependent: Specify a :dependent option.
   has_many :devices, dependent: :restrict_with_exception
   has_many :measurement, -> { distinct }, through: :devices
   # app/models/user.rb:7:3: C: Rails/UniqueValidationWithoutIndex: Uniqueness validation should be with a unique index.
   validates :email, presence: true, uniqueness: true
-  validates :password_digest, presence: true
+  # validates :password_digest, presence: true
+  validates :name, presence: true
+  validates :sub_google_uid, presence: true, uniqueness: true, length: {minimum: 1}
   def my_devices
     user_devices = devices
     user_devices.each.map do |device|

@@ -16,6 +16,18 @@ module Api
         )
       end
 
+      def render_signature_verification_failed(exception)
+        error_array = [create_error('signature verification failed, google id token invalid!', :not_acceptable.to_s)]
+        error_array << single_error('', exception)
+        render(
+          json: {
+            errors:
+            error_array
+          },
+          status: :unauthorized # 401
+        )
+      end
+
       def render_successful_authentication
         # encode token comes from ApplicationController
         token = encode_token(user_id: @user.id)
@@ -32,6 +44,29 @@ module Api
       def render_activerecord_notfound_error_invalid_username_or_password(exception)
         error_array = [create_error('Invalid username or password!', :not_acceptable.to_s)]
         error_array << create_activerecord_notfound_error('Invalid username or password!', exception)
+        render(
+          json: {
+            errors:
+              error_array
+          },
+          status: :unauthorized # 401
+        )
+      end
+
+      def render_invalid_google_login_params(exception, bad_param)
+        error_array = [create_error("parameter #{bad_param} not valid", :not_acceptable.to_s)]
+        error_array << create_activerecord_notfound_error("triggered path by not finding existing user", exception)
+        render(
+          json: {
+            errors:
+              error_array
+          },
+          status: :unauthorized # 401
+        )
+      end
+
+      def render_email_not_yet_validated(exception)
+        error_array = [create_error("google account email not yet validated, I'm not gonna accept that right now, to hopefully prevent spam", exception)]
         render(
           json: {
             errors:
@@ -60,17 +95,46 @@ module Api
         )
       end
 
+      def render_creation_activerecord_error(exception)
+        render(
+          json: {
+            errors: [create_activerecord_error('User info not valid!', exception)]
+          },
+          status: :unauthorized
+        )
+      end
+
+      def create_user_with_google(e)
+        # byebug
+        return render_invalid_google_login_params(e, :sub) if @decoded_token["sub"].nil?
+        return render_invalid_google_login_params(e, :sub) if @decoded_token["sub"].empty?
+        return render_invalid_google_login_params(e, :email_verified) if @decoded_token["email_verified"].nil?
+        return render_email_not_yet_validated(e) if !(@decoded_token["email_verified"])
+        return render_invalid_google_login_params(e, :email) if @decoded_token["email"].nil?
+        return render_invalid_google_login_params(e, :email) if @decoded_token["email"].empty?
+        # byebug
+        @user = User.create!(email: @decoded_token["email"], name: @decoded_token["name"], sub_google_uid: @decoded_token["sub"])
+        render_successful_authentication
+      rescue ::ActiveRecord::RecordInvalid => creation_exception
+        render_creation_activerecord_error(creation_exception)
+      end
+
       # Note to self: https://philna.sh/blog/2020/01/15/test-signed-cookies-in-rails/
       def create
-        @user = ::User.find_by!(email: user_login_params[:email])
-        # User#authenticate comes from BCrypt
-        if @user.authenticate(user_login_params[:password])
-          render_successful_authentication
-        else
-          render_failed_authentication
-        end
+        @decoded_token = token_from_google
+        # byebug
+        @user = ::User.find_by!(sub_google_uid: @decoded_token["sub"])
+        # byebug
+        render_successful_authentication
+        
+        # deliberately do not handle ActiveRecord::SoleRecordExceeded right now. This should be an internal server error?
+        
+      # See: C:\Ruby30-x64\lib\ruby\gems\3.0.0\gems\googleauth-0.16.0\lib\googleauth\id_tokens\errors.rb
+      rescue Google::Auth::IDTokens::SignatureError => se #(Token not verified as issued by Google):
+        Rails.logger.warn "user_login_google_params[:id_token]: #{user_login_google_params[:id_token]} invalid! This shouldn't happen."
+        render_signature_verification_failed(se)
       rescue ::ActiveRecord::RecordNotFound => e
-        render_activerecord_notfound_error_invalid_username_or_password(e)
+        create_user_with_google(e)
       end
 
       def email
@@ -100,10 +164,11 @@ module Api
       def token_from_google
         # only one param
         # decoded = GoogleSignIn::Identity.new(params[:id_token])
-        
-        decoded_with_googleauth = Google::Auth::IDTokens.verify_oidc(params[:id_token])
-        Rails.logger.debug decoded_with_googleauth
-        byebug
+        # byebug
+        decoded_with_googleauth = Google::Auth::IDTokens.verify_oidc(user_login_google_params.fetch(:id_token))
+        # byebug
+        # Rails.logger.debug decoded_with_googleauth
+        # byebug
         # NOTE: "jti" field is a neat security event identifier: https://developers.google.com/identity/protocols/risc#python
         # See more in the RFC for JWT: https://tools.ietf.org/html/rfc7519
         # Would be more useful if I did sessions server side, but in theory I could revoke with blacklisting,
@@ -135,13 +200,22 @@ module Api
         # NOTE: (TO SELF): client_secret isn't needed when using this flow. The google oauth docs suggest it is, but
         # REMEMBER, we're not using that.
 
+        # exp: Expiration time on or after which the ID token must not be accepted. Represented in Unix time (integer seconds).
         # iat: The time the ID token was issued. Represented in Unix time (integer seconds).
         # This may be useful in the future for dealing with sessions. Would be more useful if I did sessions server side.
 
+
+        # NOTE: (TO SELF): as per https://developers.google.com/assistant/identity/google-sign-in-oauth, they recommend
+        # checking if both the stored sub and email fields match
+        decoded_with_googleauth
       end
 
 
       private
+      def user_login_google_params
+        # :sub, :email, :email_verified, :name
+        params.require(:user).permit(:id_token)
+      end
 
       def user_login_params
         # byebug

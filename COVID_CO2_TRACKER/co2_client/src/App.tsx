@@ -26,6 +26,8 @@ import { fetchJSONWithChecks } from './utils/FetchHelpers';
 import { API_URL } from './utils/UrlPath';
 import { setGoogleAuthResponse, setGoogleProfile } from './features/login/loginSlice';
 
+const LOGIN_URL = API_URL + '/auth';
+
 
 const renderRedirect = () =>
   <Redirect to={homePath}/>
@@ -48,11 +50,23 @@ const routes = () =>
     <Route exact path='/' render={renderRedirect}/>
   </>
 
+
+const includeCreds: RequestCredentials = "include";
+
 const sendIDTokenToServer = (id_token: string) => {
   const def = postRequestOptions();
   const options = {
     ...def,
-    body: JSON.stringify({id_token})
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    credentials: includeCreds, //for httpOnly cookie
+    body: JSON.stringify({
+      user: {
+        id_token
+      }
+    })
   };
 
   const fetchFailedCallback = async (awaitedResponse: Response): Promise<any> => {
@@ -65,8 +79,8 @@ const sendIDTokenToServer = (id_token: string) => {
     return awaitedResponse.json();
   }
 
-  const url = (API_URL + '/google_login_token');
-  const result = fetchJSONWithChecks(url, options, 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<any>;
+  // const url = (API_URL + '/google_login_token');
+  const result = fetchJSONWithChecks(LOGIN_URL, options, 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<any>;
   result.then((response) => {
     console.log(response);
     debugger;
@@ -87,7 +101,7 @@ const googleLoginSuccessCallback = (originalResponse: GoogleLoginResponse | Goog
   if (originalResponse.code) {
     console.warn("refresh token?");
     console.warn("https://github.com/anthonyjgrove/react-google-login/blob/master/README.md: If responseType is 'code', callback will return the authorization code that can be used to retrieve a refresh token from the server.");
-    
+
     debugger;
     return;
   }

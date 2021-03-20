@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_03_15_213627) do
+ActiveRecord::Schema.define(version: 2021_03_20_220231) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -79,7 +79,10 @@ ActiveRecord::Schema.define(version: 2021_03_15_213627) do
     t.text "auth_token"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.string "name"
+    t.string "sub_google_uid"
     t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["sub_google_uid"], name: "index_users_on_sub_google_uid", unique: true
   end
 
   add_foreign_key "device_models", "manufacturers"
