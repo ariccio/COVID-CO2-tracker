@@ -19,7 +19,7 @@ module Api
     class KeysController < ApplicationController
       skip_before_action :authorized, only: [:show]
       def show
-        api_name_requested = params[:id]
+        api_name_requested = params.fetch(:id)
         case api_name_requested
         when 'MAPS_JAVASCRIPT_API_KEY'
           render(

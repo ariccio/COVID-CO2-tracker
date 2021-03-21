@@ -47,7 +47,7 @@ module Api
 
       # GET /places/1
       def show
-        @place = ::Place.find(params[:id])
+        @place = ::Place.find(params.fetch(:id))
         refresh_latlng_from_google
         if @place.last_fetched < 30.days.ago
           ::Rails.logger.warn("Last fetched #{time_ago_in_words(@place.last_fetch)} - Need to update to comply with google caching restrictions!")
@@ -63,7 +63,7 @@ module Api
       end
 
       def place_by_google_place_id_exists
-        @place = ::Place.find_by!(google_place_id: params[:google_place_id])
+        @place = ::Place.find_by!(google_place_id: params.fetch(:google_place_id))
         refresh_latlng_from_google
         render(
           json: {
@@ -86,7 +86,7 @@ module Api
 
       def show_by_google_place_id
         # byebug
-        @place = ::Place.find_by!(google_place_id: params[:google_place_id])
+        @place = ::Place.find_by!(google_place_id: params.fetch(:google_place_id))
         refresh_latlng_from_google
         measurements = place_measurementtime_desc
         render(
@@ -99,7 +99,7 @@ module Api
       rescue ::ActiveRecord::RecordNotFound => e
         # TODO: query from the backend too to validate input is correct
         # byebug
-        error_array = [create_error("#{params[:google_place_id]} does not exist in database. Not necessarily an error!", :not_acceptable.to_s)]
+        error_array = [create_error("#{params.fetch(:google_place_id)} does not exist in database. Not necessarily an error!", :not_acceptable.to_s)]
         error_array << create_activerecord_notfound_error('not found', e)
         render(
           json: {
@@ -165,10 +165,10 @@ module Api
         # byebug
         # byebug
         # @spot.lat, @spot.lng
-        @spot = get_spot(place_params[:google_place_id])
+        @spot = get_spot(place_params.fetch(:google_place_id))
 
         # https://discuss.rubyonrails.org/t/time-now-vs-time-current-vs-datetime-now/75183/2
-        @place = ::Place.create!(google_place_id: place_params[:google_place_id], place_lat: @spot.lat, place_lng: @spot.lng, last_fetched: ::Time.current)
+        @place = ::Place.create!(google_place_id: place_params.fetch(:google_place_id), place_lat: @spot.lat, place_lng: @spot.lng, last_fetched: ::Time.current)
         render(
           json: {
             place_id: @place.id
@@ -187,8 +187,8 @@ module Api
           1, units: :miles,
              origin: # no idea what rubocop wants here?
             [
-              place_params[:lat],
-              place_params[:lng]
+              place_params.fetch(:lat),
+              place_params.fetch(:lng)
             ]
         )
         places_as_json =
@@ -204,8 +204,8 @@ module Api
       end
 
       def in_bounds
-        @sw = ::Geokit::LatLng.new(place_bounds_params[:south], place_bounds_params[:west])
-        @ne = ::Geokit::LatLng.new(place_bounds_params[:north], place_bounds_params[:east])
+        @sw = ::Geokit::LatLng.new(place_bounds_params.fetch(:south), place_bounds_params.fetch(:west))
+        @ne = ::Geokit::LatLng.new(place_bounds_params.fetch(:north, place_bounds_params.fetch(:east))
         found = ::Place.in_bounds([@sw, @ne])
         places_as_json =
           found.each.map do |place|

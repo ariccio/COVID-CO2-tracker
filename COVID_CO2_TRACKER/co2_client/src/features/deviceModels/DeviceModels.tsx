@@ -116,7 +116,7 @@ export const DeviceModels: React.FC<RouteComponentProps<DeviceModelsProps>> = (p
                 if (response.errors !== undefined) {
                     setErrorState(formatErrors(response.errors));
                 }
-                debugger;
+                // debugger;
             }).catch((errors) => {
                 debugger;
                 setErrorState(errors.message);

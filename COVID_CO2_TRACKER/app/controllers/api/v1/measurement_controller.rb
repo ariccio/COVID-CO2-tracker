@@ -16,14 +16,14 @@ module Api
       skip_before_action :authorized, only: [:show]
       def create
         # byebug
-        @place = ::Place.find_by!(google_place_id: measurement_params[:google_place_id])
+        @place = ::Place.find_by!(google_place_id: measurement_params.fetch(:google_place_id))
 
         # places_backend_api_key
 
         # https://discuss.rubyonrails.org/t/time-now-vs-time-current-vs-datetime-now/75183/15
         # ALSO, TODO: check to see if I should disable timezone conversion on backend?
         # https://discuss.rubyonrails.org/t/time-now-vs-time-current-vs-datetime-now/75183/15
-        @new_measurement = ::Measurement.create!(device_id: measurement_params[:device_id], co2ppm: measurement_params[:co2ppm], measurementtime: ::Time.current, place_id: @place.id, crowding: measurement_params[:crowding], location_where_inside_info: measurement_params[:location_where_inside_info])
+        @new_measurement = ::Measurement.create!(device_id: measurement_params.fetch(:device_id), co2ppm: measurement_params.fetch(:co2ppm), measurementtime: ::Time.current, place_id: @place.id, crowding: measurement_params.fetch(:crowding), location_where_inside_info: measurement_params.fetch(:location_where_inside_info))
 
         render(
           json: measurement_controller_create_response_as_json(@new_measurement),
@@ -42,7 +42,7 @@ module Api
         # TODO: what reaches this route?
         ::Rails.loggger.debug('What hit this route?')
         byebug
-        @measurement = ::Measurement.find(measurement_params[:id])
+        @measurement = ::Measurement.find(measurement_params.fetch(:id))
         as_json_result = ::Measurement.measurement_with_device_place_as_json(@measurement)
         render(
           json: as_json_result,

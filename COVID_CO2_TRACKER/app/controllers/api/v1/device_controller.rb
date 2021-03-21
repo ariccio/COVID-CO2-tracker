@@ -53,7 +53,7 @@ module Api
 
       def show
         # byebug
-        @device_instance = ::Device.find(params[:id])
+        @device_instance = ::Device.find(params.fetch(:id))
         render(
           json: {
             device_id: @device_instance.id,
