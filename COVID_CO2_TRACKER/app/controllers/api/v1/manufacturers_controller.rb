@@ -24,7 +24,7 @@ module Api
       skip_before_action :authorized, only: [:show, :all_manufacturers]
       def create
         # byebug
-        @new_manufacturer = ::Manufacturer.create!(name: manufacturer_params[:name])
+        @new_manufacturer = ::Manufacturer.create!(name: manufacturer_params.fetch(:name))
         render(
           json: {
             manufacturer_id: @new_manufacturer.id,
@@ -42,7 +42,7 @@ module Api
       end
 
       def show
-        @manufacturer = ::Manufacturer.find(params[:id])
+        @manufacturer = ::Manufacturer.find(params.fetch(:id))
         render(
           json: {
             manufacturer_id: @manufacturer.id,

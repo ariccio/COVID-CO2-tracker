@@ -4,7 +4,7 @@ module Api
   module V1
     class ModelController < ApplicationController
       def create
-        @new_model = ::Model.create!(name: model_params[:name], manufacturer_id: model_params[:manufacturer_id])
+        @new_model = ::Model.create!(name: model_params.fetch(:name), manufacturer_id: model_params.fetch(:manufacturer_id))
         render(
           json: {
             model_id: @new_model.id,
@@ -25,7 +25,7 @@ module Api
       def show
         # byebug
         # TODO: write a damn serializer
-        @model = ::Model.find(params[:id])
+        @model = ::Model.find(params.fetch(:id))
         render(
           json: ::Model.show_as_json(@model),
           status: :ok

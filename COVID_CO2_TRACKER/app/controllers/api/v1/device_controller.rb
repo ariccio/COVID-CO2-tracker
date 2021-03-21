@@ -29,8 +29,8 @@ module Api
     class DeviceController < ApplicationController
       skip_before_action :authorized, only: [:show]
       def create
-        @model = ::Model.find_by(id: device_params[:model_id])
-        @new_device_instance = ::Device.create!(serial: device_params[:serial], model_id: device_params[:model_id], user: current_user)
+        @model = ::Model.find_by(id: device_params.fetch(:model_id))
+        @new_device_instance = ::Device.create!(serial: device_params.fetch(:serial), model_id: device_params.fetch(:model_id), user: current_user)
         render(
           json: device_create_response_as_json(@new_device_instance),
           status: :created
@@ -75,7 +75,7 @@ module Api
       end
 
       def destroy
-        @device_instance = ::Device.find(params[:id])
+        @device_instance = ::Device.find(params.fetch(:id))
         # byebug
         if @device_instance.user != current_user
           return render(
