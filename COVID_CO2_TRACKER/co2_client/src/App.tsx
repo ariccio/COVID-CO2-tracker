@@ -97,7 +97,7 @@ const sendToServer = (response: GoogleLoginResponse) => {
 
 const googleLoginSuccessCallback = (originalResponse: GoogleLoginResponse | GoogleLoginResponseOffline) => {
   //https://developers.google.com/identity/sign-in/web/backend-auth
-  console.log(originalResponse);
+  // console.log(originalResponse);
   if (originalResponse.code) {
     console.warn("refresh token?");
     console.warn("https://github.com/anthonyjgrove/react-google-login/blob/master/README.md: If responseType is 'code', callback will return the authorization code that can be used to retrieve a refresh token from the server.");
@@ -111,7 +111,6 @@ const googleLoginSuccessCallback = (originalResponse: GoogleLoginResponse | Goog
   // debugger;
   setGoogleProfile(castedResponse.profileObj);
   setGoogleAuthResponse(castedResponse.getAuthResponse());
-  console.log(castedResponse.getAuthResponse().id_token);
   sendToServer(castedResponse);
 
   debugger;

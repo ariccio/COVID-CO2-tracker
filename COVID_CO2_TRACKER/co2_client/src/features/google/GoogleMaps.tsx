@@ -307,7 +307,7 @@ const containerStyle = {
 };
 
 const options = (center: google.maps.LatLngLiteral): google.maps.MapOptions => {
-    console.log(`new options ${center}`)
+    // console.log(`new options ${center}`)
     return {
         //default tweaked for manhattan
         zoom: 18,
@@ -629,7 +629,7 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
     }
 
     if (isLoaded) {
-        console.log(`Selected place ID string from google maps: ${selectedPlace.place_id}`);
+        selectedPlace.place_id && console.log(`Selected place ID string from google maps: ${selectedPlace.place_id}`);
         return (
             <>
                 {googleMapInContainer()}
