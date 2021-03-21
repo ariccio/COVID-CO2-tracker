@@ -15,9 +15,10 @@ import {formatErrors} from '../../utils/ErrorObject';
 import {manufacturersPath, homePath, devicesPath, profilePath, deviceModelsPath} from '../../paths/paths';
 
 // import {HomePage} from '../home/HomePage';
-import {selectUsername, setUsername} from '../login/loginSlice';
+import {selectGoogleProfile, selectUsername, setUsername, GoogleProfile} from '../login/loginSlice';
 
 import {get_email} from '../../utils/Authentication';
+import { GoogleLoginLogoutContainer } from '../login/Login';
 
 type NavBarProps = {
 }
@@ -36,21 +37,25 @@ const renderLoginSignup = (): JSX.Element =>
 
 
 const loggedIn = (username: string) =>
-  <NavDropdown title={`${username}!`} id="basic-nav-dropdown">
+  <NavDropdown title={username} id="basic-nav-dropdown" flip alignRight renderMenuOnMount>
     <NavDropdown.Item>
         <LinkContainer to={profilePath}>
             <NavItem className='nav-item'>{username}'s profile</NavItem>
         </LinkContainer>
     </NavDropdown.Item>
     <NavDropdown.Item>
-        <Logout/>
+      <GoogleLoginLogoutContainer/>
     </NavDropdown.Item>
   </NavDropdown>
 
 function loginOrSignupMaybe(username: string): JSX.Element {
   if (username === '') {
     console.log("no username, rendering login/signup options")
-    return renderLoginSignup();
+    return (
+      <>
+        <GoogleLoginLogoutContainer/>        
+      </>
+    )
   }
   console.log("logged in, rendering profile and logout")
   return loggedIn(username);
@@ -68,7 +73,8 @@ function loginOrSignupMaybe(username: string): JSX.Element {
 */
 
 interface UserNavProps {
-    username: string
+    username: string,
+    googleProfile: GoogleProfile | null
 }
 
 // const profileIfLoggedIn = (username: string): JSX.Element => {
@@ -84,7 +90,7 @@ interface UserNavProps {
 //     )
 // }
 
-const UserNav: React.FC<UserNavProps> = ({username}) =>
+const UserNav: React.FC<UserNavProps> = ({username, googleProfile}) =>
     <Navbar expand="sm" /*bg="dark" variant="dark"*/ >
         <Navbar.Toggle aria-controls="basic-navbar-nav"/>
         <Navbar.Collapse  id="basic-navbar-nav">
@@ -126,7 +132,7 @@ const loadEmail = (dispatch: ReturnType<typeof useDispatch>) => {
         debugger;
       }
       console.log("got email: ", email.email)
-      dispatch(setUsername(email.email));
+      dispatch(setUsername(`(loggin in...) ${email.email}`));
     }
     else {
       console.error('failed to get email!');
@@ -142,11 +148,15 @@ const loadEmail = (dispatch: ReturnType<typeof useDispatch>) => {
 
 export const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
     const username = useSelector(selectUsername);
+    const googleProfile = useSelector(selectGoogleProfile);
+    // if (googleProfile !== null) {
+    //   debugger;
+    // }
     const dispatch = useDispatch();
     useEffect(() => {loadEmail(dispatch)}, [dispatch]);
     // const setUsername_ 
     if (username !== '') {
       console.log(`Current username: ${username}`)
     }
-    return <UserNav username={username}/>;
+    return <UserNav username={username} googleProfile={googleProfile}/>;
 }
