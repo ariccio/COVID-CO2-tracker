@@ -205,7 +205,7 @@ module Api
 
       def in_bounds
         @sw = ::Geokit::LatLng.new(place_bounds_params.fetch(:south), place_bounds_params.fetch(:west))
-        @ne = ::Geokit::LatLng.new(place_bounds_params.fetch(:north, place_bounds_params.fetch(:east))
+        @ne = ::Geokit::LatLng.new(place_bounds_params.fetch(:north), place_bounds_params.fetch(:east))
         found = ::Place.in_bounds([@sw, @ne])
         places_as_json =
           found.each.map do |place|

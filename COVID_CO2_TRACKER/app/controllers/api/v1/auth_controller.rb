@@ -32,7 +32,7 @@ module Api
         # encode token comes from ApplicationController
         token = encode_token(user_id: @user.id)
         # for good advice on httponly: https://www.thegreatcodeadventure.com/jwt-storage-in-rails-the-right-way/
-        cookies.signed[:jwt] = { value: token, httponly: true }
+        cookies.signed[:jwt] = { value: token, httponly: true, expires: 1.hour }
         render(
           json: {
             email: @user.email
