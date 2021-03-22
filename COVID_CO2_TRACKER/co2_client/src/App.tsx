@@ -16,7 +16,7 @@ import {Devices, Device} from './features/devices/Devices';
 import {CreateManufacturerOrModel} from './features/manufacturers/Manufacturers';
 import {DeviceModels} from './features/deviceModels/DeviceModels';
 
-import {manufacturersPath, homePath, devicesPath, profilePath, deviceModelsPath} from './paths/paths';
+import {homePath, devicesPath, profilePath, deviceModelsPath} from './paths/paths';
 
 import './App.css';
 import {GoogleLoginLogoutContainer} from './features/login/Login';
@@ -34,8 +34,6 @@ const routes = () =>
     {/* <Route exact path={loginPath} component={LoginComponent} /> */}
     {/* <Route exact path={signupPath} component={SignupComponent}/> */}
     
-    {/* TODO: manufactureres nested route for each manufacturer */}
-    <Route path={manufacturersPath} component={CreateManufacturerOrModel}/>
     <Route path={`${deviceModelsPath}/:deviceModelId`} component={DeviceModels}/>
     <Route path={`${devicesPath}/:deviceId`} component={Device}/>
     <Route path={devicesPath} component={Devices}/>

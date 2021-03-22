@@ -12,7 +12,7 @@ import { LinkContainer } from 'react-router-bootstrap';
 import {Logout} from '../login/Logout';
 import {formatErrors} from '../../utils/ErrorObject';
 
-import {manufacturersPath, homePath, devicesPath, profilePath, deviceModelsPath} from '../../paths/paths';
+import {homePath, devicesPath, profilePath, deviceModelsPath} from '../../paths/paths';
 
 // import {HomePage} from '../home/HomePage';
 import {selectGoogleProfile, selectUsername, setUsername, GoogleProfile} from '../login/loginSlice';
@@ -100,9 +100,6 @@ const UserNav: React.FC<UserNavProps> = ({username, googleProfile}) =>
                 </LinkContainer>
                 <LinkContainer to={devicesPath}>
                     <Nav.Link>Devices</Nav.Link>
-                </LinkContainer>
-                <LinkContainer to={manufacturersPath}>
-                    <Nav.Link>Manufacturers</Nav.Link>
                 </LinkContainer>
                 <LinkContainer to={deviceModelsPath}>
                     <Nav.Link>Models</Nav.Link>
