@@ -38,7 +38,7 @@ const devicesToDropdown = (userDevices: UserDevicesInfo) => {
     return userDevices.devices.map((value: UserInfoDevice, index: number) => {
         return (
             <Dropdown.Item eventKey={`${value.device_id}`} key={`${value.device_id}-${value.device_model_id}-${value.device_manufacturer_id}-eventKey-dropdown`}>
-                {value.device_model} - {value.device_model}
+                {value.device_model} (#{value.serial})
             </Dropdown.Item>
         );
     })

@@ -8,6 +8,8 @@ import {deleteRequestOptions} from '../../utils/DefaultRequestOptions';
 import { API_URL } from '../../utils/UrlPath';
 import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
 import { ErrorObjectType, formatErrors } from '../../utils/ErrorObject';
+import { updateUserInfo } from '../profile/Profile';
+import { useDispatch } from 'react-redux';
 
 const deviceTableHeader = () =>
     <thead>
@@ -49,7 +51,7 @@ async function deleteDevice(deviceId: number): Promise<DeleteDeviceResponse> {
     return result;
 }
 
-const handleDeleteDeviceClick = (event: React.MouseEvent<HTMLElement, MouseEvent>, deviceId: number) => {
+const handleDeleteDeviceClick = (event: React.MouseEvent<HTMLElement, MouseEvent>, deviceId: number, dispatch: ReturnType<typeof useDispatch>) => {
     event.stopPropagation();
     event.preventDefault();
     const result = deleteDevice(deviceId);
@@ -59,11 +61,12 @@ const handleDeleteDeviceClick = (event: React.MouseEvent<HTMLElement, MouseEvent
             return;
         }
         console.log(response);
+        updateUserInfo(dispatch);
     })
 
 }
 
-const mapDevicesToTableBody = (devices: Array<UserInfoDevice>)/*: JSX.Element*/ => {
+const mapDevicesToTableBody = (devices: Array<UserInfoDevice>, dispatch: ReturnType<typeof useDispatch>)/*: JSX.Element*/ => {
     return devices.map((device, index: number) => {
         return (
             <tr key={deviceRowKey(device.device_id)}>                
@@ -72,15 +75,15 @@ const mapDevicesToTableBody = (devices: Array<UserInfoDevice>)/*: JSX.Element*/ 
                 <td><Link to={`${devicesPath}/${device.device_id}`}>{device.serial}</Link></td>
                 <td><Link to={`${deviceModelsPath}/${device.device_model_id}`}>{device.device_model}</Link></td>
                 <td><Link to={`${devicesPath}/${device.device_id}`}>{device.device_manufacturer}</Link></td>
-                <td><Button onClick={(event) => handleDeleteDeviceClick(event, device.device_id)}>Delete device?</Button></td>
+                <td><Button onClick={(event) => handleDeleteDeviceClick(event, device.device_id, dispatch)}>Delete device?</Button></td>
             </tr>
         )
     })
 }
 
-const deviceTableBody = (devices: Array<UserInfoDevice>): JSX.Element =>
+const deviceTableBody = (devices: Array<UserInfoDevice>, dispatch: ReturnType<typeof useDispatch>): JSX.Element =>
     <tbody>
-        {mapDevicesToTableBody(devices)}
+        {mapDevicesToTableBody(devices, dispatch)}
     </tbody>
 
 
@@ -90,11 +93,12 @@ interface DevicesTableProps {
 
 //devices: Array<UserInfoDevice>
 export const DevicesTable: React.FC<DevicesTableProps> = (props: DevicesTableProps) => {
+    const dispatch = useDispatch();
     return (
         <>
             <Table striped bordered hover>
                 {deviceTableHeader()}
-                {deviceTableBody(props.devices)}
+                {deviceTableBody(props.devices, dispatch)}
             </Table>
 
         </>
