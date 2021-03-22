@@ -6,6 +6,7 @@ import {placesReducer} from '../features/google/googleSlice';
 import {manufacturerReducer} from '../features/manufacturers/manufacturerSlice';
 import {devicemodelsReducer} from '../features/deviceModels/deviceModelsSlice';
 import {placesInfoReducer} from '../features/places/placesSlice';
+import { profileReducer } from '../features/profile/profileSlice';
 
 export const rootReducer = combineReducers({
     counter: counterReducer,
@@ -14,7 +15,8 @@ export const rootReducer = combineReducers({
     places: placesReducer,
     manufacturer: manufacturerReducer,
     devicemodels: devicemodelsReducer,
-    placesInfo: placesInfoReducer
+    placesInfo: placesInfoReducer,
+    profile: profileReducer
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

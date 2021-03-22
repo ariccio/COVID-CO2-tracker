@@ -57,6 +57,23 @@ module Api
         )
       end
 
+      def destroy
+        measurement = @user.measurement.find(params[:id])
+        measurement.destroy!
+        render(
+          json: {
+
+          }, status: :ok
+        )
+      rescue ::ActiveRecord::RecordNotFound => e
+        render(
+          json: {
+            errors: [create_activerecord_error("couldn't find measurement #{params[:id]} for deletion.", e)]
+          },
+          status: :not_found
+        )
+      end
+
       def measurement_params
         params.require(:measurement).permit(:id, :device_id, :co2ppm, :measurementtime, :google_place_id, :crowding, :location_where_inside_info)
       end

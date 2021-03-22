@@ -13,7 +13,7 @@
       resources :manufacturers, only: [:create, :show]
       resources :model, only: [:create, :show]
       resources :places, only: [:show, :create]
-      resources :measurement, only: [:show, :create]
+      resources :measurement, only: [:show, :create, :destroy]
 
       get '/all_manufacturers', to: 'manufacturers#all_manufacturers'
       delete '/auth', to: 'auth#destroy'

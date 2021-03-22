@@ -76,7 +76,8 @@ module Api
 
       def destroy
         @device_instance = ::Device.find(params.fetch(:id))
-        # byebug
+        # TODO: I should do this *through* the user.
+        byebug
         if @device_instance.user != current_user
           return render(
             json: {
@@ -88,7 +89,7 @@ module Api
         if measurement_count.positive?
           return render(
             json: {
-              errors: [create_error("I haven't built the functionality to delete devices with measurements yet. Device has #{measurement_count} measurements")]
+              errors: [create_error("I haven't built the functionality to delete devices with measurements yet. Device has #{measurement_count} measurements. Delete them first.")]
             }, status: :not_implemented
           )
         end

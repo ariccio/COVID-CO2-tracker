@@ -142,7 +142,7 @@ const NEW_MEASUREMENT_URL = (API_URL + '/measurement');
 
 function newMeasurementRequestInit(selectedDevice: number, enteredCO2: string, placeId: string, enteredCrowding: string, enteredLocationDetails: string): RequestInit {
     const defaultOptions = postRequestOptions();
-    debugger;
+    // debugger;
     const newOptions = {
         ...defaultOptions,
         body: JSON.stringify({
