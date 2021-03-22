@@ -127,7 +127,7 @@ export const DeviceModels: React.FC<RouteComponentProps<DeviceModelsProps>> = (p
     if (props.match.params.deviceModelId === undefined) {
         return (
             <>
-                Will contain a page with stats by-device-model, eventually. <br/>
+                No model selected. <br/>
                 
             </>
         );     
@@ -138,7 +138,6 @@ export const DeviceModels: React.FC<RouteComponentProps<DeviceModelsProps>> = (p
 
             {/* </Route> */}
             <p>
-                Will contain a page with stats by-device-model, eventually.
                 You selected device model: {props.match.params.deviceModelId}
                 {basicDeviceModelInfo(deviceModelInfo, errorState)}
                 {showAddModel ? <CreateDeviceModelModalDialog showAddModel={showAddModel} setShowAddModel={setShowAddModel}/> : null}

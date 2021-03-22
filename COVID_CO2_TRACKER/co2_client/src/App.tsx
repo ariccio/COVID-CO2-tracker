@@ -39,7 +39,7 @@ const routes = () =>
     <Route path={`${deviceModelsPath}/:deviceModelId`} component={DeviceModels}/>
     <Route path={`${devicesPath}/:deviceId`} component={Device}/>
     <Route path={devicesPath} component={Devices}/>
-    <Route path={deviceModelsPath} component={DeviceModels}/>
+    <Route exact path={deviceModelsPath} component={DeviceModels}/>
     <Route exact path='/' render={renderRedirect}/>
   </>
 
