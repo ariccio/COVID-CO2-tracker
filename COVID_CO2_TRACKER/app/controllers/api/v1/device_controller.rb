@@ -1,14 +1,5 @@
 # frozen_string_literal: true
 
-# def measurements_serializer(measurements)
-#   # byebug
-#   # TODO: DEDUP with version in measurement controller, like an actual serializer :D
-#   measurements.each.map do |measurement|
-#     # byebug
-#     Measurement.measurement_with_device_place_as_json(measurement, measurement.device)
-#   end
-# end
-
 def first_ten_measurements(device_id)
   measurements = ::Measurement.where(device_id: device_id).first(10)
   # NOTE: this can be a very slow query TODO: faster
