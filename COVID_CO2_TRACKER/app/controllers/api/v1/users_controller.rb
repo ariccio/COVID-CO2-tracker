@@ -16,7 +16,7 @@ module Api
 
       # Note to self: https://philna.sh/blog/2020/01/15/test-signed-cookies-in-rails/
       def create
-        Rails.logger.warn "TODO: remove this route."
+        Rails.logger.warn 'TODO: remove this route.'
         @user = ::User.create!(user_params)
         token = encode_token(user_id: @user.id)
 

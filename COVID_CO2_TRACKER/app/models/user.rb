@@ -9,7 +9,7 @@ class User < ApplicationRecord
   validates :email, presence: true, uniqueness: true
   # validates :password_digest, presence: true
   validates :name, presence: true
-  validates :sub_google_uid, presence: true, uniqueness: true, length: {minimum: 1}
+  validates :sub_google_uid, presence: true, uniqueness: true, length: { minimum: 1 }
   def my_devices
     user_devices = devices
     user_devices.each.map do |device|
