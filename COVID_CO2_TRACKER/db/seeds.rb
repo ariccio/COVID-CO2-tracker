@@ -15,7 +15,7 @@ return if ::ENV.fetch('RAILS_ENV', 'development') != 'development'
 
 contoso = ::Manufacturer.find_or_create_by!(name: 'Contoso')
 
-first_user = ::User.find_or_create_by!(email: 'alexander@alexander', password_digest: ::BCrypt::Password.create('fart'))
+first_user = ::User.find_or_create_by!(email: 'alexander@alexander')
 
 contoso_one =
   ::Model.find_or_create_by!(name: 'Contoso 1') do |dm|
@@ -32,8 +32,8 @@ first_device =
 
 me = ::User.find_by!(email: 'alexander@alexander')
 
-a_place = ::Place.find_or_create_by!(google_place_id: 'lfasieufielaiejf;aiewefjeoif;wief;jewfiwof;afewijf;aief;wef')
-me.devices.first.measurement.create!(co2ppm: 500, google_place_id: a_place)
+# a_place = ::Place.find_or_create_by!(google_place_id: 'lfasieufielaiejf;aiewefjeoif;wief;jewfiwof;afewijf;aief;wef', last_fetched: Time.now)
+# me.devices.first.measurement.create!(co2ppm: 500, place_id: a_place.id)
 
 # YES THIS WORKS!:
 # irb(main):005:0> User.first.devices.first.measurements.create!(co2ppm: 400)
@@ -43,3 +43,4 @@ me.devices.first.measurement.create!(co2ppm: 500, google_place_id: a_place)
 #   Measurement Create (1.4ms)  INSERT INTO "measurements" ("device_id", "co2ppm", "created_at", "updated_at") VALUES (?, ?, ?, ?)  [["device_id", 1], ["co2ppm", 400], ["created_at", "2021-02-16 01:09:54.353737"], ["updated_at", "2021-02-16 01:09:54.353737"]]
 #   TRANSACTION (102.4ms)  commit transaction
 # => #<Measurement id: 2, device_id: 1, co2ppm: 400, measurementtime: nil, created_at: "2021-02-16 01:09:54.353737000 +0000", updated_at: "2021-02-16 01:09:54.353737000 +0000">
+AdminUser.create!(email: 'admin@example.com', password: 'password', password_confirmation: 'password') if Rails.env.development?

@@ -42,5 +42,10 @@ module COVIDCo2Tracker
     config.api_only = true
 
     config.middleware.use(::ActionDispatch::Cookies)
+
+    # Middleware for ActiveAdmin
+    config.middleware.use Rack::MethodOverride
+    config.middleware.use ActionDispatch::Flash
+    config.middleware.use ActionDispatch::Session::CookieStore
   end
 end
