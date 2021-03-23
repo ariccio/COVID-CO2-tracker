@@ -29,7 +29,7 @@ module Api
       end
 
       def render_successful_authentication
-        # encode token comes from ApplicationController
+        # encode token comes from ApplicationController/ApiController
         token = encode_token(user_id: @user.id)
         # for good advice on httponly: https://www.thegreatcodeadventure.com/jwt-storage-in-rails-the-right-way/
         cookies.signed[:jwt] = { value: token, httponly: true, expires: 1.hour }
