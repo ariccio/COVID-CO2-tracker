@@ -163,7 +163,6 @@ export const Devices: React.FC<{}> = () => {
             <h3>
                 Add your devices and view stats
             </h3>
-            TODO: this flow is bad
             <br/>
             {selectModelOrUnselectModel(selectedModelName, dispatch)}
             {selectedModelName !== '' ?  renderAddDeviceButton(createDeviceClicked, setCreateClicked, setShowAddDeviceInstance, selectedModelName) : null}

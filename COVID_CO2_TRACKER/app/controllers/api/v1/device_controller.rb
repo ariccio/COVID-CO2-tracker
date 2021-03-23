@@ -86,8 +86,6 @@ module Api
 
       def destroy
         @device_instance = @user.devices.find(params.fetch(:id))
-        # TODO: I should do this *through* the user.
-        # byebug
         if @device_instance.user != current_user
           return render(
             json: {
