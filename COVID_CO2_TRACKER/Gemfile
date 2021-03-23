@@ -58,3 +58,4 @@ gem 'googleauth'
 
 gem 'activeadmin'
 gem 'devise' # for activeadmin
+gem 'sassc-rails' # needed for css in activeadmin
