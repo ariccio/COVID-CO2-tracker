@@ -231,9 +231,9 @@ const googleLoginSuccessCallback = (originalResponse: GoogleLoginResponse | Goog
 
 const googleLoginFailedCallback = (error: any, setGoogleLoginErrorState: React.Dispatch<React.SetStateAction<string>>) => {
     console.error(error);
-    setGoogleLoginErrorState(error);
-    alert(`Login failed! ${error}`);
-    debugger;
+    // debugger;
+    setGoogleLoginErrorState(`${error.error}, ${error.details}`);
+    alert(`Login failed! ${error.details} Google login does not work in incognito mode.`);
 }
 
 const googleLogoutSuccessCallback = (dispatch: ReturnType<typeof useDispatch>) => {
@@ -258,7 +258,7 @@ export const GoogleLoginLogoutContainer: React.FC<LoginContainerProps> = () => {
     const googleProfile = useSelector(selectGoogleProfile);
 
     const dispatch = useDispatch();
-
+    // debugger;
     useEffect(() => {
         if (loginAPIKey !== '') {
             return;
@@ -266,6 +266,7 @@ export const GoogleLoginLogoutContainer: React.FC<LoginContainerProps> = () => {
         getGoogleLoginClientAPIKey().then((key: string) => {
             dispatch(setLoginAPIKey(key));
         }).catch((error) => {
+            debugger;
             dispatch(setAPIKeyErrorState(error.message));
         });
     }, [dispatch])

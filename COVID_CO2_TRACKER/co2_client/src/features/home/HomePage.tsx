@@ -1,7 +1,6 @@
 import React, {CSSProperties, FunctionComponent, useEffect, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {useLocation, Link} from 'react-router-dom';
-import {Button} from 'react-bootstrap';
 
 
 import {selectSelectedPlace, defaultGooglePlacesState, selectPlacesServiceStatus, selectMapsAPIKey, selectMapsAPIKeyErrorState, setMapsAPIKey, setMapsAPIKeyErrorState} from '../google/googleSlice';
@@ -17,6 +16,8 @@ import {MeasurementsTable} from '../measurements/MeasurementsTable';
 // import { current } from '@reduxjs/toolkit';
 
 import {placesPath} from '../../paths/paths';
+
+import {renderNewMeasurementButton} from './NewMeasurementButton';
 
 const renderLinkToPlacesWithName = (place_id?: string, name?: string) => {
     if (place_id === undefined) {
@@ -244,28 +245,7 @@ const mapsDivStyle: CSSProperties = {
     justifyContent: "left"
 }
 
-const clickHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, showCreateNewMeasurement: boolean) => {
-    event.stopPropagation();
-    event.preventDefault();
-    setShowCreateNewMeasurement(!showCreateNewMeasurement);
-}
 
-const renderNewMeasurementButton = (currentPlace: google.maps.places.PlaceResult, location: ReturnType<typeof useLocation>, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, showCreateNewMeasurement: boolean) => {
-    if (!currentPlace.place_id) {
-        console.log('not rendering button to add measurement.');
-        return null;
-    }
-    return (
-        <>
-            <Button variant="primary" onClick={(event) => clickHandler(event, setShowCreateNewMeasurement, showCreateNewMeasurement)}>
-                <b>Upload a new measurement for <i>{currentPlace.name}</i></b>
-            </Button>
-            {/* <Link to={{pathname:`/places/???/createmeasurement`, state: {background: location}}} className="btn btn-primary">
-                
-            </Link> */}
-        </>
-    )
-}
 
 // TODO: exporting from here is REALLY sloppy. Fix later.
 export const renderFromDatabaseNoGoogleParam = (selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo, selectedPlaceInfoErrors: string, selectedPlaceExistsInDatabase: boolean | null) => {

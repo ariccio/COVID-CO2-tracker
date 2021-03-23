@@ -117,9 +117,11 @@ const selectModelOrUnselectModel = (selectedModelName: string, dispatch: ReturnT
         <>
             {unselectModelButton(selectedModelName, dispatch)}
             <br/>
+            <br/>
         </>
     )
 }
+
 
 export const Devices: React.FC<{}> = () => {
     
@@ -138,23 +140,8 @@ export const Devices: React.FC<{}> = () => {
     const dispatch = useDispatch();
     useEffect(() => {
         updateUserInfo(dispatch);
-
-        // //TODO: should be in redux
-        // const userInfoPromise: Promise<UserInfoType> = queryUserInfo();
-        // userInfoPromise.then((userInfo) => {
-        //     if (userInfo.errors !== undefined) {
-        //         // setNotLoggedIn(true);
-        //         setErrorState(formatErrors(userInfo.errors));
-        //         return;
-        //     }
-        //     // console.log(userInfo);
-        //     setUserInfo(userInfo)
-        // }).catch((errors) => {
-        //     // debugger;
-        //     setErrorState(errors.message);
-        // })
     }, [])
-
+    // debugger;
     if (userInfo === defaultUserInfo) {
         if (errorState !== '') {
             return (
@@ -171,11 +158,11 @@ export const Devices: React.FC<{}> = () => {
         );
     }
 
-
-
-    
     return (
         <>
+            <h3>
+                Add your devices and view stats
+            </h3>
             TODO: this flow is bad
             <br/>
             {selectModelOrUnselectModel(selectedModelName, dispatch)}

@@ -50,6 +50,8 @@ export const Place: React.FC<RouteComponentProps<PlaceProps>> = (props) => {
         <>
             Place {props.match.params.placeId}
             {renderFromDatabaseNoGoogleParam(selectedPlaceInfoFromDatabase, selectedPlaceInfoFromDatabaseErrors, selectedPlaceExistsInDatabase)}
+            <br/>
+            There will be graphs and risk analysis here, eventually.
         </>
     )
 }
