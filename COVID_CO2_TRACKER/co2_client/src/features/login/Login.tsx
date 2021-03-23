@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { GoogleLogin, GoogleLogout, GoogleLoginResponse, GoogleLoginResponseOffline } from 'react-google-login';
 
 
-import { setUsername, selectGoogleProfile, selectLoginAPIKey, setLoginAPIKey } from './loginSlice';
+import { setUsername, selectGoogleProfile, selectLoginAPIKey, setLoginAPIKey, setAPIKeyErrorState, selectAPIKeyErrorState } from './loginSlice';
 
 import { logout } from '../../utils/Authentication';
 import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
@@ -251,18 +251,22 @@ export interface LoginContainerProps {
 export const GoogleLoginLogoutContainer: React.FC<LoginContainerProps> = () => {
     // const [loginAPIKey, setLoginAPIKey] = useState('');
 
-    const [apiKeyErrorState, setApiKeyErrorState] = useState("");
+    // const [apiKeyErrorState, setApiKeyErrorState] = useState("");
     const [googleLoginErrorState, setGoogleLoginErrorState] = useState("");
+    const apiKeyErrorState = useSelector(selectAPIKeyErrorState);
     const loginAPIKey = useSelector(selectLoginAPIKey);
     const googleProfile = useSelector(selectGoogleProfile);
 
     const dispatch = useDispatch();
 
     useEffect(() => {
+        if (loginAPIKey !== '') {
+            return;
+        }
         getGoogleLoginClientAPIKey().then((key: string) => {
             dispatch(setLoginAPIKey(key));
         }).catch((error) => {
-            setApiKeyErrorState(error.message);
+            dispatch(setAPIKeyErrorState(error.message));
         });
     }, [dispatch])
 

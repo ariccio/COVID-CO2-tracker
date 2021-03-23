@@ -11,7 +11,6 @@ import {HomePage} from './features/home/HomePage';
 import {Profile} from './features/profile/Profile';
 // import {LoginComponent, SignupComponent} from './features/login/Login';
 import {Devices, Device} from './features/devices/Devices';
-//import {Signup} from './features/signup/Signup';
 // import {get_email} from './utils/Authentication';
 import {DeviceModels} from './features/deviceModels/DeviceModels';
 import {Place} from './features/places/Place';
@@ -35,6 +34,7 @@ const routes = () =>
     <Route path={`${deviceModelsPath}/:deviceModelId`} component={DeviceModels}/>
     <Route path={`${devicesPath}/:deviceId`} component={Device}/>
     <Route path={devicesPath} component={Devices}/>
+    <Route exact path={placesPath} component={Place}/>
     <Route exact path={deviceModelsPath} component={DeviceModels}/>
     <Route exact path='/' render={renderRedirect}/>
   </>

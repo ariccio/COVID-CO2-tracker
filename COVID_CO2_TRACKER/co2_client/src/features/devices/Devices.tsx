@@ -1,6 +1,6 @@
 
 import React, {useEffect, useState}  from 'react';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {RouteComponentProps} from 'react-router-dom';
 import {Button} from 'react-bootstrap';
 import {UserInfoType, queryUserInfo, defaultUserInfo} from '../../utils/QueryUserInfo';
@@ -12,9 +12,12 @@ import {CreateManufacturerOrModel} from '../manufacturers/Manufacturers';
 // import {devicesPath} from '../../paths/paths';
 import { formatErrors } from '../../utils/ErrorObject';
 
-import {selectSelectedModelName} from '../deviceModels/deviceModelsSlice';
+import {selectSelectedDevice, selectSelectedModel, selectSelectedModelName, setSelectedModel, setSelectedModelName} from '../deviceModels/deviceModelsSlice';
 
 import {CreateMyDeviceInstance} from '../create/CreateDeviceInstance';
+import { updateUserInfo } from '../profile/Profile';
+import { selectUserInfoErrorState, selectUserInfoState } from '../profile/profileSlice';
+import { selectSelectedManufacturer } from '../manufacturers/manufacturerSlice';
 
 interface deviceProps {
     deviceId: string
@@ -22,6 +25,9 @@ interface deviceProps {
 
 export function Device(props: RouteComponentProps<deviceProps>) {
     // console.log(props.match.params.deviceId)
+
+    const selectedModel = useSelector(selectSelectedModel);
+    const selectedDevice = useSelector(selectSelectedDevice);
 
     const [deviceInfo, setDeviceInfo] = useState(defaultDeviceInfoResponse);
     const [errorState, setErrorState] = useState('');
@@ -63,48 +69,91 @@ export function Device(props: RouteComponentProps<deviceProps>) {
 }
 
 
+const renderAddDeviceButton = (createDeviceClicked: boolean, setCreateClicked: React.Dispatch<React.SetStateAction<boolean>>, setShowAddDeviceInstance: React.Dispatch<React.SetStateAction<boolean>>, selectedModelName: string) => {
+    return (
+        <>
+            <Button variant={"primary"} onClick={() => {setCreateClicked(!createDeviceClicked); setShowAddDeviceInstance(true)}}>
+                Add my {selectedModelName}:
+            </Button>
+        </>
+    )
+}
+
+const renderShowAddDevice = (showAddDeviceInstance: boolean, setShowAddDeviceInstance: React.Dispatch<React.SetStateAction<boolean>>) => {
+    if (showAddDeviceInstance) {
+        return (
+            <>
+                <p>
+                    Selected device:
+                </p>
+
+                <CreateMyDeviceInstance showAddDeviceInstance={showAddDeviceInstance} setShowAddDeviceInstance={setShowAddDeviceInstance}/>
+            </>
+        )
+    }
+    return null;
+}
+
+
+const unselectModelButton = (selectedModelName: string, dispatch: ReturnType<typeof useDispatch>) =>
+    <Button variant="secondary" onClick={() => {dispatch(setSelectedModel(-1)); dispatch(setSelectedModelName(''))}}>
+        Unselect {selectedModelName}
+    </Button>
+
+
+const selectModelOrUnselectModel = (selectedModelName: string, dispatch: ReturnType<typeof useDispatch>) => {
+    if (selectedModelName === '') {
+        return (
+            <>
+                <CreateManufacturerOrModel/>
+                <br/>
+                <br/>
+                <br/>
+                <br/>
+            </>
+        );
+    }
+    return (
+        <>
+            {unselectModelButton(selectedModelName, dispatch)}
+            <br/>
+        </>
+    )
+}
 
 export const Devices: React.FC<{}> = () => {
     
-    const [userInfo, setUserInfo] = useState(defaultUserInfo);
+    // const [userInfo, setUserInfo] = useState(defaultUserInfo);
     const [createDeviceClicked, setCreateClicked] = useState(false);
     // const [notLoggedIn, setNotLoggedIn] = useState(false);
-    const [errorState, setErrorState] = useState('');
+    // const [errorState, setErrorState] = useState('');
     const selectedModelName = useSelector(selectSelectedModelName);
+    // const selectedManufacturer = useSelector(selectSelectedManufacturer);
+    const userInfo = useSelector(selectUserInfoState);
+    const errorState = useSelector(selectUserInfoErrorState);
 
-    //Buggy.
+
+    //Buggy. It might be better if these were in redux anyways.
     const [showAddDeviceInstance, setShowAddDeviceInstance] = useState((selectedModelName !== '') && createDeviceClicked);
-
+    const dispatch = useDispatch();
     useEffect(() => {
+        updateUserInfo(dispatch);
 
-        //TODO: should be in redux
-        const userInfoPromise: Promise<UserInfoType> = queryUserInfo();
-        userInfoPromise.then((userInfo) => {
-            if (userInfo.errors !== undefined) {
-                // setNotLoggedIn(true);
-                setErrorState(formatErrors(userInfo.errors));
-                return;
-            }
-            // console.log(userInfo);
-            setUserInfo(userInfo)
-        }).catch((errors) => {
-            // debugger;
-            setErrorState(errors.message);
-        })
+        // //TODO: should be in redux
+        // const userInfoPromise: Promise<UserInfoType> = queryUserInfo();
+        // userInfoPromise.then((userInfo) => {
+        //     if (userInfo.errors !== undefined) {
+        //         // setNotLoggedIn(true);
+        //         setErrorState(formatErrors(userInfo.errors));
+        //         return;
+        //     }
+        //     // console.log(userInfo);
+        //     setUserInfo(userInfo)
+        // }).catch((errors) => {
+        //     // debugger;
+        //     setErrorState(errors.message);
+        // })
     }, [])
-
-    // if (notLoggedIn) {
-    //     return (
-    //         <>
-    //             <h1>
-    //                 Not logged in!
-    //             </h1>
-    //             <p>
-    //                 {errorState}
-    //             </p>
-    //         </>
-    //     );
-    // }
 
     if (userInfo === defaultUserInfo) {
         if (errorState !== '') {
@@ -123,46 +172,20 @@ export const Devices: React.FC<{}> = () => {
     }
 
 
-    const renderAddDeviceButton = () => {
-        return (
-            <>
-                <Button variant={createDeviceClicked ? "secondary" : "primary"} onClick={() => {setCreateClicked(!createDeviceClicked); setShowAddDeviceInstance(true)}}>
-                    Add my device:
-                </Button>
-            </>
-        )
-    }
 
-    const renderShowAddDevice = () => {
-        if (showAddDeviceInstance) {
-            return (
-                <>
-                    <CreateMyDeviceInstance showAddDeviceInstance={showAddDeviceInstance} setShowAddDeviceInstance={setShowAddDeviceInstance}/>
-                </>
-            )
-        }
-        return null;
-    }
     
     return (
         <>
             TODO: this flow is bad
-
-            <CreateManufacturerOrModel/>
             <br/>
-            <br/>
-            <br/>
-            <br/>
-            {selectedModelName !== '' ?  renderAddDeviceButton() : null}
+            {selectModelOrUnselectModel(selectedModelName, dispatch)}
+            {selectedModelName !== '' ?  renderAddDeviceButton(createDeviceClicked, setCreateClicked, setShowAddDeviceInstance, selectedModelName) : null}
 
 
             <br/>
             <br/>
             <br/>
-            <p>
-                Selected device:
-            </p>
-            {renderShowAddDevice()}
+            {renderShowAddDevice(showAddDeviceInstance, setShowAddDeviceInstance)}
             
 
             <p>

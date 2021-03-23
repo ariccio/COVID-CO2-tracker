@@ -26,13 +26,15 @@ interface LoginState {
     googleProfile: GoogleProfile | null;
     googleAuthResponse: AuthResponse | null;
     loginAPIKey: string;
+    apiKeyErrorState: string;
 }
 
 const initialState: LoginState = {
     username: '',
     googleProfile: null,
     googleAuthResponse: null,
-    loginAPIKey: ''
+    loginAPIKey: '',
+    apiKeyErrorState: ''
 }
 
 
@@ -51,14 +53,18 @@ export const loginSlice = createSlice({
         },
         setLoginAPIKey: (state, action: PayloadAction<string>) => {
             state.loginAPIKey = action.payload;
+        },
+        setAPIKeyErrorState: (state, action: PayloadAction<string>) => {
+            state.apiKeyErrorState = action.payload;
         }
     }
 })
 
-export const {setUsername, setGoogleProfile, setGoogleAuthResponse, setLoginAPIKey} = loginSlice.actions;
+export const {setUsername, setGoogleProfile, setGoogleAuthResponse, setLoginAPIKey, setAPIKeyErrorState} = loginSlice.actions;
 
 export const selectUsername = (state: RootState) => state.login.username;
 export const selectGoogleProfile = (state: RootState) => state.login.googleProfile;
 export const selectGoogleAuthResponse = (state: RootState) => state.login.googleAuthResponse;
 export const selectLoginAPIKey = (state: RootState) => state.login.loginAPIKey;
+export const selectAPIKeyErrorState = (state: RootState) => state.login.apiKeyErrorState;
 export const loginReducer = loginSlice.reducer;

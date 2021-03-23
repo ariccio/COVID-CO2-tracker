@@ -95,7 +95,7 @@ const onSubmitEvent = (event: React.FormEvent<HTMLFormElement>, enteredDeviceSer
 
 const cancelHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, setShowAddDeviceInstance: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>) => {
     setShowAddDeviceInstance(false);
-    history.goBack();
+    // history.goBack();
 }
 
 const submit = (event: React.MouseEvent<HTMLElement, MouseEvent>, enteredDeviceSerialNumberText: string, setShowAddDeviceInstance: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>, selectedModel: number, dispatch: ReturnType<typeof useDispatch>, location: ReturnType<typeof useLocation>) => {
@@ -129,7 +129,7 @@ export const CreateMyDeviceInstance: React.FC<CreateMyDeviceInstanceProps> = (pr
 
     return (
         <>
-            <Modal show={props.showAddDeviceInstance} onHide={() => {dispatch(setSelectedModel(-1)); dispatch(setSelectedModelName(''));}}>
+            <Modal show={props.showAddDeviceInstance} onHide={() => {props.setShowAddDeviceInstance(false)}}>
                 {ModalHeader(selectedModelName)}
                 <Modal.Body>
                     <Form noValidate onChange={(event) => onChangeEvent(event, dispatch)} onSubmit={(event) => onSubmitEvent(event, enteredDeviceSerialNumberText, props.setShowAddDeviceInstance, history, selectedModel, dispatch, location)}>
