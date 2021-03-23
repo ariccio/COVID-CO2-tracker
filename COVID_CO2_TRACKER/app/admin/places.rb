@@ -5,7 +5,7 @@ ActiveAdmin.register Place do
   #
   # Uncomment all parameters which should be permitted for assignment
   #
-  # permit_params :google_place_id, :last_fetched, :place_lat, :place_lng
+  permit_params :google_place_id, :last_fetched, :place_lat, :place_lng
   #
   # or
   #

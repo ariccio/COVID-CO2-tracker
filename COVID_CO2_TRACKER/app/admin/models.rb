@@ -5,7 +5,7 @@ ActiveAdmin.register Model do
   #
   # Uncomment all parameters which should be permitted for assignment
   #
-  # permit_params :name, :manufacturer_id
+  permit_params :name, :manufacturer_id
   #
   # or
   #
