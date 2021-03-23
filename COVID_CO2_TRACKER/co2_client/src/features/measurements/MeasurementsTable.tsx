@@ -18,7 +18,7 @@ const measurementTableHeader = (withDelete?: boolean) =>
         <tr>
             {/* <th>#</th> */}
             <th>Measurement ID</th>
-            <th>Device ID</th>
+            <th>Device</th>
             <th>CO2 PPM</th>
             <th>time</th>
             <th>crowding</th>
@@ -88,7 +88,7 @@ const mapMeasurementsToTableBody = (measurements: Array<UserInfoMeasurements>, d
             <tr key={measurementRowKey(measurement.measurement_id)}>
                 {/* <td>{index}</td> */}
                 <td>{measurement.measurement_id}</td>
-                <td>{measurement.device_id}</td>
+                <td>{measurement.device_name}</td>
                 <td>{measurement.co2ppm}</td>
                 <td>{measurement.measurementtime}</td>
                 <td>{measurement.crowding}</td>

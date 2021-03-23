@@ -58,7 +58,7 @@ async function createNewDevice(newDeviceSerialNumber: string, deviceModelID: num
         return awaitedResponse.json();
     }
     // instead of alert, we need to handle this in the modal.
-    const result = fetchJSONWithChecks(NEW_DEVICE_URL, ri, 201, true, fetchFailedCallback, fetchSuccessCallback) as Promise<NewDeviceResponse>;
+    const result = fetchJSONWithChecks(NEW_DEVICE_URL, ri, 201, false, fetchFailedCallback, fetchSuccessCallback) as Promise<NewDeviceResponse>;
     return result;
 }
 

@@ -140,7 +140,7 @@ export const Devices: React.FC<{}> = () => {
     const dispatch = useDispatch();
     useEffect(() => {
         updateUserInfo(dispatch);
-    }, [])
+    }, [dispatch])
     // debugger;
     if (userInfo === defaultUserInfo) {
         if (errorState !== '') {

@@ -19,8 +19,10 @@ class Measurement < ApplicationRecord
 
   # GODDAMNIT I NEED TO WRITE A SERIALIZER
   def self.measurement_with_device_place_as_json(measurement)
+    # byebug
     {
       device_id: measurement.device.id,
+      device_name: measurement.device.model.name,
       measurement_id: measurement.id,
       co2ppm: measurement.co2ppm,
       measurementtime: measurement.measurementtime,

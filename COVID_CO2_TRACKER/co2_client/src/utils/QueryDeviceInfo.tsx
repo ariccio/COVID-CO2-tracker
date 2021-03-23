@@ -6,6 +6,7 @@ import {fetchJSONWithChecks} from './FetchHelpers';
 
 export interface UserInfoMeasurements {
     device_id: number,
+    device_name: string,
     measurement_id: number,
     co2ppm: number,
     measurementtime: string,
@@ -19,6 +20,7 @@ export interface UserInfoMeasurements {
 
 export const defaultMeasurementInfo: UserInfoMeasurements = {
     device_id: -1,
+    device_name: '',
     measurement_id: -1,
     co2ppm: -1,
     measurementtime: '',

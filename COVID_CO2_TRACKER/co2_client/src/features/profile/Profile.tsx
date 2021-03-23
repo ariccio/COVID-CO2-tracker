@@ -22,7 +22,7 @@ export const updateUserInfo = (dispatch: ReturnType<typeof useDispatch>) => {
         }
         console.log(userInfo);
         // debugger;
-        // dispatch(setUserInfoState(userInfo));
+        dispatch(setUserInfoState(userInfo));
     }).catch((error) => {
         debugger;
         dispatch(setUserInfoErrorState(error.message));

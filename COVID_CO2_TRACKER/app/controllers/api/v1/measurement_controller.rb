@@ -41,7 +41,7 @@ module Api
       def show
         # TODO: what reaches this route?
         ::Rails.loggger.debug('What hit this route?')
-        byebug
+        # byebug
         @measurement = ::Measurement.find(measurement_params.fetch(:id))
         as_json_result = ::Measurement.measurement_with_device_place_as_json(@measurement)
         render(

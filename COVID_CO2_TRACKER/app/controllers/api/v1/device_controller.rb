@@ -30,6 +30,16 @@ module Api
       skip_before_action :authorized, only: [:show]
       def create
         @model = ::Model.find_by(id: device_params.fetch(:model_id))
+
+        # this should be in a validator class:
+        if @model.device.where(serial: device_params.fetch(:serial)).count > 0
+          return render(
+            json: {
+              errors: [single_error("#{@model.name} with serial #{device_params.fetch(:serial)} already exists.", nil)]
+            }, status: :bad_request
+          )
+        end
+
         @new_device_instance = ::Device.create!(serial: device_params.fetch(:serial), model_id: device_params.fetch(:model_id), user: current_user)
         render(
           json: device_create_response_as_json(@new_device_instance),
