@@ -13,14 +13,12 @@ import {Profile} from './features/profile/Profile';
 import {Devices, Device} from './features/devices/Devices';
 //import {Signup} from './features/signup/Signup';
 // import {get_email} from './utils/Authentication';
-import {CreateManufacturerOrModel} from './features/manufacturers/Manufacturers';
 import {DeviceModels} from './features/deviceModels/DeviceModels';
+import {Place} from './features/places/Place';
 
-import {homePath, devicesPath, profilePath, deviceModelsPath} from './paths/paths';
+import {placesPath, homePath, devicesPath, profilePath, deviceModelsPath} from './paths/paths';
 
 import './App.css';
-import {GoogleLoginLogoutContainer} from './features/login/Login';
-
 
 const renderRedirect = () =>
   <Redirect to={homePath}/>
@@ -33,7 +31,7 @@ const routes = () =>
     <Route exact path={profilePath} component={Profile}/>
     {/* <Route exact path={loginPath} component={LoginComponent} /> */}
     {/* <Route exact path={signupPath} component={SignupComponent}/> */}
-    
+    <Route path={`${placesPath}/:placeId`} component={Place}/>
     <Route path={`${deviceModelsPath}/:deviceModelId`} component={DeviceModels}/>
     <Route path={`${devicesPath}/:deviceId`} component={Device}/>
     <Route path={devicesPath} component={Devices}/>

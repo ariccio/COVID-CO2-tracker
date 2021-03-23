@@ -130,14 +130,18 @@ export type placeResultWithTranslatedType = google.maps.places.PlaceResult & geo
 interface googlePlacesState {
     // google.maps.places.
     selected: placeResultWithTranslatedType,
-    placesServiceStatus: google.maps.places.PlacesServiceStatus | null
+    placesServiceStatus: google.maps.places.PlacesServiceStatus | null,
+    mapsAPIKey: string,
+    mapsAPIKeyErrorState: string
 }
 
 export const defaultGooglePlacesState: googlePlacesState = {
     selected: {
         name: ''
     },
-    placesServiceStatus: null
+    placesServiceStatus: null,
+    mapsAPIKey: '',
+    mapsAPIKeyErrorState: ''
 }
 
 export const googlePlacesSlice = createSlice({
@@ -152,6 +156,12 @@ export const googlePlacesSlice = createSlice({
         },
         setPlacesServiceStatus: (state, action: PayloadAction<google.maps.places.PlacesServiceStatus>) => {
             state.placesServiceStatus = action.payload;
+        },
+        setMapsAPIKey: (state, action: PayloadAction<string>) => {
+            state.mapsAPIKey = action.payload;
+        },
+        setMapsAPIKeyErrorState: (state, action: PayloadAction<string>) => {
+            state.mapsAPIKeyErrorState = action.payload;
         }
     },
 
@@ -177,8 +187,10 @@ export function autocompleteSelectedPlaceToAction(action_: google.maps.places.Pl
 }
 
 
-export const {setSelectedPlace, setPlacesServiceStatus} = googlePlacesSlice.actions;
+export const {setSelectedPlace, setPlacesServiceStatus, setMapsAPIKey, setMapsAPIKeyErrorState} = googlePlacesSlice.actions;
 
 export const selectSelectedPlace = (state: RootState) => state.places.selected;
 export const selectPlacesServiceStatus = (state: RootState) => state.places.placesServiceStatus;
+export const selectMapsAPIKey = (state: RootState) => state.places.mapsAPIKey;
+export const selectMapsAPIKeyErrorState = (state: RootState) => state.places.mapsAPIKeyErrorState;
 export const placesReducer = googlePlacesSlice.reducer;

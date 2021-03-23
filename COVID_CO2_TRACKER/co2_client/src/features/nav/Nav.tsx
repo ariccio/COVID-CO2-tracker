@@ -9,10 +9,10 @@ import NavDropdown from 'react-bootstrap/NavDropdown';
 import { LinkContainer } from 'react-router-bootstrap';
 
 // import {Login, LoginFormType} from '../login/Login';
-import {Logout} from '../login/Logout';
+// import {Logout} from '../login/Logout';
 import {formatErrors} from '../../utils/ErrorObject';
 
-import {homePath, devicesPath, profilePath, deviceModelsPath} from '../../paths/paths';
+import {homePath, devicesPath, profilePath, deviceModelsPath, placesPath} from '../../paths/paths';
 
 // import {HomePage} from '../home/HomePage';
 import {selectGoogleProfile, selectUsername, setUsername, GoogleProfile} from '../login/loginSlice';
@@ -23,21 +23,21 @@ import { GoogleLoginLogoutContainer } from '../login/Login';
 type NavBarProps = {
 }
 
+// const renderLoginSignup = (): JSX.Element => 
+// <>
+//     <LinkContainer to='login'>
+//         <NavItem className='nav-item'>Login</NavItem>                
+//     </LinkContainer>
 
-const renderLoginSignup = (): JSX.Element => 
-<>
-    <LinkContainer to='login'>
-        <NavItem className='nav-item'>Login</NavItem>                
-    </LinkContainer>
+//     <LinkContainer to='signup'>
+//         <NavItem className='nav-item'>Signup</NavItem>                
+//     </LinkContainer>
+// </>
 
-    <LinkContainer to='signup'>
-        <NavItem className='nav-item'>Signup</NavItem>                
-    </LinkContainer>
-</>
-
-
+// ugly casts fixes some kind of bizarre bug in styled components: https://github.com/styled-components/styled-components/issues/1198#issuecomment-336621217
+// as unknown as unknown is my hack to fix THAT bug's interaction with typescript
 const loggedIn = (username: string) =>
-  <NavDropdown title={username} id="basic-nav-dropdown" flip alignRight renderMenuOnMount>
+  <NavDropdown title={username} id="basic-nav-dropdown" flip={1 as unknown as boolean} alignRight renderMenuOnMount>
     <NavDropdown.Item>
         <LinkContainer to={profilePath}>
             <NavItem className='nav-item'>{username}'s profile</NavItem>
@@ -57,7 +57,8 @@ function loginOrSignupMaybe(username: string): JSX.Element {
       </>
     )
   }
-  console.log("logged in, rendering profile and logout")
+  console.log("logged in, rendering profile and logout");
+  // debugger;
   return loggedIn(username);
 }
 
@@ -104,6 +105,9 @@ const UserNav: React.FC<UserNavProps> = ({username, googleProfile}) =>
                 <LinkContainer to={deviceModelsPath}>
                     <Nav.Link>Models</Nav.Link>
                 </LinkContainer>
+                <LinkContainer to={placesPath}>
+                    <Nav.Link>Places</Nav.Link>
+                </LinkContainer>
 
             </Nav>
             <Nav className="container-fluid justify-content-end" variant="tabs" style={{display:"flex", flexDirection:"row", float: "right"}}>
@@ -129,7 +133,7 @@ const loadEmail = (dispatch: ReturnType<typeof useDispatch>) => {
         debugger;
       }
       console.log("got email: ", email.email)
-      dispatch(setUsername(`(loggin in...) ${email.email}`));
+      dispatch(setUsername(`(logging in...) ${email.email}`));
     }
     else {
       console.error('failed to get email!');

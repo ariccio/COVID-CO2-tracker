@@ -1,10 +1,10 @@
 import React, {CSSProperties, FunctionComponent, useEffect, useState} from 'react';
-import {useSelector} from 'react-redux';
-import {useLocation} from 'react-router-dom';
+import {useDispatch, useSelector} from 'react-redux';
+import {useLocation, Link} from 'react-router-dom';
 import {Button} from 'react-bootstrap';
 
 
-import {selectSelectedPlace, defaultGooglePlacesState, selectPlacesServiceStatus} from '../google/googleSlice';
+import {selectSelectedPlace, defaultGooglePlacesState, selectPlacesServiceStatus, selectMapsAPIKey, selectMapsAPIKeyErrorState, setMapsAPIKey, setMapsAPIKeyErrorState} from '../google/googleSlice';
 import {getGoogleMapsJavascriptAPIKey} from '../../utils/GoogleAPIKeys';
 
 import {GoogleMapsContainer} from '../google/GoogleMaps';
@@ -15,6 +15,39 @@ import {selectPlacesInfoFromDatabase, selectPlacesInfoErrors, SelectedPlaceDatab
 
 import {MeasurementsTable} from '../measurements/MeasurementsTable';
 // import { current } from '@reduxjs/toolkit';
+
+import {placesPath} from '../../paths/paths';
+
+const renderLinkToPlacesWithName = (place_id?: string, name?: string) => {
+    if (place_id === undefined) {
+        return (
+            <>
+                Missing place_id!
+                <br/>
+            </>
+        );
+    }
+    if (name === undefined) {
+        return (
+            <>
+                Missing name!
+                <br/>
+            </>
+        );
+    }
+    return (
+        <>
+            {/* <a href={url}>
+                <b>{name}</b>
+            </a> */}
+            <Link to={`${placesPath}/${place_id}`}>
+                <b>See detailed info for {name}</b>
+            </Link>
+            <br/>
+        </>
+    );
+}
+
 
 const renderLinkWithName = (url?: string, name?: string) => {
     if (url === undefined) {
@@ -36,29 +69,29 @@ const renderLinkWithName = (url?: string, name?: string) => {
     return (
         <>
             <a href={url}>
-                <b>{name}</b>
+                <b>{name} in Google Maps</b>
             </a>
             <br/>
         </>
     );
 }
 
-const renderPlaceId = (place_id?: string) => {
-    if (place_id === undefined) {
-        return (
-            <>
-                Missing place ID!
-                <br/>
-            </>
-        );
-    }
-    return (
-        <>
-            current selected place_id: <i>{place_id}</i>
-            <br/>
-        </>
-    );
-}
+// const renderPlaceId = (place_id?: string) => {
+//     if (place_id === undefined) {
+//         return (
+//             <>
+//                 Missing place ID!
+//                 <br/>
+//             </>
+//         );
+//     }
+//     return (
+//         <>
+//             current selected place_id: <i>{place_id}</i>
+//             <br/>
+//         </>
+//     );
+// }
 
 const renderFormattedAddress = (formatted_address?: string) => {
     if (formatted_address === undefined) {
@@ -176,7 +209,8 @@ const renderSelectedPlaceInfo = (currentPlace: google.maps.places.PlaceResult, p
         <>
             {renderPlacesServiceStatusWithHighlight(placesServiceStatus)}
             {renderLinkWithName(currentPlace.url, currentPlace.name)}
-            {renderPlaceId(currentPlace.place_id)}
+            {renderLinkToPlacesWithName(currentPlace.place_id, currentPlace.name)}
+            {/* {renderPlaceId(currentPlace.place_id)} */}
             {renderFormattedAddress(currentPlace.formatted_address)}
             {/* {currentPlace.icon ? `currentPlace.icon: ${currentPlace.icon}` : null} 
             {currentPlace.icon ? <img src={currentPlace.icon} alt={`google supplied icon for ${currentPlace.name}`}/> : null}
@@ -233,12 +267,8 @@ const renderNewMeasurementButton = (currentPlace: google.maps.places.PlaceResult
     )
 }
 
-
-const renderInfoFromDatabase = (selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo, selectedPlaceInfoErrors: string, currentPlace: google.maps.places.PlaceResult, selectedPlaceExistsInDatabase: boolean | null) => {
-    if (currentPlace === defaultGooglePlacesState.selected) {
-        //No place selected yet.
-        return null;
-    }
+// TODO: exporting from here is REALLY sloppy. Fix later.
+export const renderFromDatabaseNoGoogleParam = (selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo, selectedPlaceInfoErrors: string, selectedPlaceExistsInDatabase: boolean | null) => {
     if (selectedPlaceInfoErrors !== '') {
         return (
             <>
@@ -302,6 +332,16 @@ const renderInfoFromDatabase = (selectedPlaceInfoFromDatabase: SelectedPlaceData
             <MeasurementsTable measurements={selectedPlaceInfoFromDatabase.measurements}/>
         </>
     )
+
+}
+
+
+const renderInfoFromDatabase = (selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo, selectedPlaceInfoErrors: string, currentPlace: google.maps.places.PlaceResult, selectedPlaceExistsInDatabase: boolean | null) => {
+    if (currentPlace === defaultGooglePlacesState.selected) {
+        //No place selected yet.
+        return null;
+    }
+    return renderFromDatabaseNoGoogleParam(selectedPlaceInfoFromDatabase, selectedPlaceInfoErrors, selectedPlaceExistsInDatabase);
 }
 
 const renderPlace = (currentPlace: google.maps.places.PlaceResult, location: ReturnType<typeof useLocation>, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, showCreateNewMeasurement: boolean, selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo, selectedPlaceInfoErrors: string, placesServiceStatus: google.maps.places.PlacesServiceStatus | null, selectedPlaceExistsInDatabase: boolean | null) => {
@@ -318,32 +358,40 @@ const renderPlace = (currentPlace: google.maps.places.PlaceResult, location: Ret
 }
 
 export const HomePage: FunctionComponent<{}> = (props: any) => {
-    const [mapsAPIKey, setMapsAPIKey] = useState("");
-    const [errorState, setErrorState] = useState("");
+    // const [mapsAPIKey, setMapsAPIKey] = useState("");
+    // const [errorState, setErrorState] = useState("");
+
+    const location = useLocation();
+    const dispatch = useDispatch();
+
+    const [showCreateNewMeasurement, setShowCreateNewMeasurement] = useState(false);
 
     //Transparently uses placeResultWithTranslatedType
     const currentPlace = useSelector(selectSelectedPlace);
-    const [showCreateNewMeasurement, setShowCreateNewMeasurement] = useState(false);
-    const location = useLocation();
     const selectedPlaceInfoFromDatabase = useSelector(selectPlacesInfoFromDatabase);
     const selectedPlaceInfoFromDatabaseErrors = useSelector(selectPlacesInfoErrors);
     const selectedPlaceExistsInDatabase = useSelector(selectPlaceExistsInDatabase);
     const placesServiceStatus = useSelector(selectPlacesServiceStatus);
+    const mapsAPIKey = useSelector(selectMapsAPIKey);
+    const mapsAPIKeyErrorState = useSelector(selectMapsAPIKeyErrorState);
 
     useEffect(() => {
+        if (mapsAPIKey !== '') {
+            return;
+        }
         getGoogleMapsJavascriptAPIKey().then((key: string) => {
-            setMapsAPIKey(key)
+            dispatch(setMapsAPIKey(key));
         }).catch((error) => {
-            setErrorState(error.message);
+            dispatch(setMapsAPIKeyErrorState(error.message));
         });
-    }, []);
+    }, [dispatch, mapsAPIKey]);
   
-    if (errorState !== '') {
+    if (mapsAPIKeyErrorState !== '') {
         return (
             <>
                 Error loading maps API key!
                 <br/>
-                {errorState}
+                {mapsAPIKeyErrorState}
             </>
         );
     }
@@ -368,7 +416,7 @@ export const HomePage: FunctionComponent<{}> = (props: any) => {
 
                 </div>
                 <br/>
-                {errorState}
+                {mapsAPIKeyErrorState}
                 <div style={{justifyContent: 'right'}}>
                     {renderPlace(currentPlace, location, setShowCreateNewMeasurement, showCreateNewMeasurement, selectedPlaceInfoFromDatabase, selectedPlaceInfoFromDatabaseErrors, placesServiceStatus, selectedPlaceExistsInDatabase)}
                     <br/>

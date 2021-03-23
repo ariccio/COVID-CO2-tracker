@@ -334,7 +334,7 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
         }).catch((error) => {
             setErrorState(error.message);
         })
-    }, [])
+    }, [username])
 
     console.assert(place_id !== null);
     console.assert(place_id !== undefined);

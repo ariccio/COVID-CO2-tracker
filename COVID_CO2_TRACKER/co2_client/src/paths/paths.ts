@@ -6,7 +6,8 @@ export const homePath: string = '/home';
 export const devicesPath: string = '/devices';
 export const profilePath: string = '/profile';
 export const deviceModelsPath: string = '/devicemodels';
-export const loginPath: string = '/login';
+// export const loginPath: string = '/login';
+export const placesPath: string = '/places';
 
 //Found a bug while doing this. Yay!
-export const signupPath: string = '/signup';
+// export const signupPath: string = '/signup';

@@ -380,7 +380,7 @@ const renderMarkers = (placeMarkersFromDatabase: placesFromDatabaseForMarker, pl
         // );
     }
     if (placeMarkersFromDatabase === defaultPlaceMarkers) {
-        console.log("Loading place markers from database...");
+        console.log("Not rendering place markers, still loading from database...");
         return null;
         // return (
         //     <>
@@ -629,7 +629,6 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
     }
 
     if (isLoaded) {
-        selectedPlace.place_id && console.log(`Selected place ID string from google maps: ${selectedPlace.place_id}`);
         return (
             <>
                 {googleMapInContainer()}
