@@ -1,17 +1,7 @@
 # frozen_string_literal: true
 
-# MAPS_JAVASCRIPT_API_KEY_PATH = ::Rails.root.join('config', 'keys', 'google_maps_javascript_api_key.txt.key')
-
 def maps_javascript_api_key_from_disk
-  # byebug
   ::Rails.application.credentials.maps![:maps_javascript_api_key]
-  # key = ::IO.binread(::MAPS_JAVASCRIPT_API_KEY_PATH)
-  # if key.blank?
-  #   ::Rails.logging.error("Check your key file in #{::MAPS_JAVASCRIPT_API_KEY_PATH}")
-  #   # Not meant to be handled in a way that renders to user. This is a true internal server error.
-  #   raise(::StandardError)
-  # end
-  # key
 end
 
 module Api
