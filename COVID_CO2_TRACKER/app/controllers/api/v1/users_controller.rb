@@ -2,7 +2,7 @@
 
 module Api
   module V1
-    class UsersController < ApplicationController
+    class UsersController < ApiController
       skip_before_action :authorized, only: [:create]
 
       def render_user_not_found(exception)

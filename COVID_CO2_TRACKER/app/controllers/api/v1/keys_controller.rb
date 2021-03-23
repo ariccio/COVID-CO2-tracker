@@ -16,7 +16,7 @@ end
 
 module Api
   module V1
-    class KeysController < ApplicationController
+    class KeysController < ApiController
       skip_before_action :authorized, only: [:show]
       def show
         api_name_requested = params.fetch(:id)

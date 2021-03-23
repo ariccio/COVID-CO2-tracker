@@ -20,7 +20,7 @@ end
 
 module Api
   module V1
-    class ManufacturersController < ApplicationController
+    class ManufacturersController < ApiController
       skip_before_action :authorized, only: [:show, :all_manufacturers]
       def create
         # byebug

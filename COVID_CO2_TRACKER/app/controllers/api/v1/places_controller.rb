@@ -14,7 +14,7 @@ end
 
 module Api
   module V1
-    class PlacesController < ApplicationController
+    class PlacesController < ApiController
       include ::GooglePlaces
       skip_before_action :authorized, only: [:show, :place_by_google_place_id_exists, :show_by_google_place_id, :in_bounds, :near]
 
@@ -95,8 +95,6 @@ module Api
           }, status: :ok
         )
       rescue ::ActiveRecord::RecordNotFound => e
-        # TODO: query from the backend too to validate input is correct
-        # byebug
         error_array = [create_error("#{params.fetch(:google_place_id)} does not exist in database. Not necessarily an error!", :not_acceptable.to_s)]
         error_array << create_activerecord_notfound_error('not found', e)
         render(

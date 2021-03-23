@@ -2,7 +2,7 @@
 
 module Api
   module V1
-    class ModelController < ApplicationController
+    class ModelController < ApiController
       def create
         @new_model = ::Model.create!(name: model_params.fetch(:name), manufacturer_id: model_params.fetch(:manufacturer_id))
         render(

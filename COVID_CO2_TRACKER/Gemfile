@@ -55,3 +55,6 @@ gem 'google_places'
 
 # gem 'google_sign_in'
 gem 'googleauth'
+
+gem 'activeadmin'
+gem 'devise' # for activeadmin

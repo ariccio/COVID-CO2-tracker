@@ -2,7 +2,7 @@
 
 module Api
   module V1
-    class AuthController < ApplicationController
+    class AuthController < ApiController
       skip_before_action :authorized, only: [:create, :email]
 
       def render_failed_authentication

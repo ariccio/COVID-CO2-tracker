@@ -12,7 +12,7 @@ end
 
 module Api
   module V1
-    class MeasurementController < ApplicationController
+    class MeasurementController < ApiController
       skip_before_action :authorized, only: [:show]
       def create
         # byebug

@@ -17,7 +17,7 @@ end
 
 module Api
   module V1
-    class DeviceController < ApplicationController
+    class DeviceController < ApiController
       skip_before_action :authorized, only: [:show]
       def create
         @model = ::Model.find_by(id: device_params.fetch(:model_id))
