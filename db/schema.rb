@@ -41,14 +41,6 @@ ActiveRecord::Schema.define(version: 2021_03_23_214708) do
     t.index ["reset_password_token"], name: "index_admin_users_on_reset_password_token", unique: true
   end
 
-  create_table "device_models", force: :cascade do |t|
-    t.string "name", null: false
-    t.bigint "manufacturer_id", null: false
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.index ["manufacturer_id"], name: "index_device_models_on_manufacturer_id"
-  end
-
   create_table "devices", force: :cascade do |t|
     t.string "serial", null: false
     t.bigint "model_id", null: false
@@ -109,7 +101,6 @@ ActiveRecord::Schema.define(version: 2021_03_23_214708) do
     t.index ["sub_google_uid"], name: "index_users_on_sub_google_uid", unique: true
   end
 
-  add_foreign_key "device_models", "manufacturers"
   add_foreign_key "devices", "models"
   add_foreign_key "devices", "users"
   add_foreign_key "measurements", "devices"
