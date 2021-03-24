@@ -278,6 +278,7 @@ DEPENDENCIES
   rails (~> 6.1.2, >= 6.1.2.1)
   rails-erd
   rbnacl (~> 7.1)
+  rexml
   sassc-rails
   tzinfo-data
 

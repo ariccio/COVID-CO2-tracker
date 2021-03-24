@@ -31,4 +31,6 @@ test:
 
 production:
   <<: *default
-  database: co2tracker_production
+  database: covid-co2-tracker_production
+  username: covid-co2-tracker
+  password: <%= ENV['MYAPP_DATABASE_PASSWORD'] %>
