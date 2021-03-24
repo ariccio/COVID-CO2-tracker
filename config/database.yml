@@ -14,7 +14,6 @@ development:
   <<: *default
   database: co2tracker_development
   host: localhost
-  # username: <%= Rails.application.credentials.development![:postgres_username] %>
   username: postgres
   password: <%= Rails.application.credentials.development![:postgres_password] %>
 
