@@ -1,6 +1,6 @@
 class AddNonNullConstraint < ActiveRecord::Migration[6.1]
   def change
-    change_column_null(:device_models, :name, false)
+    # change_column_null(:device_models, :name, false)
     change_column_null(:devices, :serial, false)
     change_column_null(:manufacturers, :name, false)
     change_column_null(:measurements, :co2ppm, false)
