@@ -26,7 +26,7 @@ test:
   host: localhost
   # username: <%= Rails.application.credentials.development![:postgres_username] %>
   username: postgres
-  password: <%= Rails.application.credentials.dig(:development, :postgres_password) %>
+  password: <%= Rails.application.credentials.dig(:test, :postgres_password) %>
 
 production:
   <<: *default
