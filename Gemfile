@@ -59,3 +59,6 @@ gem 'googleauth'
 gem 'activeadmin'
 gem 'devise' # for activeadmin
 gem 'sassc-rails' # needed for css in activeadmin
+
+# WHY DOES IT NOT LOAD ON HEROKU BUT FINE ON LOCAL WITHOUT THIS, CRUEL WORLD
+gem 'rexml'
