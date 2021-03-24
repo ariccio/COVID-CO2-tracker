@@ -195,7 +195,7 @@ const submitHandler = (enteredManufacturerText: string, setShowAddManufacturer: 
         else {
             setShowAddManufacturer(false)
             console.log(history);
-            history.goBack();
+            // history.goBack();
             console.log(history);
             // debugger;
         }
@@ -246,7 +246,6 @@ export const CreateManufacturerModalDialog: React.FC<manufacturerDialogProps> = 
     const dispatch = useDispatch();
     const history = useHistory();
 
-    // debugger;
     //TODO: this is not how you do nested routes.
     if (location.pathname.endsWith('create')) {
         props.setShowAddManufacturer(true);

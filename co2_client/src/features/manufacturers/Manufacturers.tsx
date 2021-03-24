@@ -122,9 +122,9 @@ const renderDropdown = (manufacturerModels: SingleManufacturerInfoResponse, setS
             {manufacturersToDropdown(knownManufacturers)}
             <Dropdown.Item eventKey={"-1"}>
                 {/* TODO: this is not valid? Dropdown.item might be a link itself */}
-                <Link to={{pathname: `/manufacturers/create`, state: {background: location}}}>
+                {/* <Link to={{pathname: `/manufacturers/create`, state: {background: location}}}> */}
                     Create new manufacturer
-                </Link>
+                {/* </Link> */}
             </Dropdown.Item>
         </Dropdown.Menu>
     </Dropdown>
