@@ -1,2 +1,2 @@
-web: cd COVID_CO2_TRACKER && bundle exec rails s
-release: COVID_CO2_TRACKER/bin/rake db:migrate
+web: cd bundle exec rails s
+release: bin/rake db:migrate
