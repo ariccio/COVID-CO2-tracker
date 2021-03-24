@@ -1,0 +1,13 @@
+{
+    "name": "covid-co2-tracker",
+    "license": "MIT",
+    "engines": {
+        "node": "14.x",
+        "yarn": "1.x"
+    },
+    "scripts": {
+        "build": "yarn --cwd co2_client install && yarn --cwd co2_client build",
+        "deploy": "cp -a co2_client/build/. public/",
+        "heroku-postbuild": "yarn build && yarn deploy"
+    }
+}

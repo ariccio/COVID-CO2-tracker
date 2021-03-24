@@ -1,2 +1,2 @@
-web: PORT=3001 npm --cwd co2_client start
-api: PORT=3000 bundle exec rails s
+web: set PORT=3001 && yarn --cwd co2_client start
+api: bundle exec rails s -p 3000
