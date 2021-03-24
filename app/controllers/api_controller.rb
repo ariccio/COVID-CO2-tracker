@@ -6,7 +6,8 @@ require_relative '../utils/errors'
 KEY_PATH = ::Rails.root.join('config', 'keys', 'private_key.key')
 
 def encode_with_jwt(payload)
-  key = ::IO.binread(::KEY_PATH)
+  # Ugly hack for heroku, idc right now.
+  key = ENV["PRIVATE_KEY_JWT"] || ::IO.binread(::KEY_PATH)
   if key.blank?
     ::Rails.logger.error("Check your key file in #{::KEY_PATH}")
     # Not meant to be handled in a way that renders to user. This is a true internal server error.
@@ -17,7 +18,8 @@ def encode_with_jwt(payload)
 end
 
 def decode_with_jwt(payload)
-  key = ::IO.binread(::KEY_PATH)
+  # Ugly hack for heroku, idc right now.
+  key = ENV["PRIVATE_KEY_JWT"] || ::IO.binread(::KEY_PATH)
   if key.blank?
     ::Rails.logger.error("Check your key file in #{::KEY_PATH}")
     # Not meant to be handled in a way that renders to user. This is a true internal server error.
