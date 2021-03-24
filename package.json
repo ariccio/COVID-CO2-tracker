@@ -6,8 +6,8 @@
         "yarn": "1.x"
     },
     "scripts": {
-        "build": "yarn --cwd co2_client install && yarn --cwd co2_client build",
-        "deploy": "cp -a co2_client/build/. public/",
+        "build": "yarn --cwd COVID_CO2_TRACKER/co2_client install && yarn --cwd COVID_CO2_TRACKER/co2_client build",
+        "deploy": "cp -a COVID_CO2_TRACKER/co2_client/build/. COVID_CO2_TRACKER/public/",
         "heroku-postbuild": "yarn build && yarn deploy"
     }
 }
