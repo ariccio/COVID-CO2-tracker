@@ -15,7 +15,7 @@ development:
   database: co2tracker_development
   host: localhost
   username: postgres
-  password: <%= Rails.application.credentials.development![:postgres_password] %>
+  password: <%= Rails.application.credentials.dig(:development, :postgres_password) %>
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
@@ -26,7 +26,7 @@ test:
   host: localhost
   # username: <%= Rails.application.credentials.development![:postgres_username] %>
   username: postgres
-  password: <%= Rails.application.credentials.development![:postgres_password] %>
+  password: <%= Rails.application.credentials.dig(:development, :postgres_password) %>
 
 production:
   <<: *default
