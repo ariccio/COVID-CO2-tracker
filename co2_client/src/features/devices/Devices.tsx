@@ -3,7 +3,7 @@ import React, {useEffect, useState}  from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {RouteComponentProps} from 'react-router-dom';
 import {Button} from 'react-bootstrap';
-import {UserInfoType, queryUserInfo, defaultUserInfo} from '../../utils/QueryUserInfo';
+import {defaultUserInfo} from '../../utils/QueryUserInfo';
 import {defaultDeviceInfoResponse, DeviceInfoResponse, queryDeviceInfo} from '../../utils/QueryDeviceInfo';
 // import {DevicesTable} from './DevicesTable';
 import {MeasurementsTable} from '../measurements/MeasurementsTable';
@@ -12,12 +12,12 @@ import {CreateManufacturerOrModel} from '../manufacturers/Manufacturers';
 // import {devicesPath} from '../../paths/paths';
 import { formatErrors } from '../../utils/ErrorObject';
 
-import {selectSelectedDevice, selectSelectedModel, selectSelectedModelName, setSelectedModel, setSelectedModelName} from '../deviceModels/deviceModelsSlice';
+import {selectSelectedModelName, setSelectedModel, setSelectedModelName} from '../deviceModels/deviceModelsSlice';
 
 import {CreateMyDeviceInstance} from '../create/CreateDeviceInstance';
 import { updateUserInfo } from '../profile/Profile';
 import { selectUserInfoErrorState, selectUserInfoState } from '../profile/profileSlice';
-import { selectSelectedManufacturer } from '../manufacturers/manufacturerSlice';
+// import { selectSelectedManufacturer } from '../manufacturers/manufacturerSlice';
 
 interface deviceProps {
     deviceId: string
@@ -26,8 +26,8 @@ interface deviceProps {
 export function Device(props: RouteComponentProps<deviceProps>) {
     // console.log(props.match.params.deviceId)
 
-    const selectedModel = useSelector(selectSelectedModel);
-    const selectedDevice = useSelector(selectSelectedDevice);
+    // const selectedModel = useSelector(selectSelectedModel);
+    // const selectedDevice = useSelector(selectSelectedDevice);
 
     const [deviceInfo, setDeviceInfo] = useState(defaultDeviceInfoResponse);
     const [errorState, setErrorState] = useState('');

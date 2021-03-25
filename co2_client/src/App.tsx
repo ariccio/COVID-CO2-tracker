@@ -2,7 +2,7 @@ import React from 'react';
 
 // import {useSelector, useDispatch} from 'react-redux';
 import {Route, Redirect} from 'react-router-dom';
-
+// import {Button} from 'react-bootstrap';
 
 // import {RootState} from './app/rootReducer';
 // import {selectUsername, setUsername} from './features/login/loginSlice';
@@ -23,6 +23,15 @@ const renderRedirect = () =>
   <Redirect to={homePath}/>
 
 
+  // const notFound = () => {
+  //   return (
+  //     <>
+  //       <h1>404 not found</h1>
+  //       <Button as={Link} to={'/'}>Back to home</Button>
+  //     </>
+  //   );
+  // }
+
   
 const routes = () =>
   <>
@@ -37,6 +46,7 @@ const routes = () =>
     <Route exact path={placesPath} component={Place}/>
     <Route exact path={deviceModelsPath} component={DeviceModels}/>
     <Route exact path='/' render={renderRedirect}/>
+    {/* <Route component={notFound}/> */}
   </>
 
 

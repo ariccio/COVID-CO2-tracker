@@ -3,7 +3,7 @@ import {useSelector, useDispatch} from 'react-redux';
 import {Modal, Button, Form} from 'react-bootstrap';
 import {useLocation, useHistory} from 'react-router-dom';
 import {setEnteredDeviceSerialNumberText, selectEnteredDeviceSerialNumberText} from './creationSlice';
-import {selectSelectedModel, selectSelectedModelName, setSelectedModelName, setSelectedModel, setSelectedDevice, setSelectedDeviceSerialNumber} from '../deviceModels/deviceModelsSlice';
+import {selectSelectedModel, selectSelectedModelName, setSelectedDevice, setSelectedDeviceSerialNumber} from '../deviceModels/deviceModelsSlice';
 import { ErrorObjectType, formatErrors } from '../../utils/ErrorObject';
 import { API_URL } from '../../utils/UrlPath';
 import { postRequestOptions } from '../../utils/DefaultRequestOptions';
