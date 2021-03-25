@@ -18,15 +18,9 @@ export const BottomNav: React.FC<BottomNavProps> = (props: BottomNavProps) => {
     return (
         <>
             <Navbar fixed="bottom">
-                <Nav className="mr-auto">
-                    <b>
-                        <u>
-                            <i>
-                                <Nav.Link href="https://raw.githubusercontent.com/ariccio/COVID-CO2-tracker/main/privacy_policy.txt">Privacy Policy</Nav.Link>
-                                <Nav.Link href="https://raw.githubusercontent.com/ariccio/COVID-CO2-tracker/main/terms_of_use.txt">Terms of Use</Nav.Link>
-                            </i>
-                        </u>
-                    </b>
+                <Nav className="container-fluid justify-content-end mr-auto" variant="tabs" style={{display:"flex", flexDirection:"row", float: "right"}}>
+                    <Nav.Link href="https://raw.githubusercontent.com/ariccio/COVID-CO2-tracker/main/privacy_policy.txt"><b><u><i>Privacy Policy</i></u></b></Nav.Link>
+                    <Nav.Link href="https://raw.githubusercontent.com/ariccio/COVID-CO2-tracker/main/terms_of_use.txt"><b><u><i>Terms of Use</i></u></b></Nav.Link>
                 </Nav>
             </Navbar>
         </>
