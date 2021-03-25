@@ -19,8 +19,14 @@ export const BottomNav: React.FC<BottomNavProps> = (props: BottomNavProps) => {
         <>
             <Navbar fixed="bottom">
                 <Nav className="mr-auto">
-                    <Nav.Link>Privacy Policy</Nav.Link>
-                    <Nav.Link>Terms of Use</Nav.Link>
+                    <b>
+                        <u>
+                            <i>
+                                <Nav.Link href="https://raw.githubusercontent.com/ariccio/COVID-CO2-tracker/main/privacy_policy.txt">Privacy Policy</Nav.Link>
+                                <Nav.Link href="https://raw.githubusercontent.com/ariccio/COVID-CO2-tracker/main/terms_of_use.txt">Terms of Use</Nav.Link>
+                            </i>
+                        </u>
+                    </b>
                 </Nav>
             </Navbar>
         </>

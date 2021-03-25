@@ -18,6 +18,7 @@ import {Place} from './features/places/Place';
 import {placesPath, homePath, devicesPath, profilePath, deviceModelsPath} from './paths/paths';
 
 import './App.css';
+import { BottomNav } from './features/nav/BottomNav';
 
 const renderRedirect = () =>
   <Redirect to={homePath}/>
@@ -64,6 +65,7 @@ function App(): JSX.Element {
         {/* <header className="App-header">
         </header> */}
         {routes()}
+        <BottomNav/>
       </div>
     </>
   );
