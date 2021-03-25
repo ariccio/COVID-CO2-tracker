@@ -1,0 +1,26 @@
+This app is designed for sharing measurements with the public at large. I may use said measurements and associated data in any legal way that I see fit.
+
+By design, nothing you upload will be kept private. This may change in the future, but this is very much the entire spirit of this app.
+
+When you log in with google, I store only 3 pieces of the information returned:
+    1. The email address associated with your google account, if it's not already stored. I currently do not update on changes. 
+    2. The name associated with your google account, if it's not already stored. I currently do not update on changes.
+    3. The permanent unique identifier that google produces for identifying you uniquely in this application. (The 'sub' OAuth field).
+
+Items 1 and 2 are not strictly necessary for the basic functioning of the app, but it makes for a nice user experience. These are not currently displayed anywhere publicly in the app, but likely will be in the future.
+
+Item #3, the unique identifier, is central to the functioning of the app, as it lets me implement login without adding to the infinite misery people already have with passwords. I thus do not need to even store passwords.
+
+I will not sell any of this information. I hate spam.
+
+Clever hackers and criminals MIGHT be able to use any data you post for malicious activities, as they can with any freely available information; be warned.  
+
+For GDPR compliance, I will in the future implement a way to delete all of your data. The app is currently an early prototype, and I simply haven't implemented it yet. You also have a right to copies of your data, though I have not yet implemented automated export functionality. Contact me if you have a need for that. I have a right to charge small, reasonable, fees for that work.
+
+I reserve the right to run ads in the future, even though it's not why I am building this. There may be privacy implications for this, and I will update these terms accordingly.
+
+If you use geolocation, I do NOT store that data.
+
+These terms are subject to change.
+
+My email address is test35965 [[a t]] gmail.com. You may alternately reach me at alexander [[a t]] riccio.com, though that email simply routes to my gmail.
