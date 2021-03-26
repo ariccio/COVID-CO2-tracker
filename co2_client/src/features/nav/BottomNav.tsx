@@ -17,7 +17,7 @@ interface BottomNavProps {
 export const BottomNav: React.FC<BottomNavProps> = (props: BottomNavProps) => {
     return (
         <>
-            <Navbar fixed="bottom">
+            <Navbar>
                 <Nav className="container-fluid justify-content-end mr-auto" variant="tabs" style={{display:"flex", flexDirection:"row", float: "right"}}>
                     <Nav.Link href="https://raw.githubusercontent.com/ariccio/COVID-CO2-tracker/main/privacy_policy.txt"><b><u><i>Privacy Policy</i></u></b></Nav.Link>
                     <Nav.Link href="https://raw.githubusercontent.com/ariccio/COVID-CO2-tracker/main/terms_of_use.txt"><b><u><i>Terms of Use</i></u></b></Nav.Link>
