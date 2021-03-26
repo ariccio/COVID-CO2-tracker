@@ -112,4 +112,8 @@ require 'active_support/core_ext/integer/time'
   # config.active_record.database_selector = { delay: 2.seconds }
   # config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
   # config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+
+  # Heroku recommends: https://devcenter.heroku.com/articles/rails-asset-pipeline
+  # I'm using rails API only, so it shouldn't matter, but let's silence one more warning.
+  config.assets.compile = false
 end
