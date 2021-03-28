@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_03_26_024302) do
+ActiveRecord::Schema.define(version: 2021_03_28_002146) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -67,9 +67,11 @@ ActiveRecord::Schema.define(version: 2021_03_26_024302) do
     t.bigint "place_id", null: false
     t.string "location_where_inside_info"
     t.integer "crowding", null: false
+    t.bigint "sub_location_id"
     t.index ["device_id"], name: "index_measurements_on_device_id"
     t.index ["measurementtime"], name: "index_measurements_on_measurementtime"
     t.index ["place_id"], name: "index_measurements_on_place_id"
+    t.index ["sub_location_id"], name: "index_measurements_on_sub_location_id"
   end
 
   create_table "models", force: :cascade do |t|
@@ -92,6 +94,14 @@ ActiveRecord::Schema.define(version: 2021_03_26_024302) do
     t.index ["place_lng"], name: "index_places_on_place_lng"
   end
 
+  create_table "sub_locations", force: :cascade do |t|
+    t.string "description"
+    t.bigint "place_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["place_id"], name: "index_sub_locations_on_place_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email"
     t.datetime "created_at", precision: 6, null: false
@@ -107,4 +117,5 @@ ActiveRecord::Schema.define(version: 2021_03_26_024302) do
   add_foreign_key "measurements", "devices"
   add_foreign_key "measurements", "places"
   add_foreign_key "models", "manufacturers"
+  add_foreign_key "sub_locations", "places"
 end
