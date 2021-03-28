@@ -20,7 +20,7 @@ class Measurement < ApplicationRecord
 
   # GODDAMNIT I NEED TO WRITE A SERIALIZER
   def self.measurement_with_device_place_as_json(measurement)
-    byebug
+    # byebug
     {
       device_id: measurement.device.id,
       device_name: measurement.device.model.name,
@@ -28,7 +28,7 @@ class Measurement < ApplicationRecord
       co2ppm: measurement.co2ppm,
       measurementtime: measurement.measurementtime,
       crowding: measurement.crowding,
-      location_where_inside_info: measurement.location_where_inside_info,
+      location_where_inside_info: measurement.sub_location.description,
       place: {
         id: measurement.sub_location.place.id,
         google_place_id: measurement.sub_location.place.google_place_id

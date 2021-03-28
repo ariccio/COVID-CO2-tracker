@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 def measurement_controller_create_response_as_json(new_measurement)
-  byebug
+  # byebug
   {
     measurement_id: new_measurement.id,
     device_id: new_measurement.device.id,
@@ -26,17 +26,16 @@ module Api
         # https://discuss.rubyonrails.org/t/time-now-vs-time-current-vs-datetime-now/75183/15
         # ALSO, TODO: check to see if I should disable timezone conversion on backend?
         # https://discuss.rubyonrails.org/t/time-now-vs-time-current-vs-datetime-now/75183/15
-        byebug
         @new_measurement = ::Measurement.create!(
           device_id: measurement_params.fetch(:device_id), 
           co2ppm: measurement_params.fetch(:co2ppm),
           measurementtime: ::Time.current,
           sub_location: sub_location,
-          crowding: measurement_params.fetch(:crowding),
-          location_where_inside_info: measurement_params.fetch(:location_where_inside_info))
+          crowding: measurement_params.fetch(:crowding))
+        # byebug
         render(
-          json: measurement_controller_create_response_as_json(@new_measurement),
-          status: :created
+        json: measurement_controller_create_response_as_json(@new_measurement),
+        status: :created
         )
       rescue ::ActiveRecord::RecordInvalid => e
         render(
