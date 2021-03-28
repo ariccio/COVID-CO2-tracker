@@ -2,7 +2,7 @@
 
 class Measurement < ApplicationRecord
   belongs_to :device
-  belongs_to :place
+  # belongs_to :place
   belongs_to :sub_location
 
   # needs validation of positivity, fatal levels
@@ -16,11 +16,11 @@ class Measurement < ApplicationRecord
   validates :device_id, presence: true
   validates :crowding, presence: true
 
-  validates_associated :device, :place
+  validates_associated :device, :sub_location
 
   # GODDAMNIT I NEED TO WRITE A SERIALIZER
   def self.measurement_with_device_place_as_json(measurement)
-    # byebug
+    byebug
     {
       device_id: measurement.device.id,
       device_name: measurement.device.model.name,
@@ -30,8 +30,8 @@ class Measurement < ApplicationRecord
       crowding: measurement.crowding,
       location_where_inside_info: measurement.location_where_inside_info,
       place: {
-        id: measurement.place.id,
-        google_place_id: measurement.place.google_place_id
+        id: measurement.sub_location.place.id,
+        google_place_id: measurement.sub_location.place.google_place_id
       }
     }
   end

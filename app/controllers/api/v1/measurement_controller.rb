@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
 def measurement_controller_create_response_as_json(new_measurement)
+  byebug
   {
     measurement_id: new_measurement.id,
     device_id: new_measurement.device.id,
     co2ppm: new_measurement.co2ppm,
-    place_id: new_measurement.place,
+    place_id: new_measurement.sub_location.place.id,
     measurementtime: new_measurement.measurementtime
   }
 end
@@ -18,13 +19,21 @@ module Api
         # byebug
         @place = ::Place.find_by!(google_place_id: measurement_params.fetch(:google_place_id))
 
+        sub_location = @place.sub_location.find_or_create_by!(description: measurement_params.fetch(:location_where_inside_info))
         # places_backend_api_key
-
+        # byebug
+        Rails.logger.warn('needs to do something more robust than text comparisons!')
         # https://discuss.rubyonrails.org/t/time-now-vs-time-current-vs-datetime-now/75183/15
         # ALSO, TODO: check to see if I should disable timezone conversion on backend?
         # https://discuss.rubyonrails.org/t/time-now-vs-time-current-vs-datetime-now/75183/15
-        @new_measurement = ::Measurement.create!(device_id: measurement_params.fetch(:device_id), co2ppm: measurement_params.fetch(:co2ppm), measurementtime: ::Time.current, place_id: @place.id, crowding: measurement_params.fetch(:crowding), location_where_inside_info: measurement_params.fetch(:location_where_inside_info))
-
+        byebug
+        @new_measurement = ::Measurement.create!(
+          device_id: measurement_params.fetch(:device_id), 
+          co2ppm: measurement_params.fetch(:co2ppm),
+          measurementtime: ::Time.current,
+          sub_location: sub_location,
+          crowding: measurement_params.fetch(:crowding),
+          location_where_inside_info: measurement_params.fetch(:location_where_inside_info))
         render(
           json: measurement_controller_create_response_as_json(@new_measurement),
           status: :created

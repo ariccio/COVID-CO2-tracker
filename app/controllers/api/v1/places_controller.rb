@@ -77,6 +77,7 @@ module Api
       end
 
       def place_measurementtime_desc
+        # byebug
         @place.measurement.order('measurementtime DESC').each.map do |measurement|
           ::Measurement.measurement_with_device_place_as_json(measurement)
         end
