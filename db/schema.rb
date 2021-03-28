@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_03_28_013750) do
+ActiveRecord::Schema.define(version: 2021_03_28_014909) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -64,7 +64,6 @@ ActiveRecord::Schema.define(version: 2021_03_28_013750) do
     t.datetime "measurementtime", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.string "location_where_inside_info"
     t.integer "crowding", null: false
     t.bigint "sub_location_id"
     t.index ["device_id"], name: "index_measurements_on_device_id"
