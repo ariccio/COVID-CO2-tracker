@@ -57,7 +57,9 @@ function manufacturersToDropdown(manufacturers_: ManufacturersArray) {
     const manufacturers = manufacturers_.manufacturers;
     return manufacturers.map((manufacturer: EachManufacturer, index: number) => {
         return (
-            <Dropdown.Item eventKey={`${manufacturer.id}`} key={dropdownItemRowKey(manufacturer)}>{manufacturer.name}</Dropdown.Item>
+            <Dropdown.Item eventKey={`${manufacturer.id}`} key={dropdownItemRowKey(manufacturer)}>
+                {manufacturer.name}
+            </Dropdown.Item>
         )
     })
 }

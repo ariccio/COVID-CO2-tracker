@@ -1,17 +1,5 @@
 # frozen_string_literal: true
 
-def place_needs_refresh?(place)
-  return true if place.place_lat.nil?
-
-  return true if place.place_lng.nil?
-
-  return true if place.last_fetched.nil?
-
-  return true if (place.last_fetched && (place.last_fetched < 30.days.ago))
-
-  false
-end
-
 module Api
   module V1
     class PlacesController < ApiController
@@ -34,7 +22,7 @@ module Api
         # byebug
         return if @place.nil?
 
-        return unless place_needs_refresh?(@place)
+        return unless @place.place_needs_refresh?
 
         ::Rails.logger.debug("\r\n\tUpdating #{@place.google_place_id}...\r\n")
         # byebug
@@ -76,22 +64,16 @@ module Api
         )
       end
 
-      def place_measurementtime_desc
-        # byebug
-        @place.measurement.order('measurementtime DESC').each.map do |measurement|
-          ::Measurement.measurement_with_device_place_as_json(measurement)
-        end
-      end
 
       def show_by_google_place_id
         # byebug
         @place = ::Place.find_by!(google_place_id: params.fetch(:google_place_id))
         refresh_latlng_from_google
-        measurements = place_measurementtime_desc
+        measurements = @place.place_measurementtime_desc
         render(
           json: {
             created: false,
-            measurements: measurements,
+            measurements_by_sublocation: measurements,
             place_id: @place.id
           }, status: :ok
         )

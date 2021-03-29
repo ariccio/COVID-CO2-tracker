@@ -18,6 +18,7 @@ import {MeasurementsTable} from '../measurements/MeasurementsTable';
 import {placesPath} from '../../paths/paths';
 
 import {renderNewMeasurementButton} from './NewMeasurementButton';
+import { MeasurementsByDropdown } from '../measurements/MeasurementsByDropdown';
 
 const renderLinkToPlacesWithName = (place_id?: string, name?: string) => {
     if (place_id === undefined) {
@@ -284,12 +285,11 @@ export const renderFromDatabaseNoGoogleParam = (selectedPlaceInfoFromDatabase: S
     }
     console.assert(selectedPlaceExistsInDatabase !== null);
     console.assert(selectedPlaceExistsInDatabase !== false);
-    if (selectedPlaceInfoFromDatabase.measurements === undefined) {
+    if (selectedPlaceInfoFromDatabase.measurements_by_sublocation === undefined) {
         console.assert(selectedPlaceInfoFromDatabase === defaultPlaceInfo);
         console.error("invalid state, maybe internal server error.");
         debugger;
         if ((selectedPlaceInfoFromDatabase as any).error !== undefined) {
-
             return (
                 <>
                     {(selectedPlaceInfoFromDatabase as any).error}
@@ -299,7 +299,7 @@ export const renderFromDatabaseNoGoogleParam = (selectedPlaceInfoFromDatabase: S
         return null;
     }
     //TODO: need strong type in updatePlacesInfoFromBackend, else this can be undefined!
-    if (selectedPlaceInfoFromDatabase.measurements.length === 0) {
+    if (selectedPlaceInfoFromDatabase.measurements_by_sublocation.length === 0) {
         // debugger;
         return (
             <div>
@@ -307,9 +307,11 @@ export const renderFromDatabaseNoGoogleParam = (selectedPlaceInfoFromDatabase: S
             </div>
         )
     }
+    // debugger;
     return (
         <>
-            <MeasurementsTable measurements={selectedPlaceInfoFromDatabase.measurements}/>
+            <MeasurementsByDropdown selectedPlaceInfoFromDatabase={selectedPlaceInfoFromDatabase}/>
+            
         </>
     )
 
@@ -386,6 +388,7 @@ export const HomePage: FunctionComponent<{}> = (props: any) => {
             </>
         );     
     }
+    
     return (
         <>
             <h3>Welcome!</h3>

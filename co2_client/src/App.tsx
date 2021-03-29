@@ -33,7 +33,8 @@ const renderRedirect = () =>
   //   );
   // }
 
-  
+
+  //TODO: make this a switch router for 404 handling.
 const routes = () =>
   <>
     <Route exact path={homePath} component={HomePage}/>

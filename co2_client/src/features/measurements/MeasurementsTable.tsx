@@ -7,13 +7,14 @@ import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
 
 
 // import {queryUserInfo, UserInfoType, defaultUserInfo} from '../../utils/QueryUserInfo';
-import {UserInfoMeasurements} from '../../utils/QueryDeviceInfo';
+import {UserInfoSingleMeasurement} from '../../utils/QueryDeviceInfo';
 import { API_URL } from '../../utils/UrlPath';
 import { updateUserInfo } from '../profile/Profile';
 
 const DELETE_MEASUREMENT_URL = (API_URL + '/measurement');
 
-const measurementTableHeader = (withDelete?: boolean) =>
+
+const measurementTableHeader = (withDelete?: boolean, innerLocation?: boolean) =>
     <thead>
         <tr>
             {/* <th>#</th> */}
@@ -22,7 +23,7 @@ const measurementTableHeader = (withDelete?: boolean) =>
             <th>CO2 PPM</th>
             <th>time</th>
             <th>crowding</th>
-            <th>inner location</th>
+            {innerLocation ? (<th>inner location</th>) : null}
             {withDelete ? (<th>delete measurement</th>) : null}
             {/* <th>measured at google place:</th> */}
         </tr>
@@ -37,7 +38,7 @@ interface DeleteDeviceResponse {
     errors?: Array<ErrorObjectType>
 }
 
-function deleteClickHandler(event: React.MouseEvent<HTMLElement, MouseEvent>, measurement: UserInfoMeasurements, dispatch: ReturnType<typeof useDispatch>) {
+function deleteClickHandler(event: React.MouseEvent<HTMLElement, MouseEvent>, measurement: UserInfoSingleMeasurement, dispatch: ReturnType<typeof useDispatch>) {
     event.preventDefault();
     event.stopPropagation();
     const fetchFailedCallback = async (awaitedResponse: Response): Promise<DeleteDeviceResponse> => {
@@ -66,7 +67,7 @@ function deleteClickHandler(event: React.MouseEvent<HTMLElement, MouseEvent>, me
 
 }
 
-const maybeDeleteButton = (measurement: UserInfoMeasurements, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean) => {
+const maybeDeleteButton = (measurement: UserInfoSingleMeasurement, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean) => {
     if (!withDelete) {
         return null;
     }
@@ -79,7 +80,12 @@ const maybeDeleteButton = (measurement: UserInfoMeasurements, dispatch: ReturnTy
     )
 }
 
-const mapMeasurementsToTableBody = (measurements: Array<UserInfoMeasurements>, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean)/*: JSX.Element*/ => {
+
+
+const mapMeasurementsToTableBody = (measurements: Array<UserInfoSingleMeasurement>, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean, innerLocation?: boolean)/*: JSX.Element*/ => {
+    if (measurements === undefined) {
+        debugger;
+    }
     return measurements.map((measurement, index: number) => {
         if (measurement.place === undefined) {
             debugger;
@@ -92,7 +98,7 @@ const mapMeasurementsToTableBody = (measurements: Array<UserInfoMeasurements>, d
                 <td>{measurement.co2ppm}</td>
                 <td>{measurement.measurementtime}</td>
                 <td>{measurement.crowding}</td>
-                <td>{measurement.location_where_inside_info}</td>
+                {innerLocation ? (<td>{measurement.location_where_inside_info}</td>) : null}
                 {maybeDeleteButton(measurement, dispatch, withDelete)}
                 {/* <td>{measurement.place.google_place_id}</td> */}
             </tr>
@@ -101,15 +107,16 @@ const mapMeasurementsToTableBody = (measurements: Array<UserInfoMeasurements>, d
 }
 
 
-const measureTableBody = (measurements: Array<UserInfoMeasurements>, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean): JSX.Element =>
+const measureTableBody = (measurements: Array<UserInfoSingleMeasurement>, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean): JSX.Element =>
     <tbody>
         {mapMeasurementsToTableBody(measurements, dispatch, withDelete)}
     </tbody>
 
 
 interface MeasurementsTableProps {
-    measurements: Array<UserInfoMeasurements>,
-    withDelete?: boolean 
+    measurements: Array<UserInfoSingleMeasurement>,
+    withDelete?: boolean,
+    innerLocation?: boolean
 }
 
 // withDelete enables rendering button to delete measurements.
@@ -122,10 +129,13 @@ export const MeasurementsTable: React.FC<MeasurementsTableProps> = (props: Measu
     // In theory I could eliminate the use of dispatch if there's no need to show the delete button, since I only use dispatch when users delete their own measurements.
     const dispatch = useDispatch();
     // debugger;
+    if (props.measurements === undefined) {
+        debugger;
+    }
     return (
         <>
             <Table striped bordered hover>
-                {measurementTableHeader(props.withDelete)}
+                {measurementTableHeader(props.withDelete, props.innerLocation)}
                 {measureTableBody(props.measurements, dispatch, props.withDelete)}
             </Table>
         </>

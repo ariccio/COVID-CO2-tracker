@@ -15,8 +15,26 @@ class Place < ApplicationRecord
     }
   end
 
+  def each_subloc
+    results = []
+    sub_location.each do |loc|
+      results << {
+        sub_location_id: loc.id,
+        description: loc.description,
+        measurements: loc.as_measurementtime_desc
+      }
+    end
+    results
+  end
+  
+  def place_measurementtime_desc
+    # byebug
+    results = each_subloc
+    # byebug
+  end
+
   def self.testing_data_migration
-    Rails.logger.warn('UGLY manual data migration...')
+    say('UGLY manual data migration...')
     Place.all.each do |place|
       place.measurement.each do |measurement|
         new_sub_location = place.sub_location.find_or_create_by!(description: measurement.location_where_inside_info)
@@ -25,4 +43,17 @@ class Place < ApplicationRecord
       end
     end
   end
+
+  def place_needs_refresh?
+    # byebug
+    return true if place_lat.nil?
+  
+    return true if place_lng.nil?
+  
+    return true if last_fetched.nil?
+    # (place.last_fetched < 30.days.ago) is true if last_fetched was MORE than 30.days.ago because that time is logically smaller. 
+    return true if (last_fetched && (last_fetched < 30.days.ago))
+    false
+  end
+  
 end

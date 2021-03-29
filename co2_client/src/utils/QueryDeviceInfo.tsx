@@ -4,7 +4,7 @@ import {formatErrors, ErrorObjectType} from './ErrorObject';
 import {userRequestOptions} from './DefaultRequestOptions';
 import {fetchJSONWithChecks} from './FetchHelpers';
 
-export interface UserInfoMeasurements {
+export interface UserInfoSingleMeasurement {
     device_id: number,
     device_name: string,
     measurement_id: number,
@@ -18,7 +18,7 @@ export interface UserInfoMeasurements {
     location_where_inside_info: string
 }
 
-export const defaultMeasurementInfo: UserInfoMeasurements = {
+export const defaultMeasurementInfo: UserInfoSingleMeasurement = {
     device_id: -1,
     device_name: '',
     measurement_id: -1,
@@ -47,7 +47,7 @@ export interface DeviceInfoResponse {
     serial: string,
     device_model: string,
     user_id: number,
-    measurements: Array<UserInfoMeasurements>,
+    measurements: Array<UserInfoSingleMeasurement>,
     errors?: Array<ErrorObjectType>
 }
 
