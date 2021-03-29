@@ -30,8 +30,8 @@ const measurementTableHeader = (withDelete?: boolean, innerLocation?: boolean) =
     </thead>
 
 
-function measurementRowKey(device: number): string {
-    return `profile-measurement-entry-key-${device}`;
+function measurementRowKey(measurement_id: number): string {
+    return `profile-measurement-entry-key-${measurement_id}`;
 }
 
 interface DeleteDeviceResponse {
@@ -68,19 +68,28 @@ function deleteClickHandler(event: React.MouseEvent<HTMLElement, MouseEvent>, me
 }
 
 const maybeDeleteButton = (measurement: UserInfoSingleMeasurement, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean) => {
-    if (!withDelete) {
-        return null;
+    if (withDelete) {
+        return (
+            <td>
+                <Button variant="primary" onClick={(event) => {deleteClickHandler(event, measurement, dispatch);}}>
+                    delete
+                </Button>
+            </td>
+        )
     }
-    return (
-        <td>
-            <Button variant="primary" onClick={(event) => {deleteClickHandler(event, measurement, dispatch);}}>
-                delete
-            </Button>
-        </td>
-    )
+    // debugger;
+    return null;
 }
 
 
+const maybeInnerLocation = (measurement: UserInfoSingleMeasurement, innerLocation?: boolean) => {
+    if (innerLocation) {
+        // debugger;
+        return (<td>{measurement.location_where_inside_info}</td>);
+    }
+    // debugger;
+    return null;
+}
 
 const mapMeasurementsToTableBody = (measurements: Array<UserInfoSingleMeasurement>, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean, innerLocation?: boolean)/*: JSX.Element*/ => {
     if (measurements === undefined) {
@@ -98,7 +107,7 @@ const mapMeasurementsToTableBody = (measurements: Array<UserInfoSingleMeasuremen
                 <td>{measurement.co2ppm}</td>
                 <td>{measurement.measurementtime}</td>
                 <td>{measurement.crowding}</td>
-                {innerLocation ? (<td>{measurement.location_where_inside_info}</td>) : null}
+                {maybeInnerLocation(measurement, innerLocation)}
                 {maybeDeleteButton(measurement, dispatch, withDelete)}
                 {/* <td>{measurement.place.google_place_id}</td> */}
             </tr>
@@ -107,9 +116,9 @@ const mapMeasurementsToTableBody = (measurements: Array<UserInfoSingleMeasuremen
 }
 
 
-const measureTableBody = (measurements: Array<UserInfoSingleMeasurement>, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean): JSX.Element =>
+const measureTableBody = (measurements: Array<UserInfoSingleMeasurement>, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean, innerLocation?: boolean): JSX.Element =>
     <tbody>
-        {mapMeasurementsToTableBody(measurements, dispatch, withDelete)}
+        {mapMeasurementsToTableBody(measurements, dispatch, withDelete, innerLocation)}
     </tbody>
 
 
@@ -136,7 +145,7 @@ export const MeasurementsTable: React.FC<MeasurementsTableProps> = (props: Measu
         <>
             <Table striped bordered hover>
                 {measurementTableHeader(props.withDelete, props.innerLocation)}
-                {measureTableBody(props.measurements, dispatch, props.withDelete)}
+                {measureTableBody(props.measurements, dispatch, props.withDelete, props.innerLocation)}
             </Table>
         </>
     )

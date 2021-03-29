@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
-import { UserInfoSingleMeasurement } from '../../utils/QueryDeviceInfo';
-import {SelectedPlaceDatabaseInfo, defaultPlaceInfo, selectPlaceExistsInDatabase, SublocationMeasurements} from '../places/placesSlice';
+import React from 'react';
+import {Dropdown} from 'react-bootstrap'
+import { useSelector } from 'react-redux';
 
-import {Dropdown} from 'react-bootstrap';
+
+import {SelectedPlaceDatabaseInfo, defaultPlaceInfo, SublocationMeasurements} from '../places/placesSlice';
+import { SublocationsDropdown } from '../sublocationsDropdown/SublocationsDropdown';
+import { selectSublocationSelectedLocationID } from '../sublocationsDropdown/sublocationSlice';
+
 
 import {MeasurementsTable} from './MeasurementsTable';
 
@@ -15,19 +19,23 @@ const maybeDescription = (location: SublocationMeasurements, withDescription: bo
     if (withDescription) {
         return (
             <>
-                description: {location.description}
+                Inner location description: {location.description}
             </>
         );
     }
     return null;
 }
 
+function locationKey(location: SublocationMeasurements): string {
+    return `measurement-table-sub-location-table-key-${location.sub_location_id}-${location.measurements.length}`
+}
+
 const singleLocation = (location: SublocationMeasurements, withDescription: boolean) => {
     return (
-        <>
+        <div key={locationKey(location)}>
             {maybeDescription(location, withDescription)}
             <MeasurementsTable measurements={location.measurements}/>
-        </>
+        </div>
     );
 
 }
@@ -53,7 +61,7 @@ const measurements = (sublocations: Array<SublocationMeasurements>, selected: nu
     //     debugger;
     // }
     if (selected === -1) {
-        console.log("rendering all measurements for this location.");
+        // console.log("rendering all measurements for this location.");
         return allMeasurements(sublocations);
     }
     const foundSelected = findByID(sublocations, selected)
@@ -69,33 +77,22 @@ const measurements = (sublocations: Array<SublocationMeasurements>, selected: nu
     return singleLocation(foundSelected, false);
 }
 
-function dropdownKeyToSublocationID(eventKey: string | null): number {
-    // if (eventKey === '-1') {
-    //     return null;
-    // }
-    if (eventKey === null) {
-        return -1;
+const nothingSelectedItem = () => {
+    return (
+        <>
+            <Dropdown.Item eventKey={'-1'}>
+                All
+            </Dropdown.Item>
+        </>
+    )
+}
+
+const findSelected = (measurements_by_sublocation: Array<SublocationMeasurements>, selectedSubLocation: number): SublocationMeasurements | null => {
+    const selected_ = findByID(measurements_by_sublocation, selectedSubLocation);
+    if (selected_ === undefined) {
+        return null;
     }
-    return parseInt(eventKey);
-}
-
-const selectSubLocationDropdownHandler = (eventKey: string|null, event: React.SyntheticEvent<unknown>, setSelectedSubLocation: React.Dispatch<React.SetStateAction<number>>) => {
-    console.log(eventKey);
-    setSelectedSubLocation(dropdownKeyToSublocationID(eventKey));
-}
-
-function dropdownItemRowKey(sublocation: SublocationMeasurements): string {
-    return `rowkey-${sublocation.sub_location_id}-show-dropdown`;
-}
-
-const subLocationsToDropdown = (sublocation_with_measurements: Array<SublocationMeasurements>) => {
-    return sublocation_with_measurements.map((sublocation) => {
-        return (
-            <Dropdown.Item eventKey={`${sublocation.sub_location_id}`} key={dropdownItemRowKey(sublocation)}>
-                {sublocation.description}
-            </Dropdown.Item>   
-        )
-    })
+    return selected_;
 }
 
 export const MeasurementsByDropdown: React.FC<MeasurementsByDropdownProps> = (props: MeasurementsByDropdownProps): JSX.Element => {
@@ -105,7 +102,9 @@ export const MeasurementsByDropdown: React.FC<MeasurementsByDropdownProps> = (pr
     //     debugger;
     // }
     console.assert(props.selectedPlaceInfoFromDatabase.measurements_by_sublocation.length > 0);
-    const [selectedSubLocation, setSelectedSubLocation] = useState(-1);
+    // const [selectedSubLocation, setSelectedSubLocation] = useState(-1);
+    const selectedSubLocation = useSelector(selectSublocationSelectedLocationID);
+
     if (props.selectedPlaceInfoFromDatabase === defaultPlaceInfo) {
         // debugger;
         console.log('unlikely to hit this path.')
@@ -115,22 +114,10 @@ export const MeasurementsByDropdown: React.FC<MeasurementsByDropdownProps> = (pr
             </>
         );
     }
-    const selected = findByID(props.selectedPlaceInfoFromDatabase.measurements_by_sublocation, selectedSubLocation);
+    const selected = findSelected(props.selectedPlaceInfoFromDatabase.measurements_by_sublocation, selectedSubLocation);
     return (
         <>
-            <Dropdown onSelect={(eventKey: string | null, event: React.SyntheticEvent<unknown>) => {selectSubLocationDropdownHandler(eventKey, event, setSelectedSubLocation)}}>
-                <Dropdown.Toggle variant="success" id="dropdown-basic">
-                    { selected ? selected.description : "All measurements:"} 
-                </Dropdown.Toggle>
-
-                <Dropdown.Menu>
-                    <Dropdown.Item eventKey={'-1'}>
-                        All
-                    </Dropdown.Item>
-                    {subLocationsToDropdown(props.selectedPlaceInfoFromDatabase.measurements_by_sublocation)}
-                </Dropdown.Menu>
-
-            </Dropdown>
+            <SublocationsDropdown selected={selected} measurements_by_sublocation={props.selectedPlaceInfoFromDatabase.measurements_by_sublocation} nothingSelectedText={"All measurements:"} nothingSelectedItem={nothingSelectedItem()}/>
             {measurements(props.selectedPlaceInfoFromDatabase.measurements_by_sublocation, selectedSubLocation)}
             {/* <MeasurementsTable measurements={props.selectedPlaceInfoFromDatabase}/> */}
         </>

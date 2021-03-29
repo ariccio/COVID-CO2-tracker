@@ -80,7 +80,6 @@ export const placesSlice = createSlice({
     }
 })
 
-
 export const {setPlacesInfoFromDatabase, setPlacesInfoErrors, setPlaceExistsInDatabase, setPlaceMarkersFromDatabase, setPlaceMarkersErrors} = placesSlice.actions;
 export const selectPlacesInfoFromDatabase = (state: RootState) => state.placesInfo.placesInfoFromDatabase;
 export const selectPlacesInfoErrors = (state: RootState) => state.placesInfo.placesInfoErrors;

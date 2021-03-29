@@ -8,7 +8,7 @@ import {selectSelectedDevice, selectSelectedDeviceSerialNumber, selectSelectedMo
 import {selectSelectedPlace} from '../google/googleSlice';
 import { defaultDevicesInfo, queryUserDevices, UserDevicesInfo } from '../../utils/QueryUserInfo';
 import { Errors, formatErrors } from '../../utils/ErrorObject';
-import {selectPlaceExistsInDatabase} from '../places/placesSlice';
+import {SelectedPlaceDatabaseInfo, selectPlaceExistsInDatabase, selectPlacesInfoFromDatabase, SublocationMeasurements} from '../places/placesSlice';
 import {UserInfoDevice} from '../../utils/QueryDeviceInfo';
 
 
@@ -17,6 +17,8 @@ import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
 import { API_URL } from '../../utils/UrlPath';
 import { updatePlacesInfoFromBackend } from '../../utils/QueryPlacesInfo';
 import { selectUsername } from '../login/loginSlice';
+import { SublocationsDropdown } from '../sublocationsDropdown/SublocationsDropdown';
+import { selectSublocationSelectedLocationID, setSublocationSelectedLocationID } from '../sublocationsDropdown/sublocationSlice';
 
 const ModalHeader = (props: {placeName: string}) =>
     <Modal.Header closeButton>
@@ -94,7 +96,7 @@ const renderSelectDeviceDropdown = (userDevices: UserDevicesInfo, selectedDevice
                 <Dropdown.Menu>
                     {devicesToDropdown(userDevices)}
                     <Dropdown.Item eventKey={"-1"}>
-                        Create new device (notimpl)
+                        + Create new device (notimpl)
                     </Dropdown.Item>
                 </Dropdown.Menu>
             </Dropdown>
@@ -140,7 +142,19 @@ const onChangeInnerLocationEvent = (event: React.FormEvent<HTMLFormElement>, set
 
 const NEW_MEASUREMENT_URL = (API_URL + '/measurement');
 
-function newMeasurementRequestInit(selectedDevice: number, enteredCO2: string, placeId: string, enteredCrowding: string, enteredLocationDetails: string): RequestInit {
+function newMeasurementRequestInit(selectedDevice: number, enteredCO2: string, placeId: string, enteredCrowding: string, enteredLocationDetails: string, selectedSubLocation: number): RequestInit {
+    if (selectedSubLocation === -1) {
+        console.assert(enteredLocationDetails !== '');
+        if (enteredLocationDetails === '') {
+            throw new Error("invariant, bug");
+        }
+    }
+    if (enteredLocationDetails === '') {
+        console.assert(selectedSubLocation !== -1);
+        if (selectedSubLocation === -1) {
+            throw new Error("invariant, bug");
+        }
+    }
     const defaultOptions = postRequestOptions();
     // debugger;
     const newOptions = {
@@ -151,7 +165,8 @@ function newMeasurementRequestInit(selectedDevice: number, enteredCO2: string, p
                 co2ppm: enteredCO2,
                 google_place_id: placeId,
                 crowding: enteredCrowding,
-                location_where_inside_info: enteredLocationDetails
+                location_where_inside_info: enteredLocationDetails,
+                sub_location_id: selectedSubLocation
                 // measurementtime: new Date().toUTCString()
             }
         })
@@ -212,9 +227,9 @@ const createPlaceIfNotExist = (placeExistsInDatabase: boolean, place_id: string)
     return result;
 }
 
-const createMeasurementHandler = (selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, enteredCrowding: string, enteredLocationDetails: string) => {
+const createMeasurementHandler = (selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, enteredCrowding: string, enteredLocationDetails: string, selectedSubLocation: number) => {
     // debugger;
-    const init = newMeasurementRequestInit(selectedDevice, enteredCO2Text, place_id, enteredCrowding, enteredLocationDetails);
+    const init = newMeasurementRequestInit(selectedDevice, enteredCO2Text, place_id, enteredCrowding, enteredLocationDetails, selectedSubLocation);
     
     const fetchFailedCallback = async (awaitedResponse: Response): Promise<NewMeasurmentResponseType> => {
         console.error("failed to create measurement!");
@@ -242,19 +257,19 @@ const createMeasurementHandler = (selectedDevice: number, enteredCO2Text: string
     })
 }
 
-const submitHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, placeExistsInDatabase: boolean, dispatch: ReturnType<typeof useDispatch>, setErrorState: React.Dispatch<React.SetStateAction<string>>, enteredCrowding: string, enteredLocationDetails: string) => {
+const submitHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, placeExistsInDatabase: boolean, dispatch: ReturnType<typeof useDispatch>, setErrorState: React.Dispatch<React.SetStateAction<string>>, enteredCrowding: string, enteredLocationDetails: string, selectedSubLocation: number) => {
     // debugger;
 
     const placeExistsPromiseOrNull = createPlaceIfNotExist(placeExistsInDatabase, place_id);
     if (placeExistsPromiseOrNull === null) {
         // debugger;
-        createMeasurementHandler(selectedDevice, enteredCO2Text, place_id, setShowCreateNewMeasurement, enteredCrowding, enteredLocationDetails);
+        createMeasurementHandler(selectedDevice, enteredCO2Text, place_id, setShowCreateNewMeasurement, enteredCrowding, enteredLocationDetails, selectedSubLocation);
         updatePlacesInfoFromBackend(place_id, dispatch);
         return;
     }
     placeExistsPromiseOrNull.then((existsPromise) => {
         // debugger;
-        createMeasurementHandler(selectedDevice, enteredCO2Text, place_id, setShowCreateNewMeasurement, enteredCrowding, enteredLocationDetails);
+        createMeasurementHandler(selectedDevice, enteredCO2Text, place_id, setShowCreateNewMeasurement, enteredCrowding, enteredLocationDetails, selectedSubLocation);
         updatePlacesInfoFromBackend(place_id, dispatch);
     }).catch((errors) => {
         //TODO: set errors state?
@@ -269,7 +284,23 @@ function ignoreDefault(event: React.FormEvent<HTMLFormElement>): void {
     event.stopPropagation();
 }
 
-const renderFormIfReady = (selectedDevice: number, enteredCO2Text: string, setEnteredCO2Text: React.Dispatch<React.SetStateAction<string>>, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, setEnteredCrowding: React.Dispatch<React.SetStateAction<string>>, placeName: string, setEnteredLocationDetails: React.Dispatch<React.SetStateAction<string>>) => {
+const renderInnerLocationFormIfNewLocation = (setEnteredLocationDetails: React.Dispatch<React.SetStateAction<string>>, placeName: string, selected: SublocationMeasurements | null) => {
+    if (selected === null) {
+        return (
+            <>
+                <Form onChange={(event) => onChangeInnerLocationEvent(event, setEnteredLocationDetails)} onSubmit={ignoreDefault}>
+                    <Form.Label>
+                        Where inside {placeName} did you take the measurement?
+                    </Form.Label>
+                    <Form.Control type="text" name={"where"}/>
+                </Form>
+            </>
+        )
+    }
+    return null;
+}
+
+const renderFormIfReady = (selectedDevice: number, setEnteredCO2Text: React.Dispatch<React.SetStateAction<string>>, place_id: string, setEnteredCrowding: React.Dispatch<React.SetStateAction<string>>, placeName: string, setEnteredLocationDetails: React.Dispatch<React.SetStateAction<string>>, placesInfoFromDatabase: SelectedPlaceDatabaseInfo, selected: SublocationMeasurements | null) => {
     if (selectedDevice === -1) {
         return null;
     }
@@ -287,14 +318,43 @@ const renderFormIfReady = (selectedDevice: number, enteredCO2Text: string, setEn
                 </Form.Label>
                 <Form.Control type="number" min={1} max={5} name={"crowding"}/>
             </Form>
-            <Form onChange={(event) => onChangeInnerLocationEvent(event, setEnteredLocationDetails)} onSubmit={ignoreDefault}>
-                <Form.Label>
-                    Where inside {placeName} did you take the measurement?
-                </Form.Label>
-                <Form.Control type="text" name={"where"}/>
-            </Form>
+            <SublocationsDropdown selected={selected} measurements_by_sublocation={placesInfoFromDatabase.measurements_by_sublocation} nothingSelectedText={"New inner location"} nothingSelectedItem={nothingSelectedItem()}/>
+            {renderInnerLocationFormIfNewLocation(setEnteredLocationDetails, placeName, selected)}
         </>
     )
+}
+
+const renderNotLoggedIn = (showCreateNewMeasurement: boolean, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>) => {
+    console.log("not logged in to create measurement, rendering error modal.");
+    return (
+        <Modal onHide={() => hideHandler(setShowCreateNewMeasurement)} show={showCreateNewMeasurement}>
+            <ModalHeaderNotLoggedIn/>
+            <Modal.Body>
+                Not logged in.
+            </Modal.Body>
+        </Modal>
+    );
+}
+
+
+const nothingSelectedItem = () => {
+    return (
+        <>
+            <Dropdown.Item eventKey={'-1'}>
+                New sublocation
+            </Dropdown.Item>
+        </>
+    )
+}
+
+const findSelected = (measurements_by_sublocation: Array<SublocationMeasurements>, selectedSubLocation: number): SublocationMeasurements | null => {
+    const selected_ = measurements_by_sublocation.find((value) => {
+        return (value.sub_location_id === selectedSubLocation);
+    })
+    if (selected_ === undefined) {
+        return null;
+    }
+    return selected_;
 }
 
 export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (props: CreateNewMeasurementProps) => {
@@ -304,6 +364,7 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
     const selectedDevice = useSelector(selectSelectedDevice);
     const selectedDeviceSerialNumber = useSelector(selectSelectedDeviceSerialNumber);
     const placeExistsInDatabase = useSelector(selectPlaceExistsInDatabase);
+    const placesInfoFromDatabase = useSelector(selectPlacesInfoFromDatabase);
     const username = useSelector(selectUsername);
     
     // const selectedPlacesInfo = useSelector(selectPlacesInfoFromDatabase);
@@ -315,6 +376,9 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
     const [enteredCO2Text, setEnteredCO2Text] = useState('');
     const [enteredCrowding, setEnteredCrowding] = useState('');
     const [enteredLocationDetails, setEnteredLocationDetails] = useState('');
+
+    // const [selectedSubLocation, setSelectedSubLocation] = useState(-1);
+    const selectedSubLocation = useSelector(selectSublocationSelectedLocationID);
 
     const placeName = selectedPlace.name;    
     const place_id = selectedPlace.place_id
@@ -336,6 +400,19 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
         })
     }, [username])
 
+    useEffect(() => {
+        if (selectedSubLocation === -1) {
+            // console.log(placesInfoFromDatabase.measurements_by_sublocation);
+            if (placesInfoFromDatabase.measurements_by_sublocation.length > 0) {
+                dispatch(setSublocationSelectedLocationID(placesInfoFromDatabase.measurements_by_sublocation[0].sub_location_id))
+            }
+            // debugger;
+        }
+
+    // Running this hook whenever selectedSubLocation changed would defeat the purpose, and never let users add new sublocations.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [dispatch]);
+
     console.assert(place_id !== null);
     console.assert(place_id !== undefined);
     if (place_id === undefined) {
@@ -353,16 +430,9 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
         return null;
     }
     if (username === '') {
-        console.log("not logged in to create measurement, rendering error modal.");
-        return (
-            <Modal onHide={() => hideHandler(props.setShowCreateNewMeasurement)} show={props.showCreateNewMeasurement}>
-                <ModalHeaderNotLoggedIn/>
-                <Modal.Body>
-                    Not logged in.
-                </Modal.Body>
-            </Modal>
-        );
+        return renderNotLoggedIn(props.showCreateNewMeasurement, props.setShowCreateNewMeasurement);
     }
+    const selected = findSelected(placesInfoFromDatabase.measurements_by_sublocation, selectedSubLocation);
     return (
         <>
             <Modal show={props.showCreateNewMeasurement} onHide={() => hideHandler(props.setShowCreateNewMeasurement)}>
@@ -370,13 +440,13 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
                 <Modal.Body>
                     {renderErrors(errorState)}
                     {renderSelectDeviceDropdown(userDevices, selectedDevice, selectedModelName, selectedDeviceSerialNumber, dispatch)}
-                    {renderFormIfReady(selectedDevice, enteredCO2Text, setEnteredCO2Text, place_id, props.setShowCreateNewMeasurement, setEnteredCrowding, placeName, setEnteredLocationDetails)}
+                    {renderFormIfReady(selectedDevice, setEnteredCO2Text, place_id, setEnteredCrowding, placeName, setEnteredLocationDetails, placesInfoFromDatabase, selected)}
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={(event) => hideHandler(props.setShowCreateNewMeasurement)}>
                         Cancel
                     </Button>
-                    <Button variant="primary" onClick={(event) => submitHandler(event, selectedDevice, enteredCO2Text, place_id, props.setShowCreateNewMeasurement, placeExistsInDatabase, dispatch, setErrorState, enteredCrowding, enteredLocationDetails)}>
+                    <Button variant="primary" onClick={(event) => submitHandler(event, selectedDevice, enteredCO2Text, place_id, props.setShowCreateNewMeasurement, placeExistsInDatabase, dispatch, setErrorState, enteredCrowding, enteredLocationDetails, selectedSubLocation)}>
                         Submit new measurement
                     </Button>
                 </Modal.Footer>

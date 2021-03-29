@@ -12,9 +12,6 @@ import {CreateNewMeasurementModal} from '../create/CreateMeasurement';
 
 import {selectPlacesInfoFromDatabase, selectPlacesInfoErrors, SelectedPlaceDatabaseInfo, defaultPlaceInfo, selectPlaceExistsInDatabase} from '../places/placesSlice';
 
-import {MeasurementsTable} from '../measurements/MeasurementsTable';
-// import { current } from '@reduxjs/toolkit';
-
 import {placesPath} from '../../paths/paths';
 
 import {renderNewMeasurementButton} from './NewMeasurementButton';
@@ -388,7 +385,7 @@ export const HomePage: FunctionComponent<{}> = (props: any) => {
             </>
         );     
     }
-    
+
     return (
         <>
             <h3>Welcome!</h3>

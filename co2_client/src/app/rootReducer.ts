@@ -7,6 +7,7 @@ import {manufacturerReducer} from '../features/manufacturers/manufacturerSlice';
 import {devicemodelsReducer} from '../features/deviceModels/deviceModelsSlice';
 import {placesInfoReducer} from '../features/places/placesSlice';
 import { profileReducer } from '../features/profile/profileSlice';
+import { sublocationReducer } from '../features/sublocationsDropdown/sublocationSlice';
 
 export const rootReducer = combineReducers({
     counter: counterReducer,
@@ -16,7 +17,8 @@ export const rootReducer = combineReducers({
     manufacturer: manufacturerReducer,
     devicemodels: devicemodelsReducer,
     placesInfo: placesInfoReducer,
-    profile: profileReducer
+    profile: profileReducer,
+    sublocation: sublocationReducer
 });
 
 export type RootState = ReturnType<typeof rootReducer>;
