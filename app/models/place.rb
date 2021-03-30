@@ -34,7 +34,7 @@ class Place < ApplicationRecord
   end
 
   def self.testing_data_migration
-    say('UGLY manual data migration...')
+    # say('UGLY manual data migration...')
     Place.all.find_each do |place|
       place.measurement.each do |measurement|
         new_sub_location = place.sub_location.find_or_create_by!(description: measurement.location_where_inside_info)
