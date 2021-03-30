@@ -1,5 +1,5 @@
 class RunDataMigration < ActiveRecord::Migration[6.1]
-  def change
+  def up
     # run data migration with a class method in Place:
     # def self.testing_data_migration
     #   Place.all.each do |place|
@@ -12,6 +12,7 @@ class RunDataMigration < ActiveRecord::Migration[6.1]
     # end
     # I KNOW THIS IS NOT A BEST PRACTICE!
     Place.testing_data_migration
-
+  end
+  def down
   end
 end
