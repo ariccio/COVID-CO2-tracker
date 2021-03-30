@@ -2,7 +2,7 @@
 
 class Measurement < ApplicationRecord
   belongs_to :device
-  # belongs_to :place
+  belongs_to :place
   belongs_to :sub_location
 
   # needs validation of positivity, fatal levels
