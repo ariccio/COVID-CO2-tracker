@@ -64,7 +64,6 @@ module Api
         )
       end
 
-
       def show_by_google_place_id
         # byebug
         @place = ::Place.find_by!(google_place_id: params.fetch(:google_place_id))

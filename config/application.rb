@@ -51,6 +51,5 @@ module COVIDCo2Tracker
     # Fix rails g scaffold for ActiveAdmin
     # As per https://blog.heroku.com/a-rock-solid-modern-web-stack
     config.app_generators.scaffold_controller = :scaffold_controller
-
   end
 end

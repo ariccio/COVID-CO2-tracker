@@ -11,21 +11,20 @@ def measurement_controller_create_response_as_json(new_measurement)
   }
 end
 
-class InvalidComboError < Exception
+class InvalidComboError < RuntimeError
 end
-
 
 def raise_if_invalid_parameter_combo(measurement_params)
   # byebug
   location_where_inside_info = measurement_params[:location_where_inside_info]
   sub_location_id = measurement_params[:sub_location_id]
-  if (location_where_inside_info && (!location_where_inside_info.empty?))
+  if (location_where_inside_info && (!location_where_inside_info.empty?)) && (sub_location_id != -1)
     # byebug
-    raise InvalidComboError if (sub_location_id != -1)
+    raise InvalidComboError
   end
-  if (sub_location_id != -1)
+  if (sub_location_id != -1) && (location_where_inside_info && (!location_where_inside_info.empty?))
     # byebug
-    raise InvalidComboError if (location_where_inside_info && (!location_where_inside_info.empty?))
+    raise InvalidComboError
   end
 
   # byebug
@@ -38,7 +37,7 @@ module Api
       def create
         # byebug
         @place = ::Place.find_by!(google_place_id: measurement_params.fetch(:google_place_id))
-        
+
         raise_if_invalid_parameter_combo(measurement_params)
         # Rails.logger.warn('needs to do something more robust than text comparisons!')
         # byebug
@@ -49,11 +48,12 @@ module Api
         # ALSO, TODO: check to see if I should disable timezone conversion on backend?
         # https://discuss.rubyonrails.org/t/time-now-vs-time-current-vs-datetime-now/75183/15
         @new_measurement = ::Measurement.create!(
-          device_id: measurement_params.fetch(:device_id), 
+          device_id: measurement_params.fetch(:device_id),
           co2ppm: measurement_params.fetch(:co2ppm),
           measurementtime: ::Time.current,
           sub_location: sub_location,
-          crowding: measurement_params.fetch(:crowding))
+          crowding: measurement_params.fetch(:crowding)
+        )
         # byebug
         render(
           json: measurement_controller_create_response_as_json(@new_measurement),
@@ -118,13 +118,11 @@ module Api
       end
 
       def find_or_create_sublocation
-        if (measurement_params[:sub_location_id] != -1)
-          return SubLocation.find(measurement_params.fetch(:sub_location_id))
-        end
-        Rails.logger.info('TODO: unique index for description in scope of sublocation, maybe needs partial index? Then validates_uniqueness_of')
-        return @place.sub_location.find_or_create_by!(description: measurement_params.fetch(:location_where_inside_info))
-      end
+        return SubLocation.find(measurement_params.fetch(:sub_location_id)) if (measurement_params[:sub_location_id] != -1)
 
+        Rails.logger.info('TODO: unique index for description in scope of sublocation, maybe needs partial index? Then validates_uniqueness_of')
+        @place.sub_location.find_or_create_by!(description: measurement_params.fetch(:location_where_inside_info))
+      end
     end
   end
 end

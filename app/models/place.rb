@@ -26,7 +26,7 @@ class Place < ApplicationRecord
     end
     results
   end
-  
+
   def place_measurementtime_desc
     # byebug
     results = each_subloc
@@ -35,7 +35,7 @@ class Place < ApplicationRecord
 
   def self.testing_data_migration
     say('UGLY manual data migration...')
-    Place.all.each do |place|
+    Place.all.find_each do |place|
       place.measurement.each do |measurement|
         new_sub_location = place.sub_location.find_or_create_by!(description: measurement.location_where_inside_info)
         measurement.sub_location = new_sub_location
@@ -47,13 +47,13 @@ class Place < ApplicationRecord
   def place_needs_refresh?
     # byebug
     return true if place_lat.nil?
-  
+
     return true if place_lng.nil?
-  
+
     return true if last_fetched.nil?
-    # (place.last_fetched < 30.days.ago) is true if last_fetched was MORE than 30.days.ago because that time is logically smaller. 
+    # (place.last_fetched < 30.days.ago) is true if last_fetched was MORE than 30.days.ago because that time is logically smaller.
     return true if (last_fetched && (last_fetched < 30.days.ago))
+
     false
   end
-  
 end
