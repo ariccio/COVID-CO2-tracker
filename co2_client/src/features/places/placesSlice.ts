@@ -13,7 +13,7 @@ export interface SublocationMeasurements {
 
 const defaultSublocationMeasurements: SublocationMeasurements = {
     measurements: [defaultMeasurementInfo],
-    sub_location_id: -1,
+    sub_location_id: -99999,
     description: ''
 }
 

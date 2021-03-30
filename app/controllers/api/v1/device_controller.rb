@@ -20,7 +20,7 @@ module Api
     class DeviceController < ApiController
       skip_before_action :authorized, only: [:show]
       def create
-        @model = ::Model.find_by(id: device_params.fetch(:model_id))
+        @model = ::Model.find_by!(id: device_params.fetch(:model_id))
 
         # this should be in a validator class:
         if @model.device.where(serial: device_params.fetch(:serial)).count.positive?

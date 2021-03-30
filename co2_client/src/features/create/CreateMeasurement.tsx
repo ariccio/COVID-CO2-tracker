@@ -8,7 +8,7 @@ import {selectSelectedDevice, selectSelectedDeviceSerialNumber, selectSelectedMo
 import {selectSelectedPlace} from '../google/googleSlice';
 import { defaultDevicesInfo, queryUserDevices, UserDevicesInfo } from '../../utils/QueryUserInfo';
 import { Errors, formatErrors } from '../../utils/ErrorObject';
-import {SelectedPlaceDatabaseInfo, selectPlaceExistsInDatabase, selectPlacesInfoFromDatabase, SublocationMeasurements} from '../places/placesSlice';
+import {defaultPlaceInfo, SelectedPlaceDatabaseInfo, selectPlaceExistsInDatabase, selectPlacesInfoFromDatabase, SublocationMeasurements} from '../places/placesSlice';
 import {UserInfoDevice} from '../../utils/QueryDeviceInfo';
 
 
@@ -300,10 +300,20 @@ const renderInnerLocationFormIfNewLocation = (setEnteredLocationDetails: React.D
     return null;
 }
 
+function measurementsOrEmpty(placesInfoFromDatabase: SelectedPlaceDatabaseInfo): Array<SublocationMeasurements> {
+    if (placesInfoFromDatabase === defaultPlaceInfo) {
+        return Array<SublocationMeasurements>();
+    }
+    return placesInfoFromDatabase.measurements_by_sublocation;
+}
+
 const renderFormIfReady = (selectedDevice: number, setEnteredCO2Text: React.Dispatch<React.SetStateAction<string>>, place_id: string, setEnteredCrowding: React.Dispatch<React.SetStateAction<string>>, placeName: string, setEnteredLocationDetails: React.Dispatch<React.SetStateAction<string>>, placesInfoFromDatabase: SelectedPlaceDatabaseInfo, selected: SublocationMeasurements | null) => {
     if (selectedDevice === -1) {
         return null;
     }
+    const measurementsOrEmptyArray = measurementsOrEmpty(placesInfoFromDatabase);
+    // debugger;
+
     return (
         <>
             <Form onChange={(event) => onChangeCo2Event(event, setEnteredCO2Text)} onSubmit={ignoreDefault}>
@@ -318,7 +328,7 @@ const renderFormIfReady = (selectedDevice: number, setEnteredCO2Text: React.Disp
                 </Form.Label>
                 <Form.Control type="number" min={1} max={5} name={"crowding"}/>
             </Form>
-            <SublocationsDropdown selected={selected} measurements_by_sublocation={placesInfoFromDatabase.measurements_by_sublocation} nothingSelectedText={"New inner location"} nothingSelectedItem={nothingSelectedItem()}/>
+            <SublocationsDropdown selected={selected} measurements_by_sublocation={measurementsOrEmptyArray} nothingSelectedText={"New inner location"} nothingSelectedItem={nothingSelectedItem()}/>
             {renderInnerLocationFormIfNewLocation(setEnteredLocationDetails, placeName, selected)}
         </>
     )
@@ -349,11 +359,14 @@ const nothingSelectedItem = () => {
 
 const findSelected = (measurements_by_sublocation: Array<SublocationMeasurements>, selectedSubLocation: number): SublocationMeasurements | null => {
     const selected_ = measurements_by_sublocation.find((value) => {
+        // debugger;
         return (value.sub_location_id === selectedSubLocation);
     })
     if (selected_ === undefined) {
+        console.log("not in measurements_by_sublocations");
         return null;
     }
+    // debugger;
     return selected_;
 }
 
@@ -426,12 +439,17 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
     }
     console.assert(placeExistsInDatabase !== null);
     if (placeExistsInDatabase === null) {
+        console.log("placeExistsInDatabase not loaded yet?")
         debugger;
         return null;
     }
     if (username === '') {
         return renderNotLoggedIn(props.showCreateNewMeasurement, props.setShowCreateNewMeasurement);
     }
+    // debugger;
+    // if (placesInfoFromDatabase === defaultPlaceInfo) {
+    //     debugger;
+    // }
     const selected = findSelected(placesInfoFromDatabase.measurements_by_sublocation, selectedSubLocation);
     return (
         <>

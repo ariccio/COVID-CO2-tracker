@@ -66,6 +66,13 @@ module Api
           },
           status: :bad_request
         )
+      rescue ::ActiveRecord::RecordNotFound => e
+        render(
+          json: {
+            errors: [create_activerecord_notfound_error("couldn't find google_place_id: #{measurement_params.fetch(:google_place_id)} to create measurement for. Possible bug.", e)]
+          },
+          status: :bad_request
+        )
       rescue InvalidComboError => e
         render(
           json: {
