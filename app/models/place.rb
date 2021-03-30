@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Place < ApplicationRecord
-  has_many :sub_location
+  has_many :sub_location, dependent: :restrict_with_exception
   has_many :measurement, dependent: :restrict_with_exception, through: :sub_location
 
   acts_as_mappable(default_units: :miles, default_formula: :sphere, distance_field_name: :distance, lat_column_name: :place_lat, lng_column_name: :place_lng)
@@ -29,7 +29,7 @@ class Place < ApplicationRecord
 
   def place_measurementtime_desc
     # byebug
-    results = each_subloc
+    each_subloc
     # byebug
   end
 

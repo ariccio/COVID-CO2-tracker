@@ -23,7 +23,7 @@ module Api
         @model = ::Model.find_by(id: device_params.fetch(:model_id))
 
         # this should be in a validator class:
-        if @model.device.where(serial: device_params.fetch(:serial)).count > 0
+        if @model.device.where(serial: device_params.fetch(:serial)).count.positive?
           return render(
             json: {
               errors: [single_error("#{@model.name} with serial #{device_params.fetch(:serial)} already exists.", nil)]
