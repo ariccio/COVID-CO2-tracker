@@ -24,6 +24,7 @@ function dropdownItemRowKey(sublocation: SublocationMeasurements): string {
 const selectSubLocationDropdownHandler = (eventKey: string|null, event: React.SyntheticEvent<unknown>, dispatch: ReturnType<typeof useDispatch>) => {
     console.log(eventKey);
     // setSelectedSubLocation(dropdownKeyToSublocationID(eventKey));
+    // debugger;
     dispatch(setSublocationSelectedLocationID(dropdownKeyToSublocationID(eventKey)))
 }
 

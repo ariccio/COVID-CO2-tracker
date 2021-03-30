@@ -437,19 +437,19 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
         debugger;
         return null;
     }
-    console.assert(placeExistsInDatabase !== null);
+    // console.assert(placeExistsInDatabase !== null);
     if (placeExistsInDatabase === null) {
-        console.log("placeExistsInDatabase not loaded yet?")
-        debugger;
+        console.warn("placeExistsInDatabase not loaded yet?")
+        // debugger;
         return null;
     }
     if (username === '') {
         return renderNotLoggedIn(props.showCreateNewMeasurement, props.setShowCreateNewMeasurement);
     }
     // debugger;
-    // if (placesInfoFromDatabase === defaultPlaceInfo) {
-    //     debugger;
-    // }
+    if (placesInfoFromDatabase === defaultPlaceInfo) {
+        dispatch(setSublocationSelectedLocationID(-1))
+    }
     const selected = findSelected(placesInfoFromDatabase.measurements_by_sublocation, selectedSubLocation);
     return (
         <>
