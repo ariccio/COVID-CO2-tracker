@@ -8,9 +8,6 @@ import { setSublocationSelectedLocationID } from './sublocationSlice';
 
 
 function dropdownKeyToSublocationID(eventKey: string | null): number {
-    // if (eventKey === '-1') {
-    //     return null;
-    // }
     if (eventKey === null) {
         return -1;
     }
