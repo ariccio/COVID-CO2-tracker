@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # https://blog.heroku.com/a-rock-solid-modern-web-stack
 # http://www.carlosramireziii.com/how-to-add-active-admin-to-a-rails-5-api-application.html
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ActiveAdmin.register Device do
   # permit_params: :serial,
   # See permitted parameters documentation:
