@@ -75,8 +75,7 @@ export async function queryUserInfo(): Promise<UserInfoType> {
             const parsedJSONResponse = await copyForErrors.json();
             if (parsedJSONResponse.errors !== undefined) {
                 console.error(formatErrors(parsedJSONResponse.errors));
-                // return null;
-                
+                // return null;   
             }
         }
         return userInfoToStrongType(await awaitedResponse.json());

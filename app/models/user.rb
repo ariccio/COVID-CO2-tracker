@@ -27,16 +27,23 @@ class User < ApplicationRecord
   def my_measurements
     # @user = current_user
     measurements = []
-    devices.each.map do |device|
-      # byebug
-      @mine = device.measurement.order('measurementtime DESC')
-
-      # NOTE: this can be a very slow query TODO: faster
-      result = ::Measurement.measurements_as_json(@mine)
-      # byebug
-      measurements << result.flatten
-    end
     # byebug
-    measurements.flatten
+    ordered = measurement.order('measurementtime DESC')
+    measurements = ::Measurement.measurements_as_json(ordered)
+    return measurements
+    # devices.each.map do |device|
+    #   # byebug
+    #   if (device.id == 18)
+    #     byebug
+    #   end
+    #   @mine = device.measurement.order('measurementtime DESC')
+
+    #   # NOTE: this can be a very slow query TODO: faster
+    #   result = ::Measurement.measurements_as_json(@mine)
+    #   # byebug
+    #   measurements << result.flatten
+    # end
+    # # byebug
+    # measurements.flatten
   end
 end
