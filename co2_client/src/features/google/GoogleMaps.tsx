@@ -110,8 +110,18 @@ interface GeolocationPositionShadowType {
     }
 }
 
+interface GeolocationPositionError_ {
+    readonly code: number;
+    readonly message: string;
+    readonly PERMISSION_DENIED: number;
+    readonly POSITION_UNAVAILABLE: number;
+    readonly TIMEOUT: number;
+};
 
-const errorPositionCallback: PositionErrorCallback = (error: /*GeolocationPositionError*/ any) => {
+const errorPositionCallback = (error: GeolocationPositionError_, geolocationInProgress: boolean, setGeolocationInProgress: React.Dispatch<React.SetStateAction<boolean>>) => {
+    console.assert(geolocationInProgress);
+    setGeolocationInProgress(false);
+
     console.log("GeolocationPositionError interface: https://w3c.github.io/geolocation-api/#position_error_interface");
     //These really are the only three, surprisingly:
     //https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/modules/geolocation/geolocation.cc;l=75;drc=1d00cb24b27d946f3061e0a81e09efed8001ad45?q=GeolocationPositionError
@@ -122,33 +132,42 @@ const errorPositionCallback: PositionErrorCallback = (error: /*GeolocationPositi
     //https://source.chromium.org/chromium/chromium/src/+/master:services/device/geolocation/network_location_request.cc;l=290;drc=1d00cb24b27d946f3061e0a81e09efed8001ad45
     if (error.code === /*GeolocationPositionError.PERMISSION_DENIED*/ 1) {
         //do nothing
-        console.warn("The location acquisition process failed because the document does not have permission to use the Geolocation API.")
+        console.warn("The location acquisition process failed because the document does not have permission to use the Geolocation API.");
+        alert("Location permission denied by user or browser settings. Move map manually.");
+        return;
     }
     else if (error.code === /*GeolocationPositionError.POSITION_UNAVAILABLE*/ 2) {
         console.error("The position of the device could not be determined. For instance, one or more of the location providers used in the location acquisition process reported an internal error that caused the process to fail entirely.");
         console.error("perusing the chromium sources suggests failed network location provider requests are one example.")
-        alert("Some kind of internal error getting the position. No further information available. Sorry!");
+        alert("Some kind of internal error getting the position. No further information available. Move map manually. Sorry!");
+        return;
     }
     else if (error.code === /*GeolocationPositionError.TIMEOUT*/ 3) {
         console.error("The length of time specified by the timeout property has elapsed before the implementation could successfully acquire a new GeolocationPosition object.");
-        alert("Geolocation timed out. Sorry!")
-    }
-    else {
-        throw new Error("never reached!");
+        alert("Geolocation timed out. Something might be wrong with your device, or you're trying to get location in a place that you can't. Move map manually. Sorry!")
+        return;
     }
     console.error(error);
-    // alert(`Position failed! ${error.message}`);
+    alert(`Position failed with an unhandled condition! Code: ${error.code}, message: ${error.message}`);
+    throw new Error("never reached!");
 }
 
-const invokeBrowserGeolocation = (setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>) => {
+const invokeBrowserGeolocation = (setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>, geolocationInProgress: boolean, setGeolocationInProgress: React.Dispatch<React.SetStateAction<boolean>>) => {
     if ('geolocation' in navigator) {
         const validPositionCallback = (position: /*GeolocationPosition*/ GeolocationPositionShadowType) => {
+            console.assert(geolocationInProgress);
+            setGeolocationInProgress(false);
             console.log("got position!");
             console.log(position);
             setCenter({ lat: position.coords.latitude, lng: position.coords.longitude });
         }
+        console.assert(!geolocationInProgress);
+        setGeolocationInProgress(true);
         // Fun fact: https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/modules/geolocation/geolocation.cc;bpv=1;bpt=1;l=191?q=geolocation
-        navigator.geolocation.getCurrentPosition(validPositionCallback, errorPositionCallback);
+        const errorCallback = (positionError: GeolocationPositionError_) => {
+            return errorPositionCallback(positionError, geolocationInProgress, setGeolocationInProgress)
+        }
+        navigator.geolocation.getCurrentPosition(validPositionCallback, errorCallback, {timeout: 70_000});
     }
     else {
         alert("geolocation not available (no reason available)")
@@ -492,6 +511,7 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
     //Needed (for now) to update on clicking markers
     const [selectedPlaceIdString, setSelectedPlaceIdString] = useState('');
 
+    const [geolocationInProgress, setGeolocationInProgress] = useState(false);
 
     const { isLoaded, loadError } = useJsApiLoader({
         id: 'google-map-script',
@@ -631,14 +651,22 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
         );
     }
 
+    
+
     if (isLoaded) {
         return (
             <>
                 {googleMapInContainer()}
                 <br/>
                 {autocompleteElement()}
-                <Button onClick={() => invokeBrowserGeolocation(setCenter)}>
-                    Find me!
+                <Button onClick={() => {
+                    if (geolocationInProgress) {
+                        return;
+                    }
+                    invokeBrowserGeolocation(setCenter, geolocationInProgress, setGeolocationInProgress);
+                    }
+                }>
+                    {geolocationInProgress ? "geolocation running..." : "Find me!"}
                 </Button>
                 <br/>
                 {placesServiceStatus !== null ? `Last google places query status: ${placesServiceStatus}` : null}
