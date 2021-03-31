@@ -1,4 +1,4 @@
-import React, {FunctionComponent, useEffect, useState} from 'react';
+import React, {FunctionComponent, useEffect, useState, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {useLocation, Link} from 'react-router-dom';
 import Button from 'react-bootstrap/Button';
@@ -377,6 +377,7 @@ export const HomePage: FunctionComponent<{}> = (props: any) => {
     const mapsAPIKey = useSelector(selectMapsAPIKey);
     const mapsAPIKeyErrorState = useSelector(selectMapsAPIKeyErrorState);
 
+    const infoRef = useRef<HTMLDivElement | null>(null);
     useEffect(() => {
         if (mapsAPIKey !== '') {
             return;
@@ -387,6 +388,12 @@ export const HomePage: FunctionComponent<{}> = (props: any) => {
             dispatch(setMapsAPIKeyErrorState(error.message));
         });
     }, [dispatch, mapsAPIKey]);
+
+    useEffect(() => {
+        if (infoRef && infoRef.current) {
+            infoRef.current.scrollIntoView({behavior: "smooth"});
+        }
+    }, [selectedPlaceInfoFromDatabase])
   
     if (mapsAPIKeyErrorState !== '') {
         return renderError(mapsAPIKeyErrorState);
@@ -414,11 +421,13 @@ export const HomePage: FunctionComponent<{}> = (props: any) => {
                         <br/>
                         <br/>
                     </Col>
-                    <Col md={6} xs={12}>
-                        {renderPlace(currentPlace, location, setShowCreateNewMeasurement, showCreateNewMeasurement, selectedPlaceInfoFromDatabase, selectedPlaceInfoFromDatabaseErrors, placesServiceStatus, selectedPlaceExistsInDatabase)}
-                        <br/>
-                        <br/>
-                        {showCreateNewMeasurement ? <CreateNewMeasurementModal showCreateNewMeasurement={showCreateNewMeasurement} setShowCreateNewMeasurement={setShowCreateNewMeasurement}/> : null}
+                    <Col md={6} xs={12} ref={infoRef}>
+                        <div>
+                            {renderPlace(currentPlace, location, setShowCreateNewMeasurement, showCreateNewMeasurement, selectedPlaceInfoFromDatabase, selectedPlaceInfoFromDatabaseErrors, placesServiceStatus, selectedPlaceExistsInDatabase)}
+                            <br/>
+                            <br/>
+                            {showCreateNewMeasurement ? <CreateNewMeasurementModal showCreateNewMeasurement={showCreateNewMeasurement} setShowCreateNewMeasurement={setShowCreateNewMeasurement}/> : null}
+                        </div>
                     </Col>
 
                 </Row>
