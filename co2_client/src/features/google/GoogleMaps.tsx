@@ -10,6 +10,7 @@ import {setSelectedPlace, interestingFields} from './googleSlice';
 
 import {updatePlacesInfoFromBackend, queryPlacesInBoundsFromBackend} from '../../utils/QueryPlacesInfo';
 import { defaultPlaceMarkers, EachPlaceFromDatabaseForMarker, placesFromDatabaseForMarker, selectPlaceExistsInDatabase, selectPlaceMarkersFromDatabase, selectPlacesInfoErrors, selectPlacesMarkersErrors } from '../places/placesSlice';
+import { setSublocationSelectedLocationID } from '../sublocationsDropdown/sublocationSlice';
 
 // import { getGooglePlacesScriptAPIKey } from '../../utils/GoogleAPIKeys';
 // import {GeolocationPosition} from 'typescript/lib/lib.dom'
@@ -262,6 +263,7 @@ const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null
     // debugger;
     // const geometry = autocomplete.getPlace()
     dispatch(setSelectedPlace(autocompleteSelectedPlaceToAction(autocomplete.getPlace())));
+    dispatch(setSublocationSelectedLocationID(-1));
     if (map) {
         // debugger;
         const placeLocation = autocomplete.getPlace().geometry;
@@ -335,6 +337,7 @@ const getDetailsCallback = (result: google.maps.places.PlaceResult, status: goog
     // debugger;
     // setPlacesServiceStatus(status);
     dispatch(setSelectedPlace(autocompleteSelectedPlaceToAction(result)));
+    dispatch(setSublocationSelectedLocationID(-1));
     if (result.place_id === undefined) {
         console.error("missing place_id?");
         return;
