@@ -133,7 +133,7 @@ const errorPositionCallback = (error: GeolocationPositionError_, geolocationInPr
     if (error.code === /*GeolocationPositionError.PERMISSION_DENIED*/ 1) {
         //do nothing
         console.warn("The location acquisition process failed because the document does not have permission to use the Geolocation API.");
-        alert("Location permission denied by user or browser settings. Move map manually.");
+        alert(`Location permission denied by user or browser settings. Move map manually. Secure context: ${window.isSecureContext}`);
         return;
     }
     else if (error.code === /*GeolocationPositionError.POSITION_UNAVAILABLE*/ 2) {
@@ -161,6 +161,7 @@ const invokeBrowserGeolocation = (setCenter: React.Dispatch<React.SetStateAction
             console.log(position);
             setCenter({ lat: position.coords.latitude, lng: position.coords.longitude });
         }
+        console.log(window.isSecureContext);
         console.assert(!geolocationInProgress);
         setGeolocationInProgress(true);
         // Fun fact: https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/modules/geolocation/geolocation.cc;bpv=1;bpt=1;l=191?q=geolocation
