@@ -1,6 +1,7 @@
 import React, {CSSProperties, FunctionComponent, useEffect, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {useLocation, Link} from 'react-router-dom';
+import Button from 'react-bootstrap/Button';
 
 
 import {selectSelectedPlace, defaultGooglePlacesState, selectPlacesServiceStatus, selectMapsAPIKey, selectMapsAPIKeyErrorState, setMapsAPIKey, setMapsAPIKeyErrorState} from '../google/googleSlice';
@@ -16,6 +17,7 @@ import {placesPath} from '../../paths/paths';
 
 import {renderNewMeasurementButton} from './NewMeasurementButton';
 import { MeasurementsByDropdown } from '../measurements/MeasurementsByDropdown';
+import { YOUTUBE_VIDEO_INSTRUCTIONS_URL } from '../../utils/UrlPath';
 
 const renderLinkToPlacesWithName = (place_id?: string, name?: string) => {
     if (place_id === undefined) {
@@ -390,6 +392,7 @@ export const HomePage: FunctionComponent<{}> = (props: any) => {
         <>
             <h3>Welcome!</h3>
             <br/>
+            <Button href={YOUTUBE_VIDEO_INSTRUCTIONS_URL}>Instruction video</Button>
             <div style={mapsDivStyle}>
                 <div>
                     {renderMapsWhenLoaded(mapsAPIKey)}
