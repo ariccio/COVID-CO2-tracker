@@ -1,8 +1,9 @@
-import React, {CSSProperties, FunctionComponent, useEffect, useState} from 'react';
+import React, {FunctionComponent, useEffect, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {useLocation, Link} from 'react-router-dom';
 import Button from 'react-bootstrap/Button';
 
+import {Container, Row, Col} from 'react-bootstrap';
 
 import {selectSelectedPlace, defaultGooglePlacesState, selectPlacesServiceStatus, selectMapsAPIKey, selectMapsAPIKeyErrorState, setMapsAPIKey, setMapsAPIKeyErrorState} from '../google/googleSlice';
 import {getGoogleMapsJavascriptAPIKey} from '../../utils/GoogleAPIKeys';
@@ -165,10 +166,10 @@ const renderName = (name?: string) => {
 const renderPlacesServiceStatus = (placesServiceStatus: google.maps.places.PlacesServiceStatus) => {
     return (
         <>
-            <div>
+            <>
                 Google Places service status: {placesServiceStatus}
                 <br/>
-            </div>
+            </>
         </>
     );
 }
@@ -239,11 +240,11 @@ const renderMapsWhenLoaded = (mapsAPIKey: string) => {
     );
 }
 
-const mapsDivStyle: CSSProperties = {
-    display: "flex",
-    alignItems: "left",
-    justifyContent: "left"
-}
+// const mapsDivStyle: CSSProperties = {
+//     display: "flex",
+//     alignItems: "left",
+//     justifyContent: "left"
+// }
 
 
 
@@ -338,6 +339,26 @@ const renderPlace = (currentPlace: google.maps.places.PlaceResult, location: Ret
     );
 }
 
+function renderError(mapsAPIKeyErrorState: string) {
+    return (
+        <>
+            Error loading maps API key!
+            <br />
+            {mapsAPIKeyErrorState}
+        </>
+    );
+}
+
+function renderWelcomeLoading() {
+    return (
+        <>
+            <h3>Welcome!</h3>
+            <br />
+            Loading maps API key...
+        </>
+    );
+}
+
 export const HomePage: FunctionComponent<{}> = (props: any) => {
     // const [mapsAPIKey, setMapsAPIKey] = useState("");
     // const [errorState, setErrorState] = useState("");
@@ -368,24 +389,12 @@ export const HomePage: FunctionComponent<{}> = (props: any) => {
     }, [dispatch, mapsAPIKey]);
   
     if (mapsAPIKeyErrorState !== '') {
-        return (
-            <>
-                Error loading maps API key!
-                <br/>
-                {mapsAPIKeyErrorState}
-            </>
-        );
+        return renderError(mapsAPIKeyErrorState);
     }
     //TODO: google maps goes to default (wrong) center on selecting different location
 
     if (mapsAPIKey === '') {
-        return (
-            <>
-                <h3>Welcome!</h3>
-                <br/>
-                Loading maps API key...
-            </>
-        );     
+        return renderWelcomeLoading();     
     }
 
     return (
@@ -393,20 +402,29 @@ export const HomePage: FunctionComponent<{}> = (props: any) => {
             <h3>Welcome!</h3>
             <br/>
             <Button href={YOUTUBE_VIDEO_INSTRUCTIONS_URL}>Instruction video</Button>
-            <div style={mapsDivStyle}>
-                <div>
-                    {renderMapsWhenLoaded(mapsAPIKey)}
+            <br/>
+            <br/>
+            <br/>
+            <Container>
+                <Row className="show-grid">
+                    <Col md={6} xs={12}>
+                        {renderMapsWhenLoaded(mapsAPIKey)}
+                        <br/>
+                        {mapsAPIKeyErrorState}
+                        <br/>
+                        <br/>
+                    </Col>
+                    <Col md={6} xs={12}>
+                        {renderPlace(currentPlace, location, setShowCreateNewMeasurement, showCreateNewMeasurement, selectedPlaceInfoFromDatabase, selectedPlaceInfoFromDatabaseErrors, placesServiceStatus, selectedPlaceExistsInDatabase)}
+                        <br/>
+                        <br/>
+                        {showCreateNewMeasurement ? <CreateNewMeasurementModal showCreateNewMeasurement={showCreateNewMeasurement} setShowCreateNewMeasurement={setShowCreateNewMeasurement}/> : null}
+                    </Col>
 
-                </div>
-                <br/>
-                {mapsAPIKeyErrorState}
-                <div style={{justifyContent: 'right'}}>
-                    {renderPlace(currentPlace, location, setShowCreateNewMeasurement, showCreateNewMeasurement, selectedPlaceInfoFromDatabase, selectedPlaceInfoFromDatabaseErrors, placesServiceStatus, selectedPlaceExistsInDatabase)}
-                    <br/>
-                    <br/>
-                    {showCreateNewMeasurement ? <CreateNewMeasurementModal showCreateNewMeasurement={showCreateNewMeasurement} setShowCreateNewMeasurement={setShowCreateNewMeasurement}/> : null}
-                </div>
-            </div>
+                </Row>
+
+            </Container>
         </>
     )
 }
+

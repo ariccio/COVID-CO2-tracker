@@ -304,7 +304,7 @@ const onClickMaps = (e: google.maps.MapMouseEvent, setSelectedPlaceIdString: Rea
 }
 
 const containerStyle = {
-    width: '400px',
+    // width: '400px',
     height: '400px'
 };
 
