@@ -29,16 +29,10 @@ class Measurement < ApplicationRecord
       measurementtime: measurement.measurementtime,
       crowding: measurement.crowding,
       location_where_inside_info: measurement.sub_location.description,
-      place: {
-        id: measurement.sub_location.place.id,
-        google_place_id: measurement.sub_location.place.google_place_id
-      }
+      # place: {
+      #   id: measurement.sub_location.place.id,
+      #   # google_place_id: measurement.sub_location.place.google_place_id
+      # }
     }
-  end
-
-  def self.measurements_as_json(measurements)
-    measurements.each.map do |measurement|
-      measurement_with_device_place_as_json(measurement)
-    end
   end
 end

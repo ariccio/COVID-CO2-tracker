@@ -1,10 +1,5 @@
 # frozen_string_literal: true
 
-def first_ten_measurements(device_id)
-  measurements = ::Measurement.where(device_id: device_id).first(10)
-  # NOTE: this can be a very slow query TODO: faster
-  ::Measurement.measurements_as_json(measurements)
-end
 
 def device_create_response_as_json(new_device_instance)
   {
@@ -54,14 +49,16 @@ module Api
 
       def show
         # byebug
-        @device_instance = ::Device.find(params.fetch(:id))
+        # .includes(:model, :user, :measurement, measurement: :sub_location)
+        @device_instance = ::Device.includes(:model, :user, :measurement, measurement: :sub_location).find(params.fetch(:id))
+        # byebug
         render(
           json: {
             device_id: @device_instance.id,
             serial: @device_instance.serial,
             device_model: @device_instance.model.name,
             user_id: @device_instance.user.id,
-            measurements: first_ten_measurements(@device_instance.id)
+            measurements: @device_instance.first_ten_measurements()
             # total number of measurements
           },
           status: :ok

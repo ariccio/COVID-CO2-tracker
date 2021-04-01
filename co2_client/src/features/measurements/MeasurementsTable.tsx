@@ -96,9 +96,9 @@ const mapMeasurementsToTableBody = (measurements: Array<UserInfoSingleMeasuremen
         debugger;
     }
     return measurements.map((measurement, index: number) => {
-        if (measurement.place === undefined) {
-            debugger;
-        }
+        // if (measurement.place === undefined) {
+        //     debugger;
+        // }
         return (
             <tr key={measurementRowKey(measurement.measurement_id)}>
                 {/* <td>{index}</td> */}

@@ -82,25 +82,6 @@ module Api
         )
       end
 
-      def show
-        # TODO: what reaches this route?
-        ::Rails.loggger.debug('What hit this route?')
-        # byebug
-        @measurement = ::Measurement.find(measurement_params.fetch(:id))
-        as_json_result = ::Measurement.measurement_with_device_place_as_json(@measurement)
-        render(
-          json: as_json_result,
-          status: :ok
-        )
-      rescue ::ActiveRecord::RecordNotFound => e
-        render(
-          json: {
-            errors: [create_activerecord_error('measurement not found!', e)]
-          },
-          status: :not_found
-        )
-      end
-
       def destroy
         measurement = @user.measurement.find(params[:id])
         measurement.destroy!

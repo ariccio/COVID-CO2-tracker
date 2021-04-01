@@ -10,10 +10,10 @@ export interface UserInfoSingleMeasurement {
     measurement_id: number,
     co2ppm: number,
     measurementtime: string,
-    place: {
-        id: number,
-        google_place_id: string
-    },
+    // place: {
+    //     id: number,
+    //     // google_place_id: string
+    // },
     crowding: number,
     location_where_inside_info: string
 }
@@ -24,10 +24,10 @@ export const defaultMeasurementInfo: UserInfoSingleMeasurement = {
     measurement_id: -1,
     co2ppm: -1,
     measurementtime: '',
-    place: {
-        id: -1,
-        google_place_id: ''
-    },
+    // place: {
+    //     id: -1,
+    //     // google_place_id: ''
+    // },
     crowding: -1,
     location_where_inside_info: ''
 }
@@ -69,12 +69,13 @@ function deviceInfoToStrongType(deviceInfoResponse: any): DeviceInfoResponse {
         console.assert(deviceInfoResponse.device_model !== undefined);
         console.assert(deviceInfoResponse.user_id !== undefined);
         console.assert(deviceInfoResponse.measurements !== undefined);
-        if (deviceInfoResponse.measurements.length > 0) {
+        // if (deviceInfoResponse.measurements.length > 0) {
 
-            console.assert(deviceInfoResponse.measurements[0].place !== undefined);
-            console.assert(deviceInfoResponse.measurements[0].place.id !== undefined);
-            console.assert(deviceInfoResponse.measurements[0].place.google_place_id !== undefined);
-        }
+        //     // console.assert(deviceInfoResponse.measurements[0].place !== undefined);
+        //     // console.assert(deviceInfoResponse.measurements[0].place.id !== undefined);
+        //     debugger;
+        //     console.assert(deviceInfoResponse.measurements[0].place.google_place_id !== undefined);
+        // }
     }
     const return_value: DeviceInfoResponse = {
         device_id: deviceInfoResponse.device_id,

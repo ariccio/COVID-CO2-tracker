@@ -11,8 +11,9 @@ class User < ApplicationRecord
   validates :name, presence: true
   validates :sub_google_uid, presence: true, uniqueness: true, length: { minimum: 1 }
   def my_devices
-    user_devices = devices
-    user_devices.each.map do |device|
+    # byebug
+    devices.includes(:model, model: :manufacturer).each.map do |device|
+      # byebug
       {
         device_id: device.id,
         serial: device.serial,
@@ -28,22 +29,12 @@ class User < ApplicationRecord
     # @user = current_user
     measurements = []
     # byebug
-    ordered = measurement.order('measurementtime DESC')
-    measurements = ::Measurement.measurements_as_json(ordered)
-    return measurements
-    # devices.each.map do |device|
-    #   # byebug
-    #   if (device.id == 18)
-    #     byebug
-    #   end
-    #   @mine = device.measurement.order('measurementtime DESC')
+    ordered = measurement.includes(:device, :sub_location, device: :model).order('measurementtime DESC')
 
-    #   # NOTE: this can be a very slow query TODO: faster
-    #   result = ::Measurement.measurements_as_json(@mine)
-    #   # byebug
-    #   measurements << result.flatten
-    # end
-    # # byebug
-    # measurements.flatten
+    measurements = ordered.each.map do |measurement|
+      ::Measurement.measurement_with_device_place_as_json(measurement)
+    end
+
+    return measurements
   end
 end

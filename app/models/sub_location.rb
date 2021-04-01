@@ -6,7 +6,7 @@ class SubLocation < ApplicationRecord
   validates :description, presence: true
 
   def as_measurementtime_desc
-    measurement.order('measurementtime DESC').each.map do |measurement|
+    measurement.order('measurementtime DESC').includes(:device, :sub_location).each.map do |measurement|
       ::Measurement.measurement_with_device_place_as_json(measurement)
     end
     # byebug

@@ -14,4 +14,15 @@ class Device < ApplicationRecord
   # This doesn't work correctly. It fails if the device shares a serial number with a device of a different model/manufacturer
   # TODO: write a validator that checks if the serial is unique *for the device model*
   # validates :user_id, uniqueness: { scope: :serial, message: 'each device can only belong to single user!' }
+
+  def first_ten_measurements()
+    # byebug
+    measurements = measurement.first(10)
+    # measurements = ::Measurement.where(device_id: device_id).first(10).include(:device, :sub_location)
+    # NOTE: this can be a very slow query TODO: faster
+    measurements.each.map do |measurement|
+      ::Measurement.measurement_with_device_place_as_json(measurement)
+    end
+  end
+  
 end
