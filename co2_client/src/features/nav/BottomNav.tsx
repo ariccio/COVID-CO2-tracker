@@ -19,7 +19,7 @@ export const BottomNav: React.FC<BottomNavProps> = (props: BottomNavProps) => {
             <Navbar>
                 <Nav className="container-fluid justify-content-start mr-auto" variant="tabs" style={{display: "flex", flexDirection: "row", float: "left"}}>
                     <Nav.Link href={YOUTUBE_VIDEO_INSTRUCTIONS_URL}><b><u><i>Instruction video</i></u></b></Nav.Link>
-                    <Nav.Link href={ABOUT_ME_ARICCIO_URL}><b><u><i>about me/contact/questions</i></u></b></Nav.Link>
+                    <Nav.Link href={ABOUT_ME_ARICCIO_URL}><b><u><i>about me/questions</i></u></b></Nav.Link>
                 </Nav>
                 <Nav className="container-fluid justify-content-end mr-auto" variant="tabs" style={{display:"flex", flexDirection:"row", float: "right"}}>
                     <Nav.Link href="./privacy_policy.txt"><b><u><i>Privacy Policy</i></u></b></Nav.Link>
