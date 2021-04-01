@@ -110,6 +110,7 @@ class ApiController < ActionController::API
     @user = ::User.find(current_user_id)
     @user
   rescue ::JWT::DecodeError => _e
+    Rails.logger.warn('jwt invalid!')
     render_jwt_error
     nil
   rescue ::ActiveRecord::RecordNotFound => _e

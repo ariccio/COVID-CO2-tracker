@@ -151,14 +151,15 @@ module Api
       end
 
       def email
-        @user = current_user
+        @user = current_user()
         if (@user.nil?)
-          render_not_logged_in
+          # Already rendered in current_user, don't need to rerender, can't rerender!
+          # render_not_logged_in
           return
         end
         if (@user.email.nil?)
           Rails.logger.warn("Email field missing for user! User: #{@user}, current_user_id: #{current_user_id}. How did this happen?")
-          render_email_field_missing()
+          # render_email_field_missing()
           return
         end
         render(
@@ -167,6 +168,7 @@ module Api
           },
           status: :ok
         )
+        return
       rescue ::JWT::DecodeError => e
         render_jwt_decode_error(e)
       end
