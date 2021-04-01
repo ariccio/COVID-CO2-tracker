@@ -118,11 +118,29 @@ interface GeolocationPositionError_ {
     readonly TIMEOUT: number;
 };
 
+function isMobileSafari(): boolean {
+    // It SEEMS like recent versions of iOS often deny permissions at the system level, and no kind of useful info tells us that.
+
+    //Thank you stack overflow for detecting if mobile safari, which is ugly:
+    //https://stackoverflow.com/a/29696509/625687
+    const ua = window.navigator.userAgent;
+    const iPad = ua.match(/iPad/i);
+    const iPhone = ua.match(/iPhone/i);
+    const iOS = ((iPad !== null) || (iPhone !== null));
+    const webKit = ua.match(/Webkit/i);
+    const chromeOnIOS = ua.match(/CriOS/i);
+    if (iOS && (webKit !== null) && (chromeOnIOS === null)) { 
+        return true;
+    }
+    return false;
+}
+
 const errorPositionCallback = (error: GeolocationPositionError_, geolocationInProgress: boolean, setGeolocationInProgress: React.Dispatch<React.SetStateAction<boolean>>) => {
     console.assert(geolocationInProgress);
     setGeolocationInProgress(false);
 
     console.log("GeolocationPositionError interface: https://w3c.github.io/geolocation-api/#position_error_interface");
+    console.error(`GeolocationPositionError.code: ${error.code}, message: ${error.message}`);
     //These really are the only three, surprisingly:
     //https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/modules/geolocation/geolocation.cc;l=75;drc=1d00cb24b27d946f3061e0a81e09efed8001ad45?q=GeolocationPositionError
     //https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/modules/geolocation/geolocation_position_error.h;l=39?q=GeolocationPositionError
@@ -131,8 +149,16 @@ const errorPositionCallback = (error: GeolocationPositionError_, geolocationInPr
     //... though, theoretically, a network location provider could be at fault:
     //https://source.chromium.org/chromium/chromium/src/+/master:services/device/geolocation/network_location_request.cc;l=290;drc=1d00cb24b27d946f3061e0a81e09efed8001ad45
     if (error.code === /*GeolocationPositionError.PERMISSION_DENIED*/ 1) {
-        //do nothing
         console.warn("The location acquisition process failed because the document does not have permission to use the Geolocation API.");
+        if (!window.isSecureContext) {
+            alert("Location permission denied by user or browser settings, and not running app from a secure (https) context. Move map manually or try reloading with an encrypted context.");
+            return;
+        }
+        if (isMobileSafari()) {
+            alert(`Location permission denied by user or browser settings. Move map manually. Some users on iOS devices seem to have disabled location services in the *system* privacy options, and Safari will not show a dialog to prompt you. Check if you have set it to "Never" in Settings -> Privacy -> Location Services -> Safari Websites. Sorry about this, but it's Apple's design decision, not mine..`);
+            return;
+        }
+        //do nothing
         alert(`Location permission denied by user or browser settings. Move map manually. Secure context: ${window.isSecureContext}`);
         return;
     }
