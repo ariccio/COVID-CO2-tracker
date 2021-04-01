@@ -115,7 +115,8 @@ export const interestingFields = [
     "types",
     "url",
     "vicinity",
-    "geometry"
+    "geometry",
+    "utc_offset_minutes"
 ];
 
 type geometryPODType = {
