@@ -93,9 +93,8 @@ class ApiController < ActionController::API
     true
   end
 
-  def current_user
-    # byebug
-
+  # Might help for faster lookups in ActiveRecord
+  def current_user_id
     return unless cookie?
 
     @id_from_token = user_id_from_jwt_token
@@ -103,9 +102,12 @@ class ApiController < ActionController::API
     render_falsy_decoded_token unless @id_from_token
 
     # byebug
-    user_id = @id_from_token
+    @id_from_token
+  end
+
+  def current_user
     # byebug
-    @user = ::User.find(user_id)
+    @user = ::User.find(current_user_id)
     @user
   rescue ::JWT::DecodeError => _e
     render_jwt_error

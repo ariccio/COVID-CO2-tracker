@@ -66,14 +66,16 @@ module Api
 
       def show_by_google_place_id
         # byebug
-        @place = ::Place.find_by!(google_place_id: params.fetch(:google_place_id))
+        @place = ::Place.includes(:sub_location).find_by!(google_place_id: params.fetch(:google_place_id))
         refresh_latlng_from_google
+
+        # TODO: place_measurementtime_desc discards the fetched info
         measurements = @place.place_measurementtime_desc
         render(
           json: {
             created: false,
             measurements_by_sublocation: measurements,
-            place_id: @place.id
+            # place_id: @place.id
           }, status: :ok
         )
       rescue ::ActiveRecord::RecordNotFound => e

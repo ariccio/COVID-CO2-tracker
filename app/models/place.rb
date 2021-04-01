@@ -15,21 +15,18 @@ class Place < ApplicationRecord
     }
   end
 
-  def each_subloc
-    results = []
-    sub_location.each do |loc|
-      results << {
+  def place_measurementtime_desc
+    sub_location.includes(:measurement, measurement: :device).each.map do |loc|
+      each_measurement = loc.measurement.includes(:device, device: :model).order('measurementtime DESC').each.map do |measurement|
+        # json = measurement.as_json
+        ::Measurement.measurement_with_device_place_as_json(measurement)
+      end  
+      {
         sub_location_id: loc.id,
         description: loc.description,
-        measurements: loc.as_measurementtime_desc
+        measurements: each_measurement
       }
     end
-    results
-  end
-
-  def place_measurementtime_desc
-    # byebug
-    each_subloc
     # byebug
   end
 
