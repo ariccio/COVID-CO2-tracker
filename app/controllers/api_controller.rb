@@ -111,9 +111,11 @@ class ApiController < ActionController::API
     @user
   rescue ::JWT::DecodeError => _e
     render_jwt_error
+    nil
   rescue ::ActiveRecord::RecordNotFound => _e
     # TODO: is this the most specific error?
-    render_activerecord_notfound_error
+    render_activerecord_notfound_error(_e)
+    nil
   end
 
   def logged_in?

@@ -65,6 +65,17 @@ module Api
         )
       end
 
+      def render_email_field_missing()
+        error_array = [create_error("email field for user is nil! This is likely a bug.", :internal_server_error)]
+        render(
+          json: {
+            errors:
+            error_array
+          },
+          status: :internal_server_error
+        )
+      end
+
       def render_email_not_yet_validated(exception)
         error_array = [create_error("google account email not yet validated, I'm not gonna accept that right now, to hopefully prevent spam", exception)]
         render(
@@ -143,6 +154,11 @@ module Api
         @user = current_user
         if (@user.nil?)
           render_not_logged_in
+          return
+        end
+        if (@user.email.nil?)
+          Rails.logger.warn("Email field missing for user! User: #{@user}, current_user_id: #{current_user_id}. How did this happen?")
+          render_email_field_missing()
           return
         end
         render(
