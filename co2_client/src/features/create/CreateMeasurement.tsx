@@ -307,7 +307,35 @@ function measurementsOrEmpty(placesInfoFromDatabase: SelectedPlaceDatabaseInfo):
     return placesInfoFromDatabase.measurements_by_sublocation;
 }
 
-const renderFormIfReady = (selectedDevice: number, setEnteredCO2Text: React.Dispatch<React.SetStateAction<string>>, place_id: string, setEnteredCrowding: React.Dispatch<React.SetStateAction<string>>, placeName: string, setEnteredLocationDetails: React.Dispatch<React.SetStateAction<string>>, placesInfoFromDatabase: SelectedPlaceDatabaseInfo, selected: SublocationMeasurements | null) => {
+const maybeMeasurementNote = (enteredCO2Text: string) => {
+    const parsed = parseInt(enteredCO2Text);
+    if (isNaN(parsed)) {
+        console.warn(`Unable to parse entered CO2 text ('${enteredCO2Text}') into number`);
+    }
+    if (parsed < 400) {
+        return (
+            <>
+                That's a low measurement. Confirm that your meter reads near 400ppm when you're outside and away from sources of CO2.
+                <br/>
+                <br/>
+                
+            </>
+        )
+    }
+    if (parsed > 2000) {
+        return (
+            <>
+                That's a very high measurement! Confirm that your meter reads near 400ppm when you're outside and away from sources of CO2.
+                <br/>
+                <br/>
+                
+            </>
+        )
+    };
+    return null;
+}
+
+const renderFormIfReady = (selectedDevice: number, setEnteredCO2Text: React.Dispatch<React.SetStateAction<string>>, place_id: string, setEnteredCrowding: React.Dispatch<React.SetStateAction<string>>, placeName: string, setEnteredLocationDetails: React.Dispatch<React.SetStateAction<string>>, placesInfoFromDatabase: SelectedPlaceDatabaseInfo, selected: SublocationMeasurements | null, enteredCO2Text: string) => {
     if (selectedDevice === -1) {
         return null;
     }
@@ -320,7 +348,7 @@ const renderFormIfReady = (selectedDevice: number, setEnteredCO2Text: React.Disp
                 <Form.Label>
                     CO2 level (ppm)
                 </Form.Label>
-                <Form.Control type="number" placeholder="400" min={0} max={80000} name={"co2ppm"}/>
+                <Form.Control type="number" placeholder="400" min={0} max={80000} name={"co2ppm"}/> {maybeMeasurementNote(enteredCO2Text)}
             </Form>
             <Form onChange={(event) => onChangeCrowdingEvent(event, setEnteredCrowding)} onSubmit={ignoreDefault}>
                 <Form.Label>
@@ -458,7 +486,7 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
                 <Modal.Body>
                     {renderErrors(errorState)}
                     {renderSelectDeviceDropdown(userDevices, selectedDevice, selectedModelName, selectedDeviceSerialNumber, dispatch)}
-                    {renderFormIfReady(selectedDevice, setEnteredCO2Text, place_id, setEnteredCrowding, placeName, setEnteredLocationDetails, placesInfoFromDatabase, selected)}
+                    {renderFormIfReady(selectedDevice, setEnteredCO2Text, place_id, setEnteredCrowding, placeName, setEnteredLocationDetails, placesInfoFromDatabase, selected, enteredCO2Text)}
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={(event) => hideHandler(props.setShowCreateNewMeasurement)}>
