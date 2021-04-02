@@ -362,7 +362,7 @@ function renderWelcomeLoading() {
 export const HomePage: FunctionComponent<{}> = (props: any) => {
     // const [mapsAPIKey, setMapsAPIKey] = useState("");
     // const [errorState, setErrorState] = useState("");
-
+    // TODO: when navigating BACK to home page from place, pan map to that place.
     const location = useLocation();
     const dispatch = useDispatch();
 
