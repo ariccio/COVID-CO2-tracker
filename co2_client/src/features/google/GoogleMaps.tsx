@@ -85,8 +85,8 @@ interface APIKeyProps {
 //     lng: number
 // }
 const defaultCenter: google.maps.LatLngLiteral = {
-    lat: 40.769,
-    lng: -73.966
+    lat: 40.76797,
+    lng: -73.9592
 };
 
 //Some dumb problem with typescript:
@@ -213,7 +213,7 @@ const loadCallback = (map: google.maps.Map, setMap: React.Dispatch<React.SetStat
     // map.fitBounds(bounds);
     setMap(map);
     // console.log(`map zoom ${map.getZoom()}`)
-    map.setZoom(18);
+    map.setZoom(15);
     //   map.panTo(center);
     //   map.setZoom(100);
     //   console.log("map zoom " + map.getZoom());
@@ -711,7 +711,6 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
     
 
     if (isLoaded) {
-        console.log("map rerender...")
         return (
             <>
                 {googleMapInContainer(onLoad, onUnmount, map, setZoomlevel, setSelectedPlaceIdString, setCenter, dispatch, mapLoaded, setMapLoaded, placeMarkersFromDatabase, placeMarkerErrors)}
