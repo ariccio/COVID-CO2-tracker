@@ -23,6 +23,7 @@ const measurementTableHeader = (withDelete?: boolean, innerLocation?: boolean) =
             <th>CO2 PPM</th>
             <th>time</th>
             <th>crowding</th>
+            <th>CO2 level</th>
             {innerLocation ? (<th>inner location</th>) : null}
             {withDelete ? (<th>delete measurement</th>) : null}
             {/* <th>measured at google place:</th> */}
@@ -91,6 +92,40 @@ const maybeInnerLocation = (measurement: UserInfoSingleMeasurement, innerLocatio
     return null;
 }
 
+const riskRow = (measurement: UserInfoSingleMeasurement) => {
+    if (measurement.co2ppm < 300) {
+        return (<td><i>Unreasonably low measurement</i></td>);
+    }
+    if (measurement.co2ppm < 500) {
+        return (<td><p style={{color:"green"}}><b>Ideal, near ambient</b></p></td>);
+    }
+    if (measurement.co2ppm < 600) {
+        return (<td><p style={{color:"green"}}>Excellent</p></td>);
+    }
+    if (measurement.co2ppm < 700) {
+        return (<td><p style={{color:"green"}}>Ok</p></td>);
+    }
+    if (measurement.co2ppm < 800) {
+        return (<td><p>Acceptable</p></td>);
+    }
+    if (measurement.co2ppm < 1000) {
+        return (<td><p>Marginal/Warning</p></td>)
+    }
+    if (measurement.co2ppm < 1200) {
+        return (<td><p style={{color:"red"}}><b>Bad</b></p></td>);
+    }
+    if (measurement.co2ppm < 2000) {
+        return (<td><p style={{color:"red"}}><b><u>High: Danger zone</u></b></p></td>);
+    }
+    if (measurement.co2ppm < 5000) {
+        return (<td><p style={{color:"red"}}><b><u>Extremely high: danger zone</u></b></p></td>);
+    }
+    if (measurement.co2ppm < 30_000) {
+        return (<td><p style={{color:"red"}}><b><u><i>Abysmal, <a href="https://www.fsis.usda.gov/sites/default/files/media_file/2020-08/Carbon-Dioxide.pdf">violates OSHA, must not remain this high over 8 hours, confirm meter calibration</a></i></u></b></p></td>);
+    }
+    return (<td><p style={{color:"red"}}><b><u><i>Immediate death or invalid measurement</i></u></b></p></td>);
+}
+
 const mapMeasurementsToTableBody = (measurements: Array<UserInfoSingleMeasurement>, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean, innerLocation?: boolean)/*: JSX.Element*/ => {
     if (measurements === undefined) {
         debugger;
@@ -107,6 +142,7 @@ const mapMeasurementsToTableBody = (measurements: Array<UserInfoSingleMeasuremen
                 <td>{measurement.co2ppm}</td>
                 <td>{measurement.measurementtime}</td>
                 <td>{measurement.crowding}</td>
+                {riskRow(measurement)}
                 {maybeInnerLocation(measurement, innerLocation)}
                 {maybeDeleteButton(measurement, dispatch, withDelete)}
                 {/* <td>{measurement.place.google_place_id}</td> */}
