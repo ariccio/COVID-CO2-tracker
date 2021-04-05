@@ -40,23 +40,21 @@ export const defaultPlaceInfo: SelectedPlaceDatabaseInfo = {
     }
 */
 export interface EachPlaceFromDatabaseForMarker {
-    data: {
-        id: number,
-        type: string,
-        attributes: {
-            google_place_id: string,
-            place_lat: string,
-            place_lng: string
-        }
+    id: number,
+    type: string,
+    attributes: {
+        google_place_id: string,
+        place_lat: string,
+        place_lng: string
     }
 }
 
 export interface placesFromDatabaseForMarker {
-    places: Array<EachPlaceFromDatabaseForMarker> | null
+    data: Array<EachPlaceFromDatabaseForMarker> | null
 }
 
 export const defaultPlaceMarkers: placesFromDatabaseForMarker = {
-    places: null
+    data: null
 }
 
 

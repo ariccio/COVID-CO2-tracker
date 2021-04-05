@@ -162,42 +162,19 @@ module Api
         )
       end
 
-      # def near
-      #   found = ::Place.within(
-      #     1, units: :miles,
-      #        origin: # no idea what rubocop wants here?
-      #       [
-      #         place_params.fetch(:lat),
-      #         place_params.fetch(:lng)
-      #       ]
-      #   )
-      #   places_as_json =
-      #     found.each.map do |place|
-      #       ::Place.as_json_for_markers(place)
-      #     end
-      #   # byebug
-      #   render(
-      #     json: {
-      #       places: places_as_json
-      #     }, status: :ok
-      #   )
-      # end
-
       def in_bounds
         @sw = ::Geokit::LatLng.new(place_bounds_params.fetch(:south), place_bounds_params.fetch(:west))
         @ne = ::Geokit::LatLng.new(place_bounds_params.fetch(:north), place_bounds_params.fetch(:east))
         found = ::Place.in_bounds([@sw, @ne])
         # byebug
-        places_as_json =
-          found.each.map do |place|
-            # {:data=>{:id=>"2", :type=>:place, :attributes=>{:id=>2, :google_place_id=>"ChIJ1eYq8etYwokRd-KvCCjd6cg", :place_lat=>0.40768731e2, :place_lng=>-0.73965915e2}}
-            PlaceMarkerSerializer.new(place).serializable_hash
-            # ::Place.as_json_for_markers(place)
-          end
-        # byebug
+        # places_as_json =
+        #   found.each.map do |place|
+        #     PlaceMarkerSerializer.new(place).serializable_hash
+        #   end
+        pms = PlaceMarkerSerializer.new(found).serializable_hash
         render(
           json: {
-            places: places_as_json
+            places: pms
           }, status: :ok
         )
       end

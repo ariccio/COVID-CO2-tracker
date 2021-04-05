@@ -408,11 +408,11 @@ function markerKey(lat: number, lng: number, index: number): string {
 
 const renderEachMarker = (place: EachPlaceFromDatabaseForMarker, index: number, clusterer: /*clusterType*/ any, setSelectedPlaceIdString: React.Dispatch<React.SetStateAction<string>>) => {
     const pos: google.maps.LatLngLiteral = {
-        lat: parseFloat(place.data.attributes.place_lat),
-        lng: parseFloat(place.data.attributes.place_lng)
+        lat: parseFloat(place.attributes.place_lat),
+        lng: parseFloat(place.attributes.place_lng)
     }
     const clickHandler = (e: google.maps.MapMouseEvent) => {
-        setSelectedPlaceIdString(place.data.attributes.google_place_id);
+        setSelectedPlaceIdString(place.attributes.google_place_id);
     }
     // debugger;
     return (
@@ -447,7 +447,7 @@ const renderMarkers = (placeMarkersFromDatabase: placesFromDatabaseForMarker, pl
         return null;
     }
 
-    if (placeMarkersFromDatabase.places === null) {
+    if (placeMarkersFromDatabase.data === null) {
         console.log("No markers.");
         return null;
         // return (
@@ -461,13 +461,13 @@ const renderMarkers = (placeMarkersFromDatabase: placesFromDatabaseForMarker, pl
         <>
             <MarkerClusterer averageCenter={true} minimumClusterSize={2} maxZoom={14}>
                 {(clusterer) => {
-                    console.assert(placeMarkersFromDatabase.places !== null);
-                    if (placeMarkersFromDatabase.places === null) {
+                    console.assert(placeMarkersFromDatabase.data !== null);
+                    if (placeMarkersFromDatabase.data === null) {
                         return null;
                     }
-                    // debugger;
+                    debugger;
                     // interface clusterType = typeof clusterer;
-                    return placeMarkersFromDatabase.places.map((place, index) => {return renderEachMarker(place, index, clusterer, setSelectedPlaceIdString)})
+                    return placeMarkersFromDatabase.data.map((place, index) => {return renderEachMarker(place, index, clusterer, setSelectedPlaceIdString)})
                 }}
             </MarkerClusterer>
             {}

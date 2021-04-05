@@ -8,7 +8,6 @@ import {useDispatch} from 'react-redux';
 
 const PLACES_BY_GOOGLE_PLACE_ID_ROUTE: string = '/places_by_google_place_id';
 const PLACES_BY_GOOGLE_PLACE_ID_EXISTS_ROUTE: string = '/places_by_google_place_id_exists';
-// const PLACES_NEAR: string = (API_URL + '/places_near');
 const PLACES_IN_BOUNDS: string = (API_URL + '/places_in_bounds');
 
 type responseType = SelectedPlaceDatabaseInfo & {
@@ -108,8 +107,9 @@ export const updatePlacesInfoFromBackend = (place_id: string, dispatch: ReturnTy
 // }
 
 
-type nearbyPlacesResponseType = placesFromDatabaseForMarker & {
-    errors?: Errors
+type nearbyPlacesResponseType = {
+    errors?: Errors,
+    places?: placesFromDatabaseForMarker
 }
 
 function inBoundsPlaceRequestInit(northEast: google.maps.LatLng, southWest: google.maps.LatLng): RequestInit {
@@ -184,8 +184,13 @@ const nearbyResultsFetchedCallback = (result: Promise<nearbyPlacesResponseType>,
             dispatch(setPlaceMarkersFromDatabase(defaultPlaceMarkers));
         }
         else {
+            debugger;
+            console.assert(response.places !== undefined)
+            if (response.places === undefined) {
+                throw new Error("missing data for places in bounds!")
+            }
             // console.log("successfully queried place markers");
-            dispatch(setPlaceMarkersFromDatabase(response));
+            dispatch(setPlaceMarkersFromDatabase(response.places));
             // debugger;
         }
         // debugger;
@@ -196,15 +201,3 @@ const nearbyResultsFetchedCallback = (result: Promise<nearbyPlacesResponseType>,
 
 }
 
-// export const queryPlacesNearbyFromBackend = (lat: number, lng: number, dispatch: ReturnType<typeof useDispatch>) => {
-//     const init = nearPlaceRequestInit(lat, lng);
-//     const fetchFailedCallback = async (awaitedResponse: Response): Promise<nearbyPlacesResponseType> => {
-//         console.error("Failed to find nearby places!");
-//         return awaitedResponse.json();
-//     }
-//     const fetchSuccessCallback = async (awaitedResponse: Response): Promise<nearbyPlacesResponseType> => {
-//         return awaitedResponse.json();
-//     }
-//     const result = fetchJSONWithChecks(PLACES_NEAR, init, 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<nearbyPlacesResponseType>;
-//     nearbyResultsFetchedCallback(result, dispatch);
-// }
