@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {useDispatch} from 'react-redux';
 import {useSelector} from 'react-redux';
-import {selectSelectedPlace, selectPlacesServiceStatus, setPlacesServiceStatus, autocompleteSelectedPlaceToAction, placeResultWithTranslatedType} from '../google/googleSlice';
+import {selectSelectedPlace, selectPlacesServiceStatus, setPlacesServiceStatus, autocompleteSelectedPlaceToAction} from '../google/googleSlice';
 
 import { GoogleMap, useJsApiLoader, Autocomplete, Marker, MarkerClusterer } from '@react-google-maps/api';
 import { Button, Form } from 'react-bootstrap';
@@ -550,24 +550,24 @@ const onZoomChange = (map: google.maps.Map<Element> | null, setZoomlevel: React.
 }
 
 // 
-const updateOnNewPlace = (service: google.maps.places.PlacesService | null, selectedPlaceIdString: string, dispatch: ReturnType<typeof useDispatch>, selectedPlace: placeResultWithTranslatedType) => {
+const updateOnNewPlace = (service: google.maps.places.PlacesService | null, selectedPlaceIdString: string, dispatch: ReturnType<typeof useDispatch>, place_id?: string) => {
     if (service === null) {
         // debugger;
         console.log("places service not ready yet");
         return;
     }
-    if (selectedPlace.place_id === undefined) {
+    if (place_id === undefined) {
         console.log("no placeId from autocomplete yet.");
         // return;
     }
-    if (selectedPlace.place_id === null) {
+    if (place_id === null) {
         // debugger;
         console.warn("place_id is null from autocomplete?");
         return;
     }
     checkInterestingFields(interestingFields);
 
-    const placeIDForRequest = placeIdFromSelectionOrFromMarker(selectedPlaceIdString, selectedPlace.place_id);
+    const placeIDForRequest = placeIdFromSelectionOrFromMarker(selectedPlaceIdString, place_id);
     if (placeIDForRequest === null) {
         console.log("no place id from either source.");
         return;
@@ -579,6 +579,7 @@ const updateOnNewPlace = (service: google.maps.places.PlacesService | null, sele
     const detailsCallbackThunk = (result: google.maps.places.PlaceResult, status: google.maps.places.PlacesServiceStatus) => {
         getDetailsCallback(result, status, dispatch);
     }
+    console.warn("places service request...")
     service.getDetails(request, detailsCallbackThunk);
 
 }
@@ -695,7 +696,7 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
 
 
     useEffect(() => {
-        updateOnNewPlace(service, selectedPlaceIdString, dispatch, selectedPlace);
+        updateOnNewPlace(service, selectedPlaceIdString, dispatch, selectedPlace.place_id);
     }, [service, selectedPlaceIdString, dispatch, selectedPlaceInfoFromDatabaseErrors, selectedPlaceExistsInDatabase, selectedPlace.place_id])
 
     useEffect(legalNoticeNote, []);
