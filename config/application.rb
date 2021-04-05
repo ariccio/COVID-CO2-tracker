@@ -28,6 +28,7 @@ module COVIDCo2Tracker
 
     # TODO: logging filters for google auth storage and stuff https://guides.rubyonrails.org/v3.0/security.html#logging
 
+    config.filter_parameters += ["sub_google_uid"]
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files
