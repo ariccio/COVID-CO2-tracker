@@ -8,7 +8,7 @@ import {useDispatch} from 'react-redux';
 
 const PLACES_BY_GOOGLE_PLACE_ID_ROUTE: string = '/places_by_google_place_id';
 const PLACES_BY_GOOGLE_PLACE_ID_EXISTS_ROUTE: string = '/places_by_google_place_id_exists';
-const PLACES_NEAR: string = (API_URL + '/places_near');
+// const PLACES_NEAR: string = (API_URL + '/places_near');
 const PLACES_IN_BOUNDS: string = (API_URL + '/places_in_bounds');
 
 type responseType = SelectedPlaceDatabaseInfo & {
@@ -93,19 +93,19 @@ export const updatePlacesInfoFromBackend = (place_id: string, dispatch: ReturnTy
     })
 }
 
-function nearPlaceRequestInit(lat: number, lng: number): RequestInit {
-    const defaultOptions = postRequestOptions();
-    const newOptions = {
-        ...defaultOptions,
-        body: JSON.stringify({
-            place: {
-                lat: lat,
-                lng: lng
-            }
-        })
-    };
-    return newOptions;
-}
+// function nearPlaceRequestInit(lat: number, lng: number): RequestInit {
+//     const defaultOptions = postRequestOptions();
+//     const newOptions = {
+//         ...defaultOptions,
+//         body: JSON.stringify({
+//             place: {
+//                 lat: lat,
+//                 lng: lng
+//             }
+//         })
+//     };
+//     return newOptions;
+// }
 
 
 type nearbyPlacesResponseType = placesFromDatabaseForMarker & {
@@ -196,15 +196,15 @@ const nearbyResultsFetchedCallback = (result: Promise<nearbyPlacesResponseType>,
 
 }
 
-export const queryPlacesNearbyFromBackend = (lat: number, lng: number, dispatch: ReturnType<typeof useDispatch>) => {
-    const init = nearPlaceRequestInit(lat, lng);
-    const fetchFailedCallback = async (awaitedResponse: Response): Promise<nearbyPlacesResponseType> => {
-        console.error("Failed to find nearby places!");
-        return awaitedResponse.json();
-    }
-    const fetchSuccessCallback = async (awaitedResponse: Response): Promise<nearbyPlacesResponseType> => {
-        return awaitedResponse.json();
-    }
-    const result = fetchJSONWithChecks(PLACES_NEAR, init, 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<nearbyPlacesResponseType>;
-    nearbyResultsFetchedCallback(result, dispatch);
-}
+// export const queryPlacesNearbyFromBackend = (lat: number, lng: number, dispatch: ReturnType<typeof useDispatch>) => {
+//     const init = nearPlaceRequestInit(lat, lng);
+//     const fetchFailedCallback = async (awaitedResponse: Response): Promise<nearbyPlacesResponseType> => {
+//         console.error("Failed to find nearby places!");
+//         return awaitedResponse.json();
+//     }
+//     const fetchSuccessCallback = async (awaitedResponse: Response): Promise<nearbyPlacesResponseType> => {
+//         return awaitedResponse.json();
+//     }
+//     const result = fetchJSONWithChecks(PLACES_NEAR, init, 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<nearbyPlacesResponseType>;
+//     nearbyResultsFetchedCallback(result, dispatch);
+// }

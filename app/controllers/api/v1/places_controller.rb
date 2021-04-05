@@ -162,26 +162,26 @@ module Api
         )
       end
 
-      def near
-        found = ::Place.within(
-          1, units: :miles,
-             origin: # no idea what rubocop wants here?
-            [
-              place_params.fetch(:lat),
-              place_params.fetch(:lng)
-            ]
-        )
-        places_as_json =
-          found.each.map do |place|
-            ::Place.as_json_for_markers(place)
-          end
-        # byebug
-        render(
-          json: {
-            places: places_as_json
-          }, status: :ok
-        )
-      end
+      # def near
+      #   found = ::Place.within(
+      #     1, units: :miles,
+      #        origin: # no idea what rubocop wants here?
+      #       [
+      #         place_params.fetch(:lat),
+      #         place_params.fetch(:lng)
+      #       ]
+      #   )
+      #   places_as_json =
+      #     found.each.map do |place|
+      #       ::Place.as_json_for_markers(place)
+      #     end
+      #   # byebug
+      #   render(
+      #     json: {
+      #       places: places_as_json
+      #     }, status: :ok
+      #   )
+      # end
 
       def in_bounds
         @sw = ::Geokit::LatLng.new(place_bounds_params.fetch(:south), place_bounds_params.fetch(:west))
