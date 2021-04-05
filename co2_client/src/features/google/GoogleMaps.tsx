@@ -447,7 +447,7 @@ const renderMarkers = (placeMarkersFromDatabase: placesFromDatabaseForMarker, pl
         return null;
     }
 
-    if (placeMarkersFromDatabase.data === null) {
+    if (placeMarkersFromDatabase.places === null) {
         console.log("No markers.");
         return null;
         // return (
@@ -461,13 +461,13 @@ const renderMarkers = (placeMarkersFromDatabase: placesFromDatabaseForMarker, pl
         <>
             <MarkerClusterer averageCenter={true} minimumClusterSize={2} maxZoom={14}>
                 {(clusterer) => {
-                    console.assert(placeMarkersFromDatabase.data !== null);
-                    if (placeMarkersFromDatabase.data === null) {
+                    console.assert(placeMarkersFromDatabase.places !== null);
+                    if (placeMarkersFromDatabase.places === null) {
                         return null;
                     }
-                    debugger;
+                    // debugger;
                     // interface clusterType = typeof clusterer;
-                    return placeMarkersFromDatabase.data.map((place, index) => {return renderEachMarker(place, index, clusterer, setSelectedPlaceIdString)})
+                    return placeMarkersFromDatabase.places.map((place, index) => {return renderEachMarker(place, index, clusterer, setSelectedPlaceIdString)})
                 }}
             </MarkerClusterer>
             {}

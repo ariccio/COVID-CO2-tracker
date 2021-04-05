@@ -50,11 +50,11 @@ export interface EachPlaceFromDatabaseForMarker {
 }
 
 export interface placesFromDatabaseForMarker {
-    data: Array<EachPlaceFromDatabaseForMarker> | null
+    places: Array<EachPlaceFromDatabaseForMarker> | null
 }
 
 export const defaultPlaceMarkers: placesFromDatabaseForMarker = {
-    data: null
+    places: null
 }
 
 

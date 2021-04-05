@@ -174,7 +174,7 @@ module Api
         pms = PlaceMarkerSerializer.new(found).serializable_hash
         render(
           json: {
-            places: pms
+            places: pms[:data]
           }, status: :ok
         )
       end

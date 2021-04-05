@@ -107,9 +107,8 @@ export const updatePlacesInfoFromBackend = (place_id: string, dispatch: ReturnTy
 // }
 
 
-type nearbyPlacesResponseType = {
-    errors?: Errors,
-    places?: placesFromDatabaseForMarker
+type nearbyPlacesResponseType = placesFromDatabaseForMarker & {
+    errors?: Errors
 }
 
 function inBoundsPlaceRequestInit(northEast: google.maps.LatLng, southWest: google.maps.LatLng): RequestInit {
@@ -184,13 +183,13 @@ const nearbyResultsFetchedCallback = (result: Promise<nearbyPlacesResponseType>,
             dispatch(setPlaceMarkersFromDatabase(defaultPlaceMarkers));
         }
         else {
-            debugger;
+            // debugger;
             console.assert(response.places !== undefined)
             if (response.places === undefined) {
                 throw new Error("missing data for places in bounds!")
             }
             // console.log("successfully queried place markers");
-            dispatch(setPlaceMarkersFromDatabase(response.places));
+            dispatch(setPlaceMarkersFromDatabase(response));
             // debugger;
         }
         // debugger;
