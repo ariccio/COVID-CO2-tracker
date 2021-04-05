@@ -25,11 +25,30 @@ export const defaultPlaceInfo: SelectedPlaceDatabaseInfo = {
     measurements_by_sublocation: [defaultSublocationMeasurements]
 }
 
+
+/*
+    {
+        :data=>{
+            :id=>"2",
+            :type=>:place,
+            :attributes=>{
+                :google_place_id=>"ChIJ1eYq8etYwokRd-KvCCjd6cg",
+                :place_lat=>0.40768731e2,
+                :place_lng=>-0.73965915e2
+                }
+            }
+    }
+*/
 export interface EachPlaceFromDatabaseForMarker {
-    place_id: number,
-    google_place_id: string,
-    place_lat: string,
-    place_lng: string
+    data: {
+        id: number,
+        type: string,
+        attributes: {
+            google_place_id: string,
+            place_lat: string,
+            place_lng: string
+        }
+    }
 }
 
 export interface placesFromDatabaseForMarker {

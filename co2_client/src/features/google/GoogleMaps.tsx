@@ -221,6 +221,7 @@ const loadCallback = (map: google.maps.Map, setMap: React.Dispatch<React.SetStat
     console.log("maps successfully loaded!");
     const service = new google.maps.places.PlacesService(map);
     setService(service);
+    console.log("TODO: weird error with maps container means zoom button might be outside of container?");
 
 }
 
@@ -407,11 +408,11 @@ function markerKey(lat: number, lng: number, index: number): string {
 
 const renderEachMarker = (place: EachPlaceFromDatabaseForMarker, index: number, clusterer: /*clusterType*/ any, setSelectedPlaceIdString: React.Dispatch<React.SetStateAction<string>>) => {
     const pos: google.maps.LatLngLiteral = {
-        lat: parseFloat(place.place_lat),
-        lng: parseFloat(place.place_lng)
+        lat: parseFloat(place.data.attributes.place_lat),
+        lng: parseFloat(place.data.attributes.place_lng)
     }
     const clickHandler = (e: google.maps.MapMouseEvent) => {
-        setSelectedPlaceIdString(place.google_place_id);
+        setSelectedPlaceIdString(place.data.attributes.google_place_id);
     }
     // debugger;
     return (
@@ -464,6 +465,7 @@ const renderMarkers = (placeMarkersFromDatabase: placesFromDatabaseForMarker, pl
                     if (placeMarkersFromDatabase.places === null) {
                         return null;
                     }
+                    // debugger;
                     // interface clusterType = typeof clusterer;
                     return placeMarkersFromDatabase.places.map((place, index) => {return renderEachMarker(place, index, clusterer, setSelectedPlaceIdString)})
                 }}
@@ -544,6 +546,7 @@ const onMapIdle = (map: google.maps.Map<Element> | null, mapLoaded: boolean, set
 }
 
 const onZoomChange = (map: google.maps.Map<Element> | null, setZoomlevel: React.Dispatch<React.SetStateAction<number>>) => {
+    // debugger;
     if (map) {
         setZoomlevel(map.getZoom());
     }

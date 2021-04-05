@@ -187,9 +187,12 @@ module Api
         @sw = ::Geokit::LatLng.new(place_bounds_params.fetch(:south), place_bounds_params.fetch(:west))
         @ne = ::Geokit::LatLng.new(place_bounds_params.fetch(:north), place_bounds_params.fetch(:east))
         found = ::Place.in_bounds([@sw, @ne])
+        # byebug
         places_as_json =
           found.each.map do |place|
-            ::Place.as_json_for_markers(place)
+            # {:data=>{:id=>"2", :type=>:place, :attributes=>{:id=>2, :google_place_id=>"ChIJ1eYq8etYwokRd-KvCCjd6cg", :place_lat=>0.40768731e2, :place_lng=>-0.73965915e2}}
+            PlaceMarkerSerializer.new(place).serializable_hash
+            # ::Place.as_json_for_markers(place)
           end
         # byebug
         render(
