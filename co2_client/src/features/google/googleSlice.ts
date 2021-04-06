@@ -107,7 +107,7 @@ url: "https://maps.google.com/?cid=7233492127057385076"
 vicinity: "1066 3rd Avenue, New York"
 */
 
-export const interestingFields = [
+export const INTERESTING_FIELDS = [
     "name",
     "place_id",
     "formatted_address",

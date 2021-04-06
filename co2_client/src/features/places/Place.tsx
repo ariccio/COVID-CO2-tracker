@@ -7,9 +7,10 @@ import { selectPlaceExistsInDatabase, selectPlacesInfoErrors, selectPlacesInfoFr
 
 import {renderFromDatabaseNoGoogleParam, renderSelectedPlaceInfo} from '../home/HomePage';
 import { selectMapsAPIKey, selectMapsAPIKeyErrorState, selectPlacesServiceStatus, selectSelectedPlace, setMapsAPIKey, setMapsAPIKeyErrorState } from '../google/googleSlice';
-import { GOOGLE_LIBRARIES, updateOnNewPlace } from '../google/GoogleMaps';
+import { GOOGLE_LIBRARIES } from '../google/GoogleMaps';
 import { useJsApiLoader } from '@react-google-maps/api';
 import { getGoogleMapsJavascriptAPIKey } from '../../utils/GoogleAPIKeys';
+import { updateOnNewPlace } from '../google/googlePlacesServiceUtils';
 
 interface PlaceProps {
     placeId: string
@@ -45,7 +46,7 @@ const PlaceDetails: React.FC<PlaceDetailsProps> = (props) => {
         }
         const service = new google.maps.places.PlacesService(props.divRef.current);
         setService(service);
-    }, [isLoaded, loadError])
+    }, [isLoaded, loadError, props.divRef])
 
     useEffect(() => {
         if (props.placeId === '') {
@@ -63,6 +64,12 @@ const PlaceDetails: React.FC<PlaceDetailsProps> = (props) => {
         <>
             {renderSelectedPlaceInfo(selectedPlace, placesServiceStatus)}
         </>
+    );
+}
+const DivElem = (props: {elementRef: React.MutableRefObject<HTMLDivElement | null>}) => {
+    return (
+        <div id='ghost-map' ref={props.elementRef}>
+        </div>
     );
 }
 
@@ -91,15 +98,6 @@ export const Place: React.FC<RouteComponentProps<PlaceProps>> = (props) => {
 
 
 
-
-
-    const DivElem = () => {
-        return (
-            <div id='ghost-map' ref={elementRef}>
-            </div>
-        );
-    }
-
     useEffect(() => {
         if (props.match.params.placeId === undefined) {
             return;
@@ -113,17 +111,16 @@ export const Place: React.FC<RouteComponentProps<PlaceProps>> = (props) => {
     if (props.match.params.placeId === undefined) {
         return (
             <>
-                <DivElem/>
+                <DivElem elementRef={elementRef}/>
                 No place selected.
             </>
         )
     }
 
-
     if (props.match.params.placeId === '') {
         return (
             <>
-                <DivElem/>
+                <DivElem elementRef={elementRef}/>
                 placeId empty.
             </>
         )
@@ -133,6 +130,7 @@ export const Place: React.FC<RouteComponentProps<PlaceProps>> = (props) => {
         return (
             <>
                 Error loading maps API key: {mapsAPIKeyErrorState}
+                <DivElem elementRef={elementRef}/>
             </>
         );
     }
@@ -140,6 +138,7 @@ export const Place: React.FC<RouteComponentProps<PlaceProps>> = (props) => {
         return (
             <>
                 Loading maps API key...
+                <DivElem elementRef={elementRef}/>
             </>
         );
     }
@@ -147,7 +146,7 @@ export const Place: React.FC<RouteComponentProps<PlaceProps>> = (props) => {
     return (
         <>
             Place {props.match.params.placeId}
-            <DivElem/>
+            <DivElem elementRef={elementRef}/>
             <PlaceDetails mapsAPIKey={mapsAPIKey} placeId={props.match.params.placeId} divRef={elementRef}/>
             {renderFromDatabaseNoGoogleParam(selectedPlaceInfoFromDatabase, selectedPlaceInfoFromDatabaseErrors, selectedPlaceExistsInDatabase)}
             <br/>

@@ -1,89 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import {useDispatch} from 'react-redux';
 import {useSelector} from 'react-redux';
-import {selectSelectedPlace, selectPlacesServiceStatus, setPlacesServiceStatus, autocompleteSelectedPlaceToAction} from '../google/googleSlice';
+import {selectSelectedPlace, selectPlacesServiceStatus, autocompleteSelectedPlaceToAction} from '../google/googleSlice';
 
 import { GoogleMap, useJsApiLoader, Autocomplete, Marker, MarkerClusterer } from '@react-google-maps/api';
 import { Button, Form } from 'react-bootstrap';
 
-import {setSelectedPlace, interestingFields} from './googleSlice';
+import {setSelectedPlace, INTERESTING_FIELDS} from './googleSlice';
 
 import {updatePlacesInfoFromBackend, queryPlacesInBoundsFromBackend} from '../../utils/QueryPlacesInfo';
 import { defaultPlaceMarkers, EachPlaceFromDatabaseForMarker, placesFromDatabaseForMarker, selectPlaceExistsInDatabase, selectPlaceMarkersFromDatabase, selectPlacesInfoErrors, selectPlacesMarkersErrors } from '../places/placesSlice';
 import { setSublocationSelectedLocationID } from '../sublocationsDropdown/sublocationSlice';
-
-// import { getGooglePlacesScriptAPIKey } from '../../utils/GoogleAPIKeys';
-// import {GeolocationPosition} from 'typescript/lib/lib.dom'
-
-
-// const loadGoogleMaps = async (callback: any) => {
-//     const existingScript = document.getElementById('googleMaps');
-
-//     if (!existingScript) {
-//       const script: HTMLScriptElement = document.createElement('script');
-//       const apiKey: string = await getGoogleMapsJavascriptAPIKey();
-//       script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
-//       script.id = 'googleMaps';
-//       document.body.appendChild(script);
-
-//       script.onload = () => {
-//         if (callback) callback();
-//       };
-//     }
-
-//     if (existingScript && callback) {
-//       callback();
-//     }
-//   }
+import { updateOnNewPlace } from './googlePlacesServiceUtils';
 
 
 //decls:
 type Libraries = ("drawing" | "geometry" | "localContext" | "places" | "visualization")[];
 export const GOOGLE_LIBRARIES: Libraries = ["places"];
-//I hate this.
-// const loadGooglePlaces = async () => {
-//     const existingScript = document.getElementById('googleMaps');
 
-//     if (!existingScript) {
-//         const script: HTMLScriptElement = document.createElement('script');
-//         const apiKey: string = await getGooglePlacesScriptAPIKey();
-//         script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
-//         script.id = 'googleMaps';
-//         document.body.appendChild(script);
-
-//         script.onload = () => {
-//             // if (callback) callback();
-//             return;
-//         };
-//     }
-
-//     // if (existingScript && callback) {
-//     //   callback();
-//     // return
-//     // }
-// }
 
 interface APIKeyProps {
     api_key: string
 }
 
-// type containterStyleType = {
-//     width: string,
-//     height: string
-// }
-
-// type centerType = {
-//     lat: number,
-//     lng: number
-// }
-
-// const renderMap = (containerStyle: containterStyleType, center: centerType, zoom: number, onLoad: (map: any) => void, onUnmount: (map: any) => void) =>
-
-
-// interface google.maps.LatLngLiteral {
-//     lat: number,
-//     lng: number
-// }
 const defaultCenter: google.maps.LatLngLiteral = {
     lat: 40.76797,
     lng: -73.9592
@@ -273,21 +212,12 @@ const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (pr
     //https://developers.google.com/maps/documentation/javascript/places-autocomplete
 
     return (
-        <Autocomplete onLoad={(event) => props.autoCompleteLoad(event)} onPlaceChanged={props.placeChange} bounds={bounds} fields={interestingFields}>
-            <>
-
-                <Form onSubmit={(event: React.FormEvent<HTMLFormElement>) => formSubmitHandler(event)}>
+        <Autocomplete onLoad={props.autoCompleteLoad} onPlaceChanged={props.placeChange} bounds={bounds} fields={INTERESTING_FIELDS}>
+                <Form onSubmit={formSubmitHandler}>
                     <Form.Group>
-                        <Form.Control type="text" onSubmit={(event: React.FormEvent<HTMLInputElement>) => formFieldSubmitHandler(event)}/>
+                        <Form.Control type="text" onSubmit={formFieldSubmitHandler}/>
                     </Form.Group>
                 </Form>
-
-                {/* <div>
-
-            </div>
-            <input type="text" placeholder="location">
-            </input> */}
-            </>
         </Autocomplete>
     );
 }
@@ -371,29 +301,6 @@ const autoCompleteLoadThunk = (autocompleteEvent: google.maps.places.Autocomplet
     console.log("autocomplete loaded!");
 }
 
-const getDetailsCallback = (result: google.maps.places.PlaceResult, status: google.maps.places.PlacesServiceStatus, dispatch: ReturnType<typeof useDispatch>) => {
-    dispatch(setPlacesServiceStatus(status));
-    if (status !== google.maps.places.PlacesServiceStatus.OK) {
-        console.error(`Google places query returned ${status}`);
-        
-        if (status === google.maps.places.PlacesServiceStatus.OVER_QUERY_LIMIT) {
-            alert('Used entire budgeted google places/maps API quota! File an issue on github or contact me.');
-        }
-        return;
-    }
-    // debugger;
-    // setPlacesServiceStatus(status);
-    dispatch(setSelectedPlace(autocompleteSelectedPlaceToAction(result)));
-    dispatch(setSublocationSelectedLocationID(-1));
-    if (result.place_id === undefined) {
-        console.error("missing place_id?");
-        return;
-    }
-    // console.log(result.utc_offset_minutes);
-    // debugger;
-    // result.
-    updatePlacesInfoFromBackend(result.place_id, dispatch);
-}
 
 function legalNoticeNote() {
     console.log("legal notice to self:");
@@ -420,26 +327,26 @@ const renderEachMarker = (place: EachPlaceFromDatabaseForMarker, index: number, 
     )
 }
 
+const clustererCallback = (placeMarkersFromDatabase: placesFromDatabaseForMarker, setSelectedPlaceIdString: React.Dispatch<React.SetStateAction<string>>, clusterer: /*Clusterer*/ any) => {
+    console.assert(placeMarkersFromDatabase.places !== null);
+    if (placeMarkersFromDatabase.places === null) {
+        return null;
+    }
+    // debugger;
+    // interface clusterType = typeof clusterer;
+    return placeMarkersFromDatabase.places.map((place, index) => {return renderEachMarker(place, index, clusterer, setSelectedPlaceIdString)})
+
+}
 
 const renderMarkers = (placeMarkersFromDatabase: placesFromDatabaseForMarker, placeMarkerErrors: string, setSelectedPlaceIdString: React.Dispatch<React.SetStateAction<string>>) => {
     if (placeMarkerErrors !== '') {
         console.error("cant render markers, got errors:");
         console.error(placeMarkerErrors);
         return null;
-        // return (
-        //     <>
-        //         {placeMarkerErrors}
-        //     </>
-        // );
     }
     if (placeMarkersFromDatabase === defaultPlaceMarkers) {
         console.log("Not rendering place markers, still loading from database...");
         return null;
-        // return (
-        //     <>
-        //         Loading place markers from placeMarkersFromDatabase.places..
-        //     </>
-        // );
     }
     if (placeMarkersFromDatabase === null) {
         console.log("default state?");
@@ -450,70 +357,18 @@ const renderMarkers = (placeMarkersFromDatabase: placesFromDatabaseForMarker, pl
     if (placeMarkersFromDatabase.places === null) {
         console.log("No markers.");
         return null;
-        // return (
-        //     <>
-        //         No markers.
-        //     </>
-        // );
     }
     // console.log(`Rendering ${placeMarkersFromDatabase.places.length} markers...`);
     return (
-        <>
-            <MarkerClusterer averageCenter={true} minimumClusterSize={2} maxZoom={14}>
-                {(clusterer) => {
-                    console.assert(placeMarkersFromDatabase.places !== null);
-                    if (placeMarkersFromDatabase.places === null) {
-                        return null;
-                    }
-                    // debugger;
-                    // interface clusterType = typeof clusterer;
-                    return placeMarkersFromDatabase.places.map((place, index) => {return renderEachMarker(place, index, clusterer, setSelectedPlaceIdString)})
-                }}
-            </MarkerClusterer>
-            {}
-        </>
+        <MarkerClusterer averageCenter={true} minimumClusterSize={2} maxZoom={14}>
+            {(clusterer) => {
+                return clustererCallback(placeMarkersFromDatabase, setSelectedPlaceIdString, clusterer);
+            }}
+        </MarkerClusterer>
     )
 }
 
 const mapOptions = options(defaultCenter);
-
-function warnFieldMessage(): void {
-    console.warn(`Warning: If you do not specify at least one field with a request, or if you omit the fields parameter from a request, ALL possible fields will be returned, and you will be billed accordingly. This applies only to Place Details requests (including Place Details requests made from the Place Autocomplete widget).`);
-}
-
-function checkInterestingFields(interestingFields: Array<string>): void {
-    if (interestingFields === undefined) {
-        warnFieldMessage();
-    }
-    if (interestingFields === null) {
-        warnFieldMessage();
-        return;
-    }
-    if (interestingFields.length === 0) {
-        warnFieldMessage();
-        return;
-    }
-    if (interestingFields[0] === null) {
-        warnFieldMessage();
-        return;
-    }
-    if (interestingFields[0].length === 0) {
-        warnFieldMessage();
-    }
-
-}
-
-function placeIdFromSelectionOrFromMarker(selectedPlaceIdString: string, selectedPlace?: string): string | null {
-    if (selectedPlaceIdString !== '') {
-        console.log(`Selecting place id string ${selectedPlaceIdString} from marker`);
-        return selectedPlaceIdString;
-    }
-    if (selectedPlace !== undefined) {
-        console.log(`Selecting place id string ${selectedPlace} from autocomplete`);
-        return selectedPlace;
-    }
-    return null;
-}
 
 const updateMarkers = (map: google.maps.Map<Element> | null, dispatch: ReturnType<typeof useDispatch>) => {
     if (!map) {
@@ -553,39 +408,6 @@ const onZoomChange = (map: google.maps.Map<Element> | null, setZoomlevel: React.
 }
 
 // 
-export const updateOnNewPlace = (service: google.maps.places.PlacesService | null, selectedPlaceIdString: string, dispatch: ReturnType<typeof useDispatch>, place_id?: string) => {
-    if (service === null) {
-        // debugger;
-        console.log("places service not ready yet");
-        return;
-    }
-    if (place_id === undefined) {
-        console.log("no placeId from autocomplete yet.");
-        // return;
-    }
-    if (place_id === null) {
-        // debugger;
-        console.warn("place_id is null from autocomplete?");
-        return;
-    }
-    checkInterestingFields(interestingFields);
-
-    const placeIDForRequest = placeIdFromSelectionOrFromMarker(selectedPlaceIdString, place_id);
-    if (placeIDForRequest === null) {
-        console.log("no place id from either source.");
-        return;
-    }
-    const request: google.maps.places.PlaceDetailsRequest = {
-        placeId: placeIDForRequest,
-        fields: interestingFields
-    } 
-    const detailsCallbackThunk = (result: google.maps.places.PlaceResult, status: google.maps.places.PlacesServiceStatus) => {
-        getDetailsCallback(result, status, dispatch);
-    }
-    console.warn("places service request...")
-    service.getDetails(request, detailsCallbackThunk);
-
-}
 
 
 const googleMapInContainer = (
@@ -622,6 +444,38 @@ const googleMapInContainer = (
     );
 }
 
+const centerChange = (map: google.maps.Map<Element> | null, mapLoaded: boolean, center: google.maps.LatLngLiteral, dispatch: ReturnType<typeof useDispatch>) => {
+    if (!map) {
+        console.log("map falsy, not setting center");
+        return;
+    }
+    if (!mapLoaded) {
+        console.log("map not loaded, not setting center");
+        return;
+    }
+    console.log(`center changed ${center.lat}, ${center.lng}`);
+    map.setCenter(center);
+    updateMarkers(map, dispatch);
+
+}
+
+interface AutocompleteElementProps {
+    map: google.maps.Map<Element> | null,
+    setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>,
+    mapLoaded: boolean
+}
+
+
+const AutocompleteElement: React.FC<AutocompleteElementProps> = (props) => {
+    // debugger;
+    const [autocomplete, setAutocomplete] = useState(null as google.maps.places.Autocomplete | null);
+    const dispatch = useDispatch();
+    return (
+        <RenderAutoComplete autoCompleteLoad={(event) => autoCompleteLoadThunk(event, setAutocomplete)} placeChange={() => placeChangeHandler(autocomplete, dispatch, props.map, props.setCenter)} map={props.map} mapLoaded={props.mapLoaded} />
+    );
+}
+
+
 
 export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props) => {
 
@@ -631,7 +485,7 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
 
     const dispatch = useDispatch();
     const [center, setCenter] = useState(defaultCenter);
-    const [autocomplete, setAutocomplete] = useState(null as google.maps.places.Autocomplete | null);
+    
     const [map, setMap] = React.useState(null as google.maps.Map | null);
     const [_zoomLevel, setZoomlevel] = useState(0);
     
@@ -665,22 +519,8 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
         // debugger;
     }, []);
 
-    // useEffect(() => {
-    //     setMapLoaded(true);
-    // }, [map])
-
     useEffect(() => {
-        if (!map) {
-            console.log("map falsy, not setting center");
-            return;
-        }
-        if (!mapLoaded) {
-            console.log("map not loaded, not setting center");
-            return;
-        }
-        console.log(`center changed ${center.lat}, ${center.lng}`);
-        map.setCenter(center);
-        updateMarkers(map, dispatch);
+        centerChange(map, mapLoaded, center, dispatch)
     }, [center])
 
     const onUnmount = React.useCallback(function callback(map: google.maps.Map) {
@@ -704,22 +544,12 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
 
     useEffect(legalNoticeNote, []);
     
-
-    const autocompleteElement = () => {
-        // debugger;
-        return (
-            <RenderAutoComplete autoCompleteLoad={(event) => autoCompleteLoadThunk(event, setAutocomplete)} placeChange={() => placeChangeHandler(autocomplete, dispatch, map, setCenter)} map={map} mapLoaded={mapLoaded} />
-        );
-    }
-
-    
-
     if (isLoaded) {
         return (
             <>
                 {googleMapInContainer(onLoad, onUnmount, map, setZoomlevel, setSelectedPlaceIdString, setCenter, dispatch, mapLoaded, setMapLoaded, placeMarkersFromDatabase, placeMarkerErrors)}
                 <br/>
-                {autocompleteElement()}
+                <AutocompleteElement map={map} setCenter={setCenter} mapLoaded={mapLoaded}/>
                 <Button onClick={() => {
                     if (geolocationInProgress) {
                         return;
