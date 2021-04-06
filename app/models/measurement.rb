@@ -22,12 +22,12 @@ class Measurement < ApplicationRecord
   def self.measurement_with_device_place_as_json(measurement)
     # byebug
     {
-      device_id: measurement.device.id,
-      device_name: measurement.device.model.name,
       measurement_id: measurement.id,
       co2ppm: measurement.co2ppm,
       measurementtime: measurement.measurementtime,
       crowding: measurement.crowding,
+      device_id: measurement.device.id,
+      device_name: measurement.device.model.name,
       location_where_inside_info: measurement.sub_location.description,
       # place: {
       #   id: measurement.sub_location.place.id,

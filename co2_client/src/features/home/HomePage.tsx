@@ -191,7 +191,7 @@ const renderPlacesServiceStatusWithHighlight = (placesServiceStatus: google.maps
     )
 }
 
-const renderSelectedPlaceInfo = (currentPlace: google.maps.places.PlaceResult, placesServiceStatus: google.maps.places.PlacesServiceStatus | null) => {
+export const renderSelectedPlaceInfo = (currentPlace: google.maps.places.PlaceResult, placesServiceStatus: google.maps.places.PlacesServiceStatus | null) => {
     if (currentPlace === defaultGooglePlacesState.selected) {
         return null;
         // return (

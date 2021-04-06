@@ -39,7 +39,7 @@ import { setSublocationSelectedLocationID } from '../sublocationsDropdown/subloc
 
 //decls:
 type Libraries = ("drawing" | "geometry" | "localContext" | "places" | "visualization")[];
-const GOOGLE_LIBRARIES: Libraries = ["places"];
+export const GOOGLE_LIBRARIES: Libraries = ["places"];
 //I hate this.
 // const loadGooglePlaces = async () => {
 //     const existingScript = document.getElementById('googleMaps');
@@ -553,7 +553,7 @@ const onZoomChange = (map: google.maps.Map<Element> | null, setZoomlevel: React.
 }
 
 // 
-const updateOnNewPlace = (service: google.maps.places.PlacesService | null, selectedPlaceIdString: string, dispatch: ReturnType<typeof useDispatch>, place_id?: string) => {
+export const updateOnNewPlace = (service: google.maps.places.PlacesService | null, selectedPlaceIdString: string, dispatch: ReturnType<typeof useDispatch>, place_id?: string) => {
     if (service === null) {
         // debugger;
         console.log("places service not ready yet");
