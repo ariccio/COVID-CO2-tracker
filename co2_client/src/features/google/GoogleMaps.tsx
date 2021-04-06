@@ -15,7 +15,6 @@ import { updateOnNewPlace } from './googlePlacesServiceUtils';
 import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
 import { userRequestOptions } from '../../utils/DefaultRequestOptions';
 import { API_URL } from '../../utils/UrlPath';
-import { defaultUserInfo } from '../../utils/QueryUserInfo';
 import { selectUsername } from '../login/loginSlice';
 
 
@@ -499,6 +498,32 @@ function responseToLatLngLiteral(response: LastMeasurementLocation): google.maps
     return latlng;
 }
 
+const fetchLastMeasurementCallback = async (awaitedResponse: Response): Promise<LastMeasurementLocation | null> => {
+    console.log("TODO: strong type");
+    // debugger;
+    return awaitedResponse.json();
+}
+const fetchLastMeasurementCallbackFailed = async (awaitedResponse: Response): Promise<LastMeasurementLocation | null> => {
+    return null;
+}
+
+const loadAndPanToLastMeasurement = (map: google.maps.Map<Element> | null) => {
+    const LAST_MEASUREMENT_URL = (API_URL + '/user_last_measurement')
+    const result = fetchJSONWithChecks(LAST_MEASUREMENT_URL, userRequestOptions(), 200, true, fetchLastMeasurementCallbackFailed, fetchLastMeasurementCallback) as Promise<LastMeasurementLocation | null>;
+
+    result.then((resulted) => {
+        if (resulted) {
+            const loc = responseToLatLngLiteral(resulted);
+            // debugger;
+            if (loc) {
+                map?.panTo(loc)
+            }
+        }
+    }).catch((reason) => {
+        console.error("failed to get last ")
+    })
+
+}
 
 export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props) => {
 
@@ -547,27 +572,7 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
             // debugger;
             return;
         }
-        const fetchCallback = async (awaitedResponse: Response): Promise<LastMeasurementLocation | null> => {
-            console.log("TODO: strong type");
-            // debugger;
-            return awaitedResponse.json();
-        }
-        const fetchFailed = async (awaitedResponse: Response): Promise<LastMeasurementLocation | null> => {
-            return null;
-        }
-        const result = fetchJSONWithChecks((API_URL + '/user_last_measurement'), userRequestOptions(), 200, true, fetchFailed, fetchCallback) as Promise<LastMeasurementLocation | null>;
-
-
-        result.then((resulted) => {
-            if (resulted) {
-                const loc = responseToLatLngLiteral(resulted);
-                // debugger;
-                if (loc) {
-                    map?.panTo(loc)
-                }
-            }
-
-        })
+        loadAndPanToLastMeasurement(map);
 
     }, [username, map])
 
