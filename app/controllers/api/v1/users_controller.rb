@@ -59,6 +59,16 @@ module Api
         render_user_not_found(e)
       end
 
+      def last_measurement
+        recent_place = current_user.last_measurement.sub_location.place
+        render(
+          json: {
+            place_lat: recent_place.place_lat,
+            place_lng: recent_place.place_lng
+          }, status: :ok
+        )
+      end
+
       def user_params
         params.require(:user).permit(:email, :password)
       end

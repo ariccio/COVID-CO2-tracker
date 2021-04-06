@@ -37,4 +37,9 @@ class User < ApplicationRecord
 
     return measurements
   end
+
+  def last_measurement
+    measurement.order('measurementtime DESC').first
+  end
+
 end

@@ -12,6 +12,11 @@ import {updatePlacesInfoFromBackend, queryPlacesInBoundsFromBackend} from '../..
 import { defaultPlaceMarkers, EachPlaceFromDatabaseForMarker, placesFromDatabaseForMarker, selectPlaceExistsInDatabase, selectPlaceMarkersFromDatabase, selectPlacesInfoErrors, selectPlacesMarkersErrors } from '../places/placesSlice';
 import { setSublocationSelectedLocationID } from '../sublocationsDropdown/sublocationSlice';
 import { updateOnNewPlace } from './googlePlacesServiceUtils';
+import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
+import { userRequestOptions } from '../../utils/DefaultRequestOptions';
+import { API_URL } from '../../utils/UrlPath';
+import { defaultUserInfo } from '../../utils/QueryUserInfo';
+import { selectUsername } from '../login/loginSlice';
 
 
 //decls:
@@ -475,6 +480,24 @@ const AutocompleteElement: React.FC<AutocompleteElementProps> = (props) => {
     );
 }
 
+interface LastMeasurementLocation {
+    place_lat: string,
+    place_lng: string
+}
+
+function responseToLatLngLiteral(response: LastMeasurementLocation): google.maps.LatLngLiteral | null {
+    const latlng = {
+        lat: parseFloat(response.place_lat),
+        lng: parseFloat(response.place_lng)
+    };
+    if (latlng.lat === undefined) {
+        return null;
+    }
+    if (latlng.lng === undefined) {
+        return null;
+    }
+    return latlng;
+}
 
 
 export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props) => {
@@ -500,7 +523,7 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
     // const selectedPlaceInfoFromDatabase = useSelector(selectPlacesInfoFromDatabase);
     const selectedPlaceInfoFromDatabaseErrors = useSelector(selectPlacesInfoErrors);
     const selectedPlaceExistsInDatabase = useSelector(selectPlaceExistsInDatabase);
-
+    const username = useSelector(selectUsername);
 
     //Needed (for now) to update on clicking markers
     const [selectedPlaceIdString, setSelectedPlaceIdString] = useState('');
@@ -518,6 +541,35 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
         loadCallback(map, setMap, setService);
         // debugger;
     }, []);
+
+    useEffect(() => {
+        if (username === '') {
+            // debugger;
+            return;
+        }
+        const fetchCallback = async (awaitedResponse: Response): Promise<LastMeasurementLocation | null> => {
+            console.log("TODO: strong type");
+            // debugger;
+            return awaitedResponse.json();
+        }
+        const fetchFailed = async (awaitedResponse: Response): Promise<LastMeasurementLocation | null> => {
+            return null;
+        }
+        const result = fetchJSONWithChecks((API_URL + '/user_last_measurement'), userRequestOptions(), 200, true, fetchFailed, fetchCallback) as Promise<LastMeasurementLocation | null>;
+
+
+        result.then((resulted) => {
+            if (resulted) {
+                const loc = responseToLatLngLiteral(resulted);
+                // debugger;
+                if (loc) {
+                    map?.panTo(loc)
+                }
+            }
+
+        })
+
+    }, [username, map])
 
     useEffect(() => {
         centerChange(map, mapLoaded, center, dispatch)

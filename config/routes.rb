@@ -27,6 +27,7 @@
       # post '/places_near', to: 'places#near'
       post '/places_in_bounds', to: 'places#in_bounds'
       post '/google_login_token', to: 'auth#token_from_google'
+      get '/user_last_measurement', to: 'users#last_measurement'
       resources :keys, only: [:show]
     end
   end
