@@ -12,6 +12,7 @@ module Api
 
       # POST /sub_locations
       def create
+        byebug
         @sub_location = SubLocation.new(sub_location_params)
 
         if @sub_location.save
@@ -23,6 +24,7 @@ module Api
 
       # PATCH/PUT /sub_locations/1
       def update
+        byebug
         if @sub_location.update(sub_location_params)
           render json: @sub_location
         else
@@ -32,6 +34,7 @@ module Api
 
       # DELETE /sub_locations/1
       def destroy
+        byebug
         @sub_location.destroy
       end
 

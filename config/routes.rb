@@ -1,13 +1,12 @@
 # frozen_string_literal: true
 
 ::Rails.application.routes.draw do
-  resources :sub_locations
   devise_for :admin_users, ActiveAdmin::Devise.config
   ActiveAdmin.routes(self)
   # get 'auth/create'
   # get 'auth/destroy'
   # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
-
+  
   namespace :api do
     namespace :v1 do
       resources :users, only: [:create, :show]
@@ -17,7 +16,12 @@
       resources :model, only: [:create, :show]
       resources :places, only: [:show, :create]
       resources :measurement, only: [:create, :destroy]
+      
+      # Hmm, not used yet.
+      resources :sub_locations
 
+
+      get 'stats/show'
       get '/all_manufacturers', to: 'manufacturers#all_manufacturers'
       delete '/auth', to: 'auth#destroy'
       get '/email', to: 'auth#email'
