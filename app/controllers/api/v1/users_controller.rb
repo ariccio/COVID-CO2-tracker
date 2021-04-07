@@ -32,7 +32,7 @@ module Api
 
       def my_devices
         @user = current_user
-        if (user.nil?)
+        if (@user.nil?)
           render_not_logged_in
           return
         end
