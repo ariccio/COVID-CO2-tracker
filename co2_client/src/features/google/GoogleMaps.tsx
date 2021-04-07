@@ -16,6 +16,7 @@ import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
 import { userRequestOptions } from '../../utils/DefaultRequestOptions';
 import { API_URL } from '../../utils/UrlPath';
 import { selectUsername } from '../login/loginSlice';
+import { ErrorObjectType, formatErrors, withErrors } from '../../utils/ErrorObject';
 
 
 //decls:
@@ -498,29 +499,36 @@ function responseToLatLngLiteral(response: LastMeasurementLocation): google.maps
     return latlng;
 }
 
-const fetchLastMeasurementCallback = async (awaitedResponse: Response): Promise<LastMeasurementLocation | null> => {
+type lastMeasurementLocationResponseType = (LastMeasurementLocation & withErrors);
+
+const fetchLastMeasurementCallback = async (awaitedResponse: Response): Promise<lastMeasurementLocationResponseType> => {
     console.log("TODO: strong type");
     // debugger;
     return awaitedResponse.json();
 }
-const fetchLastMeasurementCallbackFailed = async (awaitedResponse: Response): Promise<LastMeasurementLocation | null> => {
-    return null;
+const fetchLastMeasurementCallbackFailed = async (awaitedResponse: Response): Promise<lastMeasurementLocationResponseType> => {
+    return awaitedResponse.json();
 }
 
 const loadAndPanToLastMeasurement = (map: google.maps.Map<Element> | null) => {
     const LAST_MEASUREMENT_URL = (API_URL + '/user_last_measurement')
-    const result = fetchJSONWithChecks(LAST_MEASUREMENT_URL, userRequestOptions(), 200, true, fetchLastMeasurementCallbackFailed, fetchLastMeasurementCallback) as Promise<LastMeasurementLocation | null>;
+    const result = fetchJSONWithChecks(LAST_MEASUREMENT_URL, userRequestOptions(), 200, true, fetchLastMeasurementCallbackFailed, fetchLastMeasurementCallback) as Promise<lastMeasurementLocationResponseType>;
 
-    result.then((resulted) => {
-        if (resulted) {
-            const loc = responseToLatLngLiteral(resulted);
-            // debugger;
-            if (loc) {
-                map?.panTo(loc)
-            }
+    result.then((response) => {
+        if (response.errors !== undefined) {
+            console.warn(formatErrors(response.errors));
+            return;
+        }
+        const loc = responseToLatLngLiteral(response);
+        // debugger;
+        if (loc) {
+            map?.panTo(loc)
+        }
+        else {
+            console.warn("undefined loc, can't pan map");
         }
     }).catch((reason) => {
-        console.error("failed to get last ")
+        console.error("Failed to get last location for some reason. Failure in promise itself.")
     })
 
 }

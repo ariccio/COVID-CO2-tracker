@@ -26,6 +26,10 @@ module Api
           )
         end
 
+        if (current_user.nil?)
+          render_not_logged_in
+          return
+        end
         @new_device_instance = ::Device.create!(serial: device_params.fetch(:serial), model_id: device_params.fetch(:model_id), user: current_user)
         render(
           json: device_create_response_as_json(@new_device_instance),

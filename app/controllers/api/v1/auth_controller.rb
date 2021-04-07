@@ -154,7 +154,7 @@ module Api
         @user = current_user()
         if (@user.nil?)
           # Already rendered in current_user, don't need to rerender, can't rerender!
-          # render_not_logged_in
+          render_not_logged_in
           return
         end
         if (@user.email.nil?)
