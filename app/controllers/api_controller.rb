@@ -115,7 +115,8 @@ class ApiController < ActionController::API
     nil
   rescue ::ActiveRecord::RecordNotFound => _e
     # TODO: is this the most specific error?
-    render_activerecord_notfound_error(_e)
+    # NOPd out because else we have double render
+    # render_activerecord_notfound_error(_e)
     nil
   end
 
