@@ -68,6 +68,7 @@ module Api
       end
 
       def last_measurement
+        # byebug
         if (current_user.nil?)
           render_not_logged_in
           return

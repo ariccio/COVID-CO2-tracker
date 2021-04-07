@@ -191,20 +191,21 @@ const loginWithIDToken = (id_token: string) => {
 
     // const url = (API_URL + '/google_login_token');
     const result = fetchJSONWithChecks(LOGIN_URL, options, 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<any>;
-    result.then((response) => {
+    return result.then((response) => {
         console.log(response);
         console.log("TODO: What the heck do I do with the response here? As long as it's correct, do I even care?");
         // debugger;
+        return;
 
     }).catch((error) => {
         console.error(error);
-        debugger;
+        return;
     })
 }
 
 const sendToServer = (response: GoogleLoginResponse) => {
     const id_token = response.getAuthResponse().id_token;
-    loginWithIDToken(id_token);
+    return loginWithIDToken(id_token);
 }
 
 const googleLoginSuccessCallback = (originalResponse: GoogleLoginResponse | GoogleLoginResponseOffline, dispatch: ReturnType<typeof useDispatch>) => {
@@ -220,11 +221,13 @@ const googleLoginSuccessCallback = (originalResponse: GoogleLoginResponse | Goog
     // If I dont pass a responseType, code is undefined, and thus the type is a GoogleLoginResponse.
     //https://developers.google.com/identity/sign-in/web/reference#gapiauth2authresponse
     const castedResponse = originalResponse as GoogleLoginResponse;
-    // debugger;
-    dispatch(setGoogleProfile(castedResponse.profileObj));
-    dispatch(setGoogleAuthResponse(castedResponse.getAuthResponse()));
-    dispatch(setUsername(castedResponse.profileObj.name));
-    sendToServer(castedResponse);
+    
+    debugger;
+    sendToServer(castedResponse).then(() => {
+        dispatch(setGoogleProfile(castedResponse.profileObj));
+        dispatch(setGoogleAuthResponse(castedResponse.getAuthResponse()));
+        dispatch(setUsername(castedResponse.profileObj.name));
+    })
 
     //   debugger;
 }
@@ -239,6 +242,8 @@ const googleLoginFailedCallback = (error: any, setGoogleLoginErrorState: React.D
 const googleLogoutSuccessCallback = (dispatch: ReturnType<typeof useDispatch>) => {
     console.log("logged out via google.");
     logout();
+    console.log("TODO: some kind of memory leak here, on setUsername. It must dispatch an update here.");
+    debugger;
     dispatch(setUsername(''));
     dispatch(setGoogleProfile(null));
     dispatch(setGoogleAuthResponse(null));

@@ -511,7 +511,8 @@ const fetchLastMeasurementCallbackFailed = async (awaitedResponse: Response): Pr
 }
 
 const loadAndPanToLastMeasurement = (map: google.maps.Map<Element> | null) => {
-    const LAST_MEASUREMENT_URL = (API_URL + '/user_last_measurement')
+    const LAST_MEASUREMENT_URL = (API_URL + '/user_last_measurement');
+    // debugger;
     const result = fetchJSONWithChecks(LAST_MEASUREMENT_URL, userRequestOptions(), 200, true, fetchLastMeasurementCallbackFailed, fetchLastMeasurementCallback) as Promise<lastMeasurementLocationResponseType>;
 
     result.then((response) => {
