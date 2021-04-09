@@ -23,7 +23,7 @@ const measurementTableHeader = (withDelete?: boolean, innerLocation?: boolean) =
             <th>CO2 PPM</th>
             <th>time</th>
             <th>crowding</th>
-            <th>CO2 level</th>
+            <th>danger level</th>
             {innerLocation ? (<th>inner location</th>) : null}
             {withDelete ? (<th>delete measurement</th>) : null}
             {/* <th>measured at google place:</th> */}
@@ -93,17 +93,17 @@ const maybeInnerLocation = (measurement: UserInfoSingleMeasurement, innerLocatio
 }
 
 const riskRow = (measurement: UserInfoSingleMeasurement) => {
-    if (measurement.co2ppm < 300) {
+    if (measurement.co2ppm < 400) {
         return (<td><i>Unreasonably low measurement</i></td>);
     }
     if (measurement.co2ppm < 500) {
-        return (<td><p style={{color:"green"}}><b>Ideal, near ambient</b></p></td>);
+        return (<td><p style={{color:"green"}}><b>Very low!</b></p></td>);
     }
     if (measurement.co2ppm < 600) {
-        return (<td><p style={{color:"green"}}>Excellent</p></td>);
+        return (<td><p style={{color:"green"}}>Low</p></td>);
     }
     if (measurement.co2ppm < 700) {
-        return (<td><p style={{color:"green"}}>Ok</p></td>);
+        return (<td><p style={{color:"green"}}>Fairly low</p></td>);
     }
     if (measurement.co2ppm < 800) {
         return (<td><p>Acceptable</p></td>);
