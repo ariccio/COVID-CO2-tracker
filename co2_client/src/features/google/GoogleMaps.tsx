@@ -428,7 +428,7 @@ const googleMapInContainer = (
     placeMarkersFromDatabase: placesFromDatabaseForMarker,
     placeMarkerErrors: string
     ) => {
-    console.log("rerender map")
+    // console.log("rerender map")
     return (
         <div className="map">
             <div className="map-container">

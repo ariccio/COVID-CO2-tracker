@@ -222,7 +222,7 @@ const googleLoginSuccessCallback = (originalResponse: GoogleLoginResponse | Goog
     //https://developers.google.com/identity/sign-in/web/reference#gapiauth2authresponse
     const castedResponse = originalResponse as GoogleLoginResponse;
     
-    debugger;
+    // debugger;
     sendToServer(castedResponse).then(() => {
         dispatch(setGoogleProfile(castedResponse.profileObj));
         dispatch(setGoogleAuthResponse(castedResponse.getAuthResponse()));

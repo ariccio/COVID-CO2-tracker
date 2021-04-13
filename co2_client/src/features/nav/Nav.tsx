@@ -57,7 +57,7 @@ function loginOrSignupMaybe(username: string): JSX.Element {
       </>
     )
   }
-  console.log("logged in, rendering profile and logout");
+  // console.log("logged in, rendering profile and logout");
   // debugger;
   return loggedIn(username);
 }

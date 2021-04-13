@@ -19,6 +19,8 @@ import { updatePlacesInfoFromBackend } from '../../utils/QueryPlacesInfo';
 import { selectUsername } from '../login/loginSlice';
 import { SublocationsDropdown } from '../sublocationsDropdown/SublocationsDropdown';
 import { selectSublocationSelectedLocationID, setSublocationSelectedLocationID } from '../sublocationsDropdown/sublocationSlice';
+import { Link } from 'react-router-dom';
+import { devicesPath } from '../../paths/paths';
 
 const ModalHeader = (props: {placeName: string}) =>
     <Modal.Header closeButton>
@@ -61,7 +63,7 @@ const selectDeviceDropdownHandler = (eventKey: string | null, e: React.Synthetic
         return;
     }
     if (eventKey === '-1') {
-        console.warn("user selected create new device, need to implement");
+        // console.warn("user selected create new device, need to implement");
         return;
     }
     const selected = dropdownKeyToDeviceID(eventKey);
@@ -95,8 +97,8 @@ const renderSelectDeviceDropdown = (userDevices: UserDevicesInfo, selectedDevice
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
                     {devicesToDropdown(userDevices)}
-                    <Dropdown.Item eventKey={"-1"}>
-                        + Create new device (notimpl)
+                    <Dropdown.Item eventKey={"-1"} as={Link} to={devicesPath}>
+                        + Create new device
                     </Dropdown.Item>
                 </Dropdown.Menu>
             </Dropdown>

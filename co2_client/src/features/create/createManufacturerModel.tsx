@@ -194,9 +194,9 @@ const submitHandler = (enteredManufacturerText: string, setShowAddManufacturer: 
         }
         else {
             setShowAddManufacturer(false)
-            console.log(history);
+            // console.log(history);
             // history.goBack();
-            console.log(history);
+            // console.log(history);
             // debugger;
         }
     }).catch((errors) => {

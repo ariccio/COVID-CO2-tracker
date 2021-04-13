@@ -95,6 +95,6 @@ export const updateOnNewPlace = (service: google.maps.places.PlacesService | nul
     const detailsCallbackThunk = (result: google.maps.places.PlaceResult, status: google.maps.places.PlacesServiceStatus) => {
         getDetailsCallback(result, status, dispatch);
     }
-    console.warn("places service request...")
+    // console.warn("places service request...")
     service.getDetails(request, detailsCallbackThunk);
 }
