@@ -1,6 +1,7 @@
 import React from 'react';
 import {Dropdown} from 'react-bootstrap'
 import { useSelector } from 'react-redux';
+import { selectSelectedPlace } from '../google/googleSlice';
 
 
 import {SelectedPlaceDatabaseInfo, defaultPlaceInfo, SublocationMeasurements} from '../places/placesSlice';
@@ -104,7 +105,7 @@ export const MeasurementsByDropdown: React.FC<MeasurementsByDropdownProps> = (pr
     console.assert(props.selectedPlaceInfoFromDatabase.measurements_by_sublocation.length > 0);
     // const [selectedSubLocation, setSelectedSubLocation] = useState(-1);
     const selectedSubLocation = useSelector(selectSublocationSelectedLocationID);
-
+    const selectedPlace = useSelector(selectSelectedPlace);
     if (props.selectedPlaceInfoFromDatabase === defaultPlaceInfo) {
         // debugger;
         console.log('unlikely to hit this path.')
@@ -114,6 +115,10 @@ export const MeasurementsByDropdown: React.FC<MeasurementsByDropdownProps> = (pr
             </>
         );
     }
+    console.log(selectedPlace.utc_offset_minutes);
+    //new Date(new Date(props.selectedPlaceInfoFromDatabase.measurements_by_sublocation[0].measurements[0].measurementtime)-(selectedPlace.utc_offset_minutes*1000*60))
+    //14:46:33.674 
+    // debugger;
     const selected = findSelected(props.selectedPlaceInfoFromDatabase.measurements_by_sublocation, selectedSubLocation);
     return (
         <>

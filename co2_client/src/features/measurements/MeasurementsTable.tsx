@@ -140,7 +140,8 @@ const mapMeasurementsToTableBody = (measurements: Array<UserInfoSingleMeasuremen
                 <td>{measurement.measurement_id}</td>
                 <td>{measurement.device_name}</td>
                 <td>{measurement.co2ppm}</td>
-                <td>{measurement.measurementtime}</td>
+                {/* Displays the measurement as if it were taken in the timezone where the user currently is. It's painful to adjust the timezone according to the google places time offset, so this works for now. */}
+                <td>{new Date(measurement.measurementtime).toString()}</td>
                 <td>{measurement.crowding}</td>
                 {riskRow(measurement)}
                 {maybeInnerLocation(measurement, innerLocation)}
