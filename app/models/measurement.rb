@@ -28,7 +28,7 @@ class Measurement < ApplicationRecord
       crowding: measurement.crowding,
       device_id: measurement.device.id,
       device_name: measurement.device.model.name,
-      location_where_inside_info: measurement.sub_location.description,
+      # location_where_inside_info: measurement.sub_location.description,
       # place: {
       #   id: measurement.sub_location.place.id,
       #   # google_place_id: measurement.sub_location.place.google_place_id

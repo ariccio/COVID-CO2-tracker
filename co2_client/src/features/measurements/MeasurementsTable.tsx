@@ -14,7 +14,7 @@ import { updateUserInfo } from '../profile/Profile';
 const DELETE_MEASUREMENT_URL = (API_URL + '/measurement');
 
 
-const measurementTableHeader = (withDelete?: boolean, innerLocation?: boolean) =>
+const measurementTableHeader = (withDelete?: boolean, innerLocation?: InnerLocationDetails) =>
     <thead>
         <tr>
             {/* <th>#</th> */}
@@ -83,10 +83,10 @@ const maybeDeleteButton = (measurement: UserInfoSingleMeasurement, dispatch: Ret
 }
 
 
-const maybeInnerLocation = (measurement: UserInfoSingleMeasurement, innerLocation?: boolean) => {
+const maybeInnerLocation = (measurement: UserInfoSingleMeasurement, innerLocation?: InnerLocationDetails) => {
     if (innerLocation) {
         // debugger;
-        return (<td>{measurement.location_where_inside_info}</td>);
+        return (<td>{innerLocation.description}</td>);
     }
     // debugger;
     return null;
@@ -126,7 +126,7 @@ const riskRow = (measurement: UserInfoSingleMeasurement) => {
     return (<td><p style={{color:"red"}}><b><u><i>Immediate death or invalid measurement</i></u></b></p></td>);
 }
 
-const mapMeasurementsToTableBody = (measurements: Array<UserInfoSingleMeasurement>, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean, innerLocation?: boolean)/*: JSX.Element*/ => {
+const mapMeasurementsToTableBody = (measurements: Array<UserInfoSingleMeasurement>, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean, innerLocation?: InnerLocationDetails)/*: JSX.Element*/ => {
     if (measurements === undefined) {
         debugger;
     }
@@ -153,16 +153,22 @@ const mapMeasurementsToTableBody = (measurements: Array<UserInfoSingleMeasuremen
 }
 
 
-const measureTableBody = (measurements: Array<UserInfoSingleMeasurement>, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean, innerLocation?: boolean): JSX.Element =>
+const measureTableBody = (measurements: Array<UserInfoSingleMeasurement>, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean, innerLocation?: InnerLocationDetails): JSX.Element =>
     <tbody>
         {mapMeasurementsToTableBody(measurements, dispatch, withDelete, innerLocation)}
     </tbody>
 
 
+interface InnerLocationDetails {
+    sub_location_id: number,
+    description: string
+
+}
+
 interface MeasurementsTableProps {
     measurements: Array<UserInfoSingleMeasurement>,
     withDelete?: boolean,
-    innerLocation?: boolean
+    innerLocation?: InnerLocationDetails
 }
 
 // withDelete enables rendering button to delete measurements.
@@ -178,6 +184,8 @@ export const MeasurementsTable: React.FC<MeasurementsTableProps> = (props: Measu
     if (props.measurements === undefined) {
         debugger;
     }
+
+    console.assert()
     return (
         <>
             <Table striped bordered hover>

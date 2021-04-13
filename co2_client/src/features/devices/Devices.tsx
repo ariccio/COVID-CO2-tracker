@@ -63,7 +63,7 @@ export function Device(props: RouteComponentProps<deviceProps>) {
     return (
         <>
             {deviceInfo.device_model} - {deviceInfo.serial}'s measurements
-            <MeasurementsTable measurements={deviceInfo.measurements} innerLocation/>
+            <MeasurementsTable measurements={deviceInfo.measurements}/>
         </>
     );
 }

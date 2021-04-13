@@ -15,7 +15,7 @@ export interface UserInfoSingleMeasurement {
     //     // google_place_id: string
     // },
     crowding: number,
-    location_where_inside_info: string
+    // location_where_inside_info: string
 }
 
 export const defaultMeasurementInfo: UserInfoSingleMeasurement = {
@@ -29,7 +29,7 @@ export const defaultMeasurementInfo: UserInfoSingleMeasurement = {
     //     // google_place_id: ''
     // },
     crowding: -1,
-    location_where_inside_info: ''
+    // location_where_inside_info: ''
 }
 
 export interface UserInfoDevice {
