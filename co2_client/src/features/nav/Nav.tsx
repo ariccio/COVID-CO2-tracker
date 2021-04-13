@@ -50,7 +50,7 @@ const loggedIn = (username: string) =>
 
 function loginOrSignupMaybe(username: string): JSX.Element {
   if (username === '') {
-    console.log("no username, rendering login/signup options")
+    // console.log("no username, rendering login/signup options")
     return (
       <>
         <GoogleLoginLogoutContainer/>        
@@ -132,7 +132,7 @@ const loadEmail = (dispatch: ReturnType<typeof useDispatch>) => {
         alert("undefined response from server. Likely internal server error getting username!");
         debugger;
       }
-      console.log("got email: ", email.email)
+      // console.log("got email: ", email.email)
       dispatch(setUsername(`(logging in...) ${email.email}`));
     }
     else {
