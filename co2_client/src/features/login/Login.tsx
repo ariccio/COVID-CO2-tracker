@@ -274,6 +274,8 @@ export const GoogleLoginLogoutContainer: React.FC<LoginContainerProps> = () => {
             debugger;
             dispatch(setAPIKeyErrorState(error.message));
         });
+    //Only run once on purpose
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dispatch])
 
     // https://developers.google.com/identity/sign-in/web/sign-in

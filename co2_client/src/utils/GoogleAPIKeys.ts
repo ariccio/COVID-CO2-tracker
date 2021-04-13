@@ -31,7 +31,7 @@ export async function getGoogleMapsJavascriptAPIKey(): Promise<string> {
     throw new Error(formatErrors(jsonResponse.errors));
   }
   const fetchSuccessCallback = async (awaitedResponse: Response): Promise<string> => {
-    console.log("got google maps api key");
+    // console.log("got google maps api key");
     return (await awaitedResponse.json()).key;
   }
 

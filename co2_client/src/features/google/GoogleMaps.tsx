@@ -16,7 +16,7 @@ import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
 import { userRequestOptions } from '../../utils/DefaultRequestOptions';
 import { API_URL } from '../../utils/UrlPath';
 import { selectUsername } from '../login/loginSlice';
-import { ErrorObjectType, formatErrors, withErrors } from '../../utils/ErrorObject';
+import { formatErrors, withErrors } from '../../utils/ErrorObject';
 
 
 //decls:
@@ -303,7 +303,7 @@ const options = (center: google.maps.LatLngLiteral): google.maps.MapOptions => {
 const autoCompleteLoadThunk = (autocompleteEvent: google.maps.places.Autocomplete, setAutocomplete: React.Dispatch<React.SetStateAction<google.maps.places.Autocomplete | null>>) => {
     setAutocomplete(autocompleteEvent);
     // debugger;
-    console.log("autocomplete loaded!");
+    // console.log("autocomplete loaded!");
 }
 
 
@@ -350,7 +350,7 @@ const renderMarkers = (placeMarkersFromDatabase: placesFromDatabaseForMarker, pl
         return null;
     }
     if (placeMarkersFromDatabase === defaultPlaceMarkers) {
-        console.log("Not rendering place markers, still loading from database...");
+        // console.log("Not rendering place markers, still loading from database...");
         return null;
     }
     if (placeMarkersFromDatabase === null) {
@@ -571,7 +571,7 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
     })
 
     const onLoad = React.useCallback((map: google.maps.Map) => {
-        console.log("map load")
+        // console.log("map load")
         loadCallback(map, setMap, setService);
         // debugger;
     }, []);

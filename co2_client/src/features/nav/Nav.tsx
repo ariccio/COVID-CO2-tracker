@@ -156,8 +156,8 @@ export const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
     const dispatch = useDispatch();
     useEffect(() => {loadEmail(dispatch)}, [dispatch]);
     // const setUsername_ 
-    if (username !== '') {
-      console.log(`Current username: ${username}`)
-    }
+    // if (username !== '') {
+    //   console.log(`Current username: ${username}`)
+    // }
     return <UserNav username={username} googleProfile={googleProfile}/>;
 }
