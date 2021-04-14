@@ -1,6 +1,8 @@
 import React from 'react';
 import {Table, Button} from 'react-bootstrap';
 import { useDispatch } from 'react-redux';
+import { Link } from 'react-router-dom';
+import { devicesPath } from '../../paths/paths';
 import { deleteRequestOptions } from '../../utils/DefaultRequestOptions';
 import { ErrorObjectType } from '../../utils/ErrorObject';
 import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
@@ -140,7 +142,7 @@ const mapMeasurementsToTableBody = (measurements: Array<SerializedSingleMeasurem
             <tr key={measurementRowKey(measurement.id)}>
                 {/* <td>{index}</td> */}
                 <td>{measurement.id}</td>
-                <td>{/*measurement.device_name*/}currently rewriting</td>
+                <td><Link to={`${devicesPath}/${measurement.relationships.device.data.id}`}>{/*measurement.device_name*/}{measurement.relationships.device.data.id}</Link></td>
                 <td>{measurement.attributes.co2ppm}</td>
                 {/* Displays the measurement as if it were taken in the timezone where the user currently is. It's painful to adjust the timezone according to the google places time offset, so this works for now. */}
                 <td>{new Date(measurement.attributes.measurementtime).toString()}</td>
