@@ -605,6 +605,8 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
         // debugger;
     }, []);
 
+    //I think in order to end the warnings here, I need to use a useCallback instead of a useEffect, to deliberatley ignore changes?
+
     useEffect(() => {
         if (username === '') {
             // debugger;
