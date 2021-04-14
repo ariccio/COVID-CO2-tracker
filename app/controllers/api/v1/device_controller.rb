@@ -26,11 +26,11 @@ module Api
           )
         end
 
-        if (current_user.nil?)
+        if (@user.nil?)
           render_not_logged_in
           return
         end
-        @new_device_instance = ::Device.create!(serial: device_params.fetch(:serial), model_id: device_params.fetch(:model_id), user: current_user)
+        @new_device_instance = ::Device.create!(serial: device_params.fetch(:serial), model_id: device_params.fetch(:model_id), user: @user)
         render(
           json: device_create_response_as_json(@new_device_instance),
           status: :created

@@ -31,7 +31,7 @@ module Api
       # end
 
       def my_devices
-        @user = current_user
+        # @user = current_user
         if (@user.nil?)
           render_not_logged_in
           return
@@ -48,7 +48,7 @@ module Api
       end
 
       def show
-        @user = current_user
+        # @user = current_user
         if (@user.nil?)
           render_not_logged_in
           return
@@ -69,11 +69,12 @@ module Api
 
       def last_measurement
         # byebug
-        if (current_user.nil?)
+        # @user = current_user
+        if (@user.nil?)
           render_not_logged_in
           return
         end
-        recent_place = current_user.last_measurement.sub_location.place
+        recent_place = @user.last_measurement.sub_location.place
         render(
           json: {
             place_lat: recent_place.place_lat,
