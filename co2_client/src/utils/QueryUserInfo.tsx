@@ -8,7 +8,7 @@ interface Score {
 */
 
 import {API_URL} from './UrlPath';
-import {SerializedSingleMeasurement, UserInfoDevice, UserInfoSingleMeasurement} from './QueryDeviceInfo';
+import {SerializedSingleMeasurement, UserInfoDevice} from './QueryDeviceInfo';
 import {userRequestOptions} from './DefaultRequestOptions';
 
 import {ErrorObjectType, formatErrors} from './ErrorObject'

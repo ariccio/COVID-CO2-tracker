@@ -9,7 +9,7 @@ import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
 
 
 // import {queryUserInfo, UserInfoType, defaultUserInfo} from '../../utils/QueryUserInfo';
-import {SerializedSingleMeasurement, UserInfoSingleMeasurement} from '../../utils/QueryDeviceInfo';
+import {SerializedSingleMeasurement} from '../../utils/QueryDeviceInfo';
 import { API_URL } from '../../utils/UrlPath';
 import { updateUserInfo } from '../profile/Profile';
 

@@ -74,7 +74,7 @@ const DivElem = (props: {elementRef: React.MutableRefObject<HTMLDivElement | nul
 }
 
 export const Place: React.FC<RouteComponentProps<PlaceProps>> = (props) => {
-    console.log("place")
+    // console.log("place")
     // const location = useLocation();
     const dispatch = useDispatch();
     const selectedPlaceInfoFromDatabase = useSelector(selectPlacesInfoFromDatabase);

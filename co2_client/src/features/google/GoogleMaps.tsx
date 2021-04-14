@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {useDispatch} from 'react-redux';
 import {useSelector} from 'react-redux';
-import {selectSelectedPlace, selectPlacesServiceStatus, autocompleteSelectedPlaceToAction} from '../google/googleSlice';
+import {selectSelectedPlace, selectPlacesServiceStatus, autocompleteSelectedPlaceToAction, placeResultWithTranslatedType} from '../google/googleSlice';
 
 import { GoogleMap, useJsApiLoader, Autocomplete, Marker, MarkerClusterer } from '@react-google-maps/api';
 import { Button, Form } from 'react-bootstrap';
@@ -540,6 +540,29 @@ const loadAndPanToLastMeasurement = (map: google.maps.Map<Element> | null) => {
 
 }
 
+function placeSelectedWithCoords(selectedPlace: placeResultWithTranslatedType): google.maps.LatLngLiteral | null {
+    // debugger;
+    if (selectedPlace.geometry_translated === undefined) {
+        console.log("selected place lacks geometry_translated");
+        return null;
+    }
+    if (selectedPlace.geometry_translated.lat === undefined) {
+        console.log("selected place lacks lat coords");
+        return null;
+    }
+    if (selectedPlace.geometry_translated.lng === undefined) {
+        console.log("selected place lacks lng coords");
+        return null;
+    }
+    // debugger;
+    const latlng: google.maps.LatLngLiteral = {
+        lat: selectedPlace.geometry_translated?.lat,
+        lng: selectedPlace.geometry_translated?.lng
+    }
+
+    return latlng;
+}
+
 export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props) => {
 
     //TODO: streetview service?
@@ -587,7 +610,13 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
             // debugger;
             return;
         }
-        loadAndPanToLastMeasurement(map);
+        const selected = placeSelectedWithCoords(selectedPlace);
+        if (selected) {
+            map?.panTo(selected);
+        }
+        else {
+            loadAndPanToLastMeasurement(map);
+        }
 
     }, [username, map])
 

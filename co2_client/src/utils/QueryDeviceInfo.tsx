@@ -4,35 +4,35 @@ import {formatErrors, ErrorObjectType} from './ErrorObject';
 import {userRequestOptions} from './DefaultRequestOptions';
 import {fetchJSONWithChecks} from './FetchHelpers';
 
-export interface UserInfoSingleMeasurement {
-    device_id: number,
-    // device_name: string,
-    measurement_id: number,
-    co2ppm: number,
-    measurementtime: string,
-    // place: {
-    //     id: number,
-    //     // google_place_id: string
-    // },
-    crowding: number,
-    // location_where_inside_info: string
-    sublocation_id: number
-}
+// export interface UserInfoSingleMeasurement {
+//     device_id: number,
+//     // device_name: string,
+//     measurement_id: number,
+//     co2ppm: number,
+//     measurementtime: string,
+//     // place: {
+//     //     id: number,
+//     //     // google_place_id: string
+//     // },
+//     crowding: number,
+//     // location_where_inside_info: string
+//     sublocation_id: number
+// }
 
-export const defaultMeasurementInfo: UserInfoSingleMeasurement = {
-    device_id: -1,
-    // device_name: '',
-    measurement_id: -1,
-    co2ppm: -1,
-    measurementtime: '',
-    // place: {
-    //     id: -1,
-    //     // google_place_id: ''
-    // },
-    crowding: -1,
-    // location_where_inside_info: ''
-    sublocation_id: -1
-}
+// export const defaultMeasurementInfo: UserInfoSingleMeasurement = {
+//     device_id: -1,
+//     // device_name: '',
+//     measurement_id: -1,
+//     co2ppm: -1,
+//     measurementtime: '',
+//     // place: {
+//     //     id: -1,
+//     //     // google_place_id: ''
+//     // },
+//     crowding: -1,
+//     // location_where_inside_info: ''
+//     sublocation_id: -1
+// }
 
 
 
