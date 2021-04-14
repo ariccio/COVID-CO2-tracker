@@ -3,8 +3,8 @@ import {Table, Button} from 'react-bootstrap';
 import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { devicesPath } from '../../paths/paths';
-import { deleteRequestOptions } from '../../utils/DefaultRequestOptions';
-import { ErrorObjectType } from '../../utils/ErrorObject';
+import { deleteRequestOptions, userRequestOptions } from '../../utils/DefaultRequestOptions';
+import { ErrorObjectType, formatErrors } from '../../utils/ErrorObject';
 import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
 
 
@@ -14,6 +14,7 @@ import { API_URL } from '../../utils/UrlPath';
 import { updateUserInfo } from '../profile/Profile';
 
 const DELETE_MEASUREMENT_URL = (API_URL + '/measurement');
+const SHOW_MEASUREMENT_URL = (API_URL + '/measurement');
 
 
 const measurementTableHeader = (withDelete?: boolean, innerLocation?: InnerLocationDetails) =>
@@ -175,6 +176,25 @@ interface MeasurementsTableProps {
     innerLocation?: InnerLocationDetails
 }
 
+// function testingFetch(measurementID: number): void {
+//     const fetchCallback = async (awaitedResponse: Response): Promise<DeleteDeviceResponse> => {
+//         return awaitedResponse.json();
+//     }
+//     const thisShowMeasurement = (SHOW_MEASUREMENT_URL + '/' + measurementID);
+//     const result = fetchJSONWithChecks(thisShowMeasurement, userRequestOptions(), 200, true, fetchCallback, fetchCallback) as Promise<any>;
+//     result.then((response) => {
+//         if (response.errors !== undefined) {
+//             console.error(formatErrors(response.errors));
+//         }
+//         console.log(response);
+//         debugger;
+//     }).catch((error) => {
+//         console.error(error);
+//         debugger;
+//     })
+// }
+
+
 // withDelete enables rendering button to delete measurements.
 // Allows reusability across components, with functionality to delete measurements on the users profile.
 // I could do this lots of other ways. Hooks? But this is easy rn.
@@ -188,6 +208,10 @@ export const MeasurementsTable: React.FC<MeasurementsTableProps> = (props: Measu
     if (props.measurements === undefined) {
         debugger;
     }
+    // if (props.measurements.length > 0) {
+    //     testingFetch(props.measurements[0].id);
+    // }
+
 
     return (
         <>

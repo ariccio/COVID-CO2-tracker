@@ -15,7 +15,7 @@
       resources :manufacturers, only: [:create, :show]
       resources :model, only: [:create, :show]
       resources :places, only: [:show, :create]
-      resources :measurement, only: [:create, :destroy]
+      resources :measurement, only: [:create, :destroy, :show]
 
       # Hmm, not used yet.
       resources :sub_locations

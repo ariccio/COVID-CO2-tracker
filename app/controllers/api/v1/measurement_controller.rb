@@ -36,6 +36,8 @@ module Api
       skip_before_action :authorized, only: [:show]
       def create
         # byebug
+
+        # TODO: handle ActionController::ParameterMissing: https://apidock.com/rails/ActionController/ParameterMissing
         @place = ::Place.find_by!(google_place_id: measurement_params.fetch(:google_place_id))
 
         raise_if_invalid_parameter_combo(measurement_params)
@@ -97,6 +99,27 @@ module Api
           },
           status: :not_found
         )
+      end
+
+
+      def show
+        # find(*args): https://api.rubyonrails.org/v6.1.3.1/classes/ActiveRecord/FinderMethods.html#method-i-find
+        # "If one or more records cannot be found for the requested ids, then ActiveRecord::RecordNotFound will be raised"
+        @measurement = ::Measurement.find(params.fetch(:id))
+        render(
+          json: {
+            data: MeasurementSerializer.new(@measurement).serializable_hash
+          }, status: :ok
+        )
+      rescue ::ActiveRecord::RecordNotFound => e
+        errors = [create_error("device #{params.fetch(:id)} not found"), create_activerecord_error('device not found!', e)]
+        render(
+          json: {
+            errors: errors
+          },
+          status: :not_found
+        )
+        return
       end
 
       private
