@@ -352,7 +352,7 @@ function renderError(mapsAPIKeyErrorState: string) {
 function renderWelcomeLoading() {
     return (
         <>
-            <h3>Welcome!</h3>
+            <h3>Welcome to the COVID CO2 Tracker!</h3>
             <br />
             Loading maps API key...
         </>
@@ -406,7 +406,7 @@ export const HomePage: FunctionComponent<{}> = (props: any) => {
 
     return (
         <>
-            <h3>Welcome!</h3>
+            <h3>Welcome to the COVID CO2 Tracker!</h3>
             <br/>
             <Button href={YOUTUBE_VIDEO_INSTRUCTIONS_URL}>Instruction video</Button>
             <br/>

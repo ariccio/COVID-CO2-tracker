@@ -57,7 +57,7 @@ module Api
         # byebug
         render(
           json: {
-            user_info: @user.as_json(only: [:email]),
+            user_info: @user.email,
             devices: device_ids,
             measurements: @user.my_measurements
           },
