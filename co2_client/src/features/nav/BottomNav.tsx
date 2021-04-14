@@ -16,6 +16,15 @@ interface BottomNavProps {
 export const BottomNav: React.FC<BottomNavProps> = (props: BottomNavProps) => {
     return (
         <>
+            <br/>
+            <br/>
+            <br/>
+            <p className='font-italic'>
+                About:
+                <br/>
+                
+                This app provides a way for people to upload CO2 measurements tied to places where they were taken, and for users to view the measurements taken by others. CO2 is a fairly good proxy for indoor air quality, and indor COVID risk. By measuring CO2 indoors, we can estimate how much indoor air has already been exhaled by others, and thus, guess how much of it may contain COVID aerosols.
+            </p>
             <Navbar>
                 <Nav className="container-fluid justify-content-start mr-auto" variant="tabs" style={{display: "flex", flexDirection: "row", float: "left"}}>
                     <Nav.Link href={YOUTUBE_VIDEO_INSTRUCTIONS_URL}><b><u><i>Instruction video</i></u></b></Nav.Link>
