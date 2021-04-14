@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-
 def device_create_response_as_json(new_device_instance)
   {
     serial: new_device_instance.serial,
@@ -15,7 +14,7 @@ module Api
     class DeviceController < ApiController
       skip_before_action :authorized, only: [:show]
       def create
-        @model = ::Model.find_by!(id: device_params.fetch(:model_id))
+        @model = ::Model.find(device_params.fetch(:model_id))
 
         # this should be in a validator class:
         if @model.device.where(serial: device_params.fetch(:serial)).count.positive?
@@ -62,7 +61,7 @@ module Api
             serial: @device_instance.serial,
             device_model: @device_instance.model.name,
             user_id: @device_instance.user.id,
-            measurements: @device_instance.first_ten_measurements()
+            measurements: @device_instance.first_ten_measurements
             # total number of measurements
           },
           status: :ok

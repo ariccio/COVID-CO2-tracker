@@ -12,9 +12,9 @@ class User < ApplicationRecord
   validates :sub_google_uid, presence: true, uniqueness: true, length: { minimum: 1 }
   def my_devices
     # byebug
-    return [] if (devices.nil? || devices.empty?)
+    return [] if (devices.blank?)
 
-    devices.includes(:model, model: :manufacturer).each.map do |device|
+    devices.includes(:model, model: :manufacturer).find_each.map do |device|
       # byebug
       {
         device_id: device.id,
@@ -32,18 +32,19 @@ class User < ApplicationRecord
     # measurements = []
     # byebug
     return [] if (measurement.nil? || measurement.nil?)
+
     ordered = measurement.includes(:device, :sub_location, device: :model).order('measurementtime DESC')
 
     # measurements = ordered.each.map do |measurement|
     #   ::Measurement.measurement_with_device_as_json(measurement)
     # end
 
-    return MeasurementSerializer.new(ordered).serializable_hash
+    MeasurementSerializer.new(ordered).serializable_hash
   end
 
   def last_measurement
     return nil if (measurement.nil? || measurement.nil?)
+
     measurement.order('measurementtime DESC').first
   end
-
 end

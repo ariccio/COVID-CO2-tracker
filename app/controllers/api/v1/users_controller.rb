@@ -76,17 +76,17 @@ module Api
         end
         last = @user.last_measurement
         if (last.nil?)
-          render_empty()
+          render_empty
           return
         end
         last_subloc = last.sub_location
         if (last_subloc.nil?)
-          render_empty()
+          render_empty
           return
         end
         recent_place = last_subloc.place
         if (recent_place.nil?)
-          render_empty()
+          render_empty
           return
         end
         render(

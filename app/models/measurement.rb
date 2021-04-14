@@ -26,7 +26,7 @@ class Measurement < ApplicationRecord
       co2ppm: measurement.co2ppm,
       measurementtime: measurement.measurementtime,
       crowding: measurement.crowding,
-      device_id: measurement.device.id,
+      device_id: measurement.device.id
       # device_name: measurement.device.model.name,
     }
   end

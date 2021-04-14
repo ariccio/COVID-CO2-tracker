@@ -65,8 +65,8 @@ module Api
         )
       end
 
-      def render_email_field_missing()
-        error_array = [create_error("email field for user is nil! This is likely a bug.", :internal_server_error)]
+      def render_email_field_missing
+        error_array = [create_error('email field for user is nil! This is likely a bug.', :internal_server_error)]
         render(
           json: {
             errors:
@@ -151,7 +151,7 @@ module Api
       end
 
       def email
-        @user = current_user()
+        @user = current_user
         if (@user.nil?)
           # Already rendered in current_user, don't need to rerender, can't rerender!
           render_not_logged_in
@@ -168,7 +168,7 @@ module Api
           },
           status: :ok
         )
-        return
+        nil
       rescue ::JWT::DecodeError => e
         render_jwt_decode_error(e)
       end

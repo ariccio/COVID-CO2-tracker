@@ -74,7 +74,7 @@ module Api
         render(
           json: {
             created: false,
-            measurements_by_sublocation: measurements,
+            measurements_by_sublocation: measurements
             # place_id: @place.id
           }, status: :ok
         )

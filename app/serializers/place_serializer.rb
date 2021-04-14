@@ -1,7 +1,7 @@
 class PlaceSerializer
   include JSONAPI::Serializer
-  attributes 
-  
+  attributes
+
   set_type :place
   has_many :sub_location
   has_many :measurement

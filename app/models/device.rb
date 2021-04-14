@@ -15,7 +15,7 @@ class Device < ApplicationRecord
   # TODO: write a validator that checks if the serial is unique *for the device model*
   # validates :user_id, uniqueness: { scope: :serial, message: 'each device can only belong to single user!' }
 
-  def first_ten_measurements()
+  def first_ten_measurements
     # byebug
     measurements = measurement.first(10)
     # measurements = ::Measurement.where(device_id: device_id).first(10).include(:device, :sub_location)
@@ -25,5 +25,4 @@ class Device < ApplicationRecord
     # end
     MeasurementSerializer.new(measurements).serializable_hash
   end
-  
 end
