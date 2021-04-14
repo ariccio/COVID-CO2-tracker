@@ -7,6 +7,7 @@ module Api
 
       # GET /sub_locations/1
       def show
+        byebug
         render json: @sub_location
       end
 

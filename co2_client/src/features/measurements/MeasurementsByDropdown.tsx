@@ -28,14 +28,14 @@ const maybeDescription = (location: SublocationMeasurements, withDescription: bo
 }
 
 function locationKey(location: SublocationMeasurements): string {
-    return `measurement-table-sub-location-table-key-${location.sub_location_id}-${location.measurements.length}`
+    return `measurement-table-sub-location-table-key-${location.sub_location_id}-${location.measurements.data.length}`
 }
 
 const singleLocation = (location: SublocationMeasurements, withDescription: boolean) => {
     return (
         <div key={locationKey(location)}>
             {maybeDescription(location, withDescription)}
-            <MeasurementsTable measurements={location.measurements}/>
+            <MeasurementsTable measurements={location.measurements.data}/>
         </div>
     );
 
@@ -99,6 +99,7 @@ const findSelected = (measurements_by_sublocation: Array<SublocationMeasurements
 export const MeasurementsByDropdown: React.FC<MeasurementsByDropdownProps> = (props: MeasurementsByDropdownProps): JSX.Element => {
     // props.selectedPlaceInfoFromDatabase.measurements_by_sublocation[0].
     // debugger;
+    
     // if (props.selectedPlaceInfoFromDatabase.measurements_by_sublocation === undefined) {
     //     debugger;
     // }

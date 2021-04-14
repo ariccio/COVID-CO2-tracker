@@ -19,7 +19,7 @@ class Measurement < ApplicationRecord
   validates_associated :device, :sub_location
 
   # GODDAMNIT I NEED TO WRITE A SERIALIZER
-  def self.measurement_with_device_place_as_json(measurement)
+  def self.measurement_with_device_as_json(measurement)
     # byebug
     {
       measurement_id: measurement.id,
@@ -27,12 +27,7 @@ class Measurement < ApplicationRecord
       measurementtime: measurement.measurementtime,
       crowding: measurement.crowding,
       device_id: measurement.device.id,
-      device_name: measurement.device.model.name,
-      # location_where_inside_info: measurement.sub_location.description,
-      # place: {
-      #   id: measurement.sub_location.place.id,
-      #   # google_place_id: measurement.sub_location.place.google_place_id
-      # }
+      # device_name: measurement.device.model.name,
     }
   end
 end

@@ -27,15 +27,15 @@ class User < ApplicationRecord
 
   def my_measurements
     # @user = current_user
-    measurements = []
+    # measurements = []
     # byebug
     ordered = measurement.includes(:device, :sub_location, device: :model).order('measurementtime DESC')
 
-    measurements = ordered.each.map do |measurement|
-      ::Measurement.measurement_with_device_place_as_json(measurement)
-    end
+    # measurements = ordered.each.map do |measurement|
+    #   ::Measurement.measurement_with_device_as_json(measurement)
+    # end
 
-    return measurements
+    return MeasurementSerializer.new(ordered).serializable_hash
   end
 
   def last_measurement

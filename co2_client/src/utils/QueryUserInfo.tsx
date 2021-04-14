@@ -8,7 +8,7 @@ interface Score {
 */
 
 import {API_URL} from './UrlPath';
-import {UserInfoDevice, UserInfoSingleMeasurement} from './QueryDeviceInfo';
+import {SerializedSingleMeasurement, UserInfoDevice, UserInfoSingleMeasurement} from './QueryDeviceInfo';
 import {userRequestOptions} from './DefaultRequestOptions';
 
 import {ErrorObjectType, formatErrors} from './ErrorObject'
@@ -21,7 +21,9 @@ const USER_DEVICES_URL = (API_URL + '/my_devices');
 interface UserInfoInternal {
     username: string,
     devices: Array<UserInfoDevice>,
-    measurements: Array<UserInfoSingleMeasurement>
+    measurements: {
+        data: Array<SerializedSingleMeasurement>
+    }
 }
 
 export interface UserInfoType {
@@ -33,7 +35,9 @@ export const defaultUserInfo: UserInfoType = {
     user_info: {
         username: '',
         devices: [],
-        measurements: []
+        measurements: {
+            data: []
+        }
     }
 }
 

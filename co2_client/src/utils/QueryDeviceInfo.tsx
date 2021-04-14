@@ -6,7 +6,7 @@ import {fetchJSONWithChecks} from './FetchHelpers';
 
 export interface UserInfoSingleMeasurement {
     device_id: number,
-    device_name: string,
+    // device_name: string,
     measurement_id: number,
     co2ppm: number,
     measurementtime: string,
@@ -16,11 +16,12 @@ export interface UserInfoSingleMeasurement {
     // },
     crowding: number,
     // location_where_inside_info: string
+    sublocation_id: number
 }
 
 export const defaultMeasurementInfo: UserInfoSingleMeasurement = {
     device_id: -1,
-    device_name: '',
+    // device_name: '',
     measurement_id: -1,
     co2ppm: -1,
     measurementtime: '',
@@ -30,6 +31,90 @@ export const defaultMeasurementInfo: UserInfoSingleMeasurement = {
     // },
     crowding: -1,
     // location_where_inside_info: ''
+    sublocation_id: -1
+}
+
+
+
+/*
+:data=>
+  {
+    :id=>"25",
+    :type=>:measurement,
+    :attributes=>
+    {
+        :id=>25,
+        :co2ppm=>228,
+        :measurementtime=>Thu, 11 Mar 2021 03:21:27.590104000 UTC +00:00,
+        :crowding=>1
+    },
+   :relationships=>
+    {
+        :device=>
+        {
+            :data=>
+            {
+                :id=>"5",
+                :type=>:device
+            }
+        },
+        :sub_location=>
+        {
+            :data=>
+            {
+                :id=>"22",
+                :type=>:sub_location
+            }
+        }
+    }
+}
+*/
+export interface SerializedSingleMeasurement {
+    id: number,
+    type: string,
+    attributes: {
+        co2ppm: number,
+        measurementtime: string,
+        crowding: number
+    },
+    relationships: {
+        device: {
+            data: {
+                id: number,
+                type: string
+            }
+        },
+        sub_location: {
+            data: {
+                id: number,
+                type: string
+            }
+        }
+    }
+}
+
+export const defaultSerializedSingleMeasurementInfo: SerializedSingleMeasurement = {
+    id: -1,
+    type: '',
+    attributes: {
+        co2ppm: -1,
+        measurementtime: '',
+        crowding: -1
+    },
+    relationships: {
+        device: {
+            data: {
+                id: -1,
+                type: ''
+            }
+        },
+        sub_location: {
+            data: {
+                id: -1,
+                type: ''
+            }
+        }
+    }
 }
 
 export interface UserInfoDevice {
@@ -47,7 +132,9 @@ export interface DeviceInfoResponse {
     serial: string,
     device_model: string,
     user_id: number,
-    measurements: Array<UserInfoSingleMeasurement>,
+    measurements: {
+        data: Array<SerializedSingleMeasurement>,
+    }
     errors?: Array<ErrorObjectType>
 }
 
@@ -57,7 +144,9 @@ export const defaultDeviceInfoResponse: DeviceInfoResponse = {
     serial: '',
     device_model: '',
     user_id: -1,
-    measurements: []
+    measurements: {
+        data: []
+    }
 }
 export const SHOW_DEVICES_URL = (API_URL + '/device')
 

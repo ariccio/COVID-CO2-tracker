@@ -7,7 +7,7 @@ import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
 
 
 // import {queryUserInfo, UserInfoType, defaultUserInfo} from '../../utils/QueryUserInfo';
-import {UserInfoSingleMeasurement} from '../../utils/QueryDeviceInfo';
+import {SerializedSingleMeasurement, UserInfoSingleMeasurement} from '../../utils/QueryDeviceInfo';
 import { API_URL } from '../../utils/UrlPath';
 import { updateUserInfo } from '../profile/Profile';
 
@@ -39,7 +39,7 @@ interface DeleteDeviceResponse {
     errors?: Array<ErrorObjectType>
 }
 
-function deleteClickHandler(event: React.MouseEvent<HTMLElement, MouseEvent>, measurement: UserInfoSingleMeasurement, dispatch: ReturnType<typeof useDispatch>) {
+function deleteClickHandler(event: React.MouseEvent<HTMLElement, MouseEvent>, measurement: SerializedSingleMeasurement, dispatch: ReturnType<typeof useDispatch>) {
     event.preventDefault();
     event.stopPropagation();
     const fetchFailedCallback = async (awaitedResponse: Response): Promise<DeleteDeviceResponse> => {
@@ -51,7 +51,7 @@ function deleteClickHandler(event: React.MouseEvent<HTMLElement, MouseEvent>, me
         return awaitedResponse.json();
     }
     const defaultDeleteOptions = deleteRequestOptions();
-    const thisDeleteMeasurements = (DELETE_MEASUREMENT_URL + '/' + measurement.measurement_id);
+    const thisDeleteMeasurements = (DELETE_MEASUREMENT_URL + '/' + measurement.id);
     const result = fetchJSONWithChecks(thisDeleteMeasurements, defaultDeleteOptions, 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<DeleteDeviceResponse>;
     result.then((response) => {
         if (response.errors !== undefined) {
@@ -68,7 +68,7 @@ function deleteClickHandler(event: React.MouseEvent<HTMLElement, MouseEvent>, me
 
 }
 
-const maybeDeleteButton = (measurement: UserInfoSingleMeasurement, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean) => {
+const maybeDeleteButton = (measurement: SerializedSingleMeasurement, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean) => {
     if (withDelete) {
         return (
             <td>
@@ -83,7 +83,7 @@ const maybeDeleteButton = (measurement: UserInfoSingleMeasurement, dispatch: Ret
 }
 
 
-const maybeInnerLocation = (measurement: UserInfoSingleMeasurement, innerLocation?: InnerLocationDetails) => {
+const maybeInnerLocation = (measurement: SerializedSingleMeasurement, innerLocation?: InnerLocationDetails) => {
     if (innerLocation) {
         // debugger;
         return (<td>{innerLocation.description}</td>);
@@ -92,57 +92,59 @@ const maybeInnerLocation = (measurement: UserInfoSingleMeasurement, innerLocatio
     return null;
 }
 
-const riskRow = (measurement: UserInfoSingleMeasurement) => {
-    if (measurement.co2ppm < 400) {
+const riskRow = (measurement: SerializedSingleMeasurement) => {
+    if (measurement.attributes.co2ppm < 400) {
         return (<td><i>Unreasonably low measurement</i></td>);
     }
-    if (measurement.co2ppm < 500) {
+    if (measurement.attributes.co2ppm < 500) {
         return (<td><p style={{color:"green"}}><b>Very low!</b></p></td>);
     }
-    if (measurement.co2ppm < 600) {
+    if (measurement.attributes.co2ppm < 600) {
         return (<td><p style={{color:"green"}}>Low</p></td>);
     }
-    if (measurement.co2ppm < 700) {
+    if (measurement.attributes.co2ppm < 700) {
         return (<td><p style={{color:"green"}}>Fairly low</p></td>);
     }
-    if (measurement.co2ppm < 800) {
+    if (measurement.attributes.co2ppm < 800) {
         return (<td><p>Acceptable</p></td>);
     }
-    if (measurement.co2ppm < 1000) {
+    if (measurement.attributes.co2ppm < 1000) {
         return (<td><p>Marginal/Warning</p></td>)
     }
-    if (measurement.co2ppm < 1200) {
+    if (measurement.attributes.co2ppm < 1200) {
         return (<td><p style={{color:"red"}}><b>Bad</b></p></td>);
     }
-    if (measurement.co2ppm < 2000) {
+    if (measurement.attributes.co2ppm < 2000) {
         return (<td><p style={{color:"red"}}><b><u>High: Danger zone</u></b></p></td>);
     }
-    if (measurement.co2ppm < 5000) {
+    if (measurement.attributes.co2ppm < 5000) {
         return (<td><p style={{color:"red"}}><b><u>Extremely high: danger zone</u></b></p></td>);
     }
-    if (measurement.co2ppm < 30_000) {
+    if (measurement.attributes.co2ppm < 30_000) {
         return (<td><p style={{color:"red"}}><b><u><i>Abysmal, <a href="https://www.fsis.usda.gov/sites/default/files/media_file/2020-08/Carbon-Dioxide.pdf">violates OSHA, must not remain this high over 8 hours, confirm meter calibration</a></i></u></b></p></td>);
     }
     return (<td><p style={{color:"red"}}><b><u><i>Immediate death or invalid measurement</i></u></b></p></td>);
 }
 
-const mapMeasurementsToTableBody = (measurements: Array<UserInfoSingleMeasurement>, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean, innerLocation?: InnerLocationDetails)/*: JSX.Element*/ => {
+const mapMeasurementsToTableBody = (measurements: Array<SerializedSingleMeasurement>, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean, innerLocation?: InnerLocationDetails)/*: JSX.Element*/ => {
     if (measurements === undefined) {
         debugger;
     }
+    // debugger;
     return measurements.map((measurement, index: number) => {
         // if (measurement.place === undefined) {
         //     debugger;
         // }
+        // debugger;
         return (
-            <tr key={measurementRowKey(measurement.measurement_id)}>
+            <tr key={measurementRowKey(measurement.id)}>
                 {/* <td>{index}</td> */}
-                <td>{measurement.measurement_id}</td>
-                <td>{measurement.device_name}</td>
-                <td>{measurement.co2ppm}</td>
+                <td>{measurement.id}</td>
+                <td>{/*measurement.device_name*/}currently rewriting</td>
+                <td>{measurement.attributes.co2ppm}</td>
                 {/* Displays the measurement as if it were taken in the timezone where the user currently is. It's painful to adjust the timezone according to the google places time offset, so this works for now. */}
-                <td>{new Date(measurement.measurementtime).toString()}</td>
-                <td>{measurement.crowding}</td>
+                <td>{new Date(measurement.attributes.measurementtime).toString()}</td>
+                <td>{measurement.attributes.crowding}</td>
                 {riskRow(measurement)}
                 {maybeInnerLocation(measurement, innerLocation)}
                 {maybeDeleteButton(measurement, dispatch, withDelete)}
@@ -153,7 +155,7 @@ const mapMeasurementsToTableBody = (measurements: Array<UserInfoSingleMeasuremen
 }
 
 
-const measureTableBody = (measurements: Array<UserInfoSingleMeasurement>, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean, innerLocation?: InnerLocationDetails): JSX.Element =>
+const measureTableBody = (measurements: Array<SerializedSingleMeasurement>, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean, innerLocation?: InnerLocationDetails): JSX.Element =>
     <tbody>
         {mapMeasurementsToTableBody(measurements, dispatch, withDelete, innerLocation)}
     </tbody>
@@ -166,7 +168,7 @@ interface InnerLocationDetails {
 }
 
 interface MeasurementsTableProps {
-    measurements: Array<UserInfoSingleMeasurement>,
+    measurements: Array<SerializedSingleMeasurement>,
     withDelete?: boolean,
     innerLocation?: InnerLocationDetails
 }
@@ -185,7 +187,6 @@ export const MeasurementsTable: React.FC<MeasurementsTableProps> = (props: Measu
         debugger;
     }
 
-    console.assert()
     return (
         <>
             <Table striped bordered hover>

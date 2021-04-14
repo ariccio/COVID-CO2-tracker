@@ -7,15 +7,19 @@ class Place < ApplicationRecord
   acts_as_mappable(default_units: :miles, default_formula: :sphere, distance_field_name: :distance, lat_column_name: :place_lat, lng_column_name: :place_lng)
 
   def place_measurementtime_desc
+    # temp = SubLocationSerializer.new(sub_location).serializable_hash
+    # byebug
     sub_location.includes(:measurement, measurement: :device).each.map do |loc|
-      each_measurement = loc.measurement.includes(:device, device: :model).order('measurementtime DESC').each.map do |measurement|
-        # json = measurement.as_json
-        ::Measurement.measurement_with_device_place_as_json(measurement)
-      end  
+      # each_measurement = loc.measurement.includes(:device, device: :model).order('measurementtime DESC').each.map do |measurement|
+      #   # json = measurement.as_json
+      #   ::Measurement.measurement_with_device_as_json(measurement)
+      # end
+      temp = MeasurementSerializer.new(loc.measurement.includes(:device).order('measurementtime DESC')).serializable_hash
+      # byebug
       {
         sub_location_id: loc.id,
         description: loc.description,
-        measurements: each_measurement
+        measurements: temp
       }
     end
     # byebug

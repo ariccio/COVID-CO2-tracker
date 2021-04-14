@@ -72,7 +72,7 @@ export const Profile: React.FC<ProfileProps> = () => {
             Devices:
             <DevicesTable devices={userInfo.user_info.devices}/>
             Measurements:
-            <MeasurementsTable measurements={userInfo.user_info.measurements} withDelete/>
+            <MeasurementsTable measurements={userInfo.user_info.measurements.data} withDelete/>
             {errorState}
         </>
     )

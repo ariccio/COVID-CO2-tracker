@@ -20,9 +20,10 @@ class Device < ApplicationRecord
     measurements = measurement.first(10)
     # measurements = ::Measurement.where(device_id: device_id).first(10).include(:device, :sub_location)
     # NOTE: this can be a very slow query TODO: faster
-    measurements.each.map do |measurement|
-      ::Measurement.measurement_with_device_place_as_json(measurement)
-    end
+    # measurements.each.map do |measurement|
+    #   ::Measurement.measurement_with_device_as_json(measurement)
+    # end
+    MeasurementSerializer.new(measurements).serializable_hash
   end
   
 end

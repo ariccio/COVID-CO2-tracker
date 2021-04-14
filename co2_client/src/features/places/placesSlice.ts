@@ -1,18 +1,22 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
 
-import {UserInfoSingleMeasurement, defaultMeasurementInfo} from '../../utils/QueryDeviceInfo';
+import {UserInfoSingleMeasurement, defaultMeasurementInfo, SerializedSingleMeasurement, defaultSerializedSingleMeasurementInfo} from '../../utils/QueryDeviceInfo';
 
 //Ok, so, the places stuff should come OUT of the googleslice and be here.
 
 export interface SublocationMeasurements {
-    measurements: Array<UserInfoSingleMeasurement>,
+    measurements: {
+        data: Array<SerializedSingleMeasurement>,
+    },
     sub_location_id: number,
     description: string
 }
 
 const defaultSublocationMeasurements: SublocationMeasurements = {
-    measurements: [defaultMeasurementInfo],
+    measurements: {
+        data: [defaultSerializedSingleMeasurementInfo],
+    },
     sub_location_id: -99999,
     description: ''
 }
