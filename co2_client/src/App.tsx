@@ -56,7 +56,7 @@ const routes = () =>
 
 
 // TODO: how to display network errors? some component to render above it?
-function App(): JSX.Element {
+export function App(): JSX.Element {
 
   return (
     <>
@@ -72,4 +72,4 @@ function App(): JSX.Element {
   );
 }
 
-export default App;
+// export default App;
