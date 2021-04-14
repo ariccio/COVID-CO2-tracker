@@ -8,6 +8,8 @@ import { Provider } from 'react-redux';
 import {BrowserRouter} from 'react-router-dom';
 import * as serviceWorker from './serviceWorker';
 
+import reportWebVitals from './reportWebVitals';
+
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 ReactDOM.render(
@@ -25,3 +27,6 @@ ReactDOM.render(
 // unregister() to register() below. Note this comes with some pitfalls.
 // Learn more about service workers: https://bit.ly/CRA-PWA
 serviceWorker.unregister();
+
+
+reportWebVitals(console.log);
