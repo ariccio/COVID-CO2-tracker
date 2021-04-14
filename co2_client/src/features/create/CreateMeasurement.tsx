@@ -434,11 +434,14 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
         const userDeviceInfoPromise: Promise<UserDevicesInfo> = queryUserDevices();
         userDeviceInfoPromise.then((userDeviceInfo) => {
             if (userDeviceInfo.errors !== undefined) {
+                console.warn(formatErrors(userDeviceInfo.errors));
                 setErrorState(formatErrors(userDeviceInfo.errors));
             }
             console.log(userDeviceInfo);
             setUserDevices(userDeviceInfo);
         }).catch((error) => {
+            console.warn(error);
+            console.warn(error.message);
             setErrorState(error.message);
         })
     }, [username])
