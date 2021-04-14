@@ -486,6 +486,12 @@ interface LastMeasurementLocation {
 }
 
 function responseToLatLngLiteral(response: LastMeasurementLocation): google.maps.LatLngLiteral | null {
+    if (response.place_lat === undefined) {
+        return null;
+    }
+    if (response.place_lng === undefined) {
+        return null;
+    }
     const latlng = {
         lat: parseFloat(response.place_lat),
         lng: parseFloat(response.place_lng)

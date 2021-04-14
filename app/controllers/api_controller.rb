@@ -87,6 +87,13 @@ class ApiController < ActionController::API
     )
   end
 
+  def render_empty
+    render(
+      json: {},
+      status: :ok
+    )
+  end
+
   def cookie?
     return false if user_id_from_jwt_token.nil?
 

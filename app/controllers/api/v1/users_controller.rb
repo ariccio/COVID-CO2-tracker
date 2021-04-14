@@ -74,7 +74,21 @@ module Api
           render_not_logged_in
           return
         end
-        recent_place = @user.last_measurement.sub_location.place
+        last = @user.last_measurement
+        if (last.nil?)
+          render_empty()
+          return
+        end
+        last_subloc = last.sub_location
+        if (last_subloc.nil?)
+          render_empty()
+          return
+        end
+        recent_place = last_subloc.place
+        if (recent_place.nil?)
+          render_empty()
+          return
+        end
         render(
           json: {
             place_lat: recent_place.place_lat,

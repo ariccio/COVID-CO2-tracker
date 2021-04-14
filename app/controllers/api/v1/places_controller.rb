@@ -146,7 +146,6 @@ module Api
         # byebug
         # @spot.lat, @spot.lng
         @spot = get_spot(place_params.fetch(:google_place_id))
-
         # https://discuss.rubyonrails.org/t/time-now-vs-time-current-vs-datetime-now/75183/2
         @place = ::Place.create!(google_place_id: place_params.fetch(:google_place_id), place_lat: @spot.lat, place_lng: @spot.lng, last_fetched: ::Time.current)
         render(
