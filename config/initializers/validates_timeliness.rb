@@ -15,7 +15,7 @@ ValidatesTimeliness.setup do |config|
   # config.enable_date_time_select_extension!
   #
   # Handle multiparameter date/time values strictly
-  # config.enable_multiparameter_extension!
+  config.enable_multiparameter_extension!
   #
   # Shorthand date and time symbols for restrictions
   # config.restriction_shorthand_symbols.update(
@@ -24,7 +24,7 @@ ValidatesTimeliness.setup do |config|
   # )
   #
   # Use the plugin date/time parser which is stricter and extendable
-  # config.use_plugin_parser = false
+  config.use_plugin_parser = false
   #
   # Add one or more formats making them valid. e.g. add_formats(:date, 'd(st|rd|th) of mmm, yyyy')
   # config.parser.add_formats()
