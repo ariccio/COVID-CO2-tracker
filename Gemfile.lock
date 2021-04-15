@@ -249,10 +249,13 @@ GEM
       sprockets (>= 3.0.0)
     thor (1.1.0)
     tilt (2.0.10)
+    timeliness (0.4.4)
     tzinfo (2.0.4)
       concurrent-ruby (~> 1.0)
     tzinfo-data (1.2021.1)
       tzinfo (>= 1.0.0)
+    validates_timeliness (5.0.0)
+      timeliness (>= 0.3.10, < 1)
     warden (1.2.9)
       rack (>= 2.0.9)
     websocket-driver (0.7.3)
@@ -284,6 +287,7 @@ DEPENDENCIES
   rexml
   sassc-rails
   tzinfo-data
+  validates_timeliness (~> 5.0)
 
 RUBY VERSION
    ruby 3.0.0p0

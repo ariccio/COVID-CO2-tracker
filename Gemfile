@@ -64,3 +64,5 @@ gem 'sassc-rails' # needed for css in activeadmin
 gem 'rexml'
 
 gem 'jsonapi-serializer'
+
+gem "validates_timeliness", "~> 5.0"
