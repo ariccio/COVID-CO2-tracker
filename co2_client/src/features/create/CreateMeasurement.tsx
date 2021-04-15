@@ -400,6 +400,18 @@ const findSelected = (measurements_by_sublocation: Array<SublocationMeasurements
     return selected_;
 }
 
+/*
+Note to self, on selecting datetime pickers:
+    These both seem good:
+        https://www.npmjs.com/package/react-datetime-picker
+        https://www.npmjs.com/package/react-datepicker
+
+    I do not like this one:
+        https://demo.mobiscroll.com/react/datetime/date-time-picker#
+        
+
+*/
+
 export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (props: CreateNewMeasurementProps) => {
     const selectedPlace = useSelector(selectSelectedPlace);
     // const selectedModel = useSelector(selectSelectedModel);
