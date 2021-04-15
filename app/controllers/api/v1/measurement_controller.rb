@@ -101,7 +101,6 @@ module Api
         )
       end
 
-
       def show
         # find(*args): https://api.rubyonrails.org/v6.1.3.1/classes/ActiveRecord/FinderMethods.html#method-i-find
         # "If one or more records cannot be found for the requested ids, then ActiveRecord::RecordNotFound will be raised"
@@ -119,7 +118,6 @@ module Api
           },
           status: :not_found
         )
-        return
       end
 
       private

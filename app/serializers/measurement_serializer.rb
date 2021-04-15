@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class MeasurementSerializer
   include JSONAPI::Serializer
   attributes :co2ppm, :measurementtime, :crowding

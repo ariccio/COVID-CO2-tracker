@@ -7,13 +7,13 @@ module Api
 
       # GET /sub_locations/1
       def show
-        byebug
+        ::Rails.logger.debug('sub_locations show')
         render json: @sub_location
       end
 
       # POST /sub_locations
       def create
-        byebug
+        ::Rails.logger.debug('sub_locations create')
         @sub_location = SubLocation.new(sub_location_params)
 
         if @sub_location.save
@@ -25,7 +25,7 @@ module Api
 
       # PATCH/PUT /sub_locations/1
       def update
-        byebug
+        ::Rails.logger.debug('sub_locations update')
         if @sub_location.update(sub_location_params)
           render json: @sub_location
         else
@@ -35,7 +35,7 @@ module Api
 
       # DELETE /sub_locations/1
       def destroy
-        byebug
+        ::Rails.logger.debug('sub_locations destroy')
         @sub_location.destroy
       end
 

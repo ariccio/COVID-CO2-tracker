@@ -31,7 +31,7 @@ class User < ApplicationRecord
     # @user = current_user
     # measurements = []
     # byebug
-    return [] if (measurement.nil? || measurement.nil?)
+    return [] if (measurement.blank?)
 
     ordered = measurement.includes(:device, :sub_location, device: :model).order('measurementtime DESC')
 
@@ -43,7 +43,7 @@ class User < ApplicationRecord
   end
 
   def last_measurement
-    return nil if (measurement.nil? || measurement.nil?)
+    return nil if (measurement.blank?)
 
     measurement.order('measurementtime DESC').first
   end
