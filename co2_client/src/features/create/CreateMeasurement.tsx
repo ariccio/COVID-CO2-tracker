@@ -261,6 +261,7 @@ const createMeasurementHandler = (selectedDevice: number, enteredCO2Text: string
 
 const submitHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, placeExistsInDatabase: boolean, dispatch: ReturnType<typeof useDispatch>, setErrorState: React.Dispatch<React.SetStateAction<string>>, enteredCrowding: string, enteredLocationDetails: string, selectedSubLocation: number) => {
     // debugger;
+    //TODO: Disable button on click while waiting for response
 
     const placeExistsPromiseOrNull = createPlaceIfNotExist(placeExistsInDatabase, place_id);
     if (placeExistsPromiseOrNull === null) {
@@ -312,7 +313,9 @@ function measurementsOrEmpty(placesInfoFromDatabase: SelectedPlaceDatabaseInfo):
 const maybeMeasurementNote = (enteredCO2Text: string) => {
     const parsed = parseInt(enteredCO2Text);
     if (isNaN(parsed)) {
-        console.warn(`Unable to parse entered CO2 text ('${enteredCO2Text}') into number`);
+        if (enteredCO2Text.length !== 0) {
+            console.warn(`Unable to parse entered CO2 text ('${enteredCO2Text}') into number`);
+        }
     }
     if (parsed < 400) {
         return (
@@ -393,7 +396,8 @@ const findSelected = (measurements_by_sublocation: Array<SublocationMeasurements
         return (value.sub_location_id === selectedSubLocation);
     })
     if (selected_ === undefined) {
-        console.log("not in measurements_by_sublocations");
+        // console.log("not in measurements_by_sublocations");
+        // debugger;
         return null;
     }
     // debugger;
@@ -408,7 +412,7 @@ Note to self, on selecting datetime pickers:
 
     I do not like this one:
         https://demo.mobiscroll.com/react/datetime/date-time-picker#
-        
+
 
 */
 
@@ -461,15 +465,20 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
     useEffect(() => {
         if (selectedSubLocation === -1) {
             // console.log(placesInfoFromDatabase.measurements_by_sublocation);
+            if (placesInfoFromDatabase === defaultPlaceInfo) {
+                console.log("stil loading place info?");
+                return;
+            }
             if (placesInfoFromDatabase.measurements_by_sublocation.length > 0) {
-                dispatch(setSublocationSelectedLocationID(placesInfoFromDatabase.measurements_by_sublocation[0].sub_location_id))
+                // debugger;
+                dispatch(setSublocationSelectedLocationID(placesInfoFromDatabase.measurements_by_sublocation[0].sub_location_id));
             }
             // debugger;
         }
 
     // Running this hook whenever selectedSubLocation changed would defeat the purpose, and never let users add new sublocations.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [dispatch]);
+    }, [dispatch, placesInfoFromDatabase]);
 
     console.assert(place_id !== null);
     console.assert(place_id !== undefined);
