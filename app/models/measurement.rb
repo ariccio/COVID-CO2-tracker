@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+EARLIEST_TIME = ::Time.parse("2020-01-01")
+
 class Measurement < ApplicationRecord
   belongs_to :device
   # belongs_to :place
@@ -15,6 +17,9 @@ class Measurement < ApplicationRecord
   validates :crowding, numericality: { less_than_or_equal_to: 5 }
   validates :device_id, presence: true
   validates :crowding, presence: true
+  validates_datetime :measurementtime
+  validates_datetime :measurementtime, on_or_before: lambda { ::Time.current }
+  validates_datetime :measurementtime, on_or_after: EARLIEST_TIME
 
   validates_associated :device, :sub_location
 

@@ -286,6 +286,7 @@ DEPENDENCIES
   rbnacl (~> 7.1)
   rexml
   sassc-rails
+  timeliness (~> 0.4.4)
   tzinfo-data
   validates_timeliness (~> 5.0)
 
