@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
-import {Modal, Button, Form, Dropdown} from 'react-bootstrap';
+import {Modal, Button, Form, Dropdown, ToggleButtonGroup, ToggleButton} from 'react-bootstrap';
 // import {useLocation, useHistory} from 'react-router-dom'
 
 
@@ -21,6 +21,11 @@ import { SublocationsDropdown } from '../sublocationsDropdown/SublocationsDropdo
 import { selectSublocationSelectedLocationID, setSublocationSelectedLocationID } from '../sublocationsDropdown/sublocationSlice';
 import { Link } from 'react-router-dom';
 import { devicesPath } from '../../paths/paths';
+
+enum ToggleButtonUserRadios {
+    Now = 1,
+    Custom
+}
 
 const ModalHeader = (props: {placeName: string}) =>
     <Modal.Header closeButton>
@@ -323,7 +328,6 @@ const maybeMeasurementNote = (enteredCO2Text: string) => {
                 That's a low measurement. Confirm that your meter reads near 400ppm when you're outside and away from sources of CO2.
                 <br/>
                 <br/>
-                
             </>
         )
     }
@@ -333,14 +337,13 @@ const maybeMeasurementNote = (enteredCO2Text: string) => {
                 That's a very high measurement! Confirm that your meter reads near 400ppm when you're outside and away from sources of CO2.
                 <br/>
                 <br/>
-                
             </>
         )
     };
     return null;
 }
 
-const renderFormIfReady = (selectedDevice: number, setEnteredCO2Text: React.Dispatch<React.SetStateAction<string>>, place_id: string, setEnteredCrowding: React.Dispatch<React.SetStateAction<string>>, placeName: string, setEnteredLocationDetails: React.Dispatch<React.SetStateAction<string>>, placesInfoFromDatabase: SelectedPlaceDatabaseInfo, selected: SublocationMeasurements | null, enteredCO2Text: string) => {
+const renderFormIfReady = (selectedDevice: number, setEnteredCO2Text: React.Dispatch<React.SetStateAction<string>>, place_id: string, setEnteredCrowding: React.Dispatch<React.SetStateAction<string>>, placeName: string, setEnteredLocationDetails: React.Dispatch<React.SetStateAction<string>>, placesInfoFromDatabase: SelectedPlaceDatabaseInfo, selected: SublocationMeasurements | null, enteredCO2Text: string, userTimeRadioValue: ToggleButtonUserRadios, setUserTimeRadioValue: React.Dispatch<React.SetStateAction<ToggleButtonUserRadios>>) => {
     if (selectedDevice === -1) {
         return null;
     }
@@ -355,6 +358,13 @@ const renderFormIfReady = (selectedDevice: number, setEnteredCO2Text: React.Disp
                 </Form.Label>
                 <Form.Control type="number" placeholder="400" min={0} max={80000} name={"co2ppm"}/> {maybeMeasurementNote(enteredCO2Text)}
             </Form>
+            <label className="form-label">
+            Measurement time: &nbsp;&nbsp;&nbsp;
+            </label>
+            <ToggleButtonGroup type="radio" name="user time choice" value={userTimeRadioValue} onChange={setUserTimeRadioValue}>
+                <ToggleButton value={ToggleButtonUserRadios.Now}>Now</ToggleButton>
+                <ToggleButton value={ToggleButtonUserRadios.Custom}>Custom</ToggleButton>
+            </ToggleButtonGroup>
             <Form onChange={(event) => onChangeCrowdingEvent(event, setEnteredCrowding)} onSubmit={ignoreDefault}>
                 <Form.Label>
                     Crowding 1-5 (1 is empty, 5 full)
@@ -425,7 +435,9 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
     const placeExistsInDatabase = useSelector(selectPlaceExistsInDatabase);
     const placesInfoFromDatabase = useSelector(selectPlacesInfoFromDatabase);
     const username = useSelector(selectUsername);
-    
+
+    const selectedSubLocation = useSelector(selectSublocationSelectedLocationID);
+
     // const selectedPlacesInfo = useSelector(selectPlacesInfoFromDatabase);
     // const selectedPlacesInfoErrors = useSelector(selectPlacesInfoErrors);
 
@@ -436,8 +448,7 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
     const [enteredCrowding, setEnteredCrowding] = useState('');
     const [enteredLocationDetails, setEnteredLocationDetails] = useState('');
 
-    // const [selectedSubLocation, setSelectedSubLocation] = useState(-1);
-    const selectedSubLocation = useSelector(selectSublocationSelectedLocationID);
+    const [userTimeRadioValue, setUserTimeRadioValue] = useState(ToggleButtonUserRadios.Now);
 
     const placeName = selectedPlace.name;    
     const place_id = selectedPlace.place_id
@@ -512,7 +523,7 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
                 <Modal.Body>
                     {renderErrors(errorState)}
                     {renderSelectDeviceDropdown(userDevices, selectedDevice, selectedModelName, selectedDeviceSerialNumber, dispatch)}
-                    {renderFormIfReady(selectedDevice, setEnteredCO2Text, place_id, setEnteredCrowding, placeName, setEnteredLocationDetails, placesInfoFromDatabase, selected, enteredCO2Text)}
+                    {renderFormIfReady(selectedDevice, setEnteredCO2Text, place_id, setEnteredCrowding, placeName, setEnteredLocationDetails, placesInfoFromDatabase, selected, enteredCO2Text, userTimeRadioValue, setUserTimeRadioValue)}
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={(event) => hideHandler(props.setShowCreateNewMeasurement)}>
