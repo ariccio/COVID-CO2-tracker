@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {useDispatch} from 'react-redux';
 import {useSelector} from 'react-redux';
+
 import {selectSelectedPlace, selectPlacesServiceStatus, autocompleteSelectedPlaceToAction, placeResultWithTranslatedType} from '../google/googleSlice';
 
 import { GoogleMap, useJsApiLoader, Autocomplete, Marker, MarkerClusterer } from '@react-google-maps/api';

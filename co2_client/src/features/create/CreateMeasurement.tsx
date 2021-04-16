@@ -1,7 +1,10 @@
 import React, {useState, useEffect} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 import {Modal, Button, Form, Dropdown, ToggleButtonGroup, ToggleButton} from 'react-bootstrap';
+import DatePicker, {CalendarContainer} from 'react-datepicker';
 // import {useLocation, useHistory} from 'react-router-dom'
+
+import "react-datepicker/dist/react-datepicker.css";
 
 
 import {selectSelectedDevice, selectSelectedDeviceSerialNumber, selectSelectedModelName, setSelectedDevice, setSelectedDeviceSerialNumber, setSelectedModel, setSelectedModelName} from '../deviceModels/deviceModelsSlice';
@@ -149,7 +152,16 @@ const onChangeInnerLocationEvent = (event: React.FormEvent<HTMLFormElement>, set
 
 const NEW_MEASUREMENT_URL = (API_URL + '/measurement');
 
-function newMeasurementRequestInit(selectedDevice: number, enteredCO2: string, placeId: string, enteredCrowding: string, enteredLocationDetails: string, selectedSubLocation: number): RequestInit {
+const dateTimeIfCustom = (userTimeRadioValue: ToggleButtonUserRadios, dateTime: Date) => {
+    if (userTimeRadioValue === ToggleButtonUserRadios.Now) {
+        return undefined;
+    }
+    return {
+        measurementtime: dateTime
+    }
+}
+
+function newMeasurementRequestInit(selectedDevice: number, enteredCO2: string, placeId: string, enteredCrowding: string, enteredLocationDetails: string, selectedSubLocation: number, userTimeRadioValue: ToggleButtonUserRadios, dateTime: Date): RequestInit {
     if (selectedSubLocation === -1) {
         console.assert(enteredLocationDetails !== '');
         if (enteredLocationDetails === '') {
@@ -173,11 +185,13 @@ function newMeasurementRequestInit(selectedDevice: number, enteredCO2: string, p
                 google_place_id: placeId,
                 crowding: enteredCrowding,
                 location_where_inside_info: enteredLocationDetails,
-                sub_location_id: selectedSubLocation
+                sub_location_id: selectedSubLocation,
                 // measurementtime: new Date().toUTCString()
+                ...dateTimeIfCustom(userTimeRadioValue, dateTime)
             }
         })
     };
+    // debugger;
     return newOptions;
 }
 
@@ -234,9 +248,9 @@ const createPlaceIfNotExist = (placeExistsInDatabase: boolean, place_id: string)
     return result;
 }
 
-const createMeasurementHandler = (selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, enteredCrowding: string, enteredLocationDetails: string, selectedSubLocation: number) => {
+const createMeasurementHandler = (selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, enteredCrowding: string, enteredLocationDetails: string, selectedSubLocation: number, userTimeRadioValue: ToggleButtonUserRadios, dateTime: Date) => {
     // debugger;
-    const init = newMeasurementRequestInit(selectedDevice, enteredCO2Text, place_id, enteredCrowding, enteredLocationDetails, selectedSubLocation);
+    const init = newMeasurementRequestInit(selectedDevice, enteredCO2Text, place_id, enteredCrowding, enteredLocationDetails, selectedSubLocation, userTimeRadioValue, dateTime);
     
     const fetchFailedCallback = async (awaitedResponse: Response): Promise<NewMeasurmentResponseType> => {
         console.error("failed to create measurement!");
@@ -264,20 +278,20 @@ const createMeasurementHandler = (selectedDevice: number, enteredCO2Text: string
     })
 }
 
-const submitHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, placeExistsInDatabase: boolean, dispatch: ReturnType<typeof useDispatch>, setErrorState: React.Dispatch<React.SetStateAction<string>>, enteredCrowding: string, enteredLocationDetails: string, selectedSubLocation: number) => {
+const submitHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, placeExistsInDatabase: boolean, dispatch: ReturnType<typeof useDispatch>, setErrorState: React.Dispatch<React.SetStateAction<string>>, enteredCrowding: string, enteredLocationDetails: string, selectedSubLocation: number, userTimeRadioValue: ToggleButtonUserRadios, dateTime: Date) => {
     // debugger;
     //TODO: Disable button on click while waiting for response
 
     const placeExistsPromiseOrNull = createPlaceIfNotExist(placeExistsInDatabase, place_id);
     if (placeExistsPromiseOrNull === null) {
         // debugger;
-        createMeasurementHandler(selectedDevice, enteredCO2Text, place_id, setShowCreateNewMeasurement, enteredCrowding, enteredLocationDetails, selectedSubLocation);
+        createMeasurementHandler(selectedDevice, enteredCO2Text, place_id, setShowCreateNewMeasurement, enteredCrowding, enteredLocationDetails, selectedSubLocation, userTimeRadioValue, dateTime);
         updatePlacesInfoFromBackend(place_id, dispatch);
         return;
     }
     placeExistsPromiseOrNull.then((existsPromise) => {
         // debugger;
-        createMeasurementHandler(selectedDevice, enteredCO2Text, place_id, setShowCreateNewMeasurement, enteredCrowding, enteredLocationDetails, selectedSubLocation);
+        createMeasurementHandler(selectedDevice, enteredCO2Text, place_id, setShowCreateNewMeasurement, enteredCrowding, enteredLocationDetails, selectedSubLocation, userTimeRadioValue, dateTime);
         updatePlacesInfoFromBackend(place_id, dispatch);
     }).catch((errors) => {
         //TODO: set errors state?
@@ -343,7 +357,45 @@ const maybeMeasurementNote = (enteredCO2Text: string) => {
     return null;
 }
 
-const renderFormIfReady = (selectedDevice: number, setEnteredCO2Text: React.Dispatch<React.SetStateAction<string>>, place_id: string, setEnteredCrowding: React.Dispatch<React.SetStateAction<string>>, placeName: string, setEnteredLocationDetails: React.Dispatch<React.SetStateAction<string>>, placesInfoFromDatabase: SelectedPlaceDatabaseInfo, selected: SublocationMeasurements | null, enteredCO2Text: string, userTimeRadioValue: ToggleButtonUserRadios, setUserTimeRadioValue: React.Dispatch<React.SetStateAction<ToggleButtonUserRadios>>) => {
+function datePickerChangeHandler(setDateTime: React.Dispatch<React.SetStateAction<Date>>, setDatePickerError: React.Dispatch<React.SetStateAction<string | null>>, date: Date | [Date, Date] | /* for selectsRange */ null,
+    _event: React.SyntheticEvent<any> | undefined): void {
+        if(date === null) {
+            return;
+        }
+        if(Array.isArray(date)) {
+            console.error(`date (${date.toString()}) is an array type. This is a bug.`);
+            debugger;
+            setDatePickerError(`date (${date.toString()}) is an array type. This is a bug. Please report it.`);
+            return;
+        }
+        // console.log(typeof [Date, Date])
+        setDateTime(date);
+    }
+
+const calendarContainer = () =>
+    <CalendarContainer>
+
+    </CalendarContainer>
+
+const maybeRenderTimeInput = (userTimeRadioValue: ToggleButtonUserRadios, dateTime: Date, setDateTime: React.Dispatch<React.SetStateAction<Date>>, datePickerError: string | null, setDatePickerError: React.Dispatch<React.SetStateAction<string | null>>) => {
+    if (userTimeRadioValue === ToggleButtonUserRadios.Now) {
+        return null;
+    }
+    if (datePickerError !== null) {
+        return (
+            <>
+                Error in date picker component: {datePickerError}
+            </>
+        )
+    }
+    return (
+        <>
+            <DatePicker selected={dateTime} onChange={(date, event) => datePickerChangeHandler(setDateTime, setDatePickerError, date, event)} timeInputLabel={"measurement time"} showTimeInput inline/>
+        </>
+    )
+}
+
+const renderFormIfReady = (selectedDevice: number, setEnteredCO2Text: React.Dispatch<React.SetStateAction<string>>, place_id: string, setEnteredCrowding: React.Dispatch<React.SetStateAction<string>>, placeName: string, setEnteredLocationDetails: React.Dispatch<React.SetStateAction<string>>, placesInfoFromDatabase: SelectedPlaceDatabaseInfo, selected: SublocationMeasurements | null, enteredCO2Text: string, userTimeRadioValue: ToggleButtonUserRadios, setUserTimeRadioValue: React.Dispatch<React.SetStateAction<ToggleButtonUserRadios>>, dateTime: Date, setDateTime: React.Dispatch<React.SetStateAction<Date>>, datePickerError: string | null, setDatePickerError: React.Dispatch<React.SetStateAction<string | null>>) => {
     if (selectedDevice === -1) {
         return null;
     }
@@ -365,6 +417,8 @@ const renderFormIfReady = (selectedDevice: number, setEnteredCO2Text: React.Disp
                 <ToggleButton value={ToggleButtonUserRadios.Now}>Now</ToggleButton>
                 <ToggleButton value={ToggleButtonUserRadios.Custom}>Custom</ToggleButton>
             </ToggleButtonGroup>
+            <br/>
+            {maybeRenderTimeInput(userTimeRadioValue, dateTime, setDateTime, datePickerError, setDatePickerError)}
             <Form onChange={(event) => onChangeCrowdingEvent(event, setEnteredCrowding)} onSubmit={ignoreDefault}>
                 <Form.Label>
                     Crowding 1-5 (1 is empty, 5 full)
@@ -450,6 +504,10 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
 
     const [userTimeRadioValue, setUserTimeRadioValue] = useState(ToggleButtonUserRadios.Now);
 
+    const [dateTime, setDateTime] = useState(new Date());
+
+    const [datePickerError, setDatePickerError] = useState(null as string | null);
+
     const placeName = selectedPlace.name;    
     const place_id = selectedPlace.place_id
     const dispatch = useDispatch();
@@ -523,13 +581,13 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
                 <Modal.Body>
                     {renderErrors(errorState)}
                     {renderSelectDeviceDropdown(userDevices, selectedDevice, selectedModelName, selectedDeviceSerialNumber, dispatch)}
-                    {renderFormIfReady(selectedDevice, setEnteredCO2Text, place_id, setEnteredCrowding, placeName, setEnteredLocationDetails, placesInfoFromDatabase, selected, enteredCO2Text, userTimeRadioValue, setUserTimeRadioValue)}
+                    {renderFormIfReady(selectedDevice, setEnteredCO2Text, place_id, setEnteredCrowding, placeName, setEnteredLocationDetails, placesInfoFromDatabase, selected, enteredCO2Text, userTimeRadioValue, setUserTimeRadioValue, dateTime, setDateTime, datePickerError, setDatePickerError)}
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={(event) => hideHandler(props.setShowCreateNewMeasurement)}>
                         Cancel
                     </Button>
-                    <Button variant="primary" onClick={(event) => submitHandler(event, selectedDevice, enteredCO2Text, place_id, props.setShowCreateNewMeasurement, placeExistsInDatabase, dispatch, setErrorState, enteredCrowding, enteredLocationDetails, selectedSubLocation)}>
+                    <Button variant="primary" onClick={(event) => submitHandler(event, selectedDevice, enteredCO2Text, place_id, props.setShowCreateNewMeasurement, placeExistsInDatabase, dispatch, setErrorState, enteredCrowding, enteredLocationDetails, selectedSubLocation, userTimeRadioValue, dateTime)}>
                         Submit new measurement
                     </Button>
                 </Modal.Footer>

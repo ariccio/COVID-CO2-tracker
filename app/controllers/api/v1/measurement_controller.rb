@@ -39,11 +39,11 @@ module Api
 
         # TODO: handle ActionController::ParameterMissing: https://apidock.com/rails/ActionController/ParameterMissing
         @place = ::Place.find_by!(google_place_id: measurement_params.fetch(:google_place_id))
-
         raise_if_invalid_parameter_combo(measurement_params)
         # Rails.logger.warn('needs to do something more robust than text comparisons!')
         # byebug
         sub_location = find_or_create_sublocation
+        time = custom_time_or_now
         # places_backend_api_key
         # byebug
         # https://discuss.rubyonrails.org/t/time-now-vs-time-current-vs-datetime-now/75183/15
@@ -52,7 +52,7 @@ module Api
         @new_measurement = ::Measurement.create!(
           device_id: measurement_params.fetch(:device_id),
           co2ppm: measurement_params.fetch(:co2ppm),
-          measurementtime: ::Time.current,
+          measurementtime: time,
           sub_location: sub_location,
           crowding: measurement_params.fetch(:crowding)
         )
@@ -124,6 +124,13 @@ module Api
 
       def measurement_params
         params.require(:measurement).permit(:id, :device_id, :co2ppm, :measurementtime, :google_place_id, :crowding, :location_where_inside_info, :sub_location_id)
+      end
+
+      def custom_time_or_now
+        unless (measurement_params[:measurementtime].blank?)
+          return measurement_params.fetch(:measurementtime)
+        end
+        ::Time.current
       end
 
       def find_or_create_sublocation
