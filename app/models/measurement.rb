@@ -17,9 +17,10 @@ class Measurement < ApplicationRecord
   validates :crowding, numericality: { less_than_or_equal_to: 5 }
   validates :device_id, presence: true
   validates :crowding, presence: true
+  
   validates_datetime :measurementtime
-  validates_datetime :measurementtime, on_or_before: lambda { ::Time.current }
-  validates_datetime :measurementtime, on_or_after: EARLIEST_TIME
+  validates_datetime :measurementtime, on_or_before: lambda { ::Time.current }, invalid_datetime_message: "Measurement is in future, what?"
+  validates_datetime :measurementtime, on_or_after: lambda { EARLIEST_TIME }, invalid_datetime_message: "Measurement was taken before COVID pandemic, are you sure you entered it correctly?"
 
   validates_associated :device, :sub_location
 

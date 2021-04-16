@@ -254,7 +254,7 @@ GEM
       concurrent-ruby (~> 1.0)
     tzinfo-data (1.2021.1)
       tzinfo (>= 1.0.0)
-    validates_timeliness (5.0.0)
+    validates_timeliness (6.0.0.alpha1)
       timeliness (>= 0.3.10, < 1)
     warden (1.2.9)
       rack (>= 2.0.9)
@@ -286,9 +286,8 @@ DEPENDENCIES
   rbnacl (~> 7.1)
   rexml
   sassc-rails
-  timeliness (~> 0.4.4)
   tzinfo-data
-  validates_timeliness (~> 5.0)
+  validates_timeliness (~> 6.0.0.alpha1)
 
 RUBY VERSION
    ruby 3.0.0p0

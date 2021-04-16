@@ -65,4 +65,4 @@ gem 'rexml'
 
 gem 'jsonapi-serializer'
 
-gem "validates_timeliness", "~> 5.0"
+gem "validates_timeliness", "~> 6.0.0.alpha1"
