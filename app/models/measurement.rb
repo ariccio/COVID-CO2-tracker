@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-EARLIEST_TIME = ::Time.parse("2020-01-01")
+
 
 class Measurement < ApplicationRecord
   belongs_to :device
@@ -24,6 +24,9 @@ class Measurement < ApplicationRecord
 
   validates_associated :device, :sub_location
 
+
+  EARLIEST_TIME = ::Time.parse("2020-01-01")
+  
   # GODDAMNIT I NEED TO WRITE A SERIALIZER
   def self.measurement_with_device_as_json(measurement)
     # byebug
