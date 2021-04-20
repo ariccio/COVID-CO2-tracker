@@ -77,6 +77,9 @@ GEM
     arbre (1.4.0)
       activesupport (>= 3.0.0, < 6.2)
       ruby2_keywords (>= 0.0.2, < 1.0)
+    barnes (0.0.9)
+      multi_json (~> 1)
+      statsd-ruby (~> 1.1)
     bcrypt (3.1.16)
     bootsnap (1.7.2)
       msgpack (~> 1.0)
@@ -247,6 +250,7 @@ GEM
       actionpack (>= 4.0)
       activesupport (>= 4.0)
       sprockets (>= 3.0.0)
+    statsd-ruby (1.5.0)
     thor (1.1.0)
     tilt (2.0.10)
     timeliness (0.4.4)
@@ -269,6 +273,7 @@ PLATFORMS
 DEPENDENCIES
   active_record_doctor
   activeadmin
+  barnes
   bcrypt (~> 3.1.7)
   bootsnap (>= 1.4.4)
   byebug
