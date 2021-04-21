@@ -2,7 +2,6 @@ import React from 'react';
 import {Dropdown} from 'react-bootstrap';
 import { useDispatch } from 'react-redux';
 
-
 import {SublocationMeasurements} from '../places/placesSlice';
 import { setSublocationSelectedLocationID } from './sublocationSlice';
 

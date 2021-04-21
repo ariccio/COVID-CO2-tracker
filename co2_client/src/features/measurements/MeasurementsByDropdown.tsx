@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {Dropdown} from 'react-bootstrap'
 import { useSelector } from 'react-redux';
+import { formatErrors } from '../../utils/ErrorObject';
+import { fetchDeviceNamesForMeasurementsBySublocation, SerializedSingleDeviceSerial } from '../../utils/QueryDeviceInfo';
 import { selectSelectedPlace } from '../google/googleSlice';
 
 
@@ -10,7 +12,6 @@ import { selectSublocationSelectedLocationID } from '../sublocationsDropdown/sub
 
 
 import {MeasurementsTable} from './MeasurementsTable';
-
 
 interface MeasurementsByDropdownProps {
     selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo
@@ -31,22 +32,22 @@ function locationKey(location: SublocationMeasurements): string {
     return `measurement-table-sub-location-table-key-${location.sub_location_id}-${location.measurements.data.length}`
 }
 
-const singleLocation = (location: SublocationMeasurements, withDescription: boolean) => {
+const singleLocation = (location: SublocationMeasurements, withDescription: boolean, deviceSerials?: Array<SerializedSingleDeviceSerial>) => {
     return (
         <div key={locationKey(location)}>
             {maybeDescription(location, withDescription)}
-            <MeasurementsTable measurements={location.measurements.data}/>
+            <MeasurementsTable measurements={location.measurements.data} deviceSerials={deviceSerials}/>
         </div>
     );
 
 }
 
-const allMeasurements = (sublocations: Array<SublocationMeasurements>) => {
+const allMeasurements = (sublocations: Array<SublocationMeasurements>, deviceSerials?: Array<SerializedSingleDeviceSerial>) => {
     return sublocations.map((location) => {
         if (location.measurements === undefined) {
             debugger;
         }
-        return singleLocation(location, true);
+        return singleLocation(location, true, deviceSerials);
     })
 
 }
@@ -57,13 +58,13 @@ function findByID(sublocations: Array<SublocationMeasurements>, selected: number
     });
 }
 
-const measurements = (sublocations: Array<SublocationMeasurements>, selected: number) => {
+const measurements = (sublocations: Array<SublocationMeasurements>, selected: number, deviceSerials?: Array<SerializedSingleDeviceSerial>) => {
     // if (sublocations === undefined) {
     //     debugger;
     // }
     if (selected === -1) {
         // console.log("rendering all measurements for this location.");
-        return allMeasurements(sublocations);
+        return allMeasurements(sublocations, deviceSerials);
     }
     const foundSelected = findByID(sublocations, selected)
     if (foundSelected === undefined) {
@@ -75,7 +76,7 @@ const measurements = (sublocations: Array<SublocationMeasurements>, selected: nu
             </>
         );
     }
-    return singleLocation(foundSelected, false);
+    return singleLocation(foundSelected, false, deviceSerials);
 }
 
 const nothingSelectedItem = () => {
@@ -96,6 +97,7 @@ const findSelected = (measurements_by_sublocation: Array<SublocationMeasurements
     return selected_;
 }
 
+
 export const MeasurementsByDropdown: React.FC<MeasurementsByDropdownProps> = (props: MeasurementsByDropdownProps): JSX.Element => {
     // props.selectedPlaceInfoFromDatabase.measurements_by_sublocation[0].
     // debugger;
@@ -107,6 +109,26 @@ export const MeasurementsByDropdown: React.FC<MeasurementsByDropdownProps> = (pr
     // const [selectedSubLocation, setSelectedSubLocation] = useState(-1);
     const selectedSubLocation = useSelector(selectSublocationSelectedLocationID);
     const selectedPlace = useSelector(selectSelectedPlace);
+    const [deviceSerialsErrorState, setDeviceSerialsErrorState] = useState('');
+    const [deviceSerials, setDeviceSerials] = useState([] as Array<SerializedSingleDeviceSerial>);
+    useEffect(() => {
+
+        const promise = fetchDeviceNamesForMeasurementsBySublocation(props.selectedPlaceInfoFromDatabase.measurements_by_sublocation);
+        promise.then((result) => {
+            if (result.errors !== undefined) {
+                setDeviceSerialsErrorState(formatErrors(result.errors));
+                return;
+            }
+            setDeviceSerials(result.devices.data);
+            // debugger;
+        })
+        promise.catch((error) => {
+            setDeviceSerialsErrorState(error)
+        })
+    }, [props.selectedPlaceInfoFromDatabase.measurements_by_sublocation])
+
+
+
     if (props.selectedPlaceInfoFromDatabase === defaultPlaceInfo) {
         // debugger;
         console.log('unlikely to hit this path.')
@@ -116,6 +138,15 @@ export const MeasurementsByDropdown: React.FC<MeasurementsByDropdownProps> = (pr
             </>
         );
     }
+
+    if (deviceSerialsErrorState !== '') {
+        console.log("some kind of error while loading device serial numbers...");
+        return (
+            <>
+                Error while loading device serial numbers: {deviceSerialsErrorState}
+            </>
+        )
+    }
     console.log(`selectedPlace.utc_offset_minutes: ${selectedPlace.utc_offset_minutes}`);
     //new Date(new Date(props.selectedPlaceInfoFromDatabase.measurements_by_sublocation[0].measurements[0].measurementtime)-(selectedPlace.utc_offset_minutes*1000*60))
     //14:46:33.674 
@@ -124,7 +155,7 @@ export const MeasurementsByDropdown: React.FC<MeasurementsByDropdownProps> = (pr
     return (
         <>
             <SublocationsDropdown selected={selected} measurements_by_sublocation={props.selectedPlaceInfoFromDatabase.measurements_by_sublocation} nothingSelectedText={"All measurements:"} nothingSelectedItem={nothingSelectedItem()}/>
-            {measurements(props.selectedPlaceInfoFromDatabase.measurements_by_sublocation, selectedSubLocation)}
+            {measurements(props.selectedPlaceInfoFromDatabase.measurements_by_sublocation, selectedSubLocation, deviceSerials)}
             {/* <MeasurementsTable measurements={props.selectedPlaceInfoFromDatabase}/> */}
         </>
     );

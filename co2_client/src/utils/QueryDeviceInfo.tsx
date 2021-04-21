@@ -1,8 +1,13 @@
 import {API_URL} from './UrlPath';
 
 import {formatErrors, ErrorObjectType} from './ErrorObject';
-import {userRequestOptions} from './DefaultRequestOptions';
+import {postRequestOptions, userRequestOptions} from './DefaultRequestOptions';
 import {fetchJSONWithChecks} from './FetchHelpers';
+import { SublocationMeasurements } from '../features/places/placesSlice';
+
+
+const DEVICE_NAMES_URL = (API_URL + '/device_name_serial/device_ids_to_names');
+
 
 // export interface UserInfoSingleMeasurement {
 //     device_id: number,
@@ -70,7 +75,8 @@ import {fetchJSONWithChecks} from './FetchHelpers';
 }
 */
 export interface SerializedSingleMeasurement {
-    id: number,
+    //TODO: string
+    id: string,
     type: string,
     attributes: {
         co2ppm: number,
@@ -80,13 +86,13 @@ export interface SerializedSingleMeasurement {
     relationships: {
         device: {
             data: {
-                id: number,
+                id: string,
                 type: string
             }
         },
         sub_location: {
             data: {
-                id: number,
+                id: string,
                 type: string
             }
         }
@@ -94,7 +100,7 @@ export interface SerializedSingleMeasurement {
 }
 
 export const defaultSerializedSingleMeasurementInfo: SerializedSingleMeasurement = {
-    id: -1,
+    id: '',
     type: '',
     attributes: {
         co2ppm: -1,
@@ -104,16 +110,32 @@ export const defaultSerializedSingleMeasurementInfo: SerializedSingleMeasurement
     relationships: {
         device: {
             data: {
-                id: -1,
+                id: '',
                 type: ''
             }
         },
         sub_location: {
             data: {
-                id: -1,
+                id: '',
                 type: ''
             }
         }
+    }
+}
+
+export interface SerializedSingleDeviceSerial {
+    id: string,
+    type: string,
+    attributes: {
+        serial: string
+    }
+}
+
+export const defaultSerializedSingleDeviceSerial: SerializedSingleDeviceSerial = {
+    id: '',
+    type: '',
+    attributes: {
+        serial: ''
     }
 }
 
@@ -208,4 +230,53 @@ export async function queryDeviceInfo(device_id: number): Promise<DeviceInfoResp
     // catch(error) {
     //     fetchFilter(error);
     // }
+}
+
+export interface DeviceIDNamesSerialsResponse {
+    devices: {
+        data: Array<SerializedSingleDeviceSerial>,
+    },
+    errors?: Array<ErrorObjectType>
+}
+
+export const deviceIDsFromSubLocation = (value: SublocationMeasurements) => {
+    return value.measurements.data.map((measurement: SerializedSingleMeasurement) => {
+        return measurement.relationships.device.data.id;
+    })
+}
+
+const deviceNamesRequestInit = (measurements_by_sublocation: Array<SublocationMeasurements>) => {
+    const defaultOptions = postRequestOptions();
+    const ids = measurements_by_sublocation.flatMap((value: SublocationMeasurements) => {
+        return deviceIDsFromSubLocation(value);
+    }).sort();
+
+    const options = {
+        ...defaultOptions,
+        body: JSON.stringify({
+            device_ids: {
+                ids
+            }
+        })
+    }
+    return options;
+}
+
+export const fetchDeviceNamesForMeasurementsBySublocation = (measurements_by_sublocation: Array<SublocationMeasurements>) => {
+    const requestInit = deviceNamesRequestInit(measurements_by_sublocation)
+    const fetchFailedCallback = async (awaitedResponse: Response): Promise<DeviceIDNamesSerialsResponse> => {
+        console.error("failed to get device names from ids!");
+        return awaitedResponse.json();
+    }
+    const fetchSuccessCallback = async (awaitedResponse: Response): Promise<DeviceIDNamesSerialsResponse> => {
+        return awaitedResponse.json();
+    }
+    console.log("loading device serial numbers...");
+    const result = fetchJSONWithChecks(DEVICE_NAMES_URL, requestInit, 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<DeviceIDNamesSerialsResponse>;
+    result.then((response) => {
+        // console.log(response);
+        console.log(response.devices);
+        // debugger;
+    });
+    return result;
 }

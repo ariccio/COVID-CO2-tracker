@@ -3,13 +3,13 @@ import {Table, Button} from 'react-bootstrap';
 import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { devicesPath } from '../../paths/paths';
-import { deleteRequestOptions, userRequestOptions } from '../../utils/DefaultRequestOptions';
-import { ErrorObjectType, formatErrors } from '../../utils/ErrorObject';
+import { deleteRequestOptions } from '../../utils/DefaultRequestOptions';
+import { ErrorObjectType } from '../../utils/ErrorObject';
 import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
 
 
 // import {queryUserInfo, UserInfoType, defaultUserInfo} from '../../utils/QueryUserInfo';
-import {SerializedSingleMeasurement} from '../../utils/QueryDeviceInfo';
+import {SerializedSingleDeviceSerial, SerializedSingleMeasurement} from '../../utils/QueryDeviceInfo';
 import { API_URL } from '../../utils/UrlPath';
 import { updateUserInfo } from '../profile/Profile';
 
@@ -34,7 +34,7 @@ const measurementTableHeader = (withDelete?: boolean, innerLocation?: InnerLocat
     </thead>
 
 
-function measurementRowKey(measurement_id: number): string {
+function measurementRowKey(measurement_id: string): string {
     return `profile-measurement-entry-key-${measurement_id}`;
 }
 
@@ -129,7 +129,28 @@ const riskRow = (measurement: SerializedSingleMeasurement) => {
     return (<td><p style={{color:"red"}}><b><u><i>Immediate death or invalid measurement</i></u></b></p></td>);
 }
 
-const mapMeasurementsToTableBody = (measurements: Array<SerializedSingleMeasurement>, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean, innerLocation?: InnerLocationDetails)/*: JSX.Element*/ => {
+const deviceIDOrSerialWithLink = (id: string, deviceSerials?: Array<SerializedSingleDeviceSerial>) => {
+    // debugger;
+    if (deviceSerials && (deviceSerials.length > 0)) {
+        const found = deviceSerials.find((serialized, index) => {
+            return serialized.id === id;
+        })
+        if (found) {
+            return (
+                <>
+                    <td><Link to={`${devicesPath}/${id}`}>S#: {found.attributes.serial}</Link></td>
+                </>
+            )
+        }
+    }
+    return (
+        <>
+            <td><Link to={`${devicesPath}/${id}`}>ID: {id}</Link></td>
+        </>
+    )
+}
+
+const mapMeasurementsToTableBody = (measurements: Array<SerializedSingleMeasurement>, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean, innerLocation?: InnerLocationDetails, deviceSerials?: Array<SerializedSingleDeviceSerial>)/*: JSX.Element*/ => {
     if (measurements === undefined) {
         debugger;
     }
@@ -143,7 +164,8 @@ const mapMeasurementsToTableBody = (measurements: Array<SerializedSingleMeasurem
             <tr key={measurementRowKey(measurement.id)}>
                 {/* <td>{index}</td> */}
                 <td>{measurement.id}</td>
-                <td><Link to={`${devicesPath}/${measurement.relationships.device.data.id}`}>{/*measurement.device_name*/}{measurement.relationships.device.data.id}</Link></td>
+                {deviceIDOrSerialWithLink(measurement.relationships.device.data.id, deviceSerials)}
+                
                 <td>{measurement.attributes.co2ppm}</td>
                 {/* Displays the measurement as if it were taken in the timezone where the user currently is. It's painful to adjust the timezone according to the google places time offset, so this works for now. */}
                 <td>{new Date(measurement.attributes.measurementtime).toString()}</td>
@@ -158,9 +180,9 @@ const mapMeasurementsToTableBody = (measurements: Array<SerializedSingleMeasurem
 }
 
 
-const measureTableBody = (measurements: Array<SerializedSingleMeasurement>, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean, innerLocation?: InnerLocationDetails): JSX.Element =>
+const measureTableBody = (measurements: Array<SerializedSingleMeasurement>, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean, innerLocation?: InnerLocationDetails, deviceSerials?: Array<SerializedSingleDeviceSerial>): JSX.Element =>
     <tbody>
-        {mapMeasurementsToTableBody(measurements, dispatch, withDelete, innerLocation)}
+        {mapMeasurementsToTableBody(measurements, dispatch, withDelete, innerLocation, deviceSerials)}
     </tbody>
 
 
@@ -173,7 +195,8 @@ interface InnerLocationDetails {
 interface MeasurementsTableProps {
     measurements: Array<SerializedSingleMeasurement>,
     withDelete?: boolean,
-    innerLocation?: InnerLocationDetails
+    innerLocation?: InnerLocationDetails,
+    deviceSerials?: Array<SerializedSingleDeviceSerial>
 }
 
 // function testingFetch(measurementID: number): void {
@@ -212,12 +235,12 @@ export const MeasurementsTable: React.FC<MeasurementsTableProps> = (props: Measu
     //     testingFetch(props.measurements[0].id);
     // }
 
-
+    // debugger;
     return (
         <>
             <Table striped bordered hover>
                 {measurementTableHeader(props.withDelete, props.innerLocation)}
-                {measureTableBody(props.measurements, dispatch, props.withDelete, props.innerLocation)}
+                {measureTableBody(props.measurements, dispatch, props.withDelete, props.innerLocation, props.deviceSerials)}
             </Table>
         </>
     )

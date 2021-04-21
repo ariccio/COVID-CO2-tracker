@@ -29,8 +29,9 @@ module Api
         @spot = get_spot(@place.google_place_id)
         @place.place_lat = @spot.lat
         @place.place_lng = @spot.lng
-        # byebug
+        @place.last_fetched = ::Time.current
         @place.save!
+        # byebug
       end
 
       # GET /places/1
@@ -50,7 +51,7 @@ module Api
 
       def place_by_google_place_id_exists
         @place = ::Place.find_by!(google_place_id: params.fetch(:google_place_id))
-        refresh_latlng_from_google
+        # refresh_latlng_from_google
         render(
           json: {
             exists: true

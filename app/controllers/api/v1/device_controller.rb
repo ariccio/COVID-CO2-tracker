@@ -14,7 +14,6 @@ module Api
     class DeviceController < ApiController
       skip_before_action :authorized, only: [:show]
       def create
-
         # find(*args): https://api.rubyonrails.org/v6.1.3.1/classes/ActiveRecord/FinderMethods.html#method-i-find
         # "If one or more records cannot be found for the requested ids, then ActiveRecord::RecordNotFound will be raised"
         @model = ::Model.find(device_params.fetch(:model_id))

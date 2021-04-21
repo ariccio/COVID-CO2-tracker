@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-
-
 class Measurement < ApplicationRecord
   belongs_to :device
   # belongs_to :place
@@ -17,16 +15,15 @@ class Measurement < ApplicationRecord
   validates :crowding, numericality: { less_than_or_equal_to: 5 }
   validates :device_id, presence: true
   validates :crowding, presence: true
-  
+
   validates_datetime :measurementtime
-  validates_datetime :measurementtime, on_or_before: lambda { ::Time.current }, invalid_datetime_message: "Measurement is in future, what?"
-  validates_datetime :measurementtime, on_or_after: lambda { EARLIEST_TIME }, invalid_datetime_message: "Measurement was taken before COVID pandemic, are you sure you entered it correctly?"
+  validates_datetime :measurementtime, on_or_before: -> { ::Time.current }, invalid_datetime_message: 'Measurement is in future, what?'
+  validates_datetime :measurementtime, on_or_after: -> { EARLIEST_TIME }, invalid_datetime_message: 'Measurement was taken before COVID pandemic, are you sure you entered it correctly?'
 
   validates_associated :device, :sub_location
 
+  EARLIEST_TIME = ::Time.parse('2020-01-01')
 
-  EARLIEST_TIME = ::Time.parse("2020-01-01")
-  
   # GODDAMNIT I NEED TO WRITE A SERIALIZER
   def self.measurement_with_device_as_json(measurement)
     # byebug

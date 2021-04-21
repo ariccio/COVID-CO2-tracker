@@ -127,9 +127,8 @@ module Api
       end
 
       def custom_time_or_now
-        unless (measurement_params[:measurementtime].blank?)
-          return measurement_params.fetch(:measurementtime)
-        end
+        return measurement_params.fetch(:measurementtime) unless (measurement_params[:measurementtime].blank?)
+
         ::Time.current
       end
 

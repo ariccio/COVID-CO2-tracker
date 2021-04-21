@@ -32,6 +32,7 @@
       post '/google_login_token', to: 'auth#token_from_google'
       get '/user_last_measurement', to: 'users#last_measurement'
       resources :keys, only: [:show]
+      post '/device_name_serial/device_ids_to_names', to: 'device_name_serial#ids_to_names'
     end
   end
   # get '/', to: 'application#fallback_index_html'

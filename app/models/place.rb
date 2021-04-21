@@ -46,6 +46,8 @@ class Place < ApplicationRecord
     # (place.last_fetched < 30.days.ago) is true if last_fetched was MORE than 30.days.ago because that time is logically smaller.
     return true if (last_fetched && (last_fetched < 30.days.ago))
 
+    # byebug
+
     false
   end
 end
