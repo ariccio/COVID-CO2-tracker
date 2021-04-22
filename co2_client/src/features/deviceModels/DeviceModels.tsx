@@ -114,7 +114,7 @@ const measurements = (modelMeasurements: ModelMeasurementsResponse | null) => {
             </>
         )
     }
-    debugger;
+    // debugger;
     return (
         <MeasurementsTable measurements={modelMeasurements.measurements.data}/>
     )
@@ -161,7 +161,7 @@ export const DeviceModels: React.FC<RouteComponentProps<DeviceModelsProps>> = (p
                 setErrorState(formatErrors(result.errors));
                 return;
             }
-            debugger;
+            // debugger;
             setModelMeasurements(result);
         }).catch((error) => {
             // debugger;
@@ -193,12 +193,12 @@ export const DeviceModels: React.FC<RouteComponentProps<DeviceModelsProps>> = (p
             {/* <Route path={`${deviceModelsPath}/:deviceModelId`}> */}
 
             {/* </Route> */}
-            <p>
+            <>
                 You selected device model: {props.match.params.deviceModelId}
                 {basicDeviceModelInfo(deviceModelInfo)}
                 {showAddModel ? <CreateDeviceModelModalDialog showAddModel={showAddModel} setShowAddModel={setShowAddModel}/> : null}
                 {measurements(modelMeasurements)}
-            </p>
+            </>
         </>
     )
 }
