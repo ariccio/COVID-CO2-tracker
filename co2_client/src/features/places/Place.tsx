@@ -42,8 +42,10 @@ const PlaceDetails: React.FC<PlaceDetailsProps> = (props) => {
             return;
         }
         if (!isLoaded) {
-            console.log("api not loaded yet.");
-            console.log(`Load error: ${loadError}`)
+            // console.log("api not loaded yet.");
+            if (loadError !== undefined) {
+                console.log(`Load error: ${loadError}`)
+            }
             return;
         }
         const service = new google.maps.places.PlacesService(props.divRef.current);

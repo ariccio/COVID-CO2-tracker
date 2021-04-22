@@ -192,8 +192,8 @@ const loginWithIDToken = (id_token: string) => {
     // const url = (API_URL + '/google_login_token');
     const result = fetchJSONWithChecks(LOGIN_URL, options, 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<any>;
     return result.then((response) => {
-        console.log(response);
-        console.log("TODO: What the heck do I do with the response here? As long as it's correct, do I even care?");
+        // console.log(response);
+        // console.log("TODO: What the heck do I do with the response here? As long as it's correct, do I even care?");
         // debugger;
         return;
 

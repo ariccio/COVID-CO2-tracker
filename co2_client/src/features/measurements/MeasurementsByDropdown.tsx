@@ -147,7 +147,10 @@ export const MeasurementsByDropdown: React.FC<MeasurementsByDropdownProps> = (pr
             </>
         )
     }
-    console.log(`selectedPlace.utc_offset_minutes: ${selectedPlace.utc_offset_minutes}`);
+    // Quiet the log on first load.
+    if (selectedPlace.utc_offset_minutes !== undefined) {
+        console.log(`selectedPlace.utc_offset_minutes: ${selectedPlace.utc_offset_minutes}`);
+    }
     //new Date(new Date(props.selectedPlaceInfoFromDatabase.measurements_by_sublocation[0].measurements[0].measurementtime)-(selectedPlace.utc_offset_minutes*1000*60))
     //14:46:33.674 
     // debugger;

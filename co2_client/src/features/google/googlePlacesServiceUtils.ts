@@ -73,7 +73,7 @@ export const updateOnNewPlace = (service: google.maps.places.PlacesService | nul
         return;
     }
     if (place_id === undefined) {
-        console.log("no placeId from autocomplete yet.");
+        // console.log("no placeId from autocomplete yet.");
         // return;
     }
     if (place_id === null) {
