@@ -17,12 +17,12 @@ const DELETE_MEASUREMENT_URL = (API_URL + '/measurement');
 const SHOW_MEASUREMENT_URL = (API_URL + '/measurement');
 
 
-const measurementTableHeader = (withDelete?: boolean, innerLocation?: InnerLocationDetails) =>
+const measurementTableHeader = (withDelete?: boolean, innerLocation?: InnerLocationDetails, withDevice?: boolean) =>
     <thead>
         <tr>
             {/* <th>#</th> */}
             <th>Measurement ID</th>
-            <th>Device</th>
+            {withDevice ? (<th>Device</th>) : null}
             <th>CO2 PPM</th>
             <th>time</th>
             <th>crowding</th>
@@ -150,7 +150,7 @@ const deviceIDOrSerialWithLink = (id: string, deviceSerials?: Array<SerializedSi
     )
 }
 
-const mapMeasurementsToTableBody = (measurements: Array<SerializedSingleMeasurement>, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean, innerLocation?: InnerLocationDetails, deviceSerials?: Array<SerializedSingleDeviceSerial>)/*: JSX.Element*/ => {
+const mapMeasurementsToTableBody = (measurements: Array<SerializedSingleMeasurement>, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean, innerLocation?: InnerLocationDetails, deviceSerials?: Array<SerializedSingleDeviceSerial>, withDevice?: boolean)/*: JSX.Element*/ => {
     if (measurements === undefined) {
         debugger;
     }
@@ -165,7 +165,7 @@ const mapMeasurementsToTableBody = (measurements: Array<SerializedSingleMeasurem
             <tr key={measurementRowKey(measurement.id)}>
                 {/* <td>{index}</td> */}
                 <td>{measurement.id}</td>
-                {deviceIDOrSerialWithLink(measurement.relationships.device.data.id, deviceSerials)}
+                {withDevice ? deviceIDOrSerialWithLink(measurement.relationships.device.data.id, deviceSerials) : null}
                 
                 <td>{measurement.attributes.co2ppm}</td>
                 {/* Displays the measurement as if it were taken in the timezone where the user currently is. It's painful to adjust the timezone according to the google places time offset, so this works for now. */}
@@ -181,9 +181,9 @@ const mapMeasurementsToTableBody = (measurements: Array<SerializedSingleMeasurem
 }
 
 
-const measureTableBody = (measurements: Array<SerializedSingleMeasurement>, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean, innerLocation?: InnerLocationDetails, deviceSerials?: Array<SerializedSingleDeviceSerial>): JSX.Element =>
+const measureTableBody = (measurements: Array<SerializedSingleMeasurement>, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean, innerLocation?: InnerLocationDetails, deviceSerials?: Array<SerializedSingleDeviceSerial>, withDevice?: boolean): JSX.Element =>
     <tbody>
-        {mapMeasurementsToTableBody(measurements, dispatch, withDelete, innerLocation, deviceSerials)}
+        {mapMeasurementsToTableBody(measurements, dispatch, withDelete, innerLocation, deviceSerials, withDevice)}
     </tbody>
 
 
@@ -197,7 +197,8 @@ interface MeasurementsTableProps {
     measurements: Array<SerializedSingleMeasurement>,
     withDelete?: boolean,
     innerLocation?: InnerLocationDetails,
-    deviceSerials?: Array<SerializedSingleDeviceSerial>
+    deviceSerials?: Array<SerializedSingleDeviceSerial>,
+    withDevice?: boolean
 }
 
 // function testingFetch(measurementID: number): void {
@@ -240,8 +241,8 @@ export const MeasurementsTable: React.FC<MeasurementsTableProps> = (props: Measu
     return (
         <>
             <Table striped bordered hover>
-                {measurementTableHeader(props.withDelete, props.innerLocation)}
-                {measureTableBody(props.measurements, dispatch, props.withDelete, props.innerLocation, props.deviceSerials)}
+                {measurementTableHeader(props.withDelete, props.innerLocation, props.withDevice)}
+                {measureTableBody(props.measurements, dispatch, props.withDelete, props.innerLocation, props.deviceSerials, props.withDevice)}
             </Table>
         </>
     )

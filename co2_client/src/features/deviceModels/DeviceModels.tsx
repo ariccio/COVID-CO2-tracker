@@ -116,7 +116,7 @@ const measurements = (modelMeasurements: ModelMeasurementsResponse | null) => {
     }
     // debugger;
     return (
-        <MeasurementsTable measurements={modelMeasurements.measurements.data}/>
+        <MeasurementsTable measurements={modelMeasurements.measurements.data} withDevice/>
     )
 }
 

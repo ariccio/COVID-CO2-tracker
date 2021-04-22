@@ -63,7 +63,7 @@ export function Device(props: RouteComponentProps<deviceProps>) {
     }
     return (
         <>
-            <Link to={deviceModelsPath + `/${deviceInfo.device_model_id}`}>{deviceInfo.device_model}</Link> - #{deviceInfo.serial}'s measurements
+            Model: "<Link to={deviceModelsPath + `/${deviceInfo.device_model_id}`}>{deviceInfo.device_model}</Link>" - serial #: "{deviceInfo.serial}" measurements:
             <MeasurementsTable measurements={deviceInfo.measurements.data}/>
         </>
     );

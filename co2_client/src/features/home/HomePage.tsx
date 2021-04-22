@@ -155,12 +155,14 @@ const renderName = (name?: string) => {
             </>
         );
     };
-    return (
-        <>
-            currentPlace.name: <i>{name}</i>
-            <br/>
-        </>
-    );
+    //this is duplicate
+    // return (
+    //     <>
+    //         currentPlace.name: <i>{name}</i>
+    //         <br/>
+    //     </>
+    // );
+    return null;
 }
 
 const renderPlacesServiceStatus = (placesServiceStatus: google.maps.places.PlacesServiceStatus) => {
