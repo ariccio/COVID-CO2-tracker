@@ -276,10 +276,11 @@ export const fetchDeviceNamesForMeasurementsBySublocation = (measurements_by_sub
     }
     console.log("loading device serial numbers...");
     const result = fetchJSONWithChecks(DEVICE_NAMES_URL, requestInit, 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<DeviceIDNamesSerialsResponse>;
-    result.then((response) => {
-        // console.log(response);
-        console.log(response.devices);
-        // debugger;
-    });
+    // result.then((response) => {
+    //     // console.log(response);
+    //     console.log(response.devices);
+    //     // debugger;
+    //     return response;
+    // });
     return result;
 }
