@@ -153,6 +153,7 @@ export interface DeviceInfoResponse {
     device_id: number
     serial: string,
     device_model: string,
+    device_model_id: string,
     user_id: number,
     measurements: {
         data: Array<SerializedSingleMeasurement>,
@@ -165,6 +166,7 @@ export const defaultDeviceInfoResponse: DeviceInfoResponse = {
     device_id: -1,
     serial: '',
     device_model: '',
+    device_model_id: '',
     user_id: -1,
     measurements: {
         data: []
@@ -192,6 +194,7 @@ function deviceInfoToStrongType(deviceInfoResponse: any): DeviceInfoResponse {
         device_id: deviceInfoResponse.device_id,
         serial: deviceInfoResponse.serial,
         device_model: deviceInfoResponse.device_model,
+        device_model_id: deviceInfoResponse.device_model_id,
         user_id: deviceInfoResponse.user_id,
         measurements: deviceInfoResponse.measurements
     }

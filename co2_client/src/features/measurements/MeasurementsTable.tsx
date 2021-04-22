@@ -37,7 +37,7 @@ const measurementTableHeader = (withDelete?: boolean, innerLocation?: InnerLocat
 function measurementRowKey(measurement_id: string): string {
     return `profile-measurement-entry-key-${measurement_id}`;
 }
-
+    
 interface DeleteDeviceResponse {
     errors?: Array<ErrorObjectType>
 }
@@ -160,6 +160,7 @@ const mapMeasurementsToTableBody = (measurements: Array<SerializedSingleMeasurem
         //     debugger;
         // }
         // debugger;
+        // const maybeDeviceId = (measurement.relationships ?  : '')
         return (
             <tr key={measurementRowKey(measurement.id)}>
                 {/* <td>{index}</td> */}

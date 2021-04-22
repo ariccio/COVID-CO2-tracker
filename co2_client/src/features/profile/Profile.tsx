@@ -63,6 +63,7 @@ export const Profile: React.FC<ProfileProps> = () => {
             
         )
     }
+    //TODO: show device serial in measurements table here?
     return (
         <>
             <h1>

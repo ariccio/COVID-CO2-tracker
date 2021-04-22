@@ -33,6 +33,8 @@
       get '/user_last_measurement', to: 'users#last_measurement'
       resources :keys, only: [:show]
       post '/device_name_serial/device_ids_to_names', to: 'device_name_serial#ids_to_names'
+
+      get '/model/:id/measurements', to: 'model#measurements'
     end
   end
   # get '/', to: 'application#fallback_index_html'

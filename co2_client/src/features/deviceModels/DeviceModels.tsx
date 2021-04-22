@@ -10,6 +10,8 @@ import {API_URL} from '../../utils/UrlPath';
 import {ErrorObjectType, formatErrors} from '../../utils/ErrorObject';
 
 import {CreateDeviceModelModalDialog} from '../create/CreateDeviceModel';
+import { SerializedSingleMeasurement } from '../../utils/QueryDeviceInfo';
+import { MeasurementsTable } from '../measurements/MeasurementsTable';
 
 interface DeviceModelsProps {
     deviceModelId: string
@@ -65,7 +67,21 @@ async function queryDeviceModelInfo(deviceModelId: string): Promise<any> {
     // }
 }
 
-const basicDeviceModelInfo = (deviceModelInfo: QueryDeviceModelInfoResponse, errorState: any) => {
+interface ModelMeasurementsResponse {
+    measurements: {
+        data: Array<SerializedSingleMeasurement>
+    },
+    errors?: Array<ErrorObjectType>
+}
+
+const queryDeviceModelMeasurements = (url: string): Promise<ModelMeasurementsResponse> => {
+    const fetchCallback = async (awaitedResponse: Response): Promise<ModelMeasurementsResponse> => {
+        return awaitedResponse.json();
+    }
+    return fetchJSONWithChecks(url, userRequestOptions(), 200, true, fetchCallback, fetchCallback) as Promise<ModelMeasurementsResponse>;
+}
+
+const basicDeviceModelInfo = (deviceModelInfo: QueryDeviceModelInfoResponse) => {
     if (deviceModelInfo !== defaultQueryDeviceModelInfoResponse) {
         // debugger;
         return (
@@ -75,26 +91,34 @@ const basicDeviceModelInfo = (deviceModelInfo: QueryDeviceModelInfoResponse, err
                 made by: {deviceModelInfo.manufacturer_name}, <br/>
                 total devices of that model in database: {deviceModelInfo.count}, <br/>
                 total measurements by devices of that model: {deviceModelInfo.measurement_count} <br/>
-                {errorState !== '' ? errorState : null}
             </>
         );
     }
-    if (errorState === '') {
-        return (
-            <p>
-                <b>
-                    <i>
-                        Loading info for device model from database...
-                    </i>
-                </b>
-            </p>
-        )
-    }
     return (
-        {errorState}
-    );
+        <p>
+            <b>
+                <i>
+                    Loading info for device model from database...
+                </i>
+            </b>
+        </p>
+    )
 } 
 
+
+const measurements = (modelMeasurements: ModelMeasurementsResponse | null) => {
+    if (modelMeasurements === null) {
+        return (
+            <>
+                Loading measurements...
+            </>
+        )
+    }
+    debugger;
+    return (
+        <MeasurementsTable measurements={modelMeasurements.measurements.data}/>
+    )
+}
 
 
 export const DeviceModels: React.FC<RouteComponentProps<DeviceModelsProps>> = (props: RouteComponentProps<DeviceModelsProps>) => {
@@ -104,6 +128,8 @@ export const DeviceModels: React.FC<RouteComponentProps<DeviceModelsProps>> = (p
     const [deviceModelInfo, setDeviceModelInfo] = useState(defaultQueryDeviceModelInfoResponse);
     const [errorState, setErrorState] = useState('');
     const [showAddModel, setShowAddModel] = useState(location.pathname.endsWith('create'));
+
+    const [modelMeasurements, setModelMeasurements] = useState(null as ModelMeasurementsResponse | null);
     useEffect(() => {
         if (props.match.params.deviceModelId !== undefined) {
             if (props.match.params.deviceModelId === 'create') {
@@ -118,12 +144,31 @@ export const DeviceModels: React.FC<RouteComponentProps<DeviceModelsProps>> = (p
                 }
                 // debugger;
             }).catch((errors) => {
-                debugger;
+                // debugger;
                 setErrorState(errors.message);
-                debugger;
+                // debugger;
             })
         }
-    }, [props.match.params.deviceModelId])
+    }, [props.match.params.deviceModelId]);
+    useEffect(() => {
+        if (deviceModelInfo === defaultQueryDeviceModelInfoResponse) {
+            return;
+        }
+        const modelMeasurementURL = (API_URL + `/model/${deviceModelInfo.model_id}/measurements`);
+        const resultPromise = queryDeviceModelMeasurements(modelMeasurementURL);
+        resultPromise.then((result) => {
+            if (result.errors !== undefined) {
+                setErrorState(formatErrors(result.errors));
+                return;
+            }
+            debugger;
+            setModelMeasurements(result);
+        }).catch((error) => {
+            // debugger;
+            setErrorState(error.message);
+            // debugger;
+        })
+    }, [deviceModelInfo])
     if (props.match.params.deviceModelId === undefined) {
         return (
             <>
@@ -132,6 +177,17 @@ export const DeviceModels: React.FC<RouteComponentProps<DeviceModelsProps>> = (p
             </>
         );     
     }
+
+    if (errorState !== '') {
+        return (
+            <>
+                <br/>
+                Error: {errorState}
+                <br/>
+                <br/>
+            </>
+        );    
+    }
     return (
         <>
             {/* <Route path={`${deviceModelsPath}/:deviceModelId`}> */}
@@ -139,8 +195,9 @@ export const DeviceModels: React.FC<RouteComponentProps<DeviceModelsProps>> = (p
             {/* </Route> */}
             <p>
                 You selected device model: {props.match.params.deviceModelId}
-                {basicDeviceModelInfo(deviceModelInfo, errorState)}
+                {basicDeviceModelInfo(deviceModelInfo)}
                 {showAddModel ? <CreateDeviceModelModalDialog showAddModel={showAddModel} setShowAddModel={setShowAddModel}/> : null}
+                {measurements(modelMeasurements)}
             </p>
         </>
     )

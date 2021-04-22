@@ -1,7 +1,7 @@
 
 import React, {useEffect, useState}  from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-import {RouteComponentProps} from 'react-router-dom';
+import {RouteComponentProps, Link} from 'react-router-dom';
 import {Button} from 'react-bootstrap';
 import {defaultUserInfo} from '../../utils/QueryUserInfo';
 import {defaultDeviceInfoResponse, DeviceInfoResponse, queryDeviceInfo} from '../../utils/QueryDeviceInfo';
@@ -17,6 +17,7 @@ import {selectSelectedModelName, setSelectedModel, setSelectedModelName} from '.
 import {CreateMyDeviceInstance} from '../create/CreateDeviceInstance';
 import { updateUserInfo } from '../profile/Profile';
 import { selectUserInfoErrorState, selectUserInfoState } from '../profile/profileSlice';
+import { deviceModelsPath } from '../../paths/paths';
 // import { selectSelectedManufacturer } from '../manufacturers/manufacturerSlice';
 
 interface deviceProps {
@@ -62,7 +63,7 @@ export function Device(props: RouteComponentProps<deviceProps>) {
     }
     return (
         <>
-            {deviceInfo.device_model} - {deviceInfo.serial}'s measurements
+            <Link to={deviceModelsPath + `/${deviceInfo.device_model_id}`}>{deviceInfo.device_model}</Link> - #{deviceInfo.serial}'s measurements
             <MeasurementsTable measurements={deviceInfo.measurements.data}/>
         </>
     );

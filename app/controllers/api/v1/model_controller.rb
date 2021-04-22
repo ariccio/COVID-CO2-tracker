@@ -23,9 +23,23 @@ module Api
         )
       end
 
+      def measurements
+        @model = ::Model.find(params.fetch(:id))
+        render(
+          json: {
+            measurements: MeasurementSerializer.new(@model.measurement).serializable_hash
+          }, status: :ok
+        )
+      rescue ::ActiveRecord::RecordNotFound => e
+        render(
+          json: {
+            errors: [create_activerecord_error('model not found!', e)]
+          },
+          status: :not_found
+        )
+      end
+
       def show
-        # byebug
-        # TODO: write a damn serializer
         @model = ::Model.find(params.fetch(:id))
         render(
           json: ::Model.show_as_json(@model),

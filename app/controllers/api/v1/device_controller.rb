@@ -63,6 +63,7 @@ module Api
             device_id: @device_instance.id,
             serial: @device_instance.serial,
             device_model: @device_instance.model.name,
+            device_model_id: @device_instance.model.id,
             user_id: @device_instance.user.id,
             measurements: @device_instance.first_ten_measurements
             # total number of measurements
