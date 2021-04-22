@@ -11,6 +11,13 @@ module Api
             devices: hash
           }, status: :ok
         )
+      rescue ::ActiveRecord::RecordNotFound => e
+        render(
+          json: {
+            errors: [create_activerecord_error('device not found!', e)]
+          },
+          status: :not_found
+        )
       end
 
       def device_names_params

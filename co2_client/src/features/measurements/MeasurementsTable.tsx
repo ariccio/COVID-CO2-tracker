@@ -11,6 +11,7 @@ import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
 // import {queryUserInfo, UserInfoType, defaultUserInfo} from '../../utils/QueryUserInfo';
 import {SerializedSingleDeviceSerial, SerializedSingleMeasurement} from '../../utils/QueryDeviceInfo';
 import { API_URL } from '../../utils/UrlPath';
+import { defaultPlaceInfo, setPlacesInfoErrors, setPlacesInfoFromDatabase } from '../places/placesSlice';
 import { updateUserInfo } from '../profile/Profile';
 
 const DELETE_MEASUREMENT_URL = (API_URL + '/measurement');
@@ -62,6 +63,8 @@ function deleteClickHandler(event: React.MouseEvent<HTMLElement, MouseEvent>, me
             return;
         }
         updateUserInfo(dispatch);
+        dispatch(setPlacesInfoFromDatabase(defaultPlaceInfo));
+        dispatch(setPlacesInfoErrors(''));
     }).catch((error) => {
         console.warn("device delete promise exception?");
         console.error(error);
