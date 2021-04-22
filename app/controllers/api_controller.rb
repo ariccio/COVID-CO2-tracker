@@ -123,7 +123,9 @@ class ApiController < ActionController::API
   rescue ::ActiveRecord::RecordNotFound => _e
     # TODO: is this the most specific error?
     # NOPd out because else we have double render
-    Rails.logger.warn('user not found!')
+    
+    # No need to log this, else we're just logging any time someone is browsing the site when not logged in.
+    # Rails.logger.warn('user not found!')
     # render_activerecord_notfound_error(_e)
     nil
   end
