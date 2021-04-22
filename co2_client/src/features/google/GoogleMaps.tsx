@@ -648,8 +648,14 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
 
 
     useEffect(() => {
+        // console.log(`service: "${service}"`);
+        // console.log(`selectedPlaceIdString: "${selectedPlaceIdString}"`);
+        // console.log(`selectedPlaceInfoFromDatabaseErrors: "${selectedPlaceInfoFromDatabaseErrors}"`);
+        // console.log(`selectedPlaceExistsInDatabase: "${selectedPlaceExistsInDatabase}"`);
+        // console.log(`selectedPlace.place_id: "${selectedPlace.place_id}"`);
+        // debugger;
         updateOnNewPlace(service, selectedPlaceIdString, dispatch, selectedPlace.place_id);
-    }, [service, selectedPlaceIdString, dispatch, selectedPlaceInfoFromDatabaseErrors, selectedPlaceExistsInDatabase, selectedPlace.place_id])
+    }, [service, selectedPlaceIdString, dispatch, selectedPlaceInfoFromDatabaseErrors, selectedPlace.place_id])
 
     useEffect(legalNoticeNote, []);
     
