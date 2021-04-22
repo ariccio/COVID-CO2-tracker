@@ -5,12 +5,14 @@ import {RouteComponentProps} from 'react-router-dom';
 import { updatePlacesInfoFromBackend } from '../../utils/QueryPlacesInfo';
 import { selectPlaceExistsInDatabase, selectPlacesInfoErrors, selectPlacesInfoFromDatabase } from './placesSlice';
 
-import {renderFromDatabaseNoGoogleParam, renderSelectedPlaceInfo} from '../home/HomePage';
+// import { renderSelectedPlaceInfo} from '../home/HomePage';
 import { selectMapsAPIKey, selectMapsAPIKeyErrorState, selectPlacesServiceStatus, selectSelectedPlace, setMapsAPIKey, setMapsAPIKeyErrorState } from '../google/googleSlice';
 import { GOOGLE_LIBRARIES } from '../google/GoogleMaps';
 import { useJsApiLoader } from '@react-google-maps/api';
 import { getGoogleMapsJavascriptAPIKey } from '../../utils/GoogleAPIKeys';
 import { updateOnNewPlace } from '../google/googlePlacesServiceUtils';
+import { renderFromDatabaseNoGoogleParam } from './RenderPlaceFromDatabase';
+import { renderSelectedPlaceInfo } from './RenderPlaceInfo';
 
 interface PlaceProps {
     placeId: string

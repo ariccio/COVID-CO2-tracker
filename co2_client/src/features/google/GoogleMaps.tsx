@@ -517,10 +517,15 @@ const fetchLastMeasurementCallbackFailed = async (awaitedResponse: Response): Pr
     return awaitedResponse.json();
 }
 
-const loadAndPanToLastMeasurement = (map: google.maps.Map<Element> | null) => {
+const loadLastMeasurement = () => {
     const LAST_MEASUREMENT_URL = (API_URL + '/user_last_measurement');
+    return fetchJSONWithChecks(LAST_MEASUREMENT_URL, userRequestOptions(), 200, true, fetchLastMeasurementCallbackFailed, fetchLastMeasurementCallback) as Promise<lastMeasurementLocationResponseType>;
+}
+
+const loadAndPanToLastMeasurement = (map: google.maps.Map<Element> | null) => {
+    
     // debugger;
-    const result = fetchJSONWithChecks(LAST_MEASUREMENT_URL, userRequestOptions(), 200, true, fetchLastMeasurementCallbackFailed, fetchLastMeasurementCallback) as Promise<lastMeasurementLocationResponseType>;
+    const result = loadLastMeasurement();
 
     result.then((response) => {
         if (response.errors !== undefined) {
