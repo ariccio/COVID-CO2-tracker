@@ -31,6 +31,7 @@ module Errors
 
   def create_activerecord_error(message, active_record_error)
     errors = active_record_error.record.errors.full_messages
+    # byebug
     # puts "errors: #{errors}"
     multiple_errors(message, errors)
   end

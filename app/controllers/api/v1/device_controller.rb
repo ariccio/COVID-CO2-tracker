@@ -14,10 +14,18 @@ module Api
     class DeviceController < ApiController
       skip_before_action :authorized, only: [:show]
       def create
+        Rails.logger.debug("user: #{@user.email} trying to create device with params #{params}")
         # find(*args): https://api.rubyonrails.org/v6.1.3.1/classes/ActiveRecord/FinderMethods.html#method-i-find
         # "If one or more records cannot be found for the requested ids, then ActiveRecord::RecordNotFound will be raised"
         @model = ::Model.find(device_params.fetch(:model_id))
 
+        if @user.devices.where(model_id: device_params.fetch(:model_id)).where(serial: device_params.fetch(:serial)).size.positive?
+          return render(
+            json: {
+              errors: [single_error("You already uploaded a #{@model.name} to your account with the serial # '#{device_params.fetch(:serial)}'! Use that to add measurements.", nil)]
+            }, status: :bad_request
+          )
+        end
         # this should be in a validator class:
         # TODO: check if @model.device is nil and then return error.
         if @model.device.where(serial: device_params.fetch(:serial)).count.positive?
@@ -106,7 +114,7 @@ module Api
 
       def device_params
         # this isn't right?
-        ::Rails.logger.error('todo, check this symbol in parenthesis?')
+        # ::Rails.logger.error('todo, check this symbol in parenthesis?')
         # byebug
         params.require(:device).permit(:id, :serial, :model_id)
       end

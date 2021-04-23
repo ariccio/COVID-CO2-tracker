@@ -12,10 +12,52 @@ export interface withErrors {
 export type Errors = Array<ErrorObjectType>;
 
 
+function errorObjectErrorStringIfPresent(errorObject: ErrorObjectType): string {
+    if (errorObject.error.length === 0) {
+        return '';
+    }
+    // This is not complete, as we're only checking the first element. Whatever.
+    if (errorObject.error[0] === null) {
+        return '';
+    }
+    if (errorObject.error[0] === '') {
+        return '';
+    }
+    if (errorObject.error.length > 1) {
+        return `error string (first error is likely the cause): '${errorObject.error}'`;
+    }
+
+    return `error string: '${errorObject.error}'`;
+}
+
+function errorObjectMessageStringIfPresent(errorObject: ErrorObjectType): string {
+    if (errorObject.message.length === 0) {
+        return '';
+    }
+    // This is not complete, as we're only checking the first element. Whatever.
+    if (errorObject.message[0] === null) {
+        return '';
+    }
+    if (errorObject.message[0] === '') {
+        return '';
+    }
+
+    return `message: '${errorObject.message}'`;
+}
+
 export function formatErrors(errorObject: Errors): string {
     console.log("errors: ", errorObject);
     const errorStrings = errorObject.map((errorObject) => {
-        return `error string: '${errorObject.error}', message: '${errorObject.message}'`
+        const errorObjectErrorString = errorObjectErrorStringIfPresent(errorObject);
+        const errorObjectMessageString = errorObjectMessageStringIfPresent(errorObject);
+        console.assert((errorObjectErrorString.length > 0) || (errorObjectMessageString.length > 0));
+        if (errorObjectErrorString.length === 0) {
+            return errorObjectMessageString;
+        }
+        if (errorObjectMessageString.length === 0) {
+            return errorObjectErrorString;
+        }
+        return `${errorObjectErrorString}, ${errorObjectMessageString}`;
     });
     return errorStrings.toString();
 }
