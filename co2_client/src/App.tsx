@@ -3,6 +3,7 @@ import React from 'react';
 // import {useSelector, useDispatch} from 'react-redux';
 import {Route, Redirect} from 'react-router-dom';
 // import {Button} from 'react-bootstrap';
+import {ErrorBoundary, FallbackProps} from 'react-error-boundary';
 
 // import {RootState} from './app/rootReducer';
 // import {selectUsername, setUsername} from './features/login/loginSlice';
@@ -51,7 +52,30 @@ const routes = () =>
     {/* <Route component={notFound}/> */}
   </>
 
+function TopLevelErrorFallback(props: FallbackProps) {
 
+  return (
+    <>
+      <h1>
+        Covid co2 tracker crashed!
+      </h1>
+      <p>
+        Sorry, this is a bug of some kind. I missed something! Please report to me by filing an issue on GitHub, on twitter as @ariccio, or by email.
+        <br/>
+        More details:
+      </p>
+      <span>Error name:</span><pre>{props.error.name}</pre>
+      <span>Error message:</span><pre>{props.error.message}</pre>
+      <span>Error stack: (probably useless)</span> 
+      <pre>
+        {props.error.stack}
+      </pre>
+      <p>
+        Try reloading the page in the mean time.
+      </p>
+    </>
+  );
+}
 
 
 
@@ -61,12 +85,15 @@ export function App(): JSX.Element {
   return (
     <>
       <div className="App">
-        {/* <LoginContainer/> */}
-        <NavBar/>
-        {/* <header className="App-header">
-        </header> */}
-        {routes()}
-        <BottomNav/>
+        <ErrorBoundary FallbackComponent={TopLevelErrorFallback}>
+
+          {/* <LoginContainer/> */}
+          <NavBar/>
+          {/* <header className="App-header">
+          </header> */}
+          {routes()}
+          <BottomNav/>
+        </ErrorBoundary>
       </div>
     </>
   );
