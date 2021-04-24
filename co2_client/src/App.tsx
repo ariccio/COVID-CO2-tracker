@@ -1,8 +1,8 @@
 import React from 'react';
 
 // import {useSelector, useDispatch} from 'react-redux';
-import {Route, Redirect} from 'react-router-dom';
-// import {Button} from 'react-bootstrap';
+import {Route, Redirect, Switch, Link} from 'react-router-dom';
+import {Button} from 'react-bootstrap';
 import {ErrorBoundary, FallbackProps} from 'react-error-boundary';
 
 // import {RootState} from './app/rootReducer';
@@ -25,19 +25,19 @@ const renderRedirect = () =>
   <Redirect to={homePath}/>
 
 
-  // const notFound = () => {
-  //   return (
-  //     <>
-  //       <h1>404 not found</h1>
-  //       <Button as={Link} to={'/'}>Back to home</Button>
-  //     </>
-  //   );
-  // }
+const notFound = () => {
+  return (
+    <>
+      <h1>404 route/URL not found.</h1>
+      <Button as={Link} to={'/'}>Back to home</Button>
+    </>
+  );
+}
 
 
   //TODO: make this a switch router for 404 handling.
 const routes = () =>
-  <>
+  <Switch>
     <Route exact path={homePath} component={HomePage}/>
     <Route exact path={profilePath} component={Profile}/>
     {/* <Route exact path={loginPath} component={LoginComponent} /> */}
@@ -49,8 +49,8 @@ const routes = () =>
     <Route exact path={placesPath} component={Place}/>
     <Route exact path={deviceModelsPath} component={DeviceModels}/>
     <Route exact path='/' render={renderRedirect}/>
-    {/* <Route component={notFound}/> */}
-  </>
+    <Route component={notFound}/>
+  </Switch>
 
 function TopLevelErrorFallback(props: FallbackProps) {
 
