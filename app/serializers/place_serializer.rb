@@ -2,7 +2,7 @@
 
 class PlaceSerializer
   include JSONAPI::Serializer
-  attributes
+  attributes :google_place_id
 
   set_type :place
   has_many :sub_location

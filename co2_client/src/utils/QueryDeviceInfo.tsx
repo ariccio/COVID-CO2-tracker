@@ -81,7 +81,9 @@ export interface SerializedSingleMeasurement {
     attributes: {
         co2ppm: number,
         measurementtime: string,
-        crowding: number
+        crowding: number,
+        updated_at: string,
+        created_at: string
     },
     relationships: {
         device: {
@@ -105,7 +107,9 @@ export const defaultSerializedSingleMeasurementInfo: SerializedSingleMeasurement
     attributes: {
         co2ppm: -1,
         measurementtime: '',
-        crowding: -1
+        crowding: -1,
+        created_at: '',
+        updated_at: ''
     },
     relationships: {
         device: {
@@ -248,6 +252,41 @@ export const deviceIDsFromSubLocation = (value: SublocationMeasurements) => {
     })
 }
 
+const singleDeviceNameRequestInit = (deviceID: string) => {
+    const defaultOptions = postRequestOptions();
+    const ids = [deviceID];
+    const options = {
+        ...defaultOptions,
+        body: JSON.stringify({
+            device_ids: {
+                ids
+            }
+        })
+    };
+    return options;
+}
+
+export const fetchSingleDeviceName = (deviceID: string) => {
+    const requestInit = singleDeviceNameRequestInit(deviceID);
+    const fetchFailedCallback = async (awaitedResponse: Response): Promise<DeviceIDNamesSerialsResponse> => {
+        console.error("failed to get device names from ids!");
+        return awaitedResponse.json();
+    }
+    const fetchSuccessCallback = async (awaitedResponse: Response): Promise<DeviceIDNamesSerialsResponse> => {
+        console.log("TODO: strong type");
+        return awaitedResponse.json();
+    }
+    const result = fetchJSONWithChecks(DEVICE_NAMES_URL, requestInit, 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<DeviceIDNamesSerialsResponse>;
+    // result.then((response) => {
+    //     // console.log(response);
+    //     console.log(response.devices);
+    //     // debugger;
+    //     return response;
+    // });
+    return result;
+
+}
+
 const deviceNamesRequestInit = (measurements_by_sublocation: Array<SublocationMeasurements>) => {
     const defaultOptions = postRequestOptions();
     const ids = measurements_by_sublocation.flatMap((value: SublocationMeasurements) => {
@@ -272,6 +311,7 @@ export const fetchDeviceNamesForMeasurementsBySublocation = (measurements_by_sub
         return awaitedResponse.json();
     }
     const fetchSuccessCallback = async (awaitedResponse: Response): Promise<DeviceIDNamesSerialsResponse> => {
+        console.log("TODO: strong type");
         return awaitedResponse.json();
     }
     console.log("loading device serial numbers...");

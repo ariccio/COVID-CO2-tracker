@@ -105,13 +105,18 @@ module Api
         # find(*args): https://api.rubyonrails.org/v6.1.3.1/classes/ActiveRecord/FinderMethods.html#method-i-find
         # "If one or more records cannot be found for the requested ids, then ActiveRecord::RecordNotFound will be raised"
         @measurement = ::Measurement.find(params.fetch(:id))
+        # byebug
+
+        # TODO: lots of these lookups can fail in the future (e.g. if device gets deleted, user gets deleted, etc...)
         render(
           json: {
-            data: MeasurementSerializer.new(@measurement).serializable_hash
+            data: MeasurementSerializer.new(@measurement).serializable_hash,
+            place_id: @measurement.sub_location.place.google_place_id,
+            taken_by: @measurement.device.user.name
           }, status: :ok
         )
       rescue ::ActiveRecord::RecordNotFound => e
-        errors = [create_error("device #{params.fetch(:id)} not found"), create_activerecord_error('device not found!', e)]
+        errors = [create_error("measurement #{params.fetch(:id)} not found"), create_activerecord_error('measurement not found!', e)]
         render(
           json: {
             errors: errors

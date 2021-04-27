@@ -57,6 +57,7 @@ const renderInfoFromDatabase = (selectedPlaceInfoFromDatabase: SelectedPlaceData
 }
 
 const renderPlace = (currentPlace: google.maps.places.PlaceResult, location: ReturnType<typeof useLocation>, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, showCreateNewMeasurement: boolean, selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo, selectedPlaceInfoErrors: string, placesServiceStatus: google.maps.places.PlacesServiceStatus | null, selectedPlaceExistsInDatabase: boolean | null) => {
+    // debugger;
     return (
         <>
             {renderSelectedPlaceInfo(currentPlace, placesServiceStatus)}

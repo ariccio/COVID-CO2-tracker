@@ -7,69 +7,16 @@ import { selectPlaceExistsInDatabase, selectPlacesInfoErrors, selectPlacesInfoFr
 
 // import { renderSelectedPlaceInfo} from '../home/HomePage';
 import { selectMapsAPIKey, selectMapsAPIKeyErrorState, selectPlacesServiceStatus, selectSelectedPlace, setMapsAPIKey, setMapsAPIKeyErrorState } from '../google/googleSlice';
-import { GOOGLE_LIBRARIES } from '../google/GoogleMaps';
-import { useJsApiLoader } from '@react-google-maps/api';
 import { getGoogleMapsJavascriptAPIKey } from '../../utils/GoogleAPIKeys';
-import { updateOnNewPlace } from '../google/googlePlacesServiceUtils';
 import { renderFromDatabaseNoGoogleParam } from './RenderPlaceFromDatabase';
-import { renderSelectedPlaceInfo } from './RenderPlaceInfo';
+
+import {PlaceDetails} from './PlaceDetails';
 
 interface PlaceProps {
     placeId: string
 }
 
-interface PlaceDetailsProps {
-    mapsAPIKey: string,
-    placeId: string,
-    divRef: React.MutableRefObject<HTMLDivElement | null>
-}
 
-const PlaceDetails: React.FC<PlaceDetailsProps> = (props) => {
-    const [service, setService] = useState(null as google.maps.places.PlacesService | null);
-    const dispatch = useDispatch();
-    const placesServiceStatus = useSelector(selectPlacesServiceStatus);
-    const selectedPlace = useSelector(selectSelectedPlace);
-
-    const { isLoaded, loadError } = useJsApiLoader({
-        id: 'google-map-script',
-        googleMapsApiKey: props.mapsAPIKey,
-        libraries: GOOGLE_LIBRARIES
-    })
-
-    useEffect(() => {
-        if (props.divRef.current === null) {
-            console.log("no div ref")
-            return;
-        }
-        if (!isLoaded) {
-            // console.log("api not loaded yet.");
-            if (loadError !== undefined) {
-                console.log(`Load error: ${loadError}`)
-            }
-            return;
-        }
-        const service = new google.maps.places.PlacesService(props.divRef.current);
-        setService(service);
-    }, [isLoaded, loadError, props.divRef])
-
-    useEffect(() => {
-        if (props.placeId === '') {
-            return;
-        }
-        if (service === null) {
-            return;
-        }
-
-        updateOnNewPlace(service, props.placeId, dispatch);    
-        
-    }, [dispatch, props.placeId, service])
-
-    return (
-        <>
-            {renderSelectedPlaceInfo(selectedPlace, placesServiceStatus)}
-        </>
-    );
-}
 const DivElem = (props: {elementRef: React.MutableRefObject<HTMLDivElement | null>}) => {
     return (
         <div id='ghost-map' ref={props.elementRef}>

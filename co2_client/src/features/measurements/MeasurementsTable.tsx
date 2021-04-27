@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {Table, Button} from 'react-bootstrap';
 import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
@@ -14,8 +14,10 @@ import { API_URL } from '../../utils/UrlPath';
 import { defaultPlaceInfo, setPlacesInfoErrors, setPlacesInfoFromDatabase } from '../places/placesSlice';
 import { updateUserInfo } from '../profile/Profile';
 
+import {ShowMeasurementModal} from './ShowMeasurement';
+
 const DELETE_MEASUREMENT_URL = (API_URL + '/measurement');
-const SHOW_MEASUREMENT_URL = (API_URL + '/measurement');
+
 
 
 const measurementTableHeader = (withDelete?: boolean, innerLocation?: InnerLocationDetails, withDevice?: boolean) =>
@@ -98,6 +100,7 @@ const maybeInnerLocation = (measurement: SerializedSingleMeasurement, innerLocat
     return null;
 }
 
+//TODO: extract to some kind of more generic risk stuff
 const riskRow = (measurement: SerializedSingleMeasurement) => {
     if (measurement.attributes.co2ppm < 400) {
         return (<td><i>Unreasonably low measurement</i></td>);
@@ -153,7 +156,7 @@ const deviceIDOrSerialWithLink = (id: string, deviceSerials?: Array<SerializedSi
     )
 }
 
-const mapMeasurementsToTableBody = (measurements: Array<SerializedSingleMeasurement>, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean, innerLocation?: InnerLocationDetails, deviceSerials?: Array<SerializedSingleDeviceSerial>, withDevice?: boolean)/*: JSX.Element*/ => {
+const mapMeasurementsToTableBody = (measurements: Array<SerializedSingleMeasurement>, dispatch: ReturnType<typeof useDispatch>, setShowMeasurementModal: React.Dispatch<React.SetStateAction<boolean>>, setSelectedMeasurement: React.Dispatch<React.SetStateAction<string>>, withDelete?: boolean, innerLocation?: InnerLocationDetails, deviceSerials?: Array<SerializedSingleDeviceSerial>, withDevice?: boolean)/*: JSX.Element*/ => {
     if (measurements === undefined) {
         debugger;
     }
@@ -167,7 +170,7 @@ const mapMeasurementsToTableBody = (measurements: Array<SerializedSingleMeasurem
         return (
             <tr key={measurementRowKey(measurement.id)}>
                 {/* <td>{index}</td> */}
-                <td>{measurement.id}</td>
+                <td><Button variant="primary" onClick={() => {setShowMeasurementModal(true); setSelectedMeasurement(measurement.id)}}>{measurement.id} details</Button></td>
                 {withDevice ? deviceIDOrSerialWithLink(measurement.relationships.device.data.id, deviceSerials) : null}
                 
                 <td>{measurement.attributes.co2ppm}</td>
@@ -184,9 +187,9 @@ const mapMeasurementsToTableBody = (measurements: Array<SerializedSingleMeasurem
 }
 
 
-const measureTableBody = (measurements: Array<SerializedSingleMeasurement>, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean, innerLocation?: InnerLocationDetails, deviceSerials?: Array<SerializedSingleDeviceSerial>, withDevice?: boolean): JSX.Element =>
+const measureTableBody = (measurements: Array<SerializedSingleMeasurement>, dispatch: ReturnType<typeof useDispatch>, setShowMeasurementModal: React.Dispatch<React.SetStateAction<boolean>>, setSelectedMeasurement: React.Dispatch<React.SetStateAction<string>>, withDelete?: boolean, innerLocation?: InnerLocationDetails, deviceSerials?: Array<SerializedSingleDeviceSerial>, withDevice?: boolean): JSX.Element =>
     <tbody>
-        {mapMeasurementsToTableBody(measurements, dispatch, withDelete, innerLocation, deviceSerials, withDevice)}
+        {mapMeasurementsToTableBody(measurements, dispatch, setShowMeasurementModal, setSelectedMeasurement, withDelete, innerLocation, deviceSerials, withDevice)}
     </tbody>
 
 
@@ -233,6 +236,10 @@ export const MeasurementsTable: React.FC<MeasurementsTableProps> = (props: Measu
     // In theory I could eliminate the use of dispatch if there's no need to show the delete button, since I only use dispatch when users delete their own measurements.
     const dispatch = useDispatch();
     // debugger;
+
+    const [showMeasurementModal, setShowMeasurementModal] = useState(false);
+    const [selectedMeasurement, setSelectedMeasurement] = useState('');
+    // const [selectedMeasurementObj, setSelectedMeasurementObj] = useState(undefined as SerializedSingleMeasurement | undefined);
     if (props.measurements === undefined) {
         debugger;
     }
@@ -240,13 +247,21 @@ export const MeasurementsTable: React.FC<MeasurementsTableProps> = (props: Measu
     //     testingFetch(props.measurements[0].id);
     // }
 
+    // useEffect(() => {
+    //     const found = props.measurements.find((measurement) => {
+    //         return measurement.id === selectedMeasurement;
+    //     });
+    //     setSelectedMeasurementObj(found);
+    // }, [selectedMeasurement])
+
     // debugger;
     return (
         <>
             <Table striped bordered hover>
                 {measurementTableHeader(props.withDelete, props.innerLocation, props.withDevice)}
-                {measureTableBody(props.measurements, dispatch, props.withDelete, props.innerLocation, props.deviceSerials, props.withDevice)}
+                {measureTableBody(props.measurements, dispatch, setShowMeasurementModal, setSelectedMeasurement, props.withDelete, props.innerLocation, props.deviceSerials, props.withDevice)}
             </Table>
+            <ShowMeasurementModal showMeasurementModal={showMeasurementModal} setShowMeasurementModal={setShowMeasurementModal} selectedMeasurement={selectedMeasurement} setSelectedMeasurement={setSelectedMeasurement}/>
         </>
     )
 }
