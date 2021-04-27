@@ -10,6 +10,8 @@ import { devicesPath } from '../../paths/paths';
 import {ShowMeasurementResponse, queryMeasurementInfo, defaultShowMeasurementResponse} from '../../utils/QueryMeasurementInfo';
 import { useSelector } from 'react-redux';
 import { selectMapsAPIKey, selectMapsAPIKeyErrorState } from '../google/googleSlice';
+// import { PlaceDetails } from '../places/PlaceDetails';
+import {placesPath} from '../../paths/paths';
 
 interface ShowMeasurementModalProps {
     showMeasurementModal: boolean,
@@ -33,9 +35,10 @@ const renderDeviceIDOrSerial = (measurementInfo: ShowMeasurementResponse, device
         );
     }
     if (deviceSerials.length > 0) {
+        // debugger;
         return (
             <>
-                Measurement taken by device # <Link to={`${devicesPath}/${id}`}>{id}</Link>, serial # {deviceSerials[0]}
+                Measurement taken by device # <Link to={`${devicesPath}/${id}`}>{id}</Link>, serial # {deviceSerials[0].attributes.serial}
             </>
         )
     }
@@ -53,8 +56,39 @@ const DivElem = (props: {elementRef: React.MutableRefObject<HTMLDivElement | nul
     );
 }
 
+const renderPlaceDetails = (measurementInfo: ShowMeasurementResponse, elementRef: React.MutableRefObject<HTMLDivElement | null>, mapsAPIKey: string, mapsAPIKeyErrorState: string) => {
+    if (mapsAPIKey === '') {
+        if (mapsAPIKeyErrorState !== '') {
+            return (
+                <>
+                    Error loading google maps/places API key. Error details: {mapsAPIKeyErrorState}
+                    (Can't show place details)
+                </>
+            )
+        }
+        return (
+            <>
+                Google maps/places API key not loaded at this point in program. Sorry! TODO: just load it. Duh. (It probably should be loaded here)
+            </>
+        )
+    }
+    if (elementRef === null) {
+        return (
+            <>
+                elementRef is null. Cannot render place details! (google requires a div element to maybe render a map, for whatever reason)
+            </>
+        )
+    }
+    return (
+        <>
+            Will have PROPER place data here when I fix the damn bug.
+            In mean time, here's a link to it: <Link to={`${placesPath}/${measurementInfo.place_id}`}>{measurementInfo.place_id}</Link>
+            {/* <PlaceDetails mapsAPIKey={mapsAPIKey} placeId={measurementInfo.place_id} divRef={elementRef}/> */}
+        </>
+    )
+}
 
-const renderModalBody = (errors: string, measurementInfo: ShowMeasurementResponse, deviceSerials: Array<SerializedSingleDeviceSerial>, deviceSerialsErrorState: string) => {
+const renderModalBody = (errors: string, measurementInfo: ShowMeasurementResponse, deviceSerials: Array<SerializedSingleDeviceSerial>, deviceSerialsErrorState: string, elementRef: React.MutableRefObject<HTMLDivElement | null>, mapsAPIKey: string, mapsAPIKeyErrorState: string) => {
     if (errors !== '') {
         return (
             <>
@@ -70,18 +104,36 @@ const renderModalBody = (errors: string, measurementInfo: ShowMeasurementRespons
             </>
         )
     }
-    debugger;
+    // debugger;
     console.log("hello");
     return (
         <>
             <Modal.Body>
                 Measurement taken by: {measurementInfo.taken_by}
+                <br/>
+                <br/>
                 {renderDeviceIDOrSerial(measurementInfo, deviceSerials, deviceSerialsErrorState)}
+                <br/>
+                <br/>
                 Recorded CO2: {measurementInfo.data.data.attributes.co2ppm}
+                <br/>
+                <br/>
                 Crowding (1-5): {measurementInfo.data.data.attributes.crowding}
-                Measurement taken date and time: {measurementInfo.data.data.attributes.measurementtime}
-                Measurement created in database time: {measurementInfo.data.data.attributes.created_at}
-                Measurement last updated in database: {measurementInfo.data.data.attributes.updated_at}
+                <br/>
+                <br/>
+                Measurement taken date and time: {new Date(measurementInfo.data.data.attributes.measurementtime).toString()}
+                <br/>
+                <br/>
+                Measurement created in database time: {new Date(measurementInfo.data.data.attributes.created_at).toString()}
+                <br/>
+                <br/>
+                Measurement last updated in database: {new Date(measurementInfo.data.data.attributes.updated_at).toString()}
+                {/* <br/> */}
+                {/* <br/> */}
+                {/* Measurement place_id: {measurementInfo.place_id} */}
+                <br/>
+                <br/>
+                {renderPlaceDetails(measurementInfo, elementRef, mapsAPIKey, mapsAPIKeyErrorState)}
             </Modal.Body>
 
         </>
@@ -116,7 +168,7 @@ export const ShowMeasurementModal: React.FC<ShowMeasurementModalProps> = (props:
             setMeasurementInfo(resultValue);
         }).catch((error) => {
             console.error("some kind of error in fetch");
-            debugger;
+            // debugger;
             setErrors(String(error));
             setMeasurementInfo(defaultShowMeasurementResponse);
             return;
@@ -136,6 +188,7 @@ export const ShowMeasurementModal: React.FC<ShowMeasurementModalProps> = (props:
                 setDeviceSerials([]);
                 return;
             }
+            // debugger;
             setDeviceSerials(promiseResult.devices.data);
             return;
         }).catch((error) => {
@@ -156,10 +209,10 @@ export const ShowMeasurementModal: React.FC<ShowMeasurementModalProps> = (props:
     // }
     return (
         <>
-            <Modal show={props.showMeasurementModal} onHide={() => {props.setShowMeasurementModal(false); props.setSelectedMeasurement('');} }>
+            <Modal show={props.showMeasurementModal} onHide={() => {props.setShowMeasurementModal(false);} }>
                 <ModalHeader measurementID={props.selectedMeasurement}/>
                 <DivElem elementRef={elementRef}/>
-                {renderModalBody(errors, measurementInfo, deviceSerials, deviceSerialsErrorState)}
+                {renderModalBody(errors, measurementInfo, deviceSerials, deviceSerialsErrorState, elementRef, mapsAPIKey, mapsAPIKeyErrorState)}
             </Modal>
 
         </>

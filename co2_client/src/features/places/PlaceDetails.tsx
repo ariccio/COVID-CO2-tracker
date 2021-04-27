@@ -28,13 +28,14 @@ export const PlaceDetails: React.FC<PlaceDetailsProps> = (props) => {
 
     useEffect(() => {
         if (props.divRef.current === null) {
-            console.log("no div ref")
+            console.warn("no div ref")
             return;
         }
         if (!isLoaded) {
             // console.log("api not loaded yet.");
             if (loadError !== undefined) {
-                console.log(`Load error: ${loadError}`)
+                //TODO: bubble this to user?
+                console.error(`Load error: ${loadError}`)
             }
             return;
         }

@@ -133,7 +133,9 @@ interface googlePlacesState {
     selected: placeResultWithTranslatedType,
     placesServiceStatus: google.maps.places.PlacesServiceStatus | null,
     mapsAPIKey: string,
-    mapsAPIKeyErrorState: string
+    mapsAPIKeyErrorState: string,
+    // isLoaded: boolean,
+    // JSAPILoadError: Error | undefined
 }
 
 export const defaultGooglePlacesState: googlePlacesState = {
@@ -142,7 +144,9 @@ export const defaultGooglePlacesState: googlePlacesState = {
     },
     placesServiceStatus: null,
     mapsAPIKey: '',
-    mapsAPIKeyErrorState: ''
+    mapsAPIKeyErrorState: '',
+    // isLoaded: false,
+    // JSAPILoadError: undefined
 }
 
 export const googlePlacesSlice = createSlice({
@@ -163,7 +167,13 @@ export const googlePlacesSlice = createSlice({
         },
         setMapsAPIKeyErrorState: (state, action: PayloadAction<string>) => {
             state.mapsAPIKeyErrorState = action.payload;
-        }
+        },
+        // setIsLoaded: (state, action: PayloadAction<boolean>) => {
+        //     state.isLoaded = action.payload;
+        // },
+        // setJSAPILoadError: (state, action: PayloadAction<Error|undefined>) => {
+        //     state.JSAPILoadError = action.payload;
+        // }
     },
 
 });
@@ -195,4 +205,6 @@ export const selectSelectedPlace = (state: RootState) => state.places.selected;
 export const selectPlacesServiceStatus = (state: RootState) => state.places.placesServiceStatus;
 export const selectMapsAPIKey = (state: RootState) => state.places.mapsAPIKey;
 export const selectMapsAPIKeyErrorState = (state: RootState) => state.places.mapsAPIKeyErrorState;
+// export const selectIsLoaded = (state: RootState) => state.places.isLoaded;
+// export const selectJSApiLoadError = (state: RootState) => state.places.JSAPILoadError;
 export const placesReducer = googlePlacesSlice.reducer;

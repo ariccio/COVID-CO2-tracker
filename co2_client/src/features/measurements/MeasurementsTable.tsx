@@ -24,7 +24,7 @@ const measurementTableHeader = (withDelete?: boolean, innerLocation?: InnerLocat
     <thead>
         <tr>
             {/* <th>#</th> */}
-            <th>Measurement ID</th>
+            <th>ID and Details</th>
             {withDevice ? (<th>Device</th>) : null}
             <th>CO2 PPM</th>
             <th>time</th>
