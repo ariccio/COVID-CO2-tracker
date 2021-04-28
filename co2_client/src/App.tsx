@@ -3,7 +3,9 @@ import React from 'react';
 // import {useSelector, useDispatch} from 'react-redux';
 import {Route, Redirect, Switch, Link} from 'react-router-dom';
 import {Button} from 'react-bootstrap';
-import {ErrorBoundary, FallbackProps} from 'react-error-boundary';
+// import {ErrorBoundary, FallbackProps} from 'react-error-boundary';
+import * as Sentry from "@sentry/react";
+
 
 // import {RootState} from './app/rootReducer';
 // import {selectUsername, setUsername} from './features/login/loginSlice';
@@ -52,7 +54,12 @@ const routes = () =>
     <Route component={notFound}/>
   </Switch>
 
-function TopLevelErrorFallback(props: FallbackProps) {
+function TopLevelErrorFallback(errorData: {
+  error: Error;
+  componentStack: string | null;
+  eventId: string | null;
+  resetError(): void;
+}) {
 
   return (
     <>
@@ -64,11 +71,15 @@ function TopLevelErrorFallback(props: FallbackProps) {
         <br/>
         More details:
       </p>
-      <span>Error name:</span><pre>{props.error.name}</pre>
-      <span>Error message:</span><pre>{props.error.message}</pre>
+      <span>Error name:</span><pre>{errorData.error.name}</pre>
+      <span>Error message:</span><pre>{errorData.error.message}</pre>
       <span>Error stack: (probably useless)</span> 
       <pre>
-        {props.error.stack}
+        {errorData.error.stack}
+      </pre>
+      <span>Sentry genereted componentStack:</span>
+      <pre>
+        {errorData.componentStack}
       </pre>
       <p>
         Try reloading the page in the mean time.
@@ -82,10 +93,12 @@ function TopLevelErrorFallback(props: FallbackProps) {
 // TODO: how to display network errors? some component to render above it?
 export function App(): JSX.Element {
 
+  //TODO: https://docs.sentry.io/platforms/javascript/guides/react/enriching-events/user-feedback/
+  //https://docs.sentry.io/platforms/javascript/guides/react/components/errorboundary/
   return (
     <>
       <div className="App">
-        <ErrorBoundary FallbackComponent={TopLevelErrorFallback}>
+        <Sentry.ErrorBoundary fallback={TopLevelErrorFallback}>
 
           {/* <LoginContainer/> */}
           <NavBar/>
@@ -93,7 +106,7 @@ export function App(): JSX.Element {
           </header> */}
           {routes()}
           <BottomNav/>
-        </ErrorBoundary>
+        </Sentry.ErrorBoundary>
       </div>
     </>
   );
