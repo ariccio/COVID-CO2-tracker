@@ -96,7 +96,9 @@ const selectDeviceDropdownHandler = (eventKey: string | null, e: React.Synthetic
 }
 
 const renderSelectDeviceDropdown = (userDevices: UserDevicesInfo, selectedDevice: number, selectedModelName: string, selectedDeviceSerialNumber: string, dispatch: ReturnType<typeof useDispatch>) => {
-
+    if (userDevices.devices === undefined) {
+        throw new Error(`userDevices.devices is undefined, this is a bug in CreateMeasurement.tsx! Selected device: ${selectedDevice}, selectedModelName: ${selectedModelName}, selectedDeviceSerialNumber: ${selectedDeviceSerialNumber}`);
+    }
     return (
         <>
             <Dropdown onSelect={(eventKey: string | null, event: React.SyntheticEvent<unknown>) => selectDeviceDropdownHandler(eventKey, event, userDevices, dispatch)}>

@@ -71,6 +71,9 @@ export const ManufacturerDeviceModelsTable = (props: {models: Array<Manufacturer
         )
     }
     if (selectedModel === -1) {
+        if (props.models === undefined) {
+            throw new Error(`props.models is undefined! This is a bug in DeviceModelsTable.tsx. selectedManufacturer: ${props.selectedManufacturer}, selectedModel: ${selectedModel}, selectedModelName: ${selectedModelName}`);
+        }
         return (
             <>  
                 {renderTable(props.models, dispatch)}

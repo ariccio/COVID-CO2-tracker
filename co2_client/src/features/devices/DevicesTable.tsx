@@ -94,6 +94,9 @@ interface DevicesTableProps {
 //devices: Array<UserInfoDevice>
 export const DevicesTable: React.FC<DevicesTableProps> = (props: DevicesTableProps) => {
     const dispatch = useDispatch();
+    if (props.devices === undefined) {
+        throw new Error("props.devices is undefined! This is a bug in DevicesTable.tsx.")
+    }
     return (
         <>
             <Table striped bordered hover>

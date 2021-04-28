@@ -43,6 +43,10 @@ export interface SubLocationsDropdownProps {
 
 export const SublocationsDropdown: React.FC<SubLocationsDropdownProps> = (props: SubLocationsDropdownProps) => {
     const dispatch = useDispatch();
+    if (props.measurements_by_sublocation === undefined) {
+        throw new Error(`measurements_by_sublocation is undefined, this is a bug in SublocationsDropdown.tsx. props.selected?.description: ${props.selected?.description}, props.selected?.sub_location_id: ${props.selected?.sub_location_id}, props.selected?.measurements.data.toString(): ${props.selected?.measurements.data.toString()}`);
+    }
+
     // debugger;
     return (
         <>

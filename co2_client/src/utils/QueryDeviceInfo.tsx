@@ -247,6 +247,9 @@ export interface DeviceIDNamesSerialsResponse {
 }
 
 export const deviceIDsFromSubLocation = (value: SublocationMeasurements) => {
+    if (value.measurements.data === undefined) {
+        throw new Error(`value.measurements.data is undefined. This is a bug probably in deviceNamesRequestInit in QueryDeviceInfo? value.sub_location_id: ${value.sub_location_id}, value.description: ${value.description}`);
+    }
     return value.measurements.data.map((measurement: SerializedSingleMeasurement) => {
         return measurement.relationships.device.data.id;
     })

@@ -63,6 +63,9 @@ const measurements = (sublocations: Array<SublocationMeasurements>, selected: nu
     //     debugger;
     // }
     if (selected === -1) {
+        if (sublocations === undefined) {
+            throw new Error(`sublocations is undefined! This is a bug in MeasurementsByDropdown.tsx. selected: ${selected}, deviceSerials: ${deviceSerials?.toString()}`)
+        }
         // console.log("rendering all measurements for this location.");
         return allMeasurements(sublocations, deviceSerials);
     }

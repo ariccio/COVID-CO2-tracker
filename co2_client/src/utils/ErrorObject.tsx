@@ -47,6 +47,9 @@ function errorObjectMessageStringIfPresent(errorObject: ErrorObjectType): string
 
 export function formatErrors(errorObject: Errors): string {
     console.log("errors: ", errorObject);
+    if (errorObject === undefined) {
+        throw new Error('errorObject itself is undefined. What the hell? This is almost certainly a bug.');
+    }
     const errorStrings = errorObject.map((errorObject) => {
         const errorObjectErrorString = errorObjectErrorStringIfPresent(errorObject);
         const errorObjectMessageString = errorObjectMessageStringIfPresent(errorObject);
