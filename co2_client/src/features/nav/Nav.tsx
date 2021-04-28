@@ -155,6 +155,20 @@ export const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
     // }
     const dispatch = useDispatch();
     useEffect(() => {loadEmail(dispatch)}, [dispatch]);
+    
+    // Force reload of page after 59 minutes to avoid login timeout. Ugly hack but whatevs.
+    useEffect(() => {
+      const timerHandle = setTimeout(() => {
+        console.log("reload timer triggered!")
+        window.location.reload();
+      }, 59 * 60 * 1000);
+      console.log("reload timer registered.");
+      return () => {
+        console.log("cleanup timer.");
+        
+        clearTimeout(timerHandle);
+      }
+    }, [])
     // const setUsername_ 
     // if (username !== '') {
     //   console.log(`Current username: ${username}`)

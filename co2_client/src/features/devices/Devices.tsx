@@ -50,7 +50,7 @@ export function Device(props: RouteComponentProps<deviceProps>) {
         })
     }, [props.match.params.deviceId]);
 
-    console.log(deviceInfo);
+    console.table(deviceInfo);
     if (errorState !== '') {
         return (
             <>

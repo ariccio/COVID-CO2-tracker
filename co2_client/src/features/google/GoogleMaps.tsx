@@ -236,7 +236,7 @@ const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null
     // https://developers.google.com/maps/documentation/javascript/reference/places-widget
     // Returns the details of the Place selected by user if the details were successfully retrieved.
     // Otherwise returns a stub Place object, with the name property set to the current value of the input field.
-    console.log(autocomplete.getPlace());
+    console.table(autocomplete.getPlace());
     // autocomplete.
     console.log(`id: ${autocomplete.getPlace().id}`);
     console.log(`place_id: ${autocomplete.getPlace().place_id}`);

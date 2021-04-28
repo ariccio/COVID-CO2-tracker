@@ -60,7 +60,7 @@ const handleDeleteDeviceClick = (event: React.MouseEvent<HTMLElement, MouseEvent
             alert(formatErrors(response.errors));
             return;
         }
-        console.log(response);
+        console.table(response);
         updateUserInfo(dispatch);
     })
 

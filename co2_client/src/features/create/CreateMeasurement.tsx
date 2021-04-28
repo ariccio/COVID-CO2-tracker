@@ -519,7 +519,7 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
                 console.warn(formatErrors(userDeviceInfo.errors));
                 setErrorState(formatErrors(userDeviceInfo.errors));
             }
-            console.log(userDeviceInfo);
+            console.table(userDeviceInfo.devices);
             setUserDevices(userDeviceInfo);
         }).catch((error) => {
             console.warn(error);
