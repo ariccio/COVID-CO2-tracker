@@ -115,6 +115,15 @@ const measurements = (modelMeasurements: ModelMeasurementsResponse | null) => {
         )
     }
     // debugger;
+    if (modelMeasurements.measurements.data === undefined) {
+        console.log("measurements array is null, this is a bug, and this is an ugly hack to work around it. (DeviceModels.tsx)");
+        return (
+            <>
+                <br/>
+                <span>No measurements for this model.</span>
+            </>
+        )
+    }
     return (
         <MeasurementsTable measurements={modelMeasurements.measurements.data} withDevice/>
     )

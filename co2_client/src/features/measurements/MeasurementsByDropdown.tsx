@@ -33,6 +33,16 @@ function locationKey(location: SublocationMeasurements): string {
 }
 
 const singleLocation = (location: SublocationMeasurements, withDescription: boolean, deviceSerials?: Array<SerializedSingleDeviceSerial>) => {
+
+    if (location.measurements.data === undefined) {
+        console.log("measurements array is null, this is a bug, and this is an ugly hack to work around it. (MeasurementsByDropdown.tsx)");
+        return (
+            <>
+                <br/>
+                <span>No measurements for this sublocation ({location.sub_location_id}, {location.description}).</span>
+            </>
+        )
+    }
     return (
         <div key={locationKey(location)}>
             {maybeDescription(location, withDescription)}

@@ -30,6 +30,24 @@ export const updateUserInfo = (dispatch: ReturnType<typeof useDispatch>) => {
 
 }
 
+const maybeRenderMeasurements = (userInfo: UserInfoType) => {
+    if (userInfo.user_info.measurements.data === undefined) {
+        console.log("measurements array is null, this is a bug, and this is an ugly hack to work around it. (Profile.tsx)");
+        return (
+            <>
+                <br/>
+                <span>No measurements by this user. Yet.</span>
+            </>
+        )
+    }
+
+    return (
+        <>
+            <MeasurementsTable measurements={userInfo.user_info.measurements.data} withDelete withDevice/>
+        </>
+    )
+}
+
 export const Profile: React.FC<ProfileProps> = () => {
     // debugger;
     const username = useSelector(selectUsername);
@@ -73,7 +91,7 @@ export const Profile: React.FC<ProfileProps> = () => {
             Devices:
             <DevicesTable devices={userInfo.user_info.devices}/>
             Measurements:
-            <MeasurementsTable measurements={userInfo.user_info.measurements.data} withDelete withDevice/>
+            {maybeRenderMeasurements(userInfo)}
             {errorState}
         </>
     )

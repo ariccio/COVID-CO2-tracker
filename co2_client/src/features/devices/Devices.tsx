@@ -24,6 +24,23 @@ interface deviceProps {
     deviceId: string
 }
 
+const maybeRenderMeasurements = (deviceInfo: DeviceInfoResponse) => {
+    if (deviceInfo.measurements.data === undefined) {
+        console.log("measurements array is null, this is a bug, and this is an ugly hack to work around it. (Devices.tsx)");
+        return (
+            <>
+                <br/>
+                <span>No measurements for device #{deviceInfo.device_id}.</span>
+            </>
+        )
+    }
+    return (
+        <>
+            <MeasurementsTable measurements={deviceInfo.measurements.data}/>
+        </>
+    )
+}
+
 export function Device(props: RouteComponentProps<deviceProps>) {
     // console.log(props.match.params.deviceId)
 
@@ -64,7 +81,8 @@ export function Device(props: RouteComponentProps<deviceProps>) {
     return (
         <>
             Model: "<Link to={deviceModelsPath + `/${deviceInfo.device_model_id}`}>{deviceInfo.device_model}</Link>" - serial #: "{deviceInfo.serial}" measurements:
-            <MeasurementsTable measurements={deviceInfo.measurements.data}/>
+            {maybeRenderMeasurements(deviceInfo)}
+            
         </>
     );
 }
