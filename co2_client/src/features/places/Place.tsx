@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {RouteComponentProps} from 'react-router-dom';
 // import {useLocation} from 'react-router-dom';
@@ -6,7 +6,7 @@ import { updatePlacesInfoFromBackend } from '../../utils/QueryPlacesInfo';
 import { selectPlaceExistsInDatabase, selectPlacesInfoErrors, selectPlacesInfoFromDatabase } from './placesSlice';
 
 // import { renderSelectedPlaceInfo} from '../home/HomePage';
-import { selectMapsAPIKey, selectMapsAPIKeyErrorState, selectPlacesServiceStatus, selectSelectedPlace, setMapsAPIKey, setMapsAPIKeyErrorState } from '../google/googleSlice';
+import { selectMapsAPIKey, selectMapsAPIKeyErrorState, setMapsAPIKey, setMapsAPIKeyErrorState } from '../google/googleSlice';
 import { getGoogleMapsJavascriptAPIKey } from '../../utils/GoogleAPIKeys';
 import { renderFromDatabaseNoGoogleParam } from './RenderPlaceFromDatabase';
 

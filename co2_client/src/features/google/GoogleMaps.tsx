@@ -10,7 +10,7 @@ import { Button, Form } from 'react-bootstrap';
 import {setSelectedPlace, INTERESTING_FIELDS} from './googleSlice';
 
 import {updatePlacesInfoFromBackend, queryPlacesInBoundsFromBackend} from '../../utils/QueryPlacesInfo';
-import { defaultPlaceMarkers, EachPlaceFromDatabaseForMarker, placesFromDatabaseForMarker, selectPlaceExistsInDatabase, selectPlaceMarkersFromDatabase, selectPlacesInfoErrors, selectPlacesMarkersErrors } from '../places/placesSlice';
+import { defaultPlaceMarkers, EachPlaceFromDatabaseForMarker, placesFromDatabaseForMarker, selectPlaceMarkersFromDatabase, selectPlacesInfoErrors, selectPlacesMarkersErrors } from '../places/placesSlice';
 import { setSublocationSelectedLocationID } from '../sublocationsDropdown/sublocationSlice';
 import { updateOnNewPlace } from './googlePlacesServiceUtils';
 import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
@@ -591,7 +591,7 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
 
     // const selectedPlaceInfoFromDatabase = useSelector(selectPlacesInfoFromDatabase);
     const selectedPlaceInfoFromDatabaseErrors = useSelector(selectPlacesInfoErrors);
-    const selectedPlaceExistsInDatabase = useSelector(selectPlaceExistsInDatabase);
+    // const selectedPlaceExistsInDatabase = useSelector(selectPlaceExistsInDatabase);
     const username = useSelector(selectUsername);
 
     //Needed (for now) to update on clicking markers

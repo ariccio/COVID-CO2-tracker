@@ -1,7 +1,7 @@
 import {API_URL} from './UrlPath';
 
 import {formatErrors, ErrorObjectType} from './ErrorObject';
-import {postRequestOptions, userRequestOptions} from './DefaultRequestOptions';
+import {userRequestOptions} from './DefaultRequestOptions';
 import {fetchJSONWithChecks} from './FetchHelpers';
 import { defaultSerializedSingleMeasurementInfo, SerializedSingleMeasurement } from './QueryDeviceInfo';
 

@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 import {Modal, Button, Form, Dropdown, ToggleButtonGroup, ToggleButton} from 'react-bootstrap';
-import DatePicker, {CalendarContainer} from 'react-datepicker';
+import DatePicker from 'react-datepicker';
 // import {useLocation, useHistory} from 'react-router-dom'
 
 import "react-datepicker/dist/react-datepicker.css";
@@ -373,11 +373,6 @@ function datePickerChangeHandler(setDateTime: React.Dispatch<React.SetStateActio
         // console.log(typeof [Date, Date])
         setDateTime(date);
     }
-
-const calendarContainer = () =>
-    <CalendarContainer>
-
-    </CalendarContainer>
 
 const maybeRenderTimeInput = (userTimeRadioValue: ToggleButtonUserRadios, dateTime: Date, setDateTime: React.Dispatch<React.SetStateAction<Date>>, datePickerError: string | null, setDatePickerError: React.Dispatch<React.SetStateAction<string | null>>) => {
     if (userTimeRadioValue === ToggleButtonUserRadios.Now) {
