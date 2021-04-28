@@ -238,6 +238,16 @@ GEM
       sprockets (> 3.0)
       sprockets-rails
       tilt
+    sentry-rails (4.3.4)
+      railties (>= 5.0)
+      sentry-ruby-core (~> 4.3.0)
+    sentry-ruby (4.3.2)
+      concurrent-ruby (~> 1.0, >= 1.0.2)
+      faraday (>= 1.0)
+      sentry-ruby-core (= 4.3.2)
+    sentry-ruby-core (4.3.2)
+      concurrent-ruby
+      faraday
     signet (0.15.0)
       addressable (~> 2.3)
       faraday (>= 0.17.3, < 2.0)
@@ -291,6 +301,8 @@ DEPENDENCIES
   rbnacl (~> 7.1)
   rexml
   sassc-rails
+  sentry-rails (~> 4.3)
+  sentry-ruby (~> 4.3)
   tzinfo-data
   validates_timeliness (~> 6.0.0.alpha1)
 

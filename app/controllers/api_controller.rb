@@ -114,6 +114,9 @@ class ApiController < ActionController::API
 
   def current_user
     # byebug
+    # TODO: maybe add sentry context? https://docs.sentry.io/platforms/ruby/guides/rails/enriching-events/context/
+    # TODO: maybe set sentry user?
+    # https://docs.sentry.io/platforms/ruby/guides/rails/enriching-events/identify-user/
     @user = ::User.find(current_user_id)
     @user
   rescue ::JWT::DecodeError => _e
