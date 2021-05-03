@@ -105,7 +105,7 @@ const renderModalBody = (errors: string, measurementInfo: ShowMeasurementRespons
         )
     }
     // debugger;
-    console.log("hello");
+    // console.log("hello");
     return (
         <>
             <Modal.Body>

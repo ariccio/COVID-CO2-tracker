@@ -64,10 +64,10 @@ function TopLevelErrorFallback(errorData: {
   return (
     <>
       <h1>
-        Covid co2 tracker crashed!
+        Covid CO2 tracker crashed!
       </h1>
       <p>
-        Sorry, this is a bug of some kind. I missed something! Please report to me by filing an issue on GitHub, on twitter as @ariccio, or by email.
+        Sorry, this is a bug of some kind. I missed something! If you're seeing this, the issue has probably already been automatically reported!
         <br/>
         More details:
       </p>
@@ -88,6 +88,10 @@ function TopLevelErrorFallback(errorData: {
   );
 }
 
+const dialogOptionsForSentry = {
+  title: 'Covid CO2 tracker crashed!',
+  subtitle: "Sorry, this is a bug of some kind. I missed something! This issue is being automatically reported. If you'd like to help, give additional details in this form."
+}
 
 
 // TODO: how to display network errors? some component to render above it?
@@ -98,7 +102,7 @@ export function App(): JSX.Element {
   return (
     <>
       <div className="App">
-        <Sentry.ErrorBoundary fallback={TopLevelErrorFallback}>
+        <Sentry.ErrorBoundary fallback={TopLevelErrorFallback} showDialog dialogOptions={dialogOptionsForSentry}>
 
           {/* <LoginContainer/> */}
           <NavBar/>
