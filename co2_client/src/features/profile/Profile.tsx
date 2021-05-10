@@ -19,8 +19,9 @@ export const updateUserInfo = (dispatch: ReturnType<typeof useDispatch>) => {
     userInfoPromise.then((userInfo) => {
         if (userInfo.errors !== undefined) {
             dispatch(setUserInfoErrorState(formatErrors(userInfo.errors)));
+            return;
         }
-        console.log(userInfo);
+        // console.log(userInfo);
         // debugger;
         dispatch(setUserInfoState(userInfo));
     }).catch((error) => {
@@ -80,6 +81,16 @@ export const Profile: React.FC<ProfileProps> = () => {
             </>
             
         )
+    }
+    // Something is undefined in prod. What is it?
+    if (userInfo === undefined) {
+        throw new Error("userInfo is undefined! This is a bug in Profile.tsx.");
+    }
+    if (userInfo.user_info === undefined) {
+        throw new Error("userInfo.user_info is undefined! This is a bug in Profile.tsx.");
+    }
+    if (userInfo.user_info.devices === undefined) {
+        throw new Error("userInfo.user_info.devices is undefined! This is a bug in Profile.tsx.");
     }
     //TODO: show device serial in measurements table here?
     return (
