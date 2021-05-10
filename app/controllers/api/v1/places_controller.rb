@@ -150,11 +150,20 @@ module Api
         # @spot.lat, @spot.lng
         @spot = get_spot(place_params.fetch(:google_place_id))
         # https://discuss.rubyonrails.org/t/time-now-vs-time-current-vs-datetime-now/75183/2
+
+        # TODO: Perhaps I should do a find_or_create because of the possibility that two people try to create a place at the same time? Will need to be debounced to prevent dual measurement creation.
         @place = ::Place.create!(google_place_id: place_params.fetch(:google_place_id), place_lat: @spot.lat, place_lng: @spot.lng, last_fetched: ::Time.current)
         render(
           json: {
             place_id: @place.id
           }, status: :created
+        )
+      rescue ::ActiveRecord::RecordNotUnique => e
+        # TODO: perhaps I should simply ignore this in the future, if I debounce the measurement creation this may be harmless?
+        render(
+          json: {
+            errors: [create_error('place already created! Did you click twice?', e)]
+          }, status: :bad_request
         )
       rescue ::ActiveRecord::RecordInvalid => e
         render(

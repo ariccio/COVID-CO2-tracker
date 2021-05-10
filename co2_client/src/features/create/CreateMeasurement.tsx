@@ -123,7 +123,7 @@ const renderErrors = (errorState: string) => {
     }
     return (
         <div>
-            Failed to query user devices: {errorState}
+            errors encountered: {errorState}
         </div>
     )
 }
@@ -225,7 +225,7 @@ interface PlaceCreateResponseType {
     errors?: Errors
 }
 
-const CREATE_PATH = (API_URL + `/places`);
+const CREATE_PLACE_PATH = (API_URL + `/places`);
 
 
 const createPlaceIfNotExist = (placeExistsInDatabase: boolean, place_id: string): Promise<PlaceCreateResponseType> | null => {
@@ -246,7 +246,7 @@ const createPlaceIfNotExist = (placeExistsInDatabase: boolean, place_id: string)
         return awaitedResponse.json();
     }
 
-    const result = fetchJSONWithChecks(CREATE_PATH, init, 201, true, fetchFailedCallback, fetchSuccessCallback ) as Promise<PlaceCreateResponseType>;
+    const result = fetchJSONWithChecks(CREATE_PLACE_PATH, init, 201, true, fetchFailedCallback, fetchSuccessCallback ) as Promise<PlaceCreateResponseType>;
     return result;
 }
 
@@ -293,6 +293,11 @@ const submitHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, selecte
     }
     placeExistsPromiseOrNull.then((existsPromise) => {
         // debugger;
+        if (existsPromise.errors !== undefined) {
+            console.log("user may have clicked twice. TODO: debounce.")
+            setErrorState(formatErrors(existsPromise.errors));
+            return;
+        }
         createMeasurementHandler(selectedDevice, enteredCO2Text, place_id, setShowCreateNewMeasurement, enteredCrowding, enteredLocationDetails, selectedSubLocation, userTimeRadioValue, dateTime);
         updatePlacesInfoFromBackend(place_id, dispatch);
     }).catch((errors) => {
