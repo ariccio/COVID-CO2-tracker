@@ -29,17 +29,6 @@ function checkInterestingFields(interestingFields: Array<string>): void {
     }
 }
 
-function placeIdFromSelectionOrFromMarker(selectedPlaceIdString: string, selectedPlace?: string): string | null {
-    if (selectedPlaceIdString !== '') {
-        console.log(`Selecting place id string ${selectedPlaceIdString} from marker`);
-        return selectedPlaceIdString;
-    }
-    if (selectedPlace !== undefined) {
-        console.log(`Selecting place id string ${selectedPlace} from autocomplete`);
-        return selectedPlace;
-    }
-    return null;
-}
 
 const getDetailsCallback = (result: google.maps.places.PlaceResult, status: google.maps.places.PlacesServiceStatus, dispatch: ReturnType<typeof useDispatch>) => {
     dispatch(setPlacesServiceStatus(status));
@@ -78,24 +67,18 @@ export const updateOnNewPlace = (service: google.maps.places.PlacesService | nul
         console.log("places service not ready yet");
         return;
     }
-    if (place_id === undefined) {
-        // console.log("no placeId from autocomplete yet.");
-        // return;
-    }
     if (place_id === null) {
         // debugger;
         console.warn("place_id is null from autocomplete?");
         return;
     }
     checkInterestingFields(INTERESTING_FIELDS);
-    const placeIDForRequest = placeIdFromSelectionOrFromMarker('', place_id);
-    debugger;
-    if (placeIDForRequest === null) {
-        console.log("no place id from either source.");
+    if (place_id === undefined) {
+        console.log("no place id.");
         return;
     }
     const request: google.maps.places.PlaceDetailsRequest = {
-        placeId: placeIDForRequest,
+        placeId: place_id,
         fields: INTERESTING_FIELDS
     } 
     const detailsCallbackThunk = (result: google.maps.places.PlaceResult, status: google.maps.places.PlacesServiceStatus) => {

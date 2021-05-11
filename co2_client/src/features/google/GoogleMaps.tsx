@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {useDispatch} from 'react-redux';
 import {useSelector} from 'react-redux';
 
-import {selectSelectedPlace, selectPlacesServiceStatus, autocompleteSelectedPlaceToAction, placeResultWithTranslatedType, selectSelectedPlaceIdString} from '../google/googleSlice';
+import {selectSelectedPlace, selectPlacesServiceStatus, autocompleteSelectedPlaceToAction, placeResultWithTranslatedType} from '../google/googleSlice';
 
 import { GoogleMap, useJsApiLoader, Autocomplete, Marker, MarkerClusterer } from '@react-google-maps/api';
 import { Button, Form } from 'react-bootstrap';
@@ -244,7 +244,7 @@ const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null
     console.log(`geometry.location.toString: ${autocomplete.getPlace().geometry?.location.toString()}`);
     console.log(`geometry.viewport.toString: ${autocomplete.getPlace().geometry?.viewport.toString()}`)
     // autocomplete.getPlace()
-    debugger;
+    // debugger;
     // const geometry = autocomplete.getPlace()
     const placeForAction = autocompleteSelectedPlaceToAction(autocomplete.getPlace());
     dispatch(setSelectedPlace(placeForAction));
@@ -274,7 +274,12 @@ const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null
     updatePlacesInfoFromBackend(placeId, dispatch);
 }
 
-const onClickMaps = (e: google.maps.MapMouseEvent, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>, dispatch: ReturnType<typeof useDispatch>) => {
+// This event is fired when the user clicks on the map.
+// An ApiMouseEvent with properties for the clicked location is returned unless a place icon was clicked, in which case an IconMouseEvent with a placeId is returned.
+// IconMouseEvent and ApiMouseEvent are identical, except that IconMouseEvent has the placeId field.
+// The event can always be treated as an ApiMouseEvent when the placeId is not important.
+// The click event is not fired if a Marker or InfoWindow was clicked.
+const onClickMaps = (e: google.maps.MapMouseEvent, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>, dispatch: ReturnType<typeof useDispatch>, service: google.maps.places.PlacesService | null) => {
     // console.log(`dynamic type of event: ${typeof e}?`)
     if ((e as any) === undefined) {
         throw new Error("MapMouseEvent is undefined. Bug in onClickMaps.");
@@ -284,20 +289,18 @@ const onClickMaps = (e: google.maps.MapMouseEvent, setCenter: React.Dispatch<Rea
     }
     if ((e as any).placeId === undefined) {
         console.warn("placeId missing?");
+        return;
     }
-    else {
-        console.log(`User clicked in google maps container on place ${(e as any).placeId}`);
-        console.log(e);
-        debugger;
-        console.warn("work in progress. Needs to be rewritten!")
-        // dispatch(setSelectedPlaceIdString((e as any).placeId));
-        const latlng: google.maps.LatLngLiteral = {
-            lat: e.latLng.lat(),
-            lng: e.latLng.lng()
-        }
-        setCenter(latlng);
-        // debugger;
+    console.log(`User clicked in google maps container on place ${(e as any).placeId}`);
+    // console.log(e);
+    // dispatch(setSelectedPlaceIdString((e as any).placeId));
+    const latlng: google.maps.LatLngLiteral = {
+        lat: e.latLng.lat(),
+        lng: e.latLng.lng()
     }
+    setCenter(latlng);
+    // debugger;
+    updateOnNewPlace(service, dispatch, (e as any).placeId);
 }
 
 const containerStyle = {
@@ -339,7 +342,7 @@ const renderEachMarker = (place: EachPlaceFromDatabaseForMarker, index: number, 
         lng: parseFloat(place.attributes.place_lng)
     }
     const clickHandler = (e: google.maps.MapMouseEvent) => {
-        debugger;
+        // debugger;
         // dispatch(setSelectedPlaceIdString(place.attributes.google_place_id));
         updateOnNewPlace(service, dispatch, place.attributes.google_place_id);
     }
@@ -455,7 +458,7 @@ const googleMapInContainer = (
                     onUnmount={onUnmount}
                     options={mapOptions}
                     onZoomChanged={() => onZoomChange(map, setZoomlevel)}
-                    onClick={(e: google.maps.MapMouseEvent) => {onClickMaps(e, setCenter, dispatch); updateMarkers(map, dispatch)}}
+                    onClick={(e: google.maps.MapMouseEvent) => {onClickMaps(e, setCenter, dispatch, service); updateMarkers(map, dispatch)}}
                     onIdle={() => onMapIdle(map, mapLoaded, setMapLoaded, dispatch)}
                     onTilesLoaded={() => updateMarkers(map, dispatch)}>
                         { /* Child components, such as markers, info windows, etc. */}
@@ -671,7 +674,7 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
         // console.log(`selectedPlaceInfoFromDatabaseErrors: "${selectedPlaceInfoFromDatabaseErrors}"`);
         // console.log(`selectedPlaceExistsInDatabase: "${selectedPlaceExistsInDatabase}"`);
         console.log(`selectedPlace.place_id: "${selectedPlace.place_id}"`);
-        debugger;
+        // debugger;
         updateOnNewPlace(service, dispatch, selectedPlace.place_id);
     }, [service, dispatch, selectedPlaceInfoFromDatabaseErrors, selectedPlace.place_id])
 

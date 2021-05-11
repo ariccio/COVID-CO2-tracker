@@ -134,7 +134,7 @@ interface googlePlacesState {
     placesServiceStatus: google.maps.places.PlacesServiceStatus | null,
     mapsAPIKey: string,
     mapsAPIKeyErrorState: string,
-    selectedPlaceIdString: string
+    // selectedPlaceIdString: string
     // isLoaded: boolean,
     // JSAPILoadError: Error | undefined
 }
@@ -146,7 +146,7 @@ export const defaultGooglePlacesState: googlePlacesState = {
     placesServiceStatus: null,
     mapsAPIKey: '',
     mapsAPIKeyErrorState: '',
-    selectedPlaceIdString: ''
+    // selectedPlaceIdString: ''
     // isLoaded: false,
     // JSAPILoadError: undefined
 }
@@ -169,10 +169,10 @@ export const googlePlacesSlice = createSlice({
         },
         setMapsAPIKeyErrorState: (state, action: PayloadAction<string>) => {
             state.mapsAPIKeyErrorState = action.payload;
-        },
-        setSelectedPlaceIdString: (state, action: PayloadAction<string>) => {
-            state.selectedPlaceIdString = action.payload;
         }
+        // setSelectedPlaceIdString: (state, action: PayloadAction<string>) => {
+        //     state.selectedPlaceIdString = action.payload;
+        // }
         // setIsLoaded: (state, action: PayloadAction<boolean>) => {
         //     state.isLoaded = action.payload;
         // },
@@ -210,7 +210,7 @@ export const selectSelectedPlace = (state: RootState) => state.places.selected;
 export const selectPlacesServiceStatus = (state: RootState) => state.places.placesServiceStatus;
 export const selectMapsAPIKey = (state: RootState) => state.places.mapsAPIKey;
 export const selectMapsAPIKeyErrorState = (state: RootState) => state.places.mapsAPIKeyErrorState;
-export const selectSelectedPlaceIdString = (state: RootState) => state.places.selectedPlaceIdString;
+// export const selectSelectedPlaceIdString = (state: RootState) => state.places.selectedPlaceIdString;
 // export const selectIsLoaded = (state: RootState) => state.places.isLoaded;
 // export const selectJSApiLoadError = (state: RootState) => state.places.JSAPILoadError;
 export const placesReducer = googlePlacesSlice.reducer;
