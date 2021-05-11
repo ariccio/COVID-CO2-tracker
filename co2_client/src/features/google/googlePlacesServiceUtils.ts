@@ -1,7 +1,7 @@
 import { useDispatch } from "react-redux";
 import { updatePlacesInfoFromBackend } from "../../utils/QueryPlacesInfo";
 import { setSublocationSelectedLocationID } from "../sublocationsDropdown/sublocationSlice";
-import { autocompleteSelectedPlaceToAction, INTERESTING_FIELDS, setPlacesServiceStatus, setSelectedPlace } from "./googleSlice";
+import { autocompleteSelectedPlaceToAction, INTERESTING_FIELDS, setPlacesServiceStatus, setSelectedPlace, setSelectedPlaceIdString } from "./googleSlice";
 
 function warnFieldMessage(): void {
     console.warn(`Warning: If you do not specify at least one field with a request, or if you omit the fields parameter from a request, ALL possible fields will be returned, and you will be billed accordingly. This applies only to Place Details requests (including Place Details requests made from the Place Autocomplete widget).`);
@@ -53,7 +53,13 @@ const getDetailsCallback = (result: google.maps.places.PlaceResult, status: goog
     }
     // debugger;
     // setPlacesServiceStatus(status);
-    dispatch(setSelectedPlace(autocompleteSelectedPlaceToAction(result)));
+    const placeForAction = autocompleteSelectedPlaceToAction(result);
+    console.log(`selecting place: ${placeForAction.name}`);
+    dispatch(setSelectedPlace(placeForAction));
+    if (placeForAction.place_id === undefined) {
+        throw new Error('autocomplete place_id is undefined! Hmm.');
+    }
+    dispatch(setSelectedPlaceIdString(placeForAction.place_id))
     dispatch(setSublocationSelectedLocationID(-1));
     if (result.place_id === undefined) {
         console.error("missing place_id?");
@@ -82,7 +88,7 @@ export const updateOnNewPlace = (service: google.maps.places.PlacesService | nul
         return;
     }
     checkInterestingFields(INTERESTING_FIELDS);
-
+    // debugger;
     const placeIDForRequest = placeIdFromSelectionOrFromMarker(selectedPlaceIdString, place_id);
     if (placeIDForRequest === null) {
         console.log("no place id from either source.");
