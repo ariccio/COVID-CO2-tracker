@@ -417,7 +417,7 @@ const renderFormIfReady = (selectedDevice: number, setEnteredCO2Text: React.Disp
             </label>
             <ToggleButtonGroup type="radio" name="user time choice" value={userTimeRadioValue} onChange={setUserTimeRadioValue}>
                 <ToggleButton value={ToggleButtonUserRadios.Now}>Now</ToggleButton>
-                <ToggleButton value={ToggleButtonUserRadios.Custom}>Custom</ToggleButton>
+                <ToggleButton value={ToggleButtonUserRadios.Custom}>Other Date/Time</ToggleButton>
             </ToggleButtonGroup>
             <br/>
             {maybeRenderTimeInput(userTimeRadioValue, dateTime, setDateTime, datePickerError, setDatePickerError)}
