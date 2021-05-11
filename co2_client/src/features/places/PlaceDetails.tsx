@@ -51,7 +51,7 @@ export const PlaceDetails: React.FC<PlaceDetailsProps> = (props) => {
             return;
         }
 
-        updateOnNewPlace(service, props.placeId, dispatch);    
+        updateOnNewPlace(service, dispatch, props.placeId);    
         
     }, [dispatch, props.placeId, service])
 

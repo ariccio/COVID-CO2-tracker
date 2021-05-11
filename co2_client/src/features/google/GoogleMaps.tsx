@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {useDispatch} from 'react-redux';
 import {useSelector} from 'react-redux';
 
-import {selectSelectedPlace, selectPlacesServiceStatus, autocompleteSelectedPlaceToAction, placeResultWithTranslatedType, selectSelectedPlaceIdString, setSelectedPlaceIdString} from '../google/googleSlice';
+import {selectSelectedPlace, selectPlacesServiceStatus, autocompleteSelectedPlaceToAction, placeResultWithTranslatedType, selectSelectedPlaceIdString} from '../google/googleSlice';
 
 import { GoogleMap, useJsApiLoader, Autocomplete, Marker, MarkerClusterer } from '@react-google-maps/api';
 import { Button, Form } from 'react-bootstrap';
@@ -18,6 +18,7 @@ import { userRequestOptions } from '../../utils/DefaultRequestOptions';
 import { API_URL } from '../../utils/UrlPath';
 import { selectUsername } from '../login/loginSlice';
 import { formatErrors, withErrors } from '../../utils/ErrorObject';
+
 
 
 //decls:
@@ -250,7 +251,7 @@ const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null
     if (placeForAction.place_id === undefined) {
         throw new Error('autocomplete place_id is undefined! Hmm.');
     }
-    dispatch(setSelectedPlaceIdString(placeForAction.place_id));
+    // dispatch(setSelectedPlaceIdString(placeForAction.place_id));
     dispatch(setSublocationSelectedLocationID(-1));
     if (map) {
         // debugger;
@@ -288,7 +289,8 @@ const onClickMaps = (e: google.maps.MapMouseEvent, setCenter: React.Dispatch<Rea
         console.log(`User clicked in google maps container on place ${(e as any).placeId}`);
         console.log(e);
         debugger;
-        dispatch(setSelectedPlaceIdString((e as any).placeId));
+        console.warn("work in progress. Needs to be rewritten!")
+        // dispatch(setSelectedPlaceIdString((e as any).placeId));
         const latlng: google.maps.LatLngLiteral = {
             lat: e.latLng.lat(),
             lng: e.latLng.lng()
@@ -331,14 +333,15 @@ function markerKey(lat: number, lng: number, index: number): string {
     return `marker-${lat}-${lng}-${index}-key`;
 }
 
-const renderEachMarker = (place: EachPlaceFromDatabaseForMarker, index: number, clusterer: /*clusterType*/ any, dispatch: ReturnType<typeof useDispatch>) => {
+const renderEachMarker = (place: EachPlaceFromDatabaseForMarker, index: number, clusterer: /*clusterType*/ any, dispatch: ReturnType<typeof useDispatch>, service: google.maps.places.PlacesService | null) => {
     const pos: google.maps.LatLngLiteral = {
         lat: parseFloat(place.attributes.place_lat),
         lng: parseFloat(place.attributes.place_lng)
     }
     const clickHandler = (e: google.maps.MapMouseEvent) => {
         debugger;
-        dispatch(setSelectedPlaceIdString(place.attributes.google_place_id));
+        // dispatch(setSelectedPlaceIdString(place.attributes.google_place_id));
+        updateOnNewPlace(service, dispatch, place.attributes.google_place_id);
     }
     // debugger;
     return (
@@ -346,18 +349,18 @@ const renderEachMarker = (place: EachPlaceFromDatabaseForMarker, index: number, 
     )
 }
 
-const clustererCallback = (placeMarkersFromDatabase: placesFromDatabaseForMarker, dispatch: ReturnType<typeof useDispatch>, clusterer: /*Clusterer*/ any) => {
+const clustererCallback = (placeMarkersFromDatabase: placesFromDatabaseForMarker, dispatch: ReturnType<typeof useDispatch>, clusterer: /*Clusterer*/ any, service: google.maps.places.PlacesService | null) => {
     console.assert(placeMarkersFromDatabase.places !== null);
     if (placeMarkersFromDatabase.places === null) {
         return null;
     }
     // debugger;
     // interface clusterType = typeof clusterer;
-    return placeMarkersFromDatabase.places.map((place, index) => {return renderEachMarker(place, index, clusterer, dispatch)})
+    return placeMarkersFromDatabase.places.map((place, index) => {return renderEachMarker(place, index, clusterer, dispatch, service)})
 
 }
 
-const renderMarkers = (placeMarkersFromDatabase: placesFromDatabaseForMarker, placeMarkerErrors: string, dispatch: ReturnType<typeof useDispatch>) => {
+const renderMarkers = (placeMarkersFromDatabase: placesFromDatabaseForMarker, placeMarkerErrors: string, dispatch: ReturnType<typeof useDispatch>, service: google.maps.places.PlacesService | null) => {
     if (placeMarkerErrors !== '') {
         console.error("cant render markers, got errors:");
         console.error(placeMarkerErrors);
@@ -381,7 +384,7 @@ const renderMarkers = (placeMarkersFromDatabase: placesFromDatabaseForMarker, pl
     return (
         <MarkerClusterer averageCenter={true} minimumClusterSize={2} maxZoom={14}>
             {(clusterer) => {
-                return clustererCallback(placeMarkersFromDatabase, dispatch, clusterer);
+                return clustererCallback(placeMarkersFromDatabase, dispatch, clusterer, service);
             }}
         </MarkerClusterer>
     )
@@ -439,7 +442,8 @@ const googleMapInContainer = (
     mapLoaded: boolean,
     setMapLoaded: React.Dispatch<React.SetStateAction<boolean>>,
     placeMarkersFromDatabase: placesFromDatabaseForMarker,
-    placeMarkerErrors: string
+    placeMarkerErrors: string,
+    service: google.maps.places.PlacesService | null
     ) => {
     // console.log("rerender map")
     return (
@@ -455,7 +459,7 @@ const googleMapInContainer = (
                     onIdle={() => onMapIdle(map, mapLoaded, setMapLoaded, dispatch)}
                     onTilesLoaded={() => updateMarkers(map, dispatch)}>
                         { /* Child components, such as markers, info windows, etc. */}
-                        {renderMarkers(placeMarkersFromDatabase, placeMarkerErrors, dispatch)}
+                        {renderMarkers(placeMarkersFromDatabase, placeMarkerErrors, dispatch, service)}
                 </GoogleMap>
             </div>
         </div>
@@ -597,7 +601,7 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
     // const [placesServiceStatus, setPlacesServiceStatus] = useState(null as google.maps.places.PlacesServiceStatus | null);
     const placesServiceStatus = useSelector(selectPlacesServiceStatus);
     const selectedPlace = useSelector(selectSelectedPlace);
-    const selectedPlaceIdString = useSelector(selectSelectedPlaceIdString);
+    // const selectedPlaceIdString = useSelector(selectSelectedPlaceIdString);
     const [mapLoaded, setMapLoaded] = useState(false);
     const placeMarkersFromDatabase = useSelector(selectPlaceMarkersFromDatabase);
     const placeMarkerErrors = useSelector(selectPlacesMarkersErrors);
@@ -663,20 +667,20 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
 
     useEffect(() => {
         // console.log(`service: "${service}"`);
-        console.log(`selectedPlaceIdString: "${selectedPlaceIdString}"`);
+        // console.log(`selectedPlaceIdString: "${selectedPlaceIdString}"`);
         // console.log(`selectedPlaceInfoFromDatabaseErrors: "${selectedPlaceInfoFromDatabaseErrors}"`);
         // console.log(`selectedPlaceExistsInDatabase: "${selectedPlaceExistsInDatabase}"`);
         console.log(`selectedPlace.place_id: "${selectedPlace.place_id}"`);
         debugger;
-        updateOnNewPlace(service, selectedPlaceIdString, dispatch, '');
-    }, [service, selectedPlaceIdString, dispatch, selectedPlaceInfoFromDatabaseErrors, selectedPlace.place_id])
+        updateOnNewPlace(service, dispatch, selectedPlace.place_id);
+    }, [service, dispatch, selectedPlaceInfoFromDatabaseErrors, selectedPlace.place_id])
 
     useEffect(legalNoticeNote, []);
     
     if (isLoaded) {
         return (
             <>
-                {googleMapInContainer(onLoad, onUnmount, map, setZoomlevel, setCenter, dispatch, mapLoaded, setMapLoaded, placeMarkersFromDatabase, placeMarkerErrors)}
+                {googleMapInContainer(onLoad, onUnmount, map, setZoomlevel, setCenter, dispatch, mapLoaded, setMapLoaded, placeMarkersFromDatabase, placeMarkerErrors, service)}
                 <br/>
                 <AutocompleteElement map={map} setCenter={setCenter} mapLoaded={mapLoaded}/>
                 <Button onClick={() => {

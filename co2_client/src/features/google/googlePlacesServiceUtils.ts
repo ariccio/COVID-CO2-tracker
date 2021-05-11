@@ -1,7 +1,7 @@
 import { useDispatch } from "react-redux";
 import { updatePlacesInfoFromBackend } from "../../utils/QueryPlacesInfo";
 import { setSublocationSelectedLocationID } from "../sublocationsDropdown/sublocationSlice";
-import { autocompleteSelectedPlaceToAction, INTERESTING_FIELDS, setPlacesServiceStatus, setSelectedPlace, setSelectedPlaceIdString } from "./googleSlice";
+import { autocompleteSelectedPlaceToAction, INTERESTING_FIELDS, setPlacesServiceStatus, setSelectedPlace } from "./googleSlice";
 
 function warnFieldMessage(): void {
     console.warn(`Warning: If you do not specify at least one field with a request, or if you omit the fields parameter from a request, ALL possible fields will be returned, and you will be billed accordingly. This applies only to Place Details requests (including Place Details requests made from the Place Autocomplete widget).`);
@@ -59,7 +59,7 @@ const getDetailsCallback = (result: google.maps.places.PlaceResult, status: goog
     if (placeForAction.place_id === undefined) {
         throw new Error('autocomplete place_id is undefined! Hmm.');
     }
-    dispatch(setSelectedPlaceIdString(placeForAction.place_id))
+    // dispatch(setSelectedPlaceIdString(placeForAction.place_id))
     dispatch(setSublocationSelectedLocationID(-1));
     if (result.place_id === undefined) {
         console.error("missing place_id?");
@@ -72,7 +72,7 @@ const getDetailsCallback = (result: google.maps.places.PlaceResult, status: goog
 }
 
 
-export const updateOnNewPlace = (service: google.maps.places.PlacesService | null, selectedPlaceIdString: string, dispatch: ReturnType<typeof useDispatch>, place_id?: string) => {
+export const updateOnNewPlace = (service: google.maps.places.PlacesService | null, dispatch: ReturnType<typeof useDispatch>, place_id?: string) => {
     if (service === null) {
         // debugger;
         console.log("places service not ready yet");
@@ -88,8 +88,8 @@ export const updateOnNewPlace = (service: google.maps.places.PlacesService | nul
         return;
     }
     checkInterestingFields(INTERESTING_FIELDS);
-    // debugger;
-    const placeIDForRequest = placeIdFromSelectionOrFromMarker(selectedPlaceIdString, place_id);
+    const placeIDForRequest = placeIdFromSelectionOrFromMarker('', place_id);
+    debugger;
     if (placeIDForRequest === null) {
         console.log("no place id from either source.");
         return;

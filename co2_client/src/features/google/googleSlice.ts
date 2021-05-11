@@ -204,7 +204,7 @@ export function autocompleteSelectedPlaceToAction(action_: google.maps.places.Pl
 }
 
 
-export const {setSelectedPlace, setPlacesServiceStatus, setMapsAPIKey, setMapsAPIKeyErrorState, setSelectedPlaceIdString} = googlePlacesSlice.actions;
+export const {setSelectedPlace, setPlacesServiceStatus, setMapsAPIKey, setMapsAPIKeyErrorState} = googlePlacesSlice.actions;
 
 export const selectSelectedPlace = (state: RootState) => state.places.selected;
 export const selectPlacesServiceStatus = (state: RootState) => state.places.placesServiceStatus;
