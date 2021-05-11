@@ -647,6 +647,20 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
     }, [_zoomLevel])
 
 
+    //TODO: this is disgusting. Do better.
+    useEffect(() => {
+        if (selectedPlace.place_id === undefined) {
+            return;
+        }
+        if (selectedPlace.place_id === '') {
+            console.log('hmm.');
+            debugger;
+            return;
+        }
+        console.log(`selectedPlace.place_id changed, setting selectedPlaceIDString (${selectedPlaceIdString}) to '${selectedPlace.place_id}'`)
+        setSelectedPlaceIdString(selectedPlace.place_id)
+    }, [selectedPlace.place_id])
+
     useEffect(() => {
         // console.log(`service: "${service}"`);
         // console.log(`selectedPlaceIdString: "${selectedPlaceIdString}"`);
