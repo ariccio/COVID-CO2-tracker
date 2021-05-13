@@ -229,7 +229,7 @@ const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (pr
     );
 }
 
-const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null, dispatch: ReturnType<typeof useDispatch>, map: google.maps.Map<Element> | null, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>) => {
+const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null, dispatch: ReturnType<typeof useDispatch>, map: google.maps.Map<Element> | null, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>, setErrorState: React.Dispatch<React.SetStateAction<string>>) => {
     if (autocomplete === null) {
         return;
     }
@@ -237,25 +237,32 @@ const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null
     // https://developers.google.com/maps/documentation/javascript/reference/places-widget
     // Returns the details of the Place selected by user if the details were successfully retrieved.
     // Otherwise returns a stub Place object, with the name property set to the current value of the input field.
-    console.table(autocomplete.getPlace());
+    const place = autocomplete.getPlace();
+    console.table(place);
+    if (place.place_id === undefined) {
+        console.log("autocomplete likely returned a stub object, place probably not found!");
+        setErrorState(`'${place.name}' not found. Try picking from dropdown list.`);
+        return;
+    }
     // autocomplete.
-    console.log(`id: ${autocomplete.getPlace().id}`);
-    console.log(`place_id: ${autocomplete.getPlace().place_id}`);
-    console.log(`geometry.location.toString: ${autocomplete.getPlace().geometry?.location.toString()}`);
-    console.log(`geometry.viewport.toString: ${autocomplete.getPlace().geometry?.viewport.toString()}`)
+    console.log(`id: ${place.id}`);
+    console.log(`place_id: ${place.place_id}`);
+    console.log(`geometry.location.toString: ${place.geometry?.location.toString()}`);
+    console.log(`geometry.viewport.toString: ${place.geometry?.viewport.toString()}`)
     // autocomplete.getPlace()
     // debugger;
     // const geometry = autocomplete.getPlace()
-    const placeForAction = autocompleteSelectedPlaceToAction(autocomplete.getPlace());
+    const placeForAction = autocompleteSelectedPlaceToAction(place);
     dispatch(setSelectedPlace(placeForAction));
     if (placeForAction.place_id === undefined) {
+        debugger;
         throw new Error('autocomplete place_id is undefined! Hmm.');
     }
     // dispatch(setSelectedPlaceIdString(placeForAction.place_id));
     dispatch(setSublocationSelectedLocationID(-1));
     if (map) {
         // debugger;
-        const placeLocation = autocomplete.getPlace().geometry;
+        const placeLocation = place.geometry;
         if (placeLocation) {
             // debugger;
             // map.setCenter(placeLocation.location)
@@ -266,11 +273,12 @@ const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null
             setCenter(loc);
         }
     }
-    const placeId = autocomplete.getPlace().place_id;
+    const placeId = place.place_id;
     if (placeId === undefined) {
         console.log('no place to query');
         return;
     }
+    setErrorState('');
     updatePlacesInfoFromBackend(placeId, dispatch);
 }
 
@@ -490,13 +498,28 @@ interface AutocompleteElementProps {
     mapLoaded: boolean
 }
 
+const renderErrorsAutocomplete = (errorState: string) => {
+    if (errorState === '') {
+        return null;
+    }
+
+    return (
+        <>
+            Autocomplete message: {errorState}
+        </>
+    )
+}
 
 const AutocompleteElement: React.FC<AutocompleteElementProps> = (props) => {
     // debugger;
     const [autocomplete, setAutocomplete] = useState(null as google.maps.places.Autocomplete | null);
+    const [errorState, setErrorState] = useState('');
     const dispatch = useDispatch();
     return (
-        <RenderAutoComplete autoCompleteLoad={(event) => autoCompleteLoadThunk(event, setAutocomplete)} placeChange={() => placeChangeHandler(autocomplete, dispatch, props.map, props.setCenter)} map={props.map} mapLoaded={props.mapLoaded} />
+        <>
+            {renderErrorsAutocomplete(errorState)}
+            <RenderAutoComplete autoCompleteLoad={(event) => autoCompleteLoadThunk(event, setAutocomplete)} placeChange={() => placeChangeHandler(autocomplete, dispatch, props.map, props.setCenter, setErrorState)} map={props.map} mapLoaded={props.mapLoaded} />
+        </>
     );
 }
 
