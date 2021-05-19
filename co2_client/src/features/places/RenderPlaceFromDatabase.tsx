@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {Suspense} from 'react';
 
 import { useTranslation } from 'react-i18next';
 
@@ -62,14 +62,16 @@ export const RenderFromDatabaseNoGoogleParam = (props: {selectedPlaceInfoFromDat
         // debugger;
         return (
             <div>
-                Zero measurements recorded for this place.
+                {translate('zero-measurements-place')}
             </div>
         )
     }
     // debugger;
     return (
         <>
-            <MeasurementsByDropdown selectedPlaceInfoFromDatabase={props.selectedPlaceInfoFromDatabase}/>
+            <Suspense fallback="loading translations...">
+                <MeasurementsByDropdown selectedPlaceInfoFromDatabase={props.selectedPlaceInfoFromDatabase}/>
+            </Suspense>
             
         </>
     )

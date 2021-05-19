@@ -1,7 +1,9 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, Suspense} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {Dropdown} from 'react-bootstrap';
 import {Link, useLocation} from 'react-router-dom';
+
+import { useTranslation } from 'react-i18next';
 
 import {ManufacturerDeviceModelsTable} from '../deviceModels/DeviceModelsTable';
 
@@ -115,36 +117,46 @@ const selectManufacturerHandler = (eventKey: string | null, event: React.Synthet
     }
 }
 
-const renderDropdown = (manufacturerModels: SingleManufacturerInfoResponse, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, knownManufacturers: ManufacturersArray, location: ReturnType<typeof useLocation>, dispatch: ReturnType<typeof useDispatch>) => 
-    <Dropdown onSelect={(eventKey: string | null, event: React.SyntheticEvent<unknown>) => {selectManufacturerHandler(eventKey, event, setShowAddManufacturer, dispatch)}}>
-        <Dropdown.Toggle variant="success" id="dropdown-basic">
-            {manufacturerModels.name === '' ? "Select manufacturer:" : manufacturerModels.name} 
-        </Dropdown.Toggle>
-        <Dropdown.Menu>
-            {manufacturersToDropdown(knownManufacturers)}
-            <Dropdown.Item eventKey={"-1"}>
-                {/* TODO: this is not valid? Dropdown.item might be a link itself */}
-                {/* <Link to={{pathname: `/manufacturers/create`, state: {background: location}}}> */}
-                    Create new manufacturer
-                {/* </Link> */}
-            </Dropdown.Item>
-        </Dropdown.Menu>
-    </Dropdown>
+const RenderDropdown = (props: {manufacturerModels: SingleManufacturerInfoResponse, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, knownManufacturers: ManufacturersArray}) => {
+    const dispatch = useDispatch();
+    const [translate] = useTranslation();
+    
+    return (
+        <Dropdown onSelect={(eventKey: string | null, event: React.SyntheticEvent<unknown>) => {selectManufacturerHandler(eventKey, event, props.setShowAddManufacturer, dispatch)}}>
+            <Dropdown.Toggle variant="success" id="dropdown-basic">
+                {props.manufacturerModels.name === '' ? "Select manufacturer:" : props.manufacturerModels.name} 
+            </Dropdown.Toggle>
+            <Dropdown.Menu>
+                {manufacturersToDropdown(props.knownManufacturers)}
+                <Dropdown.Item eventKey={"-1"}>
+                    {/* TODO: this is not valid? Dropdown.item might be a link itself */}
+                    {/* <Link to={{pathname: `/manufacturers/create`, state: {background: location}}}> */}
+                        {translate('Create new manufacturer')}
+                    {/* </Link> */}
+                </Dropdown.Item>
+            </Dropdown.Menu>
+        </Dropdown>
 
-const renderNewModelForManufacturer = (manufacturerModels: SingleManufacturerInfoResponse, location: ReturnType<typeof useLocation>, selectedModel: number) => {
-    if (selectedModel !== -1) {
+    );
+
+} 
+
+const NewModelForManufacturer = (props: {manufacturerModels: SingleManufacturerInfoResponse, selectedModel: number}) => {
+    let location = useLocation();
+    const [translate] = useTranslation();
+    if (props.selectedModel !== -1) {
         return null;
     }
     // const buttonClick = () => {
     //     debugger;
     //     return <Redirect } />
     // }
-    if (manufacturerModels === initSingleManufactuerInfo) {
+    if (props.manufacturerModels === initSingleManufactuerInfo) {
         return null;
     }
     return (
         <Link to={{pathname:`/devicemodels/create`, state: {background: location}}} className="btn btn-primary">
-            Create new model for manufacturer {manufacturerModels.name}
+            {translate('create-new-model-manufacturer')} {props.manufacturerModels.name}
         </Link>
     );
 
@@ -155,7 +167,12 @@ const renderDropdownOrLoading = (knownManufacturers: ManufacturersArray, manufac
         if (knownManufacturers.manufacturers === undefined) {
             throw new Error(`knownManufacturers.manufacturers is undefined! This is a bug in Manufacturers.tsx. manufacturerModels: ${String(manufacturerModels)}, errors: ${errors}`)
         }
-        return (renderDropdown(manufacturerModels, setShowAddManufacturer, knownManufacturers, location, dispatch));
+        return (
+            <Suspense fallback="loading translations...">
+
+                <RenderDropdown manufacturerModels={manufacturerModels} setShowAddManufacturer={setShowAddManufacturer} knownManufacturers={knownManufacturers}/>
+            </Suspense>
+        );
     }
     if (errors !== '') {
         return(
@@ -177,11 +194,15 @@ const renderDeviceModelsOrLoading = (selectedManufacturer: number | null, manufa
         if (manufacturerModels === initSingleManufactuerInfo) {
             return (
                 <>
-                    Loading know models from database...
+                    Loading known models from database...
                 </>
             )
         }
-        return <ManufacturerDeviceModelsTable models={manufacturerModels.models} selectedManufacturer={selectedManufacturer}/>;
+        return (
+            <Suspense fallback="loading translations...">
+                <ManufacturerDeviceModelsTable models={manufacturerModels.models} selectedManufacturer={selectedManufacturer}/>
+            </Suspense>
+        );
     }
     return(
         <>
@@ -213,13 +234,17 @@ export const CreateManufacturerOrModel: React.FC<CreateManufacturerOrModelProps>
 
     return (
         <>
-            {(showAddManufacturer) ? <CreateManufacturerModalDialog showAddManufacturer={showAddManufacturer} setShowAddManufacturer={setShowAddManufacturer}/> : null}
+            <Suspense fallback="loading translations...">
+                {(showAddManufacturer) ? <CreateManufacturerModalDialog showAddManufacturer={showAddManufacturer} setShowAddManufacturer={setShowAddManufacturer}/> : null}
+            </Suspense>
             {renderDropdownOrLoading(knownManufacturers, manufacturerModels, setShowAddManufacturer, location, dispatch, errors)}
             <br/>
             <br/>
             <br/>
             {renderDeviceModelsOrLoading(selectedManufacturer, manufacturerModels, errors)}
-            {renderNewModelForManufacturer(manufacturerModels, location, selectedModel)}
+            <Suspense fallback="loading translations...">
+                <NewModelForManufacturer manufacturerModels={manufacturerModels} selectedModel={selectedModel} />
+            </Suspense>
         </>
     )
 }

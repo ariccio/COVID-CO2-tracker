@@ -1,8 +1,10 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, Suspense} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 import {Modal, Button, Form, Dropdown, ToggleButtonGroup, ToggleButton} from 'react-bootstrap';
 import DatePicker from 'react-datepicker';
 // import {useLocation, useHistory} from 'react-router-dom'
+
+import { useTranslation } from 'react-i18next';
 
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -30,15 +32,23 @@ enum ToggleButtonUserRadios {
     Custom
 }
 
-const ModalHeader = (props: {placeName: string}) =>
-    <Modal.Header closeButton>
-        <Modal.Title>Add a measurement for {props.placeName}</Modal.Title>
-    </Modal.Header>
+const ModalHeader = (props: {placeName: string}) => {
+    const [translate] = useTranslation();
+    return (
+        <Modal.Header closeButton>
+            <Modal.Title>{translate('Add a measurement for')} {props.placeName}</Modal.Title>
+        </Modal.Header>
+    );
+}
 
-const ModalHeaderNotLoggedIn = () =>
-    <Modal.Header closeButton>
-        <Modal.Title>Not logged in. Please log in.</Modal.Title>
-    </Modal.Header>
+const ModalHeaderNotLoggedIn = () => {
+    const [translate] = useTranslation();
+    return (
+        <Modal.Header closeButton>
+            <Modal.Title>{translate("not-logged-in-please")}</Modal.Title>
+        </Modal.Header>
+    );
+}
 
 
 interface CreateNewMeasurementProps {
@@ -95,20 +105,22 @@ const selectDeviceDropdownHandler = (eventKey: string | null, e: React.Synthetic
     }
 }
 
-const renderSelectDeviceDropdown = (userDevices: UserDevicesInfo, selectedDevice: number, selectedModelName: string, selectedDeviceSerialNumber: string, dispatch: ReturnType<typeof useDispatch>) => {
-    if (userDevices.devices === undefined) {
-        throw new Error(`userDevices.devices is undefined, this is a bug in CreateMeasurement.tsx! Selected device: ${selectedDevice}, selectedModelName: ${selectedModelName}, selectedDeviceSerialNumber: ${selectedDeviceSerialNumber}`);
+const SelectDeviceDropdown = (props: {userDevices: UserDevicesInfo, selectedDevice: number, selectedModelName: string, selectedDeviceSerialNumber: string}) => {
+    const dispatch = useDispatch();
+    const [translate] = useTranslation();
+    if (props.userDevices.devices === undefined) {
+        throw new Error(`userDevices.devices is undefined, this is a bug in CreateMeasurement.tsx! Selected device: ${props.selectedDevice}, selectedModelName: ${props.selectedModelName}, selectedDeviceSerialNumber: ${props.selectedDeviceSerialNumber}`);
     }
     return (
         <>
-            <Dropdown onSelect={(eventKey: string | null, event: React.SyntheticEvent<unknown>) => selectDeviceDropdownHandler(eventKey, event, userDevices, dispatch)}>
+            <Dropdown onSelect={(eventKey: string | null, event: React.SyntheticEvent<unknown>) => selectDeviceDropdownHandler(eventKey, event, props.userDevices, dispatch)}>
                 <Dropdown.Toggle variant="success" id="dropdown-basic">
-                    {selectedDevice !== -1 ? `${selectedModelName} - ${selectedDeviceSerialNumber}` : "Select device:" }
+                    {props.selectedDevice !== -1 ? `${props.selectedModelName} - ${props.selectedDeviceSerialNumber}` : "Select device:" }
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
-                    {devicesToDropdown(userDevices)}
+                    {devicesToDropdown(props.userDevices)}
                     <Dropdown.Item eventKey={"-1"} as={Link} to={devicesPath}>
-                        + Create new device
+                        + {translate("Create new device")}
                     </Dropdown.Item>
                 </Dropdown.Menu>
             </Dropdown>
@@ -313,13 +325,14 @@ function ignoreDefault(event: React.FormEvent<HTMLFormElement>): void {
     event.stopPropagation();
 }
 
-const renderInnerLocationFormIfNewLocation = (setEnteredLocationDetails: React.Dispatch<React.SetStateAction<string>>, placeName: string, selected: SublocationMeasurements | null) => {
-    if (selected === null) {
+const InnerLocationFormIfNewLocation = (props: {setEnteredLocationDetails: React.Dispatch<React.SetStateAction<string>>, placeName: string, selected: SublocationMeasurements | null}) => {
+    const [translate] = useTranslation();
+    if (props.selected === null) {
         return (
             <>
-                <Form onChange={(event) => onChangeInnerLocationEvent(event, setEnteredLocationDetails)} onSubmit={ignoreDefault}>
+                <Form onChange={(event) => onChangeInnerLocationEvent(event, props.setEnteredLocationDetails)} onSubmit={ignoreDefault}>
                     <Form.Label>
-                        Where inside {placeName} did you take the measurement?
+                        {translate("Where inside")} {props.placeName} {translate("did you take the measurement?")}
                     </Form.Label>
                     <Form.Control type="text" name={"where"}/>
                 </Form>
@@ -336,17 +349,18 @@ function measurementsOrEmpty(placesInfoFromDatabase: SelectedPlaceDatabaseInfo):
     return placesInfoFromDatabase.measurements_by_sublocation;
 }
 
-const maybeMeasurementNote = (enteredCO2Text: string) => {
-    const parsed = parseInt(enteredCO2Text);
+const MaybeMeasurementNote = (props: {enteredCO2Text: string}) => {
+    const parsed = parseInt(props.enteredCO2Text);
+    const [translate] = useTranslation();
     if (isNaN(parsed)) {
-        if (enteredCO2Text.length !== 0) {
-            console.warn(`Unable to parse entered CO2 text ('${enteredCO2Text}') into number`);
+        if (props.enteredCO2Text.length !== 0) {
+            console.warn(`Unable to parse entered CO2 text ('${props.enteredCO2Text}') into number`);
         }
     }
     if (parsed < 400) {
         return (
             <>
-                That's a low measurement. Confirm that your meter reads near 400ppm when you're outside and away from sources of CO2.
+                {translate("low-measurement-message")}
                 <br/>
                 <br/>
             </>
@@ -355,7 +369,7 @@ const maybeMeasurementNote = (enteredCO2Text: string) => {
     if (parsed > 2000) {
         return (
             <>
-                That's a very high measurement! Confirm that your meter reads near 400ppm when you're outside and away from sources of CO2.
+                {translate("high-measurement-message")}
                 <br/>
                 <br/>
             </>
@@ -397,60 +411,71 @@ const maybeRenderTimeInput = (userTimeRadioValue: ToggleButtonUserRadios, dateTi
     )
 }
 
-const renderFormIfReady = (selectedDevice: number, setEnteredCO2Text: React.Dispatch<React.SetStateAction<string>>, place_id: string, setEnteredCrowding: React.Dispatch<React.SetStateAction<string>>, placeName: string, setEnteredLocationDetails: React.Dispatch<React.SetStateAction<string>>, placesInfoFromDatabase: SelectedPlaceDatabaseInfo, selected: SublocationMeasurements | null, enteredCO2Text: string, userTimeRadioValue: ToggleButtonUserRadios, setUserTimeRadioValue: React.Dispatch<React.SetStateAction<ToggleButtonUserRadios>>, dateTime: Date, setDateTime: React.Dispatch<React.SetStateAction<Date>>, datePickerError: string | null, setDatePickerError: React.Dispatch<React.SetStateAction<string | null>>) => {
-    if (selectedDevice === -1) {
+const RenderFormIfReady = (props: {selectedDevice: number, setEnteredCO2Text: React.Dispatch<React.SetStateAction<string>>, place_id: string, setEnteredCrowding: React.Dispatch<React.SetStateAction<string>>, placeName: string, setEnteredLocationDetails: React.Dispatch<React.SetStateAction<string>>, placesInfoFromDatabase: SelectedPlaceDatabaseInfo, selected: SublocationMeasurements | null, enteredCO2Text: string, userTimeRadioValue: ToggleButtonUserRadios, setUserTimeRadioValue: React.Dispatch<React.SetStateAction<ToggleButtonUserRadios>>, dateTime: Date, setDateTime: React.Dispatch<React.SetStateAction<Date>>, datePickerError: string | null, setDatePickerError: React.Dispatch<React.SetStateAction<string | null>>}) => {
+    const [translate] = useTranslation();
+    if (props.selectedDevice === -1) {
         return null;
     }
-    const measurementsOrEmptyArray = measurementsOrEmpty(placesInfoFromDatabase);
+    const measurementsOrEmptyArray = measurementsOrEmpty(props.placesInfoFromDatabase);
     // debugger;
 
     return (
         <>
-            <Form onChange={(event) => onChangeCo2Event(event, setEnteredCO2Text)} onSubmit={ignoreDefault}>
+            <Form onChange={(event) => onChangeCo2Event(event, props.setEnteredCO2Text)} onSubmit={ignoreDefault}>
                 <Form.Label>
-                    CO2 level (ppm)
+                    {translate("co2-level")}
                 </Form.Label>
-                <Form.Control type="number" placeholder="400" min={0} max={80000} name={"co2ppm"}/> {maybeMeasurementNote(enteredCO2Text)}
+                <Form.Control type="number" placeholder="400" min={0} max={80000} name={"co2ppm"}/> <Suspense fallback="Loading translations..."><MaybeMeasurementNote enteredCO2Text={props.enteredCO2Text} /></Suspense>
             </Form>
             <label className="form-label">
-            Measurement time: &nbsp;&nbsp;&nbsp;
+            {translate("Measurement time")}: &nbsp;&nbsp;&nbsp;
             </label>
-            <ToggleButtonGroup type="radio" name="user time choice" value={userTimeRadioValue} onChange={setUserTimeRadioValue}>
-                <ToggleButton value={ToggleButtonUserRadios.Now}>Now</ToggleButton>
-                <ToggleButton value={ToggleButtonUserRadios.Custom}>Other Date/Time</ToggleButton>
+            <ToggleButtonGroup type="radio" name="user time choice" value={props.userTimeRadioValue} onChange={props.setUserTimeRadioValue}>
+                <ToggleButton value={ToggleButtonUserRadios.Now}>{translate("Now")}</ToggleButton>
+                <ToggleButton value={ToggleButtonUserRadios.Custom}>{translate("Other Date/Time")}</ToggleButton>
             </ToggleButtonGroup>
             <br/>
-            {maybeRenderTimeInput(userTimeRadioValue, dateTime, setDateTime, datePickerError, setDatePickerError)}
-            <Form onChange={(event) => onChangeCrowdingEvent(event, setEnteredCrowding)} onSubmit={ignoreDefault}>
+            {maybeRenderTimeInput(props.userTimeRadioValue, props.dateTime, props.setDateTime, props.datePickerError, props.setDatePickerError)}
+            <Form onChange={(event) => onChangeCrowdingEvent(event, props.setEnteredCrowding)} onSubmit={ignoreDefault}>
                 <Form.Label>
-                    Crowding 1-5 (1 is empty, 5 full)
+                    {translate("crowding-level")}
                 </Form.Label>
                 <Form.Control type="number" min={1} max={5} name={"crowding"}/>
             </Form>
-            <SublocationsDropdown selected={selected} measurements_by_sublocation={measurementsOrEmptyArray} nothingSelectedText={"New inner location"} nothingSelectedItem={nothingSelectedItem()}/>
-            {renderInnerLocationFormIfNewLocation(setEnteredLocationDetails, placeName, selected)}
+            <SublocationsDropdown selected={props.selected} measurements_by_sublocation={measurementsOrEmptyArray} nothingSelectedText={"New inner location"} nothingSelectedItem={
+                <Suspense fallback="Loading translations...">
+                    <NothingSelectedItem/>
+                </Suspense>
+                }/>
+            <Suspense fallback="Loading translations...">
+                <InnerLocationFormIfNewLocation setEnteredLocationDetails={props.setEnteredLocationDetails} placeName={props.placeName} selected={props.selected}/>
+            </Suspense>
         </>
     )
 }
 
-const renderNotLoggedIn = (showCreateNewMeasurement: boolean, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>) => {
+const NotLoggedIn = (props: {showCreateNewMeasurement: boolean, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>}) => {
     console.log("not logged in to create measurement, rendering error modal.");
+    const [translate] = useTranslation();
     return (
-        <Modal onHide={() => hideHandler(setShowCreateNewMeasurement)} show={showCreateNewMeasurement}>
-            <ModalHeaderNotLoggedIn/>
+        <Modal onHide={() => hideHandler(props.setShowCreateNewMeasurement)} show={props.showCreateNewMeasurement}>
+            <Suspense fallback="Loading translations...">
+                <ModalHeaderNotLoggedIn/>
+            </Suspense>
             <Modal.Body>
-                Not logged in.
+            {translate("not-logged-in-please")}
             </Modal.Body>
         </Modal>
     );
 }
 
 
-const nothingSelectedItem = () => {
+const NothingSelectedItem = () => {
+    const [translate] = useTranslation();
     return (
         <>
             <Dropdown.Item eventKey={'-1'}>
-                New sublocation
+                {translate("New sublocation")}
             </Dropdown.Item>
         </>
     )
@@ -483,6 +508,8 @@ Note to self, on selecting datetime pickers:
 */
 
 export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (props: CreateNewMeasurementProps) => {
+    const [translate] = useTranslation();
+
     const selectedPlace = useSelector(selectSelectedPlace);
     // const selectedModel = useSelector(selectSelectedModel);
     const selectedModelName = useSelector(selectSelectedModelName);
@@ -569,7 +596,11 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
         return null;
     }
     if (username === '') {
-        return renderNotLoggedIn(props.showCreateNewMeasurement, props.setShowCreateNewMeasurement);
+        return (
+            <Suspense fallback="loading translations...">
+                <NotLoggedIn showCreateNewMeasurement={props.showCreateNewMeasurement} setShowCreateNewMeasurement={props.setShowCreateNewMeasurement} />
+            </Suspense>
+        );
     }
     // debugger;
     if (placesInfoFromDatabase === defaultPlaceInfo) {
@@ -579,15 +610,21 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
     return (
         <>
             <Modal show={props.showCreateNewMeasurement} onHide={() => hideHandler(props.setShowCreateNewMeasurement)}>
-                <ModalHeader placeName={placeName}/>
+                <Suspense fallback="Loading translations...">
+                    <ModalHeader placeName={placeName}/>
+                </Suspense>
                 <Modal.Body>
                     {renderErrors(errorState)}
-                    {renderSelectDeviceDropdown(userDevices, selectedDevice, selectedModelName, selectedDeviceSerialNumber, dispatch)}
-                    {renderFormIfReady(selectedDevice, setEnteredCO2Text, place_id, setEnteredCrowding, placeName, setEnteredLocationDetails, placesInfoFromDatabase, selected, enteredCO2Text, userTimeRadioValue, setUserTimeRadioValue, dateTime, setDateTime, datePickerError, setDatePickerError)}
+                    <Suspense fallback="Loading translations...">
+                        <SelectDeviceDropdown userDevices={userDevices} selectedDevice={selectedDevice} selectedModelName={selectedModelName} selectedDeviceSerialNumber={selectedDeviceSerialNumber}/>
+                    </Suspense>
+                    <Suspense fallback="Loading translations...">
+                        <RenderFormIfReady selectedDevice={selectedDevice} setEnteredCO2Text={setEnteredCO2Text} place_id={place_id} setEnteredCrowding={setEnteredCrowding} placeName={placeName} setEnteredLocationDetails={setEnteredLocationDetails} placesInfoFromDatabase={placesInfoFromDatabase} selected={selected} enteredCO2Text={enteredCO2Text} userTimeRadioValue={userTimeRadioValue} setUserTimeRadioValue={setUserTimeRadioValue} dateTime={dateTime} setDateTime={setDateTime} datePickerError={datePickerError} setDatePickerError={setDatePickerError} />
+                    </Suspense>
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={(event) => hideHandler(props.setShowCreateNewMeasurement)}>
-                        Cancel
+                        {translate('Cancel')}
                     </Button>
                     <Button variant="primary" onClick={(event) => submitHandler(event, selectedDevice, enteredCO2Text, place_id, props.setShowCreateNewMeasurement, placeExistsInDatabase, dispatch, setErrorState, enteredCrowding, enteredLocationDetails, selectedSubLocation, userTimeRadioValue, dateTime)}>
                         Submit new measurement

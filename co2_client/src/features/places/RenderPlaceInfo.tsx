@@ -1,5 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+
+import { useTranslation } from 'react-i18next';
+
 import { placesPath } from '../../paths/paths';
 import { defaultGooglePlacesState } from '../google/googleSlice';
 
@@ -161,8 +164,8 @@ const renderVicinity = (vicinity?: string) => {
     );
 }
 
-export const renderSelectedPlaceInfo = (currentPlace: google.maps.places.PlaceResult, placesServiceStatus: google.maps.places.PlacesServiceStatus | null) => {
-    if (currentPlace === defaultGooglePlacesState.selected) {
+export const RenderSelectedPlaceInfo = (props: {currentPlace: google.maps.places.PlaceResult, placesServiceStatus: google.maps.places.PlacesServiceStatus | null}) => {
+    if (props.currentPlace === defaultGooglePlacesState.selected) {
         return null;
         // return (
         //     <>
@@ -170,7 +173,7 @@ export const renderSelectedPlaceInfo = (currentPlace: google.maps.places.PlaceRe
         //     </>
         // );
     }
-    if (placesServiceStatus === null) {
+    if (props.placesServiceStatus === null) {
         return (
             <>
                 Places service still loading response, null status...
@@ -179,17 +182,17 @@ export const renderSelectedPlaceInfo = (currentPlace: google.maps.places.PlaceRe
     }
     return (
         <>
-            {renderPlacesServiceStatusWithHighlight(placesServiceStatus)}
-            {renderLinkWithName(currentPlace.url, currentPlace.name)}
-            {renderLinkToPlacesWithName(currentPlace.place_id, currentPlace.name)}
+            {renderPlacesServiceStatusWithHighlight(props.placesServiceStatus)}
+            {renderLinkWithName(props.currentPlace.url, props.currentPlace.name)}
+            {renderLinkToPlacesWithName(props.currentPlace.place_id, props.currentPlace.name)}
             {/* {renderPlaceId(currentPlace.place_id)} */}
-            {renderFormattedAddress(currentPlace.formatted_address)}
+            {renderFormattedAddress(props.currentPlace.formatted_address)}
             {/* {currentPlace.icon ? `currentPlace.icon: ${currentPlace.icon}` : null} 
             {currentPlace.icon ? <img src={currentPlace.icon} alt={`google supplied icon for ${currentPlace.name}`}/> : null}
             <br/> */}
-            {renderTypes(currentPlace.types)}
-            {renderVicinity(currentPlace.vicinity)}
-            {renderName(currentPlace.name)}
+            {renderTypes(props.currentPlace.types)}
+            {renderVicinity(props.currentPlace.vicinity)}
+            {renderName(props.currentPlace.name)}
             <br/>
         </>
     )

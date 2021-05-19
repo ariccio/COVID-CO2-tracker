@@ -1,8 +1,12 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, Suspense} from 'react';
 // import { useSelector, useDispatch } from 'react-redux';
 // import {Dropdown} from 'react-bootstrap';
 import {useLocation} from 'react-router-dom';
 import {RouteComponentProps} from 'react-router-dom';
+
+import { useTranslation } from 'react-i18next';
+
+
 // import {deviceModelsPath} from '../../paths/paths';
 import {userRequestOptions} from '../../utils/DefaultRequestOptions';
 import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
@@ -81,16 +85,17 @@ const queryDeviceModelMeasurements = (url: string): Promise<ModelMeasurementsRes
     return fetchJSONWithChecks(url, userRequestOptions(), 200, true, fetchCallback, fetchCallback) as Promise<ModelMeasurementsResponse>;
 }
 
-const basicDeviceModelInfo = (deviceModelInfo: QueryDeviceModelInfoResponse) => {
-    if (deviceModelInfo !== defaultQueryDeviceModelInfoResponse) {
+const BasicDeviceModelInfo = (props: {deviceModelInfo: QueryDeviceModelInfoResponse}) => {
+    const [translate] = useTranslation();
+    if (props.deviceModelInfo !== defaultQueryDeviceModelInfoResponse) {
         // debugger;
         return (
             <>
                 <br/>
-                model name: {deviceModelInfo.name}, <br/> 
-                made by: {deviceModelInfo.manufacturer_name}, <br/>
-                total devices of that model in database: {deviceModelInfo.count}, <br/>
-                total measurements by devices of that model: {deviceModelInfo.measurement_count} <br/>
+                {translate('model name:')} {props.deviceModelInfo.name}, <br/> 
+                {translate('made by:')} {props.deviceModelInfo.manufacturer_name}, <br/>
+                {translate("total-models-in-database")} {props.deviceModelInfo.count}, <br/>
+                {translate("total-modelmeasurement")} {props.deviceModelInfo.measurement_count} <br/>
             </>
         );
     }
@@ -204,8 +209,12 @@ export const DeviceModels: React.FC<RouteComponentProps<DeviceModelsProps>> = (p
             {/* </Route> */}
             <>
                 You selected device model: {props.match.params.deviceModelId}
-                {basicDeviceModelInfo(deviceModelInfo)}
-                {showAddModel ? <CreateDeviceModelModalDialog showAddModel={showAddModel} setShowAddModel={setShowAddModel}/> : null}
+                <Suspense fallback="Loading translation...">
+                    <BasicDeviceModelInfo deviceModelInfo={deviceModelInfo} />
+                </Suspense>
+                <Suspense fallback="loading translations...">
+                    {showAddModel ? <CreateDeviceModelModalDialog showAddModel={showAddModel} setShowAddModel={setShowAddModel}/> : null}
+                </Suspense>
                 {measurements(modelMeasurements)}
             </>
         </>

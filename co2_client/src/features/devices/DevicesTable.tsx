@@ -1,8 +1,10 @@
-import React from 'react';
+import React, {Suspense} from 'react';
 import {Table, Button} from 'react-bootstrap';
-import {UserInfoDevice} from '../../utils/QueryDeviceInfo';
 import {Link} from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
+
+import {UserInfoDevice} from '../../utils/QueryDeviceInfo';
 import {deviceModelsPath, devicesPath} from '../../paths/paths';
 import {deleteRequestOptions} from '../../utils/DefaultRequestOptions';
 import { API_URL } from '../../utils/UrlPath';
@@ -11,17 +13,21 @@ import { ErrorObjectType, formatErrors } from '../../utils/ErrorObject';
 import { updateUserInfo } from '../profile/Profile';
 import { useDispatch } from 'react-redux';
 
-const deviceTableHeader = () =>
-    <thead>
-        <tr>
-            <th>#</th>
-            <th>Device ID</th>
-            <th>Serial #</th>
-            <th>Device model</th>
-            <th>Device manufacturer</th>
-            <th></th>
-        </tr>
-    </thead>
+const DeviceTableHeader = () => {
+    const [translate] = useTranslation();
+    return (
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>{translate("Device ID")}</th>
+                <th>{translate("Serial #")}</th>
+                <th>{translate("Device model")}</th>
+                <th>{translate("Device manufacturer")}</th>
+                <th></th>
+            </tr>
+        </thead>
+    );
+}
 
 function deviceRowKey(device: number): string {
     return `profile-device-entry-key-${device}`;
@@ -100,7 +106,9 @@ export const DevicesTable: React.FC<DevicesTableProps> = (props: DevicesTablePro
     return (
         <>
             <Table striped bordered hover>
-                {deviceTableHeader()}
+                <Suspense fallback="Loading translations...">
+                    <DeviceTableHeader/>
+                </Suspense>
                 {deviceTableBody(props.devices, dispatch)}
             </Table>
 

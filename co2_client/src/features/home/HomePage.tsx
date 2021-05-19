@@ -16,10 +16,10 @@ import {CreateNewMeasurementModal} from '../create/CreateMeasurement';
 
 import {selectPlacesInfoFromDatabase, selectPlacesInfoErrors, SelectedPlaceDatabaseInfo, selectPlaceExistsInDatabase} from '../places/placesSlice';
 
-import {renderNewMeasurementButton} from './NewMeasurementButton';
+import {NewMeasurementButton} from './NewMeasurementButton';
 import { YOUTUBE_VIDEO_INSTRUCTIONS_URL } from '../../utils/UrlPath';
 import { RenderFromDatabaseNoGoogleParam } from '../places/RenderPlaceFromDatabase';
-import { renderSelectedPlaceInfo } from '../places/RenderPlaceInfo';
+import { RenderSelectedPlaceInfo } from '../places/RenderPlaceInfo';
 
 
 
@@ -70,8 +70,10 @@ const renderPlace = (currentPlace: google.maps.places.PlaceResult, location: Ret
     // debugger;
     return (
         <>
-            {renderSelectedPlaceInfo(currentPlace, placesServiceStatus)}
-            {renderNewMeasurementButton(currentPlace, location, setShowCreateNewMeasurement, showCreateNewMeasurement)}
+            <RenderSelectedPlaceInfo currentPlace={currentPlace} placesServiceStatus={placesServiceStatus}/>
+            <Suspense fallback="loading translation">
+                <NewMeasurementButton currentPlace={currentPlace} location={location} setShowCreateNewMeasurement={setShowCreateNewMeasurement} showCreateNewMeasurement={showCreateNewMeasurement} />
+            </Suspense>
             <br/>
             <br/>
             {renderInfoFromDatabase(selectedPlaceInfoFromDatabase, selectedPlaceInfoErrors, currentPlace, selectedPlaceExistsInDatabase)}
@@ -168,7 +170,9 @@ const HomePage: FunctionComponent<{}> = (props: any) => {
                             {renderPlace(currentPlace, location, setShowCreateNewMeasurement, showCreateNewMeasurement, selectedPlaceInfoFromDatabase, selectedPlaceInfoFromDatabaseErrors, placesServiceStatus, selectedPlaceExistsInDatabase)}
                             <br/>
                             <br/>
-                            {showCreateNewMeasurement ? <CreateNewMeasurementModal showCreateNewMeasurement={showCreateNewMeasurement} setShowCreateNewMeasurement={setShowCreateNewMeasurement}/> : null}
+                            <Suspense fallback="Loading translations...">
+                                {showCreateNewMeasurement ? <CreateNewMeasurementModal showCreateNewMeasurement={showCreateNewMeasurement} setShowCreateNewMeasurement={setShowCreateNewMeasurement}/> : null}
+                            </Suspense>
                         </div>
                     </Col>
 

@@ -1,8 +1,11 @@
 
-import React, {useEffect, useState}  from 'react';
+import React, {useEffect, useState, Suspense}  from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {RouteComponentProps, Link} from 'react-router-dom';
 import {Button} from 'react-bootstrap';
+
+import { useTranslation } from 'react-i18next';
+
 import {defaultUserInfo} from '../../utils/QueryUserInfo';
 import {defaultDeviceInfoResponse, DeviceInfoResponse, queryDeviceInfo} from '../../utils/QueryDeviceInfo';
 // import {DevicesTable} from './DevicesTable';
@@ -98,15 +101,18 @@ const renderAddDeviceButton = (createDeviceClicked: boolean, setCreateClicked: R
     )
 }
 
-const renderShowAddDevice = (showAddDeviceInstance: boolean, setShowAddDeviceInstance: React.Dispatch<React.SetStateAction<boolean>>) => {
-    if (showAddDeviceInstance) {
+const ShowAddDevice = (props: {showAddDeviceInstance: boolean, setShowAddDeviceInstance: React.Dispatch<React.SetStateAction<boolean>>}) => {
+    const [translate] = useTranslation();
+    if (props.showAddDeviceInstance) {
         return (
             <>
                 <p>
-                    Selected device:
+                    {translate('Selected device:')}
                 </p>
-
-                <CreateMyDeviceInstance showAddDeviceInstance={showAddDeviceInstance} setShowAddDeviceInstance={setShowAddDeviceInstance}/>
+                
+                <Suspense fallback="loading translations...">
+                    <CreateMyDeviceInstance showAddDeviceInstance={props.showAddDeviceInstance} setShowAddDeviceInstance={props.setShowAddDeviceInstance}/>
+                </Suspense>
             </>
         )
     }
@@ -114,10 +120,15 @@ const renderShowAddDevice = (showAddDeviceInstance: boolean, setShowAddDeviceIns
 }
 
 
-const unselectModelButton = (selectedModelName: string, dispatch: ReturnType<typeof useDispatch>) =>
-    <Button variant="secondary" onClick={() => {dispatch(setSelectedModel(-1)); dispatch(setSelectedModelName(''))}}>
-        Unselect {selectedModelName}
-    </Button>
+const UnselectModelButton = (props: {selectedModelName: string}) => {
+    const dispatch = useDispatch();
+    const [translate] = useTranslation();
+    return (
+        <Button variant="secondary" onClick={() => {dispatch(setSelectedModel(-1)); dispatch(setSelectedModelName(''))}}>
+            {translate('Unselect')} {props.selectedModelName}
+        </Button>
+    );
+}
 
 
 const selectModelOrUnselectModel = (selectedModelName: string, dispatch: ReturnType<typeof useDispatch>) => {
@@ -134,7 +145,9 @@ const selectModelOrUnselectModel = (selectedModelName: string, dispatch: ReturnT
     }
     return (
         <>
-            {unselectModelButton(selectedModelName, dispatch)}
+            <Suspense fallback="Loading translations...">
+                <UnselectModelButton selectedModelName={selectedModelName}/>
+            </Suspense>
             <br/>
             <br/>
         </>
@@ -142,8 +155,9 @@ const selectModelOrUnselectModel = (selectedModelName: string, dispatch: ReturnT
 }
 
 
-export const Devices: React.FC<{}> = () => {
-    
+const DevicesContainer: React.FC<{}> = () => {
+    const [translate] = useTranslation();
+
     // const [userInfo, setUserInfo] = useState(defaultUserInfo);
     const [createDeviceClicked, setCreateClicked] = useState(false);
     // const [notLoggedIn, setNotLoggedIn] = useState(false);
@@ -165,7 +179,7 @@ export const Devices: React.FC<{}> = () => {
         if (errorState !== '') {
             return (
                 <>
-                    Not logged in, or error:
+                    {translate('not-logged-in-or-error')}
                     {errorState}
                 </>
             );
@@ -180,7 +194,7 @@ export const Devices: React.FC<{}> = () => {
     return (
         <>
             <h3>
-                Add your devices and view stats
+                {translate('add-devices-view-stats')}
             </h3>
             <br/>
             {selectModelOrUnselectModel(selectedModelName, dispatch)}
@@ -190,7 +204,9 @@ export const Devices: React.FC<{}> = () => {
             <br/>
             <br/>
             <br/>
-            {renderShowAddDevice(showAddDeviceInstance, setShowAddDeviceInstance)}
+            <Suspense fallback="loading translations...">
+                <ShowAddDevice showAddDeviceInstance={showAddDeviceInstance} setShowAddDeviceInstance={setShowAddDeviceInstance}/>
+            </Suspense>
             
 
             <p>
@@ -203,4 +219,12 @@ export const Devices: React.FC<{}> = () => {
 
         </>
     )
+}
+
+export const Devices = () => {
+    return (
+        <Suspense fallback="loading translations...">
+            <DevicesContainer/>
+        </Suspense>
+    );
 }

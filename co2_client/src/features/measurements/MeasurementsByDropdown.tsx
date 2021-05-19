@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import {Dropdown} from 'react-bootstrap'
 import { useSelector } from 'react-redux';
+
+import { useTranslation } from 'react-i18next';
+
 import { formatErrors } from '../../utils/ErrorObject';
 import { fetchDeviceNamesForMeasurementsBySublocation, SerializedSingleDeviceSerial } from '../../utils/QueryDeviceInfo';
 import { selectSelectedPlace } from '../google/googleSlice';
@@ -112,6 +115,8 @@ const findSelected = (measurements_by_sublocation: Array<SublocationMeasurements
 
 
 export const MeasurementsByDropdown: React.FC<MeasurementsByDropdownProps> = (props: MeasurementsByDropdownProps): JSX.Element => {
+    const [translate] = useTranslation();
+
     // props.selectedPlaceInfoFromDatabase.measurements_by_sublocation[0].
     // debugger;
     
@@ -147,7 +152,7 @@ export const MeasurementsByDropdown: React.FC<MeasurementsByDropdownProps> = (pr
         console.log('unlikely to hit this path.')
         return (
             <>
-                No place selected, no measurements to show. Loading...
+                {translate('no-place-selected-no-measurements')}
             </>
         );
     }
@@ -156,7 +161,7 @@ export const MeasurementsByDropdown: React.FC<MeasurementsByDropdownProps> = (pr
         console.log("some kind of error while loading device serial numbers...");
         return (
             <>
-                Error while loading device serial numbers: {deviceSerialsErrorState}
+                {translate('error-loading-device-serials')}{deviceSerialsErrorState}
             </>
         )
     }

@@ -1,23 +1,29 @@
-import React from 'react';
+import React, {Suspense} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 import {Table, Button} from 'react-bootstrap';
 // import {UserInfoDevice} from '../../utils/QueryDeviceInfo';
 import {Link} from 'react-router-dom';
 
+import { useTranslation } from 'react-i18next';
+
 import {ManufacturerModelInfo} from '../manufacturers/manufacturerSlice';
 import {deviceModelsPath} from '../../paths/paths';
 import {setSelectedModel, selectSelectedModel, selectSelectedModelName, setSelectedModelName} from '../deviceModels/deviceModelsSlice';
 
-const ModelsTableHeader = () =>
-    <thead>
-        <tr>
-            <th>#</th>
-            <th>Model ID</th>
-            <th>Device model name</th>
-            <th>Instances</th>
-            <th>pick it!</th>
-        </tr>
-    </thead>
+const ModelsTableHeader = () => {
+    const [translate] = useTranslation();
+    return (
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>{translate('Model ID')}</th>
+                <th>{translate('Device model name')}</th>
+                <th>{translate('Instances')}</th>
+                <th>{translate('pick it!')}</th>
+            </tr>
+        </thead>
+    );
+}
 
 function modelRowKey(model: number): string {
     return `manufacturer-model-entry-key-${model}`;
@@ -56,6 +62,7 @@ const renderTable = (models: Array<ManufacturerModelInfo>, dispatch: ReturnType<
     </Table>
 
 export const ManufacturerDeviceModelsTable = (props: {models: Array<ManufacturerModelInfo>, selectedManufacturer: number | null}) => {
+    const [translate] = useTranslation();
     const selectedModel = useSelector(selectSelectedModel);
     const selectedModelName = useSelector(selectSelectedModelName);
     const dispatch = useDispatch();
@@ -83,10 +90,10 @@ export const ManufacturerDeviceModelsTable = (props: {models: Array<Manufacturer
     return (
         <>
             <div>
-                Selected a model! ({selectedModelName})
+                {translate('Selected a model!')} ({selectedModelName})
                 <br/>
                 <Button variant="secondary" onClick={() => {dispatch(setSelectedModel(-1)); dispatch(setSelectedModelName(''))}}>
-                    Unselect {selectedModelName}
+                    {translate('Unselect')} {selectedModelName}
                 </Button>
             </div>
 

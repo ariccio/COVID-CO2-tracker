@@ -1,7 +1,10 @@
-import React from 'react';
+import React, {Suspense} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 import {Modal, Button, Form} from 'react-bootstrap';
 import {useLocation, useHistory} from 'react-router-dom';
+
+import { useTranslation } from 'react-i18next';
+
 import {setEnteredDeviceSerialNumberText, selectEnteredDeviceSerialNumberText} from './creationSlice';
 import {selectSelectedModel, selectSelectedModelName, setSelectedDevice, setSelectedDeviceSerialNumber} from '../deviceModels/deviceModelsSlice';
 import { ErrorObjectType, formatErrors } from '../../utils/ErrorObject';
@@ -35,10 +38,14 @@ function newDeviceRequestInit(newDeviceSerialNumber: string, deviceModelID: numb
     return newOptions;
 }
 
-const ModalHeader = (modelName: string) =>
-    <Modal.Header closeButton>
-        <Modal.Title>Enter serial number of your {modelName}</Modal.Title>
-    </Modal.Header>
+const ModalHeader = (props: {modelName: string}) => {
+    const [translate] = useTranslation();
+    return (
+        <Modal.Header closeButton>
+            <Modal.Title>{translate('enter-serial-number')} {props.modelName}</Modal.Title>
+        </Modal.Header>
+    );
+}
 
 
 export interface CreateMyDeviceInstanceProps {
@@ -112,6 +119,7 @@ export const CreateMyDeviceInstance: React.FC<CreateMyDeviceInstanceProps> = (pr
     const history = useHistory();
     const dispatch = useDispatch();
     const location = useLocation();
+    const [translate] = useTranslation();
 
     //TODO: this is not how you do nested routes.
     if (location.pathname.endsWith('create')) {
@@ -121,7 +129,7 @@ export const CreateMyDeviceInstance: React.FC<CreateMyDeviceInstanceProps> = (pr
     if (selectedModel === -1) {
         props.setShowAddDeviceInstance(false);
         if (location.pathname.endsWith('create')) {
-            alert("select a model first!");
+            alert(translate('select-model-first'));
             history.goBack();
         }
         return null;
@@ -130,21 +138,23 @@ export const CreateMyDeviceInstance: React.FC<CreateMyDeviceInstanceProps> = (pr
     return (
         <>
             <Modal show={props.showAddDeviceInstance} onHide={() => {props.setShowAddDeviceInstance(false)}}>
-                {ModalHeader(selectedModelName)}
+                <Suspense fallback="loading translation...">
+                    <ModalHeader modelName={selectedModelName}/>
+                </Suspense>
                 <Modal.Body>
                     <Form noValidate onChange={(event) => onChangeEvent(event, dispatch)} onSubmit={(event) => onSubmitEvent(event, enteredDeviceSerialNumberText, props.setShowAddDeviceInstance, history, selectedModel, dispatch, location)}>
                         <Form.Label>
-                            You're almost there! Enter serial number:
+                            {translate('almost-there-serial')}
                         </Form.Label>
                         <Form.Control type="text" placeholder="1234567890"/>
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={(event) => cancelHandler(event, props.setShowAddDeviceInstance, history)}>
-                        Cancel
+                        {translate('Cancel')}
                     </Button>
                     <Button variant="primary" onClick={(event) => submit(event, enteredDeviceSerialNumberText, props.setShowAddDeviceInstance, history, selectedModel, dispatch, location)}>
-                        Add new {selectedModelName}
+                        {translate('Add new')} {selectedModelName}
                     </Button>
                 </Modal.Footer>
 

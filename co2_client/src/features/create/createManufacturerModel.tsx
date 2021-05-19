@@ -1,7 +1,10 @@
-import React from 'react';
+import React, {Suspense} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {Modal, Button, Form} from 'react-bootstrap';
 import {useLocation, useHistory} from 'react-router-dom'
+
+import { useTranslation } from 'react-i18next';
+
 // import {ManufacturerDeviceModelsTable} from '../deviceModels/DeviceModelsTable';
 
 import {API_URL} from '../../utils/UrlPath';
@@ -235,16 +238,21 @@ const onSubmitEvent = (event: React.FormEvent<HTMLFormElement>, enteredManufactu
     // debugger;
 }
 
-const ModalHeader = () =>
-    <Modal.Header closeButton>
-        <Modal.Title>Add a manufacturer to the database</Modal.Title>
-    </Modal.Header>
+const ModalHeader = () => {
+    const [translate] = useTranslation();
+    return (
+        <Modal.Header closeButton>
+            <Modal.Title>{translate('add-manufacturer')}</Modal.Title>
+        </Modal.Header>
+    );
+}
 
 export const CreateManufacturerModalDialog: React.FC<manufacturerDialogProps> = (props: manufacturerDialogProps) => {
     const location = useLocation();
     const enteredManufacturerText = useSelector(selectEnteredManufacturerText);
     const dispatch = useDispatch();
     const history = useHistory();
+    const [translate] = useTranslation();
 
     //TODO: this is not how you do nested routes.
     if (location.pathname.endsWith('create')) {
@@ -255,12 +263,14 @@ export const CreateManufacturerModalDialog: React.FC<manufacturerDialogProps> = 
     }
     return (
         <Modal show={props.showAddManufacturer} onHide={() => hideHandler(props.setShowAddManufacturer, history)}>
-            <ModalHeader/>
+            <Suspense fallback="loading translations...">
+                <ModalHeader/>
+            </Suspense>
             <Modal.Body>
-                (Please reduce administrative burden, don't add nuisance manufacturers. TODO: styling this text)
+                (Please reduce administrative burden, don't add nuisance manufacturers.)
                 <Form noValidate onChange={(event) => onChangeEvent(event, dispatch)} onSubmit={(event) => onSubmitEvent(event, enteredManufacturerText, props.setShowAddManufacturer, history)}>
                     <Form.Label>
-                        Manufacturer name
+                        {translate('Manufacturer name')}
                     </Form.Label>
                     <Form.Control type="text" placeholder="Contoso"></Form.Control>
                     {/* <Form.Control.Feedback type="invalid">{feedbackText}</Form.Control.Feedback> */}
@@ -269,10 +279,10 @@ export const CreateManufacturerModalDialog: React.FC<manufacturerDialogProps> = 
 
             <Modal.Footer>
                 <Button variant="secondary" onClick={(event) => cancelHandler(event, props.setShowAddManufacturer, history)}>
-                    Cancel
+                    {translate('Cancel')}
                 </Button>
                 <Button variant="primary" onClick={(event) => submit(event, enteredManufacturerText, props.setShowAddManufacturer, history)}>
-                    Submit new manufacturer
+                    {translate('Submit new manufacturer')}
                 </Button>
             </Modal.Footer>
 

@@ -1,7 +1,12 @@
-import React from 'react';
+import React, {Suspense} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 import {Modal, Button, Form} from 'react-bootstrap';
 import {useLocation, useHistory} from 'react-router-dom'
+
+
+import { useTranslation } from 'react-i18next';
+
+
 import {selectSelectedManufacturer} from '../manufacturers/manufacturerSlice';
 import {setEnteredModelText, selectEnteredModelText} from '../create/creationSlice';
 import {setSelectedModel, setSelectedModelName} from '../deviceModels/deviceModelsSlice';
@@ -35,10 +40,14 @@ function responseToNewModelStrongType(response: any): NewModelResponse {
     return response;
 }
 
-const ModalHeader = () =>
-    <Modal.Header closeButton>
-        <Modal.Title>Add a model to the database</Modal.Title>
-    </Modal.Header>
+const ModalHeader = () => {
+    const [translate] = useTranslation();
+    return (
+        <Modal.Header closeButton>
+            <Modal.Title>{translate("add-model")}</Modal.Title>
+        </Modal.Header>
+    );
+}
 
 
 const hideHandler = (setShowAddModel: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>) => {
@@ -125,6 +134,7 @@ export const CreateDeviceModelModalDialog: React.FC<modelDialogProps> = (props: 
     const history = useHistory();
     const dispatch = useDispatch();
     const location = useLocation();
+    const [translate] = useTranslation();
 
     const selectedManufacturer = useSelector(selectSelectedManufacturer);
     const enteredModelText = useSelector(selectEnteredModelText);
@@ -136,7 +146,7 @@ export const CreateDeviceModelModalDialog: React.FC<modelDialogProps> = (props: 
 
 
     if (selectedManufacturer === null) {
-        alert("Select a manufacturer first!");
+        alert(translate("select-manufacturer-first"));
         props.setShowAddModel(false);
         if (location.pathname.endsWith('create')) {
             debugger;
@@ -147,22 +157,24 @@ export const CreateDeviceModelModalDialog: React.FC<modelDialogProps> = (props: 
     return (
         <>
             <Modal show={props.showAddModel} onHide={() => hideHandler(props.setShowAddModel, history)}>
-                <ModalHeader/>
+                <Suspense fallback="loading translations...">
+                    <ModalHeader/>
+                </Suspense>
                 <Modal.Body>
                     (Please reduce administrative burden, don't add nuisance models. TODO: styling this text)
                     <Form noValidate onChange={(event) => onChangeEvent(event, dispatch)} onSubmit={(event) => onSubmitEvent(event, enteredModelText, props.setShowAddModel, history, selectedManufacturer, dispatch)}>
                         <Form.Label>
-                            Model name
+                            {translate('Model name')}
                         </Form.Label>
                         <Form.Control type="text" placeholder="some model name..."/>
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={(event) => cancelHandler(event, props.setShowAddModel, history)}>
-                        Cancel
+                        {translate('Cancel')}
                     </Button>
                     <Button variant="primary" onClick={(event) => submit(event, enteredModelText, props.setShowAddModel, history, selectedManufacturer, dispatch)}>
-                        Submit new model
+                        {translate('Submit new model')}
                     </Button>
                 </Modal.Footer>
             </Modal>

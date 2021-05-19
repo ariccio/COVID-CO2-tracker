@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import {Table, Button} from 'react-bootstrap';
 import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
+
+import { useTranslation } from 'react-i18next';
+
 import { devicesPath } from '../../paths/paths';
 import { deleteRequestOptions } from '../../utils/DefaultRequestOptions';
 import { ErrorObjectType } from '../../utils/ErrorObject';
@@ -20,21 +23,26 @@ const DELETE_MEASUREMENT_URL = (API_URL + '/measurement');
 
 
 
-const measurementTableHeader = (withDelete?: boolean, innerLocation?: InnerLocationDetails, withDevice?: boolean) =>
-    <thead>
-        <tr>
-            {/* <th>#</th> */}
-            <th>ID and Details</th>
-            {withDevice ? (<th>Device</th>) : null}
-            <th>CO2 PPM</th>
-            <th>time</th>
-            <th>crowding</th>
-            <th>danger level</th>
-            {innerLocation ? (<th>inner location</th>) : null}
-            {withDelete ? (<th>delete measurement</th>) : null}
-            {/* <th>measured at google place:</th> */}
-        </tr>
-    </thead>
+const MeasurementTableHeader = (props: {withDelete?: boolean, innerLocation?: InnerLocationDetails, withDevice?: boolean}) => {
+    const [translate] = useTranslation();
+    return (
+        <thead>
+            <tr>
+                {/* <th>#</th> */}
+                <th>{translate('id-and-details')}</th>
+                {props.withDevice ? (<th>{translate('Device')}</th>) : null}
+                <th>{translate('co2-ppm')}</th>
+                <th>{translate('time')}</th>
+                <th>{translate('crowding')}</th>
+                <th>{translate('danger level')}</th>
+                {props.innerLocation ? (<th>{translate('inner location')}</th>) : null}
+                {props.withDelete ? (<th>{translate('delete measurement')}</th>) : null}
+                {/* <th>measured at google place:</th> */}
+            </tr>
+        </thead>
+
+    );
+}
 
 
 function measurementRowKey(measurement_id: string): string {
@@ -101,38 +109,39 @@ const maybeInnerLocation = (measurement: SerializedSingleMeasurement, innerLocat
 }
 
 //TODO: extract to some kind of more generic risk stuff
-const riskRow = (measurement: SerializedSingleMeasurement) => {
-    if (measurement.attributes.co2ppm < 400) {
-        return (<td><i>Unreasonably low measurement</i></td>);
+const RiskRow = (props: {measurement: SerializedSingleMeasurement}) => {
+    const [translate] = useTranslation();
+    if (props.measurement.attributes.co2ppm < 400) {
+        return (<td><i>{translate('Unreasonably low measurement')}</i></td>);
     }
-    if (measurement.attributes.co2ppm < 500) {
-        return (<td><p style={{color:"green"}}><b>Very low!</b></p></td>);
+    if (props.measurement.attributes.co2ppm < 500) {
+        return (<td><p style={{color:"green"}}><b>{translate('Very low!')}</b></p></td>);
     }
-    if (measurement.attributes.co2ppm < 600) {
-        return (<td><p style={{color:"green"}}>Low</p></td>);
+    if (props.measurement.attributes.co2ppm < 600) {
+        return (<td><p style={{color:"green"}}>{translate('Low')}</p></td>);
     }
-    if (measurement.attributes.co2ppm < 700) {
-        return (<td><p style={{color:"green"}}>Fairly low</p></td>);
+    if (props.measurement.attributes.co2ppm < 700) {
+        return (<td><p style={{color:"green"}}>{translate('Fairly low')}</p></td>);
     }
-    if (measurement.attributes.co2ppm < 800) {
-        return (<td><p>Acceptable</p></td>);
+    if (props.measurement.attributes.co2ppm < 800) {
+        return (<td><p>{translate('Acceptable')}</p></td>);
     }
-    if (measurement.attributes.co2ppm < 1000) {
-        return (<td><p>Marginal/Warning</p></td>)
+    if (props.measurement.attributes.co2ppm < 1000) {
+        return (<td><p>{translate('Marginal/Warning')}</p></td>)
     }
-    if (measurement.attributes.co2ppm < 1200) {
-        return (<td><p style={{color:"red"}}><b>Bad</b></p></td>);
+    if (props.measurement.attributes.co2ppm < 1200) {
+        return (<td><p style={{color:"red"}}><b>{translate('Bad')}</b></p></td>);
     }
-    if (measurement.attributes.co2ppm < 2000) {
-        return (<td><p style={{color:"red"}}><b><u>High: Danger zone</u></b></p></td>);
+    if (props.measurement.attributes.co2ppm < 2000) {
+        return (<td><p style={{color:"red"}}><b><u>{translate('High: Danger zone')}</u></b></p></td>);
     }
-    if (measurement.attributes.co2ppm < 5000) {
-        return (<td><p style={{color:"red"}}><b><u>Extremely high: danger zone</u></b></p></td>);
+    if (props.measurement.attributes.co2ppm < 5000) {
+        return (<td><p style={{color:"red"}}><b><u>{translate('Extremely high: danger zone')}</u></b></p></td>);
     }
-    if (measurement.attributes.co2ppm < 30_000) {
+    if (props.measurement.attributes.co2ppm < 30_000) {
         return (<td><p style={{color:"red"}}><b><u><i>Abysmal, <a href="https://www.fsis.usda.gov/sites/default/files/media_file/2020-08/Carbon-Dioxide.pdf">violates OSHA, must not remain this high over 8 hours, confirm meter calibration</a></i></u></b></p></td>);
     }
-    return (<td><p style={{color:"red"}}><b><u><i>Immediate death or invalid measurement</i></u></b></p></td>);
+    return (<td><p style={{color:"red"}}><b><u><i>{translate('Immediate death or invalid measurement')}</i></u></b></p></td>);
 }
 
 const deviceIDOrSerialWithLink = (id: string, deviceSerials?: Array<SerializedSingleDeviceSerial>) => {
@@ -177,7 +186,9 @@ const mapMeasurementsToTableBody = (measurements: Array<SerializedSingleMeasurem
                 {/* Displays the measurement as if it were taken in the timezone where the user currently is. It's painful to adjust the timezone according to the google places time offset, so this works for now. */}
                 <td>{new Date(measurement.attributes.measurementtime).toString()}</td>
                 <td>{measurement.attributes.crowding}</td>
-                {riskRow(measurement)}
+                <Suspense fallback="loading translations...">
+                    <RiskRow measurement={measurement}/>
+                </Suspense>
                 {maybeInnerLocation(measurement, innerLocation)}
                 {maybeDeleteButton(measurement, dispatch, withDelete)}
                 {/* <td>{measurement.place.google_place_id}</td> */}
@@ -257,11 +268,13 @@ export const MeasurementsTable: React.FC<MeasurementsTableProps> = (props: Measu
     // debugger;
     return (
         <>
-            <Table striped bordered hover>
-                {measurementTableHeader(props.withDelete, props.innerLocation, props.withDevice)}
-                {measureTableBody(props.measurements, dispatch, setShowMeasurementModal, setSelectedMeasurement, props.withDelete, props.innerLocation, props.deviceSerials, props.withDevice)}
-            </Table>
-            <ShowMeasurementModal showMeasurementModal={showMeasurementModal} setShowMeasurementModal={setShowMeasurementModal} selectedMeasurement={selectedMeasurement} setSelectedMeasurement={setSelectedMeasurement}/>
+            <Suspense fallback="loading translations">
+                <Table striped bordered hover>
+                    <MeasurementTableHeader withDelete={props.withDelete} innerLocation={props.innerLocation} withDevice={props.withDevice} />
+                    {measureTableBody(props.measurements, dispatch, setShowMeasurementModal, setSelectedMeasurement, props.withDelete, props.innerLocation, props.deviceSerials, props.withDevice)}
+                </Table>
+                <ShowMeasurementModal showMeasurementModal={showMeasurementModal} setShowMeasurementModal={setShowMeasurementModal} selectedMeasurement={selectedMeasurement} setSelectedMeasurement={setSelectedMeasurement}/>
+            </Suspense>
         </>
     )
 }
