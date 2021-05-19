@@ -1,0 +1,9 @@
+Note to self, if port 3000 cannot be opened on windows, the cause is that the port is EXCLUDED/RESERVED, not in use.
+
+
+See if it's in this list here, by this command:
+
+netsh interface ipv4 show excludedportrange protocol=tcp
+
+
+...and if it is, then RESTART UNTIL IT'S NOT!

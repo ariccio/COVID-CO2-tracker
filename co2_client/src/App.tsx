@@ -10,7 +10,7 @@ import * as Sentry from "@sentry/react";
 // import {RootState} from './app/rootReducer';
 // import {selectUsername, setUsername} from './features/login/loginSlice';
 import {NavBar} from './features/nav/Nav';
-import {HomePage} from './features/home/HomePage';
+import {HomePageContainer} from './features/home/HomePage';
 import {Profile} from './features/profile/Profile';
 // import {LoginComponent, SignupComponent} from './features/login/Login';
 import {Devices, Device} from './features/devices/Devices';
@@ -40,7 +40,7 @@ const notFound = () => {
   //TODO: make this a switch router for 404 handling.
 const routes = () =>
   <Switch>
-    <Route exact path={homePath} component={HomePage}/>
+    <Route exact path={homePath} component={HomePageContainer}/>
     <Route exact path={profilePath} component={Profile}/>
     {/* <Route exact path={loginPath} component={LoginComponent} /> */}
     {/* <Route exact path={signupPath} component={SignupComponent}/> */}

@@ -7,6 +7,11 @@ import {selectSelectedPlace, selectPlacesServiceStatus, autocompleteSelectedPlac
 import { GoogleMap, useJsApiLoader, Autocomplete, Marker, MarkerClusterer } from '@react-google-maps/api';
 import { Button, Form } from 'react-bootstrap';
 
+
+import { useTranslation } from 'react-i18next';
+
+
+
 import {setSelectedPlace, INTERESTING_FIELDS} from './googleSlice';
 
 import {updatePlacesInfoFromBackend, queryPlacesInBoundsFromBackend} from '../../utils/QueryPlacesInfo';
@@ -618,6 +623,9 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
 
 
     const dispatch = useDispatch();
+
+    const [translate] = useTranslation();
+
     const [center, setCenter] = useState(defaultCenter);
     
     const [map, setMap] = React.useState(null as google.maps.Map | null);
@@ -716,10 +724,10 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
                     invokeBrowserGeolocation(setCenter, geolocationInProgress, setGeolocationInProgress);
                     }
                 }>
-                    {geolocationInProgress ? "geolocation running..." : "Find me!"}
+                    {geolocationInProgress ? "geolocation running..." : translate('find-me')}
                 </Button>
                 <br/>
-                {placesServiceStatus !== null ? `Last google places query status: ${placesServiceStatus}` : null}
+                {placesServiceStatus !== null ? (translate('last-query-status') + placesServiceStatus) : null}
             </>
         );
     }

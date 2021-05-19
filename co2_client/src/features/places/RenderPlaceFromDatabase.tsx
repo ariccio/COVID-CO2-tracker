@@ -1,30 +1,36 @@
 import React from 'react';
+
+import { useTranslation } from 'react-i18next';
+
 import { MeasurementsByDropdown } from '../measurements/MeasurementsByDropdown';
 import { defaultPlaceInfo, SelectedPlaceDatabaseInfo } from './placesSlice';
 
-export const renderFromDatabaseNoGoogleParam = (selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo, selectedPlaceInfoErrors: string, selectedPlaceExistsInDatabase: boolean | null) => {
-    if (selectedPlaceInfoErrors !== '') {
+
+export const RenderFromDatabaseNoGoogleParam = (props: {selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo, selectedPlaceInfoErrors: string, selectedPlaceExistsInDatabase: boolean | null}) => {
+    const [translate] = useTranslation();
+
+    if (props.selectedPlaceInfoErrors !== '') {
         return (
             <>
                 <div>
-                    Failed to fetch measurement info from the database! {selectedPlaceInfoErrors}
+                    {translate('failed-fetch-measurement-database')} {props.selectedPlaceInfoErrors}
                 </div>
             </>
         )
     }
-    if (selectedPlaceInfoFromDatabase === defaultPlaceInfo) {
+    if (props.selectedPlaceInfoFromDatabase === defaultPlaceInfo) {
         // console.assert(selectedPlaceInfoFromDatabase.measurements === null);
-        if (selectedPlaceExistsInDatabase === null) {
+        if (props.selectedPlaceExistsInDatabase === null) {
             return (
                 <>
-                    Querying database to see if we already know about this place...
+                    {translate('querying-database-check-know')}
                 </>
             )
         }
-        if (selectedPlaceExistsInDatabase === false) {
+        if (props.selectedPlaceExistsInDatabase === false) {
             return (
                 <div>
-                    No measurements uploaded for this place yet.
+                    {translate('no-measurements-uploaded-yet')}
                 </div>
             )    
         }
@@ -36,23 +42,23 @@ export const renderFromDatabaseNoGoogleParam = (selectedPlaceInfoFromDatabase: S
             </>
         );
     }
-    console.assert(selectedPlaceExistsInDatabase !== null);
-    console.assert(selectedPlaceExistsInDatabase !== false);
-    if (selectedPlaceInfoFromDatabase.measurements_by_sublocation === undefined) {
-        console.assert(selectedPlaceInfoFromDatabase === defaultPlaceInfo);
+    console.assert(props.selectedPlaceExistsInDatabase !== null);
+    console.assert(props.selectedPlaceExistsInDatabase !== false);
+    if (props.selectedPlaceInfoFromDatabase.measurements_by_sublocation === undefined) {
+        console.assert(props.selectedPlaceInfoFromDatabase === defaultPlaceInfo);
         console.error("invalid state, maybe internal server error.");
         debugger;
-        if ((selectedPlaceInfoFromDatabase as any).error !== undefined) {
+        if ((props.selectedPlaceInfoFromDatabase as any).error !== undefined) {
             return (
                 <>
-                    {(selectedPlaceInfoFromDatabase as any).error}
+                    {(props.selectedPlaceInfoFromDatabase as any).error}
                 </>
             )
         }
         return null;
     }
     //TODO: need strong type in updatePlacesInfoFromBackend, else this can be undefined!
-    if (selectedPlaceInfoFromDatabase.measurements_by_sublocation.length === 0) {
+    if (props.selectedPlaceInfoFromDatabase.measurements_by_sublocation.length === 0) {
         // debugger;
         return (
             <div>
@@ -63,7 +69,7 @@ export const renderFromDatabaseNoGoogleParam = (selectedPlaceInfoFromDatabase: S
     // debugger;
     return (
         <>
-            <MeasurementsByDropdown selectedPlaceInfoFromDatabase={selectedPlaceInfoFromDatabase}/>
+            <MeasurementsByDropdown selectedPlaceInfoFromDatabase={props.selectedPlaceInfoFromDatabase}/>
             
         </>
     )

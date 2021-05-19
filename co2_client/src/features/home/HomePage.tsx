@@ -1,7 +1,9 @@
-import React, {FunctionComponent, useEffect, useState, useRef} from 'react';
+import React, {FunctionComponent, useEffect, useState, useRef, Suspense} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {useLocation} from 'react-router-dom';
 import Button from 'react-bootstrap/Button';
+
+import { useTranslation } from 'react-i18next';
 
 import {Container, Row, Col} from 'react-bootstrap';
 
@@ -16,7 +18,7 @@ import {selectPlacesInfoFromDatabase, selectPlacesInfoErrors, SelectedPlaceDatab
 
 import {renderNewMeasurementButton} from './NewMeasurementButton';
 import { YOUTUBE_VIDEO_INSTRUCTIONS_URL } from '../../utils/UrlPath';
-import { renderFromDatabaseNoGoogleParam } from '../places/RenderPlaceFromDatabase';
+import { RenderFromDatabaseNoGoogleParam } from '../places/RenderPlaceFromDatabase';
 import { renderSelectedPlaceInfo } from '../places/RenderPlaceInfo';
 
 
@@ -26,7 +28,9 @@ const renderMapsWhenLoaded = (mapsAPIKey: string) => {
     if (mapsAPIKey !== '') {
         return (
             <>
-                <GoogleMapsContainer api_key={mapsAPIKey}/>
+                <Suspense fallback="google maps container loading translations...">
+                    <GoogleMapsContainer api_key={mapsAPIKey}/>
+                </Suspense>
             </>
         )
     }
@@ -53,7 +57,13 @@ const renderInfoFromDatabase = (selectedPlaceInfoFromDatabase: SelectedPlaceData
         //No place selected yet.
         return null;
     }
-    return renderFromDatabaseNoGoogleParam(selectedPlaceInfoFromDatabase, selectedPlaceInfoErrors, selectedPlaceExistsInDatabase);
+    return (
+        <>
+            <Suspense fallback="loading translations...">
+                <RenderFromDatabaseNoGoogleParam selectedPlaceInfoFromDatabase={selectedPlaceInfoFromDatabase} selectedPlaceInfoErrors={selectedPlaceInfoErrors} selectedPlaceExistsInDatabase={selectedPlaceExistsInDatabase} />
+            </Suspense>
+        </>
+    )
 }
 
 const renderPlace = (currentPlace: google.maps.places.PlaceResult, location: ReturnType<typeof useLocation>, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, showCreateNewMeasurement: boolean, selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo, selectedPlaceInfoErrors: string, placesServiceStatus: google.maps.places.PlacesServiceStatus | null, selectedPlaceExistsInDatabase: boolean | null) => {
@@ -90,12 +100,13 @@ function renderWelcomeLoading() {
     );
 }
 
-export const HomePage: FunctionComponent<{}> = (props: any) => {
+const HomePage: FunctionComponent<{}> = (props: any) => {
     // const [mapsAPIKey, setMapsAPIKey] = useState("");
     // const [errorState, setErrorState] = useState("");
     // TODO: when navigating BACK to home page from place, pan map to that place.
     const location = useLocation();
     const dispatch = useDispatch();
+    const [translate] = useTranslation();
 
     const [showCreateNewMeasurement, setShowCreateNewMeasurement] = useState(false);
 
@@ -137,9 +148,9 @@ export const HomePage: FunctionComponent<{}> = (props: any) => {
 
     return (
         <>
-            <h3>Welcome to the COVID CO2 Tracker!</h3>
+            <h3>{translate('welcome-header')}</h3>
             <br/>
-            <Button href={YOUTUBE_VIDEO_INSTRUCTIONS_URL}>Instruction video</Button>
+            <Button href={YOUTUBE_VIDEO_INSTRUCTIONS_URL}>{translate('Instruction video')}</Button>
             <br/>
             <br/>
             <br/>
@@ -168,3 +179,13 @@ export const HomePage: FunctionComponent<{}> = (props: any) => {
     )
 }
 
+export const HomePageContainer = () => {
+    return (
+        <>
+            <Suspense fallback="home page translations loading...">
+                <HomePage/>
+            </Suspense>
+        </>
+    )
+
+}

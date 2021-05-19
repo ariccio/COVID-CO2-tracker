@@ -1,0 +1,14 @@
+{
+    "Home" : "Home",
+    "Devices": "Devices",
+    "Models": "Models",
+    "Places": "Places",
+    "sponsor": "sponsor",
+    "welcome-header": "Welcome to the COVID CO2 Tracker!",
+    "Instruction video": "Instruction video",
+    "find-me": "Find me!",
+    "last-query-status": "Last google places query status: ",
+    "failed-fetch-measurement-database": "Failed to fetch measurement info from the database!",
+    "querying-database-check-know": "Querying database to see if we already know about this place...",
+    "no-measurements-uploaded-yet": "No measurements uploaded for this place yet."
+}

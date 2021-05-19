@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, Suspense} from 'react'; // suspense is for i18n
 import { useSelector, useDispatch } from 'react-redux';
 // import {Link, Redirect} from 'react-router-dom';
 import NavItem from 'react-bootstrap/NavItem';
@@ -7,6 +7,10 @@ import Nav from 'react-bootstrap/Nav';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 
 import { LinkContainer } from 'react-router-bootstrap';
+
+
+import { useTranslation } from 'react-i18next';
+
 
 // import {Login, LoginFormType} from '../login/Login';
 // import {Logout} from '../login/Logout';
@@ -91,34 +95,38 @@ interface UserNavProps {
 //     )
 // }
 
-const UserNav: React.FC<UserNavProps> = ({username, googleProfile}) =>
+const UserNav: React.FC<UserNavProps> = ({username, googleProfile}) => {
+  const [translate] = useTranslation();
+  return (
     <Navbar expand="sm" /*bg="dark" variant="dark"*/ >
         <Navbar.Toggle aria-controls="basic-navbar-nav"/>
         <Navbar.Collapse  id="basic-navbar-nav">
             <Nav justify={true} fill={false} variant="tabs" style={{display:"flex", flexDirection:"row", float: "left"}}>
                 <LinkContainer to={homePath}>
-                    <Nav.Link>Home</Nav.Link>
+                    <Nav.Link>{translate('Home')}</Nav.Link>
                 </LinkContainer>
                 <LinkContainer to={devicesPath}>
-                    <Nav.Link>Devices</Nav.Link>
+                    <Nav.Link>{translate('Devices')}</Nav.Link>
                 </LinkContainer>
                 <LinkContainer to={deviceModelsPath}>
-                    <Nav.Link>Models</Nav.Link>
+                    <Nav.Link>{translate('Models')}</Nav.Link>
                 </LinkContainer>
                 <LinkContainer to={placesPath}>
-                    <Nav.Link>Places</Nav.Link>
+                    <Nav.Link>{translate('Places')}</Nav.Link>
                 </LinkContainer>
 
             </Nav>
             <Nav className="container-fluid justify-content-end" variant="tabs" style={{display:"flex", flexDirection:"row", float: "right"}}>
                 {/* {profileIfLoggedIn(username)} */}
-                <Nav.Link href="https://github.com/ariccio/COVID-CO2-tracker">Github/sponsor</Nav.Link>
+                <Nav.Link href="https://github.com/ariccio/COVID-CO2-tracker">Github/{translate('sponsor')}</Nav.Link>
                 {loginOrSignupMaybe(username)}
                 {/* <LinkContainer to='/logout'><NavItem className='nav-item'>Logout {props.username}</NavItem></LinkContainer> */}
                 {/* <NavItem className='nav-item' pullRight>{props.username}</NavItem> */}
             </Nav>
         </Navbar.Collapse>
     </Navbar>
+  );
+}
 
 const loadEmail = (dispatch: ReturnType<typeof useDispatch>) => {
   const emailPromise = get_email();
@@ -154,6 +162,8 @@ export const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
     //   debugger;
     // }
     const dispatch = useDispatch();
+
+    
     useEffect(() => {loadEmail(dispatch)}, [dispatch]);
     
     // Force reload of page after 59 minutes to avoid login timeout. Ugly hack but whatevs.
@@ -173,5 +183,11 @@ export const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
     // if (username !== '') {
     //   console.log(`Current username: ${username}`)
     // }
-    return <UserNav username={username} googleProfile={googleProfile}/>;
+    return (
+     <>
+      <Suspense fallback="navbar loading translations...">
+        <UserNav username={username} googleProfile={googleProfile}/>;
+      </Suspense>
+     </> 
+    );
 }

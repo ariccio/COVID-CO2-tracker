@@ -15,6 +15,9 @@ import reportWebVitals from './reportWebVitals';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 
+// import i18n (needs to be bundled ;)) 
+import './i18n';
+
 Sentry.init({
   dsn: "https://5c72ea76ca204179b35fa8a3eb847ab0@o584271.ingest.sentry.io/5737166",
   integrations: [new Integrations.BrowserTracing()],

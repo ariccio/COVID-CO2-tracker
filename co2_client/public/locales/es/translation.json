@@ -1,0 +1,18 @@
+{
+
+    "Home" : "Casa",
+    "Devices": "Dispositivos",
+    "Models": "Modelos",
+    "Places": "Lugares",
+    "sponsor": "patrocinador",
+    "welcome-header": "Bienvenido al COVID CO2 Tracker",
+    "Instruction video": "Video de instrucción",
+    "find-me": "¡Encuentrame!",
+    "last-query-status": "Último estado de consulta de Google Places:",
+    "failed-fetch-measurement-database": "¡No se pudo recuperar la información de medición de la base de datos!",
+    "querying-database-check-know": "Consultando la base de datos para ver si ya conocemos este lugar ...",
+    "no-measurements-uploaded-yet": "Aún no se han subido medidas para este lugar.",
+    "zero-measurements-place": "Cero mediciones registradas para este lugar."
+
+}
+
