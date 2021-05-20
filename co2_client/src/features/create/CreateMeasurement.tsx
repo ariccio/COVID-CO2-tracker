@@ -2,6 +2,9 @@ import React, {useState, useEffect, Suspense} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 import {Modal, Button, Form, Dropdown, ToggleButtonGroup, ToggleButton} from 'react-bootstrap';
 import DatePicker from 'react-datepicker';
+
+import * as Sentry from "@sentry/browser"; // for manual error reporting.
+
 // import {useLocation, useHistory} from 'react-router-dom'
 
 import { useTranslation } from 'react-i18next';
@@ -108,9 +111,19 @@ const selectDeviceDropdownHandler = (eventKey: string | null, e: React.Synthetic
 const SelectDeviceDropdown = (props: {userDevices: UserDevicesInfo, selectedDevice: number, selectedModelName: string, selectedDeviceSerialNumber: string}) => {
     const dispatch = useDispatch();
     const [translate] = useTranslation();
+    // const [devicesStatus, setDevicesStatus] = useState("");
+
     if (props.userDevices.devices === undefined) {
         throw new Error(`userDevices.devices is undefined, this is a bug in CreateMeasurement.tsx! Selected device: ${props.selectedDevice}, selectedModelName: ${props.selectedModelName}, selectedDeviceSerialNumber: ${props.selectedDeviceSerialNumber}`);
     }
+
+    // "no-devices-yet-loading": "No devices, yet. Loading..."
+    // useEffect(() => {
+    //     if (props.userDevices === defaultDevicesInfo) {
+    //         setDevicesStatus(translate("no-devices-yet-loading"))
+    //     }
+    // }, [props.userDevices, translate]);
+
     return (
         <>
             <Dropdown onSelect={(eventKey: string | null, event: React.SyntheticEvent<unknown>) => selectDeviceDropdownHandler(eventKey, event, props.userDevices, dispatch)}>
@@ -550,6 +563,12 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
             if (userDeviceInfo.errors !== undefined) {
                 console.warn(formatErrors(userDeviceInfo.errors));
                 setErrorState(formatErrors(userDeviceInfo.errors));
+                const formatted = formatErrors(userDeviceInfo.errors);
+
+                // Some users are seeing weird errors in safari in spanish. Force report them.
+                if (formatted.includes("webkit")) {
+                    Sentry.captureMessage(formatted);
+                }
             }
             console.table(userDeviceInfo.devices);
             setUserDevices(userDeviceInfo);
@@ -557,6 +576,11 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
             console.warn(error);
             console.warn(error.message);
             setErrorState(error.message);
+
+            // Some users are seeing weird errors in safari in spanish. Force report them.
+            if (error.message.includes("webkit")) {
+                Sentry.captureException(error);
+            }
         })
     }, [username])
 
