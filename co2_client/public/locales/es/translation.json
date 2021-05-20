@@ -78,7 +78,13 @@
     "Device ID": "ID del dispositivo",
     "Serial #": "Número de serie",
     "Device model": "Modelo de dispositivo",
-    "Device manufacturer": "Fabricante del dispositivo"
+    "Device manufacturer": "Fabricante del dispositivo",
+    "measurement-by-device": "Medida realizada por el dispositivo n.º",
+    "Measurement taken by": "Medida tomada por",
+    "Recorded CO2": "CO2 registrado",
+    "Measurement taken date and time": "Fecha y hora tomadas de la medición",
+    "Measurement created in database time": "Medida creada en el tiempo de la base de datos",
+    "Measurement last updated in database": "Medida actualizada por última vez en la base de datos"
 
 }
 

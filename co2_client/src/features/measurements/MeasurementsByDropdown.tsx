@@ -161,7 +161,7 @@ export const MeasurementsByDropdown: React.FC<MeasurementsByDropdownProps> = (pr
         console.log("some kind of error while loading device serial numbers...");
         return (
             <>
-                {translate('error-loading-device-serials')}{deviceSerialsErrorState}
+                {translate('error-loading-device-serials')} {deviceSerialsErrorState}
             </>
         )
     }

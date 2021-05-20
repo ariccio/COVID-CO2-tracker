@@ -1,11 +1,12 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, Suspense } from 'react';
 import {Modal} from 'react-bootstrap';
-import { formatErrors } from '../../utils/ErrorObject';
-import { fetchSingleDeviceName, SerializedSingleDeviceSerial } from '../../utils/QueryDeviceInfo';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { devicesPath } from '../../paths/paths';
 
 // import {SerializedSingleMeasurement} from '../../utils/QueryDeviceInfo';
+import { formatErrors } from '../../utils/ErrorObject';
+import { fetchSingleDeviceName, SerializedSingleDeviceSerial } from '../../utils/QueryDeviceInfo';
 
 import {ShowMeasurementResponse, queryMeasurementInfo, defaultShowMeasurementResponse} from '../../utils/QueryMeasurementInfo';
 import { useSelector } from 'react-redux';
@@ -24,27 +25,28 @@ const ModalHeader = (props: {measurementID: string}) =>
         <Modal.Title>Measurement #{props.measurementID}</Modal.Title>
     </Modal.Header>
 
-const renderDeviceIDOrSerial = (measurementInfo: ShowMeasurementResponse, deviceSerials: Array<SerializedSingleDeviceSerial>, deviceSerialsErrorState: string) => {
-    const id = measurementInfo.data.data.relationships.device.data.id;
-    if (deviceSerialsErrorState !== '') {
+const DeviceIDOrSerial = (props: {measurementInfo: ShowMeasurementResponse, deviceSerials: Array<SerializedSingleDeviceSerial>, deviceSerialsErrorState: string}) => {
+    const [translate] = useTranslation();
+    const id = props.measurementInfo.data.data.relationships.device.data.id;
+    if (props.deviceSerialsErrorState !== '') {
         return (
             <>
                 Error getting serial # for device # <Link to={`${devicesPath}/${id}`}>{id}</Link>
-                Error details: {deviceSerialsErrorState}
+                Error details: {props.deviceSerialsErrorState}
             </>
         );
     }
-    if (deviceSerials.length > 0) {
+    if (props.deviceSerials.length > 0) {
         // debugger;
         return (
             <>
-                Measurement taken by device # <Link to={`${devicesPath}/${id}`}>{id}</Link>, serial # {deviceSerials[0].attributes.serial}
+                {translate("measurement-by-device")} <Link to={`${devicesPath}/${id}`}>{id}</Link>, {translate("Serial #")} {props.deviceSerials[0].attributes.serial}
             </>
         )
     }
     return (
         <>
-            Measurement taken by device # <Link to={`${devicesPath}/${id}`}>{id}</Link>, loading serial #...
+            {translate("measurement-by-device")} <Link to={`${devicesPath}/${id}`}>{id}</Link>, loading {translate("Serial #")}...
         </>
     )
 }
@@ -88,16 +90,17 @@ const renderPlaceDetails = (measurementInfo: ShowMeasurementResponse, elementRef
     )
 }
 
-const renderModalBody = (errors: string, measurementInfo: ShowMeasurementResponse, deviceSerials: Array<SerializedSingleDeviceSerial>, deviceSerialsErrorState: string, elementRef: React.MutableRefObject<HTMLDivElement | null>, mapsAPIKey: string, mapsAPIKeyErrorState: string) => {
-    if (errors !== '') {
+const RenderModalBody = (props: {errors: string, measurementInfo: ShowMeasurementResponse, deviceSerials: Array<SerializedSingleDeviceSerial>, deviceSerialsErrorState: string, elementRef: React.MutableRefObject<HTMLDivElement | null>, mapsAPIKey: string, mapsAPIKeyErrorState: string}) => {
+    const [translate] = useTranslation();
+    if (props.errors !== '') {
         return (
             <>
-                Error while loading measurement info. Details: {errors}
+                Error while loading measurement info. Details: {props.errors}
             </>
         )
     }
 
-    if (measurementInfo === defaultShowMeasurementResponse) {
+    if (props.measurementInfo === defaultShowMeasurementResponse) {
         return (
             <>
                 Loading info for measurement...
@@ -109,31 +112,33 @@ const renderModalBody = (errors: string, measurementInfo: ShowMeasurementRespons
     return (
         <>
             <Modal.Body>
-                Measurement taken by: {measurementInfo.taken_by}
+                {translate("Measurement taken by")}: {props.measurementInfo.taken_by}
                 <br/>
                 <br/>
-                {renderDeviceIDOrSerial(measurementInfo, deviceSerials, deviceSerialsErrorState)}
+                <Suspense fallback="Loading translations...">
+                    <DeviceIDOrSerial measurementInfo={props.measurementInfo} deviceSerials={props.deviceSerials} deviceSerialsErrorState={props.deviceSerialsErrorState}/>
+                </Suspense>
                 <br/>
                 <br/>
-                Recorded CO2: {measurementInfo.data.data.attributes.co2ppm}
+                {translate("Recorded CO2")}: {props.measurementInfo.data.data.attributes.co2ppm}
                 <br/>
                 <br/>
-                Crowding (1-5): {measurementInfo.data.data.attributes.crowding}
+                {translate("crowding-level")}: {props.measurementInfo.data.data.attributes.crowding}
                 <br/>
                 <br/>
-                Measurement taken date and time: {new Date(measurementInfo.data.data.attributes.measurementtime).toString()}
+                {translate("Measurement taken date and time")}: {new Date(props.measurementInfo.data.data.attributes.measurementtime).toString()}
                 <br/>
                 <br/>
-                Measurement created in database time: {new Date(measurementInfo.data.data.attributes.created_at).toString()}
+                {translate("Measurement created in database time")}: {new Date(props.measurementInfo.data.data.attributes.created_at).toString()}
                 <br/>
                 <br/>
-                Measurement last updated in database: {new Date(measurementInfo.data.data.attributes.updated_at).toString()}
+                {translate("Measurement last updated in database")}: {new Date(props.measurementInfo.data.data.attributes.updated_at).toString()}
                 {/* <br/> */}
                 {/* <br/> */}
                 {/* Measurement place_id: {measurementInfo.place_id} */}
                 <br/>
                 <br/>
-                {renderPlaceDetails(measurementInfo, elementRef, mapsAPIKey, mapsAPIKeyErrorState)}
+                {renderPlaceDetails(props.measurementInfo, props.elementRef, props.mapsAPIKey, props.mapsAPIKeyErrorState)}
             </Modal.Body>
 
         </>
@@ -212,7 +217,9 @@ export const ShowMeasurementModal: React.FC<ShowMeasurementModalProps> = (props:
             <Modal show={props.showMeasurementModal} onHide={() => {props.setShowMeasurementModal(false);} }>
                 <ModalHeader measurementID={props.selectedMeasurement}/>
                 <DivElem elementRef={elementRef}/>
-                {renderModalBody(errors, measurementInfo, deviceSerials, deviceSerialsErrorState, elementRef, mapsAPIKey, mapsAPIKeyErrorState)}
+                <Suspense fallback="Loading translation">
+                    <RenderModalBody errors={errors} measurementInfo={measurementInfo} deviceSerials={deviceSerials} deviceSerialsErrorState={deviceSerialsErrorState} elementRef={elementRef} mapsAPIKey={mapsAPIKey} mapsAPIKeyErrorState={mapsAPIKeyErrorState}/>
+                </Suspense>
             </Modal>
 
         </>

@@ -627,7 +627,7 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
                         {translate('Cancel')}
                     </Button>
                     <Button variant="primary" onClick={(event) => submitHandler(event, selectedDevice, enteredCO2Text, place_id, props.setShowCreateNewMeasurement, placeExistsInDatabase, dispatch, setErrorState, enteredCrowding, enteredLocationDetails, selectedSubLocation, userTimeRadioValue, dateTime)}>
-                        Submit new measurement
+                        {translate("Submit new measurement")}
                     </Button>
                 </Modal.Footer>
 
