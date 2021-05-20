@@ -186,7 +186,7 @@ export const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
     return (
      <>
       <Suspense fallback="navbar loading translations...">
-        <UserNav username={username} googleProfile={googleProfile}/>;
+        <UserNav username={username} googleProfile={googleProfile}/>
       </Suspense>
      </> 
     );
