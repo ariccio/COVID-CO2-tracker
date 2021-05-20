@@ -22,7 +22,7 @@ export const NewMeasurementButton = (props: {currentPlace: google.maps.places.Pl
     return (
         <>
             <Button variant="primary" onClick={(event) => clickHandler(event, props.setShowCreateNewMeasurement, props.showCreateNewMeasurement)}>
-                <b>{translate('upload-new-measurement')}<i>{props.currentPlace.name}</i></b>
+                <b>{translate('upload-new-measurement')} <i>{props.currentPlace.name}</i></b>
             </Button>
             {/* <Link to={{pathname:`/places/???/createmeasurement`, state: {background: location}}} className="btn btn-primary">
                 
