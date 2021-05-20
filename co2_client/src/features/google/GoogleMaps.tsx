@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {useDispatch} from 'react-redux';
 import {useSelector} from 'react-redux';
 
-import {selectSelectedPlace, selectPlacesServiceStatus, autocompleteSelectedPlaceToAction, placeResultWithTranslatedType} from '../google/googleSlice';
+import * as Sentry from "@sentry/browser"; // for manual error reporting.
+
 
 import { GoogleMap, useJsApiLoader, Autocomplete, Marker, MarkerClusterer } from '@react-google-maps/api';
 import { Button, Form } from 'react-bootstrap';
@@ -11,6 +12,7 @@ import { Button, Form } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 
 
+import {selectSelectedPlace, selectPlacesServiceStatus, autocompleteSelectedPlaceToAction, placeResultWithTranslatedType} from '../google/googleSlice';
 
 import {setSelectedPlace, INTERESTING_FIELDS} from './googleSlice';
 
@@ -115,8 +117,9 @@ const errorPositionCallback = (error: GeolocationPositionError_, geolocationInPr
     }
     else if (error.code === /*GeolocationPositionError.POSITION_UNAVAILABLE*/ 2) {
         console.error("The position of the device could not be determined. For instance, one or more of the location providers used in the location acquisition process reported an internal error that caused the process to fail entirely.");
-        console.error("perusing the chromium sources suggests failed network location provider requests are one example.")
+        console.error("perusing the chromium sources suggests failed network location provider requests are one example.");
         alert("Some kind of internal error getting the position. No further information available. Move map manually. Sorry!");
+        Sentry.captureMessage("GeolocationPositionError.POSITION_UNAVAILABLE");
         return;
     }
     else if (error.code === /*GeolocationPositionError.TIMEOUT*/ 3) {

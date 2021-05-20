@@ -11,6 +11,8 @@ import { LinkContainer } from 'react-router-bootstrap';
 
 import { useTranslation } from 'react-i18next';
 
+import * as Sentry from "@sentry/browser"; // for manual error reporting.
+
 
 // import {Login, LoginFormType} from '../login/Login';
 // import {Logout} from '../login/Logout';
@@ -138,6 +140,7 @@ const loadEmail = (dispatch: ReturnType<typeof useDispatch>) => {
     if (email.errors === undefined){
       if (email.email === undefined) {
         alert("undefined response from server. Likely internal server error getting username!");
+        Sentry.captureMessage("undefined email and errors");
         debugger;
       }
       // console.log("got email: ", email.email)

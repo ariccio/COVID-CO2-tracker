@@ -2,6 +2,9 @@ import React, {Suspense} from 'react';
 
 import { useTranslation } from 'react-i18next';
 
+import * as Sentry from "@sentry/browser"; // for manual error reporting.
+
+
 import { MeasurementsByDropdown } from '../measurements/MeasurementsByDropdown';
 import { defaultPlaceInfo, SelectedPlaceDatabaseInfo } from './placesSlice';
 
@@ -47,6 +50,7 @@ export const RenderFromDatabaseNoGoogleParam = (props: {selectedPlaceInfoFromDat
     if (props.selectedPlaceInfoFromDatabase.measurements_by_sublocation === undefined) {
         console.assert(props.selectedPlaceInfoFromDatabase === defaultPlaceInfo);
         console.error("invalid state, maybe internal server error.");
+        Sentry.captureMessage("invalid state while rendering place from database");
         debugger;
         if ((props.selectedPlaceInfoFromDatabase as any).error !== undefined) {
             return (

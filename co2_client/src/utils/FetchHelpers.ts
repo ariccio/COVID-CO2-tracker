@@ -1,3 +1,6 @@
+import * as Sentry from "@sentry/browser"; // for manual error reporting.
+
+
 import {formatErrors} from './ErrorObject';
 
 function dumpHeaders(headers: Headers, asError: boolean): void {
@@ -193,8 +196,9 @@ export async function fetchFailed(awaitedResponseOriginal: Response, expectedSta
             console.error("maybe internal server error?");
             console.error(parsedJSONResponse.error);
             if (alertErrors) {
-                alert("possible internal server error, check debugger for details!");
+                alert("possible internal server error, automatically reported!");
             }
+            Sentry.captureMessage("possible internal server error in response to fetch?");
             debugger;
         }
         // debugger;
@@ -220,7 +224,8 @@ export async function fetchFailed(awaitedResponseOriginal: Response, expectedSta
         if (parsedJSONResponse.error !== undefined) {
             console.error("maybe internal server error?");
             console.error(parsedJSONResponse.error);
-            alert("possible internal server error, check debugger for details!");
+            alert("possible internal server error, automatically reported!");
+            Sentry.captureMessage("possible internal server error in response to fetch?");
             // if (alertErrors) {
             // }
             debugger;
