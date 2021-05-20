@@ -8,7 +8,7 @@ import { selectPlaceExistsInDatabase, selectPlacesInfoErrors, selectPlacesInfoFr
 // import { renderSelectedPlaceInfo} from '../home/HomePage';
 import { selectMapsAPIKey, selectMapsAPIKeyErrorState, setMapsAPIKey, setMapsAPIKeyErrorState } from '../google/googleSlice';
 import { getGoogleMapsJavascriptAPIKey } from '../../utils/GoogleAPIKeys';
-import { renderFromDatabaseNoGoogleParam } from './RenderPlaceFromDatabase';
+import { RenderFromDatabaseNoGoogleParam } from './RenderPlaceFromDatabase';
 
 import {PlaceDetails} from './PlaceDetails';
 
@@ -99,7 +99,7 @@ export const Place: React.FC<RouteComponentProps<PlaceProps>> = (props) => {
             Place {props.match.params.placeId}
             <DivElem elementRef={elementRef}/>
             <PlaceDetails mapsAPIKey={mapsAPIKey} placeId={props.match.params.placeId} divRef={elementRef}/>
-            {renderFromDatabaseNoGoogleParam(selectedPlaceInfoFromDatabase, selectedPlaceInfoFromDatabaseErrors, selectedPlaceExistsInDatabase)}
+            <RenderFromDatabaseNoGoogleParam selectedPlaceInfoFromDatabase={selectedPlaceInfoFromDatabase} selectedPlaceInfoErrors={selectedPlaceInfoFromDatabaseErrors} selectedPlaceExistsInDatabase={selectedPlaceExistsInDatabase}/>
             <br/>
             There will be graphs and risk analysis here, eventually.
         </>

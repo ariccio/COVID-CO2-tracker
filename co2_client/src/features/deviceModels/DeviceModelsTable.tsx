@@ -57,7 +57,9 @@ const deviceModelsBody = (models: Array<ManufacturerModelInfo>, dispatch: Return
 
 const renderTable = (models: Array<ManufacturerModelInfo>, dispatch: ReturnType<typeof useDispatch>) =>
     <Table striped bordered hover>
-        {ModelsTableHeader()}
+        <Suspense fallback="Loading translations...">
+            <ModelsTableHeader/>
+        </Suspense>
         {deviceModelsBody(models, dispatch)}
     </Table>
 

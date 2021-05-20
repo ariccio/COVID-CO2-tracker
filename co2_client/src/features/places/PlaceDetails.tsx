@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { renderSelectedPlaceInfo } from './RenderPlaceInfo';
+import { RenderSelectedPlaceInfo } from './RenderPlaceInfo';
 import { updateOnNewPlace } from '../google/googlePlacesServiceUtils';
 import { useJsApiLoader } from '@react-google-maps/api';
 import { GOOGLE_LIBRARIES } from '../google/GoogleMaps';
@@ -57,7 +57,7 @@ export const PlaceDetails: React.FC<PlaceDetailsProps> = (props) => {
 
     return (
         <>
-            {renderSelectedPlaceInfo(selectedPlace, placesServiceStatus)}
+            <RenderSelectedPlaceInfo currentPlace={selectedPlace} placesServiceStatus={placesServiceStatus}/>
         </>
     );
 }
