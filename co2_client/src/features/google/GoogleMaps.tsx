@@ -128,7 +128,9 @@ const errorPositionCallback = (error: GeolocationPositionError_, geolocationInPr
         return;
     }
     console.error(error);
-    alert(`Position failed with an unhandled condition! Code: ${error.code}, message: ${error.message}`);
+    const errorMessage = `Position failed with an unhandled condition! Code: ${error.code}, message: ${error.message}`;
+    alert(errorMessage);
+    Sentry.captureMessage(errorMessage);
     throw new Error("never reached!");
 }
 
@@ -157,10 +159,10 @@ const invokeBrowserGeolocation = (setCenter: React.Dispatch<React.SetStateAction
 
 const loadCallback = (map: google.maps.Map, setMap: React.Dispatch<React.SetStateAction<google.maps.Map | null>>, setService: React.Dispatch<React.SetStateAction<google.maps.places.PlacesService | null>>) => {
     if ((window as any).google === undefined) {
-        throw new Error("window.google is undefined!")
+        throw new Error("window.google is undefined!");
     }
     if ((window as any).google === null) {
-        throw new Error("window.google is null!")
+        throw new Error("window.google is null!");
     }
     //   debugger;
     // const bounds = new (window as any).google.maps.LatLngBounds();
@@ -435,10 +437,13 @@ const updateMarkers = (map: google.maps.Map<Element> | null, dispatch: ReturnTyp
 const onMapIdle = (map: google.maps.Map<Element> | null, mapLoaded: boolean, setMapLoaded: React.Dispatch<React.SetStateAction<boolean>>, dispatch: ReturnType<typeof useDispatch>) => {
     //map onLoad isn't really ready. There are no bounds yet. Thus, autocomplete will fail to load. Wait until idle.
     if (!mapLoaded) {
-        console.log("map idle callback...")
+        console.log("map idle callback...");
         setMapLoaded(true);
-        updateMarkers(map, dispatch)
+        updateMarkers(map, dispatch);
+        return;
     }
+    console.log("map idle callback... updating markers...")
+    updateMarkers(map, dispatch);
 }
 
 const onZoomChange = (map: google.maps.Map<Element> | null, setZoomlevel: React.Dispatch<React.SetStateAction<number>>) => {
@@ -735,10 +740,12 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
         );
     }
     if (loadError) {
+        Sentry.captureException(loadError);
         return (
             <>
                 Google maps load failed!
-                {loadError}
+                {loadError.message}
+                This failure has been reported automatically.
             </>
         );
     }
