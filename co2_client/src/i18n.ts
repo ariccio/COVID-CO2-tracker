@@ -20,6 +20,10 @@ i18n
     fallbackLng: 'en',
     debug: true,
 
+    // allow keys to be phrases having `:`, `.`
+    nsSeparator: false,
+    keySeparator: false,
+
     interpolation: {
       escapeValue: false, // not needed for react as it escapes by default
     }
