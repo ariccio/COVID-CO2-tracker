@@ -4,6 +4,8 @@ import {useDispatch, useSelector} from 'react-redux';
 import {RouteComponentProps, Link} from 'react-router-dom';
 import {Button} from 'react-bootstrap';
 
+import * as Sentry from "@sentry/browser"; // for manual error reporting.
+
 import { useTranslation } from 'react-i18next';
 
 import {defaultUserInfo} from '../../utils/QueryUserInfo';
@@ -61,11 +63,19 @@ export function Device(props: RouteComponentProps<deviceProps>) {
         const deviceInfoPromise: Promise<DeviceInfoResponse> = queryDeviceInfo(parsedDeviceID);
         deviceInfoPromise.then((deviceInfoResponse) => {
             if (deviceInfoResponse.errors !== undefined) {
-                setErrorState(formatErrors(deviceInfoResponse.errors));
+                const formatted = formatErrors(deviceInfoResponse.errors);
+                if (formatted.includes("webkit")) {
+                    Sentry.captureMessage(formatted);
+                }    
+                setErrorState(formatted);
             }
             // console.log(deviceInfoResponse);
             setDeviceInfo(deviceInfoResponse);
         }).catch((error) => {
+            // Some users are seeing weird errors in safari in spanish. Force report them.
+            if (error.message.includes("webkit")) {
+                Sentry.captureException(error);
+            }
             setErrorState(error.message);
         })
     }, [props.match.params.deviceId]);
@@ -177,6 +187,10 @@ const DevicesContainer: React.FC<{}> = () => {
     // debugger;
     if (userInfo === defaultUserInfo) {
         if (errorState !== '') {
+            // Some users are seeing weird errors in safari in spanish. Force report them.
+            if (errorState.includes("webkit")) {
+                Sentry.captureMessage(errorState);
+            }
             return (
                 <>
                     {translate('not-logged-in-or-error')}
