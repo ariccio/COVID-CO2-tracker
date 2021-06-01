@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, Suspense} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {RouteComponentProps} from 'react-router-dom';
 // import {useLocation} from 'react-router-dom';
@@ -97,9 +97,11 @@ export const Place: React.FC<RouteComponentProps<PlaceProps>> = (props) => {
     return (
         <>
             Place {props.match.params.placeId}
-            <DivElem elementRef={elementRef}/>
-            <PlaceDetails mapsAPIKey={mapsAPIKey} placeId={props.match.params.placeId} divRef={elementRef}/>
-            <RenderFromDatabaseNoGoogleParam selectedPlaceInfoFromDatabase={selectedPlaceInfoFromDatabase} selectedPlaceInfoErrors={selectedPlaceInfoFromDatabaseErrors} selectedPlaceExistsInDatabase={selectedPlaceExistsInDatabase}/>
+            <Suspense fallback="loading translations...">
+                <DivElem elementRef={elementRef}/>
+                <PlaceDetails mapsAPIKey={mapsAPIKey} placeId={props.match.params.placeId} divRef={elementRef}/>
+                <RenderFromDatabaseNoGoogleParam selectedPlaceInfoFromDatabase={selectedPlaceInfoFromDatabase} selectedPlaceInfoErrors={selectedPlaceInfoFromDatabaseErrors} selectedPlaceExistsInDatabase={selectedPlaceExistsInDatabase}/>
+            </Suspense>
             <br/>
             There will be graphs and risk analysis here, eventually.
         </>

@@ -145,6 +145,9 @@ const loadEmail = (dispatch: ReturnType<typeof useDispatch>) => {
       }
       // console.log("got email: ", email.email)
       dispatch(setUsername(`(logging in...) ${email.email}`));
+      Sentry.setContext("user_info", {
+        email: email.email
+      });
     }
     else {
       console.error('failed to get email!');
