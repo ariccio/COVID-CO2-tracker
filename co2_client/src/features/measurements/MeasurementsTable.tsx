@@ -18,6 +18,7 @@ import { defaultPlaceInfo, setPlacesInfoErrors, setPlacesInfoFromDatabase } from
 import { updateUserInfo } from '../profile/Profile';
 
 import {ShowMeasurementModal} from './ShowMeasurement';
+import { percentRebreathedFromPPM, rebreathedToString } from '../../utils/Rebreathed';
 
 const DELETE_MEASUREMENT_URL = (API_URL + '/measurement');
 
@@ -166,37 +167,14 @@ const deviceIDOrSerialWithLink = (id: string, deviceSerials?: Array<SerializedSi
     )
 }
 
-function percentRebreathedFromPPM(co2ppm: number): number {
-    const GLOBAL_OUTDOOR = 420; // "Note ARANET4 meter calibrates to outdoor air assuming 420 ppm"
-    const FRACTION_ADDED_TO_BREATH = 0.038; //"Ca = Volume fraction of CO2 added to exhaled breath"
-    if (co2ppm < 0) {
-        throw new Error("Invariant! co2ppm < 0");
-    }
-    const difference = co2ppm - GLOBAL_OUTDOOR;
-    // debugger;
-    const rebreathedAirFractionPpm = (difference/FRACTION_ADDED_TO_BREATH);
-    const rebreathedAirPercent = rebreathedAirFractionPpm / 10_000;
-    return rebreathedAirPercent;
-}
 
 const RebreathedFraction = (props: {co2ppm: number}) => {
-    // For math, see:
-    //  https://docs.google.com/spreadsheets/d/1AjFzhqM_NILYvZjgE8n0CvGZzYh04JpF_DO0phrOcFw
-    //  https://onlinelibrary.wiley.com/doi/abs/10.1034/j.1600-0668.2003.00189.x
     const percent = percentRebreathedFromPPM(props.co2ppm);
-    if (percent < 0) {
-        return (
-            <>
-                <td>
-                    co2ppm too low.
-                </td>
-            </>
-        )
-    }
+    const display = rebreathedToString(percent);
     return (
         <>
             <td>
-                {percent.toFixed(3)}%
+                {display}
             </td>
         </>
     )

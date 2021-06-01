@@ -13,6 +13,7 @@ import { useSelector } from 'react-redux';
 import { selectMapsAPIKey, selectMapsAPIKeyErrorState } from '../google/googleSlice';
 // import { PlaceDetails } from '../places/PlaceDetails';
 import {placesPath} from '../../paths/paths';
+import { percentRebreathedFromPPM, rebreathedToString } from '../../utils/Rebreathed';
 
 interface ShowMeasurementModalProps {
     showMeasurementModal: boolean,
@@ -92,6 +93,8 @@ const renderPlaceDetails = (measurementInfo: ShowMeasurementResponse, elementRef
 
 const RenderModalBody = (props: {errors: string, measurementInfo: ShowMeasurementResponse, deviceSerials: Array<SerializedSingleDeviceSerial>, deviceSerialsErrorState: string, elementRef: React.MutableRefObject<HTMLDivElement | null>, mapsAPIKey: string, mapsAPIKeyErrorState: string}) => {
     const [translate] = useTranslation();
+    const percent = percentRebreathedFromPPM(props.measurementInfo.data.data.attributes.co2ppm);
+    const displayRebreathed = rebreathedToString(percent);
     if (props.errors !== '') {
         return (
             <>
@@ -136,6 +139,10 @@ const RenderModalBody = (props: {errors: string, measurementInfo: ShowMeasuremen
                 {/* <br/> */}
                 {/* <br/> */}
                 {/* Measurement place_id: {measurementInfo.place_id} */}
+                <br/>
+                <br/>
+                {translate('rebreathed fraction')}: {displayRebreathed}
+                
                 <br/>
                 <br/>
                 {renderPlaceDetails(props.measurementInfo, props.elementRef, props.mapsAPIKey, props.mapsAPIKeyErrorState)}
