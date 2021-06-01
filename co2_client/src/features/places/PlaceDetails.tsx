@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RenderSelectedPlaceInfo } from './RenderPlaceInfo';
 import { updateOnNewPlace } from '../google/googlePlacesServiceUtils';

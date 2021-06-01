@@ -1,6 +1,6 @@
 import {API_URL} from './UrlPath';
 
-import {formatErrors, ErrorObjectType} from './ErrorObject';
+import {ErrorObjectType} from './ErrorObject';
 import {userRequestOptions} from './DefaultRequestOptions';
 import {fetchJSONWithChecks} from './FetchHelpers';
 import { defaultSerializedSingleMeasurementInfo, SerializedSingleMeasurement } from './QueryDeviceInfo';
