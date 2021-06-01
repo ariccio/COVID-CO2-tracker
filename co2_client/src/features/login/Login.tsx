@@ -228,7 +228,10 @@ const googleLoginSuccessCallback = (originalResponse: GoogleLoginResponse | Goog
         dispatch(setGoogleProfile(castedResponse.profileObj));
         dispatch(setGoogleAuthResponse(castedResponse.getAuthResponse()));
         dispatch(setUsername(castedResponse.profileObj.name));
-
+        Sentry.setContext("google", {
+            user_name: castedResponse.profileObj.name,
+            user_email: castedResponse.profileObj.email
+        });
     })
 
     //   debugger;
