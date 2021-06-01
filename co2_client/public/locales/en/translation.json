@@ -83,5 +83,6 @@
     "Recorded CO2": "Recorded CO2",
     "Measurement taken date and time": "Measurement taken date and time",
     "Measurement created in database time": "Measurement created in database time",
-    "Measurement last updated in database": "Measurement last updated in database"
+    "Measurement last updated in database": "Measurement last updated in database",
+    "rebreathed fraction": "rebreathed fraction"
 }

@@ -35,6 +35,7 @@ const MeasurementTableHeader = (props: {withDelete?: boolean, innerLocation?: In
                 <th>{translate('time')}</th>
                 <th>{translate('crowding')}</th>
                 <th>{translate('danger level')}</th>
+                <th>{translate('rebreathed fraction')}</th>
                 {props.innerLocation ? (<th>{translate('inner location')}</th>) : null}
                 {props.withDelete ? (<th>{translate('delete measurement')}</th>) : null}
                 {/* <th>measured at google place:</th> */}
@@ -165,6 +166,44 @@ const deviceIDOrSerialWithLink = (id: string, deviceSerials?: Array<SerializedSi
     )
 }
 
+function percentRebreathedFromPPM(co2ppm: number): number {
+    const GLOBAL_OUTDOOR = 420; // "Note ARANET4 meter calibrates to outdoor air assuming 420 ppm"
+    const FRACTION_ADDED_TO_BREATH = 0.038; //"Ca = Volume fraction of CO2 added to exhaled breath"
+    if (co2ppm < 0) {
+        throw new Error("Invariant! co2ppm < 0");
+    }
+    const difference = co2ppm - GLOBAL_OUTDOOR;
+    // debugger;
+    const rebreathedAirFractionPpm = (difference/FRACTION_ADDED_TO_BREATH);
+    const rebreathedAirPercent = rebreathedAirFractionPpm / 10_000;
+    return rebreathedAirPercent;
+}
+
+const RebreathedFraction = (props: {co2ppm: number}) => {
+    // For math, see:
+    //  https://docs.google.com/spreadsheets/d/1AjFzhqM_NILYvZjgE8n0CvGZzYh04JpF_DO0phrOcFw
+    //  https://onlinelibrary.wiley.com/doi/abs/10.1034/j.1600-0668.2003.00189.x
+    const percent = percentRebreathedFromPPM(props.co2ppm);
+    if (percent < 0) {
+        return (
+            <>
+                <td>
+                    co2ppm too low.
+                </td>
+            </>
+        )
+    }
+    return (
+        <>
+            <td>
+                {percent.toFixed(3)}%
+            </td>
+        </>
+    )
+}
+
+
+
 const mapMeasurementsToTableBody = (measurements: Array<SerializedSingleMeasurement>, dispatch: ReturnType<typeof useDispatch>, setShowMeasurementModal: React.Dispatch<React.SetStateAction<boolean>>, setSelectedMeasurement: React.Dispatch<React.SetStateAction<string>>, withDelete?: boolean, innerLocation?: InnerLocationDetails, deviceSerials?: Array<SerializedSingleDeviceSerial>, withDevice?: boolean)/*: JSX.Element*/ => {
     if (measurements === undefined) {
         throw new Error(`measurements is undefined! This is a bug in MeasurementsTable.tsx. deviceSerials: ${deviceSerials?.toString()}`);
@@ -189,6 +228,7 @@ const mapMeasurementsToTableBody = (measurements: Array<SerializedSingleMeasurem
                 <Suspense fallback="loading translations...">
                     <RiskRow measurement={measurement}/>
                 </Suspense>
+                <RebreathedFraction co2ppm={measurement.attributes.co2ppm}/>
                 {maybeInnerLocation(measurement, innerLocation)}
                 {maybeDeleteButton(measurement, dispatch, withDelete)}
                 {/* <td>{measurement.place.google_place_id}</td> */}
