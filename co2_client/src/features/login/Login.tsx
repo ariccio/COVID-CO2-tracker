@@ -201,6 +201,7 @@ const loginWithIDToken = (id_token: string) => {
 
     }).catch((error) => {
         console.error(error);
+        Sentry.captureException(error);
         debugger;
         return;
     })
@@ -237,6 +238,7 @@ const googleLoginSuccessCallback = (originalResponse: GoogleLoginResponse | Goog
             user_email: castedResponse.profileObj.email
         });
     }).catch((error) => {
+        Sentry.captureException(error);
         console.error(String(error));
         debugger;
     })
