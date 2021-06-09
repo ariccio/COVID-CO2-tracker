@@ -189,17 +189,19 @@ const fetchSuccessCallback = async (awaitedResponse: Response): Promise<any> => 
 
 const loginWithIDToken = (id_token: string) => {
     const options = loginRequestInit(id_token);
-
+    console.log("logging in to server!")
     // const url = (API_URL + '/google_login_token');
     const result = fetchJSONWithChecks(LOGIN_URL, options, 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<any>;
     return result.then((response) => {
         // console.log(response);
         // console.log("TODO: What the heck do I do with the response here? As long as it's correct, do I even care?");
         // debugger;
+        console.log("sucessfully logged in to server!");
         return;
 
     }).catch((error) => {
         console.error(error);
+        debugger;
         return;
     })
 }
@@ -219,12 +221,14 @@ const googleLoginSuccessCallback = (originalResponse: GoogleLoginResponse | Goog
         debugger;
         return;
     }
+    console.log("google login sucess!");
     // If I dont pass a responseType, code is undefined, and thus the type is a GoogleLoginResponse.
     //https://developers.google.com/identity/sign-in/web/reference#gapiauth2authresponse
     const castedResponse = originalResponse as GoogleLoginResponse;
     
     // debugger;
     sendToServer(castedResponse).then(() => {
+        console.log("successfully logged in to server, dispatching results to rest of app...");
         dispatch(setGoogleProfile(castedResponse.profileObj));
         dispatch(setGoogleAuthResponse(castedResponse.getAuthResponse()));
         dispatch(setUsername(castedResponse.profileObj.name));
@@ -232,6 +236,9 @@ const googleLoginSuccessCallback = (originalResponse: GoogleLoginResponse | Goog
             user_name: castedResponse.profileObj.name,
             user_email: castedResponse.profileObj.email
         });
+    }).catch((error) => {
+        console.error(String(error));
+        debugger;
     })
 
     //   debugger;
