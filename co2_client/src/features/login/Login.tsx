@@ -328,7 +328,7 @@ export const GoogleLoginLogoutContainer: React.FC<LoginContainerProps> = () => {
     debugger;
     return (
         <>
-            <GoogleLogin clientId={loginAPIKey} onSuccess={(response) => googleLoginSuccessCallback(response, dispatch)} onFailure={(error) => googleLoginFailedCallback(error, setGoogleLoginErrorState)} isSignedIn={true} />
+            <GoogleLogin onRequest={() => console.log("login request starting....")} clientId={loginAPIKey} onSuccess={(response) => googleLoginSuccessCallback(response, dispatch)} onFailure={(error) => googleLoginFailedCallback(error, setGoogleLoginErrorState)} isSignedIn={true} />
 
         </>
     )
