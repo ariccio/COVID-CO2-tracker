@@ -215,6 +215,7 @@ const sendToServer = (response: GoogleLoginResponse) => {
 const googleLoginSuccessCallback = (originalResponse: GoogleLoginResponse | GoogleLoginResponseOffline, dispatch: ReturnType<typeof useDispatch>) => {
     //https://developers.google.com/identity/sign-in/web/backend-auth
     // console.log(originalResponse);
+    console.log("google login success!");
     if (originalResponse.code) {
         console.warn("refresh token?");
         console.warn("https://github.com/anthonyjgrove/react-google-login/blob/master/README.md: If responseType is 'code', callback will return the authorization code that can be used to retrieve a refresh token from the server.");
@@ -222,7 +223,6 @@ const googleLoginSuccessCallback = (originalResponse: GoogleLoginResponse | Goog
         debugger;
         return;
     }
-    console.log("google login sucess!");
     // If I dont pass a responseType, code is undefined, and thus the type is a GoogleLoginResponse.
     //https://developers.google.com/identity/sign-in/web/reference#gapiauth2authresponse
     const castedResponse = originalResponse as GoogleLoginResponse;
@@ -247,6 +247,7 @@ const googleLoginSuccessCallback = (originalResponse: GoogleLoginResponse | Goog
 }
 
 const googleLoginFailedCallback = (error: any, setGoogleLoginErrorState: React.Dispatch<React.SetStateAction<string>>) => {
+    console.warn("google login failure!")
     console.error(error);
     // debugger;
     setGoogleLoginErrorState(`${error.error}, ${error.details}`);
@@ -283,6 +284,7 @@ export const GoogleLoginLogoutContainer: React.FC<LoginContainerProps> = () => {
             return;
         }
         getGoogleLoginClientAPIKey().then((key: string) => {
+            console.log("got login api key");
             dispatch(setLoginAPIKey(key));
         }).catch((error) => {
             debugger;
@@ -323,6 +325,7 @@ export const GoogleLoginLogoutContainer: React.FC<LoginContainerProps> = () => {
         )
     }
     // https://github.com/anthonyjgrove/react-google-login/blob/master/README.md
+    debugger;
     return (
         <>
             <GoogleLogin clientId={loginAPIKey} onSuccess={(response) => googleLoginSuccessCallback(response, dispatch)} onFailure={(error) => googleLoginFailedCallback(error, setGoogleLoginErrorState)} isSignedIn={true} />
