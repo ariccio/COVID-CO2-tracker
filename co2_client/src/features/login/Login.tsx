@@ -251,7 +251,20 @@ const googleLoginFailedCallback = (error: any, setGoogleLoginErrorState: React.D
     console.error(error);
     // debugger;
     setGoogleLoginErrorState(`${error.error}, ${error.details}`);
-    alert(`Login failed! ${error.details} Google login does not work in incognito mode.`);
+    if (String(error.error).includes("popup_blocked_by_browser")) {
+        alert(`Pop up blocked by browser! Try allowing popups.`);
+        return;
+    }
+    if (String(error.error).includes("popup_closed_by_user")) {
+        alert(`Looks like you closed the signin window. Reload to try again.`);
+        return;
+    }
+    if (String(error.error).includes("idpiframe_initialization_failed")) {
+        alert(`Cookies are disabled in this environment. Google Login does not work in incognito mode, or with cookie blockers.`);
+        return;
+    }
+    alert(`Login failed! Error object: ${String(error)}. NOTE: Google login does not work in incognito mode.`);
+    Sentry.captureMessage(`unhandled google login error! Error object: ${String(error)}.`);
 }
 
 const googleLogoutSuccessCallback = (dispatch: ReturnType<typeof useDispatch>) => {
