@@ -20,6 +20,7 @@ import {NewMeasurementButton} from './NewMeasurementButton';
 import { YOUTUBE_VIDEO_INSTRUCTIONS_URL } from '../../utils/UrlPath';
 import { RenderFromDatabaseNoGoogleParam } from '../places/RenderPlaceFromDatabase';
 import { RenderSelectedPlaceInfo } from '../places/RenderPlaceInfo';
+import { AppStatsContainer } from '../stats/Stats';
 
 
 
@@ -175,7 +176,11 @@ const HomePage: FunctionComponent<{}> = (props: any) => {
                             </Suspense>
                         </div>
                     </Col>
-
+                </Row>
+                <Row className="show-grid">
+                    <Col md={6} xs={12}>
+                            <AppStatsContainer/>
+                    </Col>
                 </Row>
 
             </Container>

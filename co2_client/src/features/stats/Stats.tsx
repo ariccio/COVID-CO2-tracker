@@ -27,13 +27,25 @@ const AppStats = (props: {appStatsResponse: AppStatsResponse, errorState: string
 
     return (
         <>
-            {props.appStatsResponse}
+            {translate('total-users')}: {props.appStatsResponse.users}
+            <br/>
+            {translate('total-measurements')}: {props.appStatsResponse.measurements}
+            <br/>
+            {translate('total-devices')}: {props.appStatsResponse.devices}
+            <br/>
+            {translate('total-manufacturers')}: {props.appStatsResponse.manufacturers}
+            <br/>
+            {translate('total-models')}: {props.appStatsResponse.models}
+            <br/>
+            {translate('total-places')}: {props.appStatsResponse.places}
+            <br/>
+            {translate('total-sublocations')}: {props.appStatsResponse.sublocations}
         </>
     )
 
 }
 
-const AppStatsContainer: FunctionComponent<{}> = (props: any) => {
+export const AppStatsContainer: FunctionComponent<{}> = (props: any) => {
     const [appStatsResponse, setAppStatsResponse] = useState(defaultAppStatsResponse);
     const [errorState, setErrorState] = useState('');
 
@@ -52,12 +64,12 @@ const AppStatsContainer: FunctionComponent<{}> = (props: any) => {
             setAppStatsResponse(defaultAppStatsResponse);
             return;
         })
-    })
+    }, [])
 
     return (
         <>
             <Suspense fallback="Loading translations...">
-
+                <AppStats appStatsResponse={appStatsResponse} errorState={errorState}/>
             </Suspense>
 
         </>

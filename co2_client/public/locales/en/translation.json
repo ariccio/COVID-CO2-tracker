@@ -84,5 +84,13 @@
     "Measurement taken date and time": "Measurement taken date and time",
     "Measurement created in database time": "Measurement created in database time",
     "Measurement last updated in database": "Measurement last updated in database",
-    "rebreathed fraction": "rebreathed fraction"
+    "rebreathed fraction": "rebreathed fraction",
+    "error-loading-app-stats": "Error loading app stats",
+    "total-users": "Total users",
+    "total-measurements": "Total measurements",
+    "total-devices": "Total devices",
+    "total-manufacturers": "Total manufacturers",
+    "total-models": "Total models",
+    "total-places": "Total places",
+    "total-sublocations": "Total sublocations"
 }

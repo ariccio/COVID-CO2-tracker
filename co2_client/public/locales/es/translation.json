@@ -85,5 +85,12 @@
     "Measurement created in database time": "Medida creada en el tiempo de la base de datos",
     "Measurement last updated in database": "Medida actualizada por última vez en la base de datos",
     "rebreathed fraction": "fracción reinspirada",
-    "error-loading-app-stats": "error al cargar las estadísticas de la aplicación"
+    "error-loading-app-stats": "error al cargar las estadísticas de la aplicación",
+    "total-users": "Total de usuarios",
+    "total-measurements": "Medidas totales",
+    "total-devices": "Total de dispositivos",
+    "total-manufacturers": "Fabricantes totales",
+    "total-models": "Modelos totales",
+    "total-places": "Plazas totales",
+    "total-sublocations": "Total de sublocalizaciones"
 }

@@ -1,6 +1,6 @@
 import {API_URL} from './UrlPath';
 
-import {formatErrors, ErrorObjectType} from './ErrorObject';
+import {formatErrors, ErrorObjectType, withErrors} from './ErrorObject';
 import {postRequestOptions, userRequestOptions} from './DefaultRequestOptions';
 import {fetchJSONWithChecks} from './FetchHelpers';
 import { DeviceInfoResponse } from './QueryDeviceInfo';
@@ -15,45 +15,37 @@ interface AppStats {
     sublocations: number
 }
 
-export interface AppStatsResponse {
-    stats: AppStats,
-    errors?: Array<ErrorObjectType>
-}
+export type AppStatsResponse = AppStats & withErrors;
 
 export const defaultAppStatsResponse: AppStatsResponse = {
-    stats: {
-        users: -1,
-        measurements: -1,
-        devices: -1,
-        manufacturers: -1,
-        models: -1,
-        places: -1,
-        sublocations: -1
-    }
+    users: -1,
+    measurements: -1,
+    devices: -1,
+    manufacturers: -1,
+    models: -1,
+    places: -1,
+    sublocations: -1
 }
 
 
 export const SHOW_APP_STATS_URL = (API_URL + '/stats/show');
 
 function statsInfoResponseToStrongType(appStatsResponse: any): AppStatsResponse {
-    console.assert(appStatsResponse.stats !== undefined);
-    console.assert(appStatsResponse.stats !== null);
-    
-    console.assert(appStatsResponse.stats.users !== undefined);
-    console.assert(appStatsResponse.stats.measurements !== undefined);
-    console.assert(appStatsResponse.stats.devices !== undefined);
-    console.assert(appStatsResponse.stats.manufacturers !== undefined);
-    console.assert(appStatsResponse.stats.models !== undefined);
-    console.assert(appStatsResponse.stats.places !== undefined);
-    console.assert(appStatsResponse.stats.sublocations !== undefined);
+    console.assert(appStatsResponse.users !== undefined);
+    console.assert(appStatsResponse.measurements !== undefined);
+    console.assert(appStatsResponse.devices !== undefined);
+    console.assert(appStatsResponse.manufacturers !== undefined);
+    console.assert(appStatsResponse.models !== undefined);
+    console.assert(appStatsResponse.places !== undefined);
+    console.assert(appStatsResponse.sublocations !== undefined);
 
-    console.assert(appStatsResponse.stats.users !== null);
-    console.assert(appStatsResponse.stats.measurements !== null);
-    console.assert(appStatsResponse.stats.devices !== null);
-    console.assert(appStatsResponse.stats.manufacturers !== null);
-    console.assert(appStatsResponse.stats.models !== null);
-    console.assert(appStatsResponse.stats.places !== null);
-    console.assert(appStatsResponse.stats.sublocations !== null);
+    console.assert(appStatsResponse.users !== null);
+    console.assert(appStatsResponse.measurements !== null);
+    console.assert(appStatsResponse.devices !== null);
+    console.assert(appStatsResponse.manufacturers !== null);
+    console.assert(appStatsResponse.models !== null);
+    console.assert(appStatsResponse.places !== null);
+    console.assert(appStatsResponse.sublocations !== null);
 
     return appStatsResponse;
 }
