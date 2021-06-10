@@ -331,6 +331,7 @@ export const GoogleLoginLogoutContainer: React.FC<LoginContainerProps> = () => {
     }
     if (googleProfile !== null) {
         //   debugger;
+        // console.log("rendering logout.");
         return (
             <>
                 <GoogleLogout clientId={loginAPIKey} onLogoutSuccess={() => googleLogoutSuccessCallback(dispatch)} />
@@ -338,7 +339,7 @@ export const GoogleLoginLogoutContainer: React.FC<LoginContainerProps> = () => {
         )
     }
     // https://github.com/anthonyjgrove/react-google-login/blob/master/README.md
-    debugger;
+    // debugger;
     return (
         <>
             <GoogleLogin onRequest={() => console.log("login request starting....")} clientId={loginAPIKey} onSuccess={(response) => googleLoginSuccessCallback(response, dispatch)} onFailure={(error) => googleLoginFailedCallback(error, setGoogleLoginErrorState)} isSignedIn={true} />

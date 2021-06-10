@@ -176,6 +176,7 @@ export const defaultDeviceInfoResponse: DeviceInfoResponse = {
         data: []
     }
 }
+
 export const SHOW_DEVICES_URL = (API_URL + '/device')
 
 function deviceInfoToStrongType(deviceInfoResponse: any): DeviceInfoResponse {
@@ -211,6 +212,7 @@ export async function queryDeviceInfo(device_id: number): Promise<DeviceInfoResp
         debugger;
     }
 
+    // Is throw the right response? Maybe.
     const fetchFailedCallback = async (awaitedResponse: Response): Promise<never> => {
         debugger;
         throw new Error(formatErrors((await awaitedResponse.clone().json()).errors));
