@@ -1,9 +1,8 @@
 import {API_URL} from './UrlPath';
 
-import {formatErrors, ErrorObjectType, withErrors} from './ErrorObject';
-import {postRequestOptions, userRequestOptions} from './DefaultRequestOptions';
+import {formatErrors, withErrors} from './ErrorObject';
+import {userRequestOptions} from './DefaultRequestOptions';
 import {fetchJSONWithChecks} from './FetchHelpers';
-import { DeviceInfoResponse } from './QueryDeviceInfo';
 
 interface AppStats {
     users: number,

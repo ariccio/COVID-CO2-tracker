@@ -1,4 +1,4 @@
-import React, {FunctionComponent, useEffect, useState, useRef, Suspense} from 'react';
+import React, {FunctionComponent, useEffect, useState, Suspense} from 'react';
 import { useTranslation } from 'react-i18next';
 
 
