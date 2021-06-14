@@ -224,6 +224,9 @@ const DevicesContainer: React.FC<{}> = () => {
             
 
             <p>
+                TODO: show device instances table.
+
+                {/* Will need to refactor DevicesTable into something like UserDevicesTable (because it doesn't use a serializer) */}
                 popular devices: (NOT IMPLEMENTED YET, will show all kinds of stats)
             </p>
 
