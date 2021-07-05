@@ -517,9 +517,9 @@ const renderErrorsAutocomplete = (errorState: string) => {
     }
 
     return (
-        <>
+        <div>
             Autocomplete message: {errorState}
-        </>
+        </div>
     )
 }
 
@@ -529,10 +529,10 @@ const AutocompleteElement: React.FC<AutocompleteElementProps> = (props) => {
     const [errorState, setErrorState] = useState('');
     const dispatch = useDispatch();
     return (
-        <>
+        <div>
             {renderErrorsAutocomplete(errorState)}
             <RenderAutoComplete autoCompleteLoad={(event) => autoCompleteLoadThunk(event, setAutocomplete)} placeChange={() => placeChangeHandler(autocomplete, dispatch, props.map, props.setCenter, setErrorState)} map={props.map} mapLoaded={props.mapLoaded} />
-        </>
+        </div>
     );
 }
 
@@ -721,7 +721,7 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
     
     if (isLoaded) {
         return (
-            <>
+            <div>
                 {googleMapInContainer(onLoad, onUnmount, map, setZoomlevel, setCenter, dispatch, mapLoaded, setMapLoaded, placeMarkersFromDatabase, placeMarkerErrors, service)}
                 <br/>
                 <AutocompleteElement map={map} setCenter={setCenter} mapLoaded={mapLoaded}/>
@@ -736,22 +736,22 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
                 </Button>
                 <br/>
                 {placesServiceStatus !== null ? (translate('last-query-status') + placesServiceStatus) : null}
-            </>
+            </div>
         );
     }
     if (loadError) {
         Sentry.captureException(loadError);
         return (
-            <>
+            <div>
                 Google maps load failed!
                 {loadError.message}
                 This failure has been reported automatically.
-            </>
+            </div>
         );
     }
     return (
-        <>
+        <div>
             Google maps loading...
-        </>
+        </div>
     )
 }
