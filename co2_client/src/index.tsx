@@ -10,8 +10,6 @@ import * as serviceWorker from './serviceWorker';
 import * as Sentry from "@sentry/react";
 import { Integrations } from "@sentry/tracing";
 
-import reportWebVitals from './reportWebVitals';
-
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 
@@ -46,4 +44,3 @@ ReactDOM.render(
 serviceWorker.unregister();
 
 
-reportWebVitals(console.log);
