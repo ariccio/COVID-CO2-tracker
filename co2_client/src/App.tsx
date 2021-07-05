@@ -83,6 +83,7 @@ function TopLevelErrorFallback(errorData: {
       </pre>
       <p>
         Try reloading the page in the mean time.
+        If you've encountered this error multiple times, please consider providing details.
       </p>
     </>
   );
@@ -90,7 +91,7 @@ function TopLevelErrorFallback(errorData: {
 
 const dialogOptionsForSentry = {
   title: 'Covid CO2 tracker crashed!',
-  subtitle: "Sorry, this is a bug of some kind. I missed something! This issue is being automatically reported. If you'd like to help, give additional details in this form."
+  subtitle: "Sorry, this is a bug of some kind. I missed something! This issue is being automatically reported. If you'd like to help, give additional details in this form. If you've seen this error multiple times, consider providing details. Some errors are hard to debug even with telemetry!"
 }
 
 
