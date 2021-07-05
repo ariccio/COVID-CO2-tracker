@@ -117,6 +117,9 @@ const SelectDeviceDropdown = (props: {userDevices: UserDevicesInfo, selectedDevi
         throw new Error(`userDevices.devices is undefined, this is a bug in CreateMeasurement.tsx! Selected device: ${props.selectedDevice}, selectedModelName: ${props.selectedModelName}, selectedDeviceSerialNumber: ${props.selectedDeviceSerialNumber}`);
     }
 
+    if (props.userDevices.devices.length === 0) {
+        console.warn("no devices, probably loading...");
+    }
     // "no-devices-yet-loading": "No devices, yet. Loading..."
     // useEffect(() => {
     //     if (props.userDevices === defaultDevicesInfo) {
@@ -569,6 +572,8 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
                 if (formatted.includes("webkit")) {
                     Sentry.captureMessage(formatted);
                 }
+                setUserDevices(defaultDevicesInfo);
+                return;
             }
             console.table(userDeviceInfo.devices);
             setUserDevices(userDeviceInfo);
@@ -581,6 +586,7 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
             if (error.message.includes("webkit")) {
                 Sentry.captureException(error);
             }
+            setUserDevices(defaultDevicesInfo);
         })
     }, [username])
 

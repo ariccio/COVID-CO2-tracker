@@ -63,6 +63,7 @@ export function Device(props: RouteComponentProps<deviceProps>) {
         const deviceInfoPromise: Promise<DeviceInfoResponse> = queryDeviceInfo(parsedDeviceID);
         deviceInfoPromise.then((deviceInfoResponse) => {
             if (deviceInfoResponse.errors !== undefined) {
+                //TODO: shouldn't get here, queryDeviceInfo throws.
                 const formatted = formatErrors(deviceInfoResponse.errors);
                 if (formatted.includes("webkit")) {
                     Sentry.captureMessage(formatted);
