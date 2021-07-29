@@ -116,9 +116,14 @@ const errorPositionCallback = (error: GeolocationPositionError_, geolocationInPr
         return;
     }
     else if (error.code === /*GeolocationPositionError.POSITION_UNAVAILABLE*/ 2) {
+        if (error.message.includes("application does not have sufficient geolocation permissions")) {
+            alert("It looks like the browser you're using doesn't have geolocation permissions. I've seen this in my telemetry coming from the facebook browser. If you're browsing from facebook, try opening in a full browser (click the three dots at top right, then click 'Open in browser') and try again!");
+            Sentry.captureMessage("GeolocationPositionError.POSITION_UNAVAILABLE - facebook browser?");
+            return;    
+            }
         console.error("The position of the device could not be determined. For instance, one or more of the location providers used in the location acquisition process reported an internal error that caused the process to fail entirely.");
         console.error("perusing the chromium sources suggests failed network location provider requests are one example.");
-        alert("Some kind of internal error getting the position. No further information available. Move map manually. Sorry!");
+        alert(`Some kind of internal error getting the position. Message given: ${error.message}. Move map manually. Sorry!`);
         Sentry.captureMessage("GeolocationPositionError.POSITION_UNAVAILABLE");
         return;
     }
