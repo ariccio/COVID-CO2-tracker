@@ -94,5 +94,8 @@
     "total-places": "Total places",
     "total-sublocations": "Total sublocations",
     "loading-user-devices": "Loading your devices...",
-    "submitting-measurement": "Submitting measurement..."
+    "submitting-measurement": "Submitting measurement...",
+    "creating-device": "Creating device...",
+    "creating-model": "Creating model...",
+    "creating-manufacturer": "Creating manufacturer..."
 }

@@ -1,6 +1,6 @@
-import React, {Suspense} from 'react';
+import React, {Suspense, useState} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import {Modal, Button, Form} from 'react-bootstrap';
+import {Modal, Button, Form, Spinner} from 'react-bootstrap';
 import {useLocation, useHistory} from 'react-router-dom'
 
 import { useTranslation } from 'react-i18next';
@@ -185,9 +185,13 @@ interface manufacturerDialogProps {
     setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-const submitHandler = (enteredManufacturerText: string, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>) => {
+const submitHandler = (enteredManufacturerText: string, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
+    setShowSubmit(false);
+    setSubmitting(true);
     const result = createNewManufacturer(enteredManufacturerText);
     result.then((response) => {
+        setShowSubmit(true);
+        setSubmitting(false);
         if (response.errors !== undefined) {
             alert(formatErrors(response.errors));
 
@@ -203,15 +207,17 @@ const submitHandler = (enteredManufacturerText: string, setShowAddManufacturer: 
             // debugger;
         }
     }).catch((errors) => {
+        setShowSubmit(true);
+        setSubmitting(false);
         alert(errors.message);
     })
 
 }
 
-const submit = (event: React.MouseEvent<HTMLElement, MouseEvent>, enteredManufacturerText: string, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>) => {
+const submit = (event: React.MouseEvent<HTMLElement, MouseEvent>, enteredManufacturerText: string, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
     event.stopPropagation();
     event.preventDefault();
-    submitHandler(enteredManufacturerText, setShowAddManufacturer, history);
+    submitHandler(enteredManufacturerText, setShowAddManufacturer, history, setShowSubmit, setSubmitting);
 }
 
 const cancelHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>) => {
@@ -231,10 +237,10 @@ const onChangeEvent = (event: React.FormEvent<HTMLFormElement>, dispatch: any) =
     dispatch(setEnteredManufacturerText(text));
 }
 
-const onSubmitEvent = (event: React.FormEvent<HTMLFormElement>, enteredManufacturerText: string, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>) => {
+const onSubmitEvent = (event: React.FormEvent<HTMLFormElement>, enteredManufacturerText: string, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
     event.stopPropagation();
     event.preventDefault();
-    submitHandler(enteredManufacturerText, setShowAddManufacturer, history);
+    submitHandler(enteredManufacturerText, setShowAddManufacturer, history, setShowSubmit, setSubmitting);
     // debugger;
 }
 
@@ -247,12 +253,36 @@ const ModalHeader = () => {
     );
 }
 
+//TODO: extract logic
+const submitOrSpinning = (submitting: boolean, translate: any) => {
+    if (!submitting) {
+        return (
+            <>
+                {translate('Submit new manufacturer')}
+            </>
+        )
+    }
+    return (
+        <>
+            <Spinner animation="border" role="status">
+                  <span className="visually-hidden">
+                      {translate("creating-manufacturer")}
+                  </span>
+            </Spinner>
+        </>
+    )
+}
+
+
+
 export const CreateManufacturerModalDialog: React.FC<manufacturerDialogProps> = (props: manufacturerDialogProps) => {
     const location = useLocation();
     const enteredManufacturerText = useSelector(selectEnteredManufacturerText);
     const dispatch = useDispatch();
     const history = useHistory();
     const [translate] = useTranslation();
+    const [showSubmit, setShowSubmit] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
 
     //TODO: this is not how you do nested routes.
     if (location.pathname.endsWith('create')) {
@@ -268,7 +298,7 @@ export const CreateManufacturerModalDialog: React.FC<manufacturerDialogProps> = 
             </Suspense>
             <Modal.Body>
                 (Please reduce administrative burden, don't add nuisance manufacturers.)
-                <Form noValidate onChange={(event) => onChangeEvent(event, dispatch)} onSubmit={(event) => onSubmitEvent(event, enteredManufacturerText, props.setShowAddManufacturer, history)}>
+                <Form noValidate onChange={(event) => onChangeEvent(event, dispatch)} onSubmit={(event) => onSubmitEvent(event, enteredManufacturerText, props.setShowAddManufacturer, history, setShowSubmit, setSubmitting)}>
                     <Form.Label>
                         {translate('Manufacturer name')}
                     </Form.Label>
@@ -281,8 +311,8 @@ export const CreateManufacturerModalDialog: React.FC<manufacturerDialogProps> = 
                 <Button variant="secondary" onClick={(event) => cancelHandler(event, props.setShowAddManufacturer, history)}>
                     {translate('Cancel')}
                 </Button>
-                <Button variant="primary" onClick={(event) => submit(event, enteredManufacturerText, props.setShowAddManufacturer, history)}>
-                    {translate('Submit new manufacturer')}
+                <Button variant="primary" disabled={!showSubmit} onClick={(event) => submit(event, enteredManufacturerText, props.setShowAddManufacturer, history, setShowSubmit, setSubmitting)}>
+                    {submitOrSpinning(submitting, translate)}
                 </Button>
             </Modal.Footer>
 

@@ -1,6 +1,6 @@
-import React, {Suspense} from 'react';
+import React, {Suspense, useState} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
-import {Modal, Button, Form} from 'react-bootstrap';
+import {Modal, Button, Form, Spinner} from 'react-bootstrap';
 import {useLocation, useHistory} from 'react-router-dom';
 
 import { useTranslation } from 'react-i18next';
@@ -69,9 +69,13 @@ async function createNewDevice(newDeviceSerialNumber: string, deviceModelID: num
     return result;
 }
 
-const submitHandler = (enteredDeviceSerialNumberText: string, setShowAddDeviceInstance: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>, selectedModel: number, dispatch: ReturnType<typeof useDispatch>, location: ReturnType<typeof useLocation>) => {
+const submitHandler = (enteredDeviceSerialNumberText: string, setShowAddDeviceInstance: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>, selectedModel: number, dispatch: ReturnType<typeof useDispatch>, location: ReturnType<typeof useLocation>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
+    setShowSubmit(false);
+    setSubmitting(true);
     const result = createNewDevice(enteredDeviceSerialNumberText, selectedModel);
     result.then((response) => {
+        setShowSubmit(true);
+        setSubmitting(false);
         if (response.errors !== undefined) {
             alert(formatErrors(response.errors));
             return;
@@ -86,6 +90,7 @@ const submitHandler = (enteredDeviceSerialNumberText: string, setShowAddDeviceIn
         }
         history.push(profilePath);
     })
+    //TODO: catch? Remember to toggele submitting and showsubmit!
 }
 
 const onChangeEvent = (event: React.FormEvent<HTMLFormElement>, dispatch: any) => {
@@ -93,11 +98,11 @@ const onChangeEvent = (event: React.FormEvent<HTMLFormElement>, dispatch: any) =
     dispatch(setEnteredDeviceSerialNumberText(text));
 }
 
-const onSubmitEvent = (event: React.FormEvent<HTMLFormElement>, enteredDeviceSerialNumberText: string, setShowAddDeviceInstance: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>, selectedModel: number, dispatch: ReturnType<typeof useDispatch>, location: ReturnType<typeof useLocation>) => {
+const onSubmitEvent = (event: React.FormEvent<HTMLFormElement>, enteredDeviceSerialNumberText: string, setShowAddDeviceInstance: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>, selectedModel: number, dispatch: ReturnType<typeof useDispatch>, location: ReturnType<typeof useLocation>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
     event.stopPropagation();
     event.preventDefault();
     //submitH();
-    submitHandler(enteredDeviceSerialNumberText, setShowAddDeviceInstance, history, selectedModel, dispatch, location);
+    submitHandler(enteredDeviceSerialNumberText, setShowAddDeviceInstance, history, selectedModel, dispatch, location, setShowSubmit, setSubmitting);
 }
 
 const cancelHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, setShowAddDeviceInstance: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>) => {
@@ -105,11 +110,32 @@ const cancelHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, setShow
     // history.goBack();
 }
 
-const submit = (event: React.MouseEvent<HTMLElement, MouseEvent>, enteredDeviceSerialNumberText: string, setShowAddDeviceInstance: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>, selectedModel: number, dispatch: ReturnType<typeof useDispatch>, location: ReturnType<typeof useLocation>) => {
+const submit = (event: React.MouseEvent<HTMLElement, MouseEvent>, enteredDeviceSerialNumberText: string, setShowAddDeviceInstance: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>, selectedModel: number, dispatch: ReturnType<typeof useDispatch>, location: ReturnType<typeof useLocation>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
     event.stopPropagation();
     event.preventDefault();
-    submitHandler(enteredDeviceSerialNumberText, setShowAddDeviceInstance, history, selectedModel, dispatch, location);
+    submitHandler(enteredDeviceSerialNumberText, setShowAddDeviceInstance, history, selectedModel, dispatch, location, setShowSubmit, setSubmitting);
 }
+
+//TODO: extract logic
+const submitOrSpinning = (submitting: boolean, translate: any) => {
+    if (!submitting) {
+        return (
+            <>
+                {translate('Add new')}
+            </>
+        )
+    }
+    return (
+        <>
+            <Spinner animation="border" role="status">
+                  <span className="visually-hidden">
+                      {translate('creating-device')}
+                  </span>
+            </Spinner>
+        </>
+    )
+}
+
 
 export const CreateMyDeviceInstance: React.FC<CreateMyDeviceInstanceProps> = (props: CreateMyDeviceInstanceProps) => {
     const selectedModel = useSelector(selectSelectedModel);
@@ -120,6 +146,8 @@ export const CreateMyDeviceInstance: React.FC<CreateMyDeviceInstanceProps> = (pr
     const dispatch = useDispatch();
     const location = useLocation();
     const [translate] = useTranslation();
+    const [showSubmit, setShowSubmit] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
 
     //TODO: this is not how you do nested routes.
     if (location.pathname.endsWith('create')) {
@@ -142,7 +170,7 @@ export const CreateMyDeviceInstance: React.FC<CreateMyDeviceInstanceProps> = (pr
                     <ModalHeader modelName={selectedModelName}/>
                 </Suspense>
                 <Modal.Body>
-                    <Form noValidate onChange={(event) => onChangeEvent(event, dispatch)} onSubmit={(event) => onSubmitEvent(event, enteredDeviceSerialNumberText, props.setShowAddDeviceInstance, history, selectedModel, dispatch, location)}>
+                    <Form noValidate onChange={(event) => onChangeEvent(event, dispatch)} onSubmit={(event) => onSubmitEvent(event, enteredDeviceSerialNumberText, props.setShowAddDeviceInstance, history, selectedModel, dispatch, location, setShowSubmit, setSubmitting)}>
                         <Form.Label>
                             {translate('almost-there-serial')}
                         </Form.Label>
@@ -153,8 +181,8 @@ export const CreateMyDeviceInstance: React.FC<CreateMyDeviceInstanceProps> = (pr
                     <Button variant="secondary" onClick={(event) => cancelHandler(event, props.setShowAddDeviceInstance, history)}>
                         {translate('Cancel')}
                     </Button>
-                    <Button variant="primary" onClick={(event) => submit(event, enteredDeviceSerialNumberText, props.setShowAddDeviceInstance, history, selectedModel, dispatch, location)}>
-                        {translate('Add new')} {selectedModelName}
+                    <Button variant="primary" disabled={!showSubmit} onClick={(event) => submit(event, enteredDeviceSerialNumberText, props.setShowAddDeviceInstance, history, selectedModel, dispatch, location, setShowSubmit, setSubmitting)}>
+                        {submitOrSpinning(submitting, translate)} {selectedModelName}
                     </Button>
                 </Modal.Footer>
 

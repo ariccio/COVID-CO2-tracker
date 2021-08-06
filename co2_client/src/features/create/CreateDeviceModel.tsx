@@ -1,6 +1,6 @@
-import React, {Suspense} from 'react';
+import React, {Suspense, useState} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
-import {Modal, Button, Form} from 'react-bootstrap';
+import {Modal, Button, Form, Spinner} from 'react-bootstrap';
 import {useLocation, useHistory} from 'react-router-dom'
 
 
@@ -90,9 +90,14 @@ async function createNewModel(name: string, manufacturer: number): Promise<NewMo
     return result;
 }
 
-const submitHandler = (enteredModelText: string, setShowAddModel: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>, selectedManufacturer: number, dispatch: ReturnType<typeof useDispatch>) => {
+const submitHandler = (enteredModelText: string, setShowAddModel: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>, selectedManufacturer: number, dispatch: ReturnType<typeof useDispatch>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
+    setShowSubmit(false);
+    setSubmitting(true);
+
     const result = createNewModel(enteredModelText, selectedManufacturer);
     result.then((response) => {
+        setShowSubmit(true);
+        setSubmitting(false);
         if (response.errors !== undefined) {
             alert(formatErrors(response.errors));
         }
@@ -104,14 +109,16 @@ const submitHandler = (enteredModelText: string, setShowAddModel: React.Dispatch
 
         }
     }).catch((errors) => {
+        setShowSubmit(true);
+        setSubmitting(false);
         alert(errors.message)
     })
 }
 
-const onSubmitEvent = (event: React.FormEvent<HTMLFormElement>, enteredModelText: string, setShowAddModel: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>, selectedManufacturer: number, dispatch: ReturnType<typeof useDispatch>) => {
+const onSubmitEvent = (event: React.FormEvent<HTMLFormElement>, enteredModelText: string, setShowAddModel: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>, selectedManufacturer: number, dispatch: ReturnType<typeof useDispatch>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
     event.stopPropagation();
     event.preventDefault();
-    submitHandler(enteredModelText, setShowAddModel, history, selectedManufacturer, dispatch);
+    submitHandler(enteredModelText, setShowAddModel, history, selectedManufacturer, dispatch, setShowSubmit, setSubmitting);
     // debugger;
 }
 
@@ -123,10 +130,31 @@ const cancelHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, setShow
     history.goBack();
 }
 
-const submit = (event: React.MouseEvent<HTMLElement, MouseEvent>, enteredModelText: string, setShowAddModel: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>, selectedManufacturer: number, dispatch: ReturnType<typeof useDispatch>) => {
+const submit = (event: React.MouseEvent<HTMLElement, MouseEvent>, enteredModelText: string, setShowAddModel: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>, selectedManufacturer: number, dispatch: ReturnType<typeof useDispatch>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
     event.stopPropagation();
     event.preventDefault();
-    submitHandler(enteredModelText, setShowAddModel, history, selectedManufacturer, dispatch);
+    submitHandler(enteredModelText, setShowAddModel, history, selectedManufacturer, dispatch, setShowSubmit, setSubmitting);
+}
+
+
+//TODO: extract logic
+const submitOrSpinning = (submitting: boolean, translate: any) => {
+    if (!submitting) {
+        return (
+            <>
+                {translate('Create new model')}
+            </>
+        )
+    }
+    return (
+        <>
+            <Spinner animation="border" role="status">
+                  <span className="visually-hidden">
+                      {translate("creating-model")}
+                  </span>
+            </Spinner>
+        </>
+    )
 }
 
 
@@ -135,6 +163,9 @@ export const CreateDeviceModelModalDialog: React.FC<modelDialogProps> = (props: 
     const dispatch = useDispatch();
     const location = useLocation();
     const [translate] = useTranslation();
+    const [showSubmit, setShowSubmit] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
+
 
     const selectedManufacturer = useSelector(selectSelectedManufacturer);
     const enteredModelText = useSelector(selectEnteredModelText);
@@ -162,7 +193,7 @@ export const CreateDeviceModelModalDialog: React.FC<modelDialogProps> = (props: 
                 </Suspense>
                 <Modal.Body>
                     (Please reduce administrative burden, don't add nuisance models. TODO: styling this text)
-                    <Form noValidate onChange={(event) => onChangeEvent(event, dispatch)} onSubmit={(event) => onSubmitEvent(event, enteredModelText, props.setShowAddModel, history, selectedManufacturer, dispatch)}>
+                    <Form noValidate onChange={(event) => onChangeEvent(event, dispatch)} onSubmit={(event) => onSubmitEvent(event, enteredModelText, props.setShowAddModel, history, selectedManufacturer, dispatch, setShowSubmit, setSubmitting)}>
                         <Form.Label>
                             {translate('Model name')}
                         </Form.Label>
@@ -173,8 +204,9 @@ export const CreateDeviceModelModalDialog: React.FC<modelDialogProps> = (props: 
                     <Button variant="secondary" onClick={(event) => cancelHandler(event, props.setShowAddModel, history)}>
                         {translate('Cancel')}
                     </Button>
-                    <Button variant="primary" onClick={(event) => submit(event, enteredModelText, props.setShowAddModel, history, selectedManufacturer, dispatch)}>
-                        {translate('Submit new model')}
+                    <Button variant="primary" disabled={!showSubmit} onClick={(event) => submit(event, enteredModelText, props.setShowAddModel, history, selectedManufacturer, dispatch, setShowSubmit, setSubmitting)}>
+                        {submitOrSpinning(submitting, translate)}
+                        
                     </Button>
                 </Modal.Footer>
             </Modal>

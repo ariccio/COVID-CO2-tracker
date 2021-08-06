@@ -544,6 +544,7 @@ Note to self, on selecting datetime pickers:
 
 */
 
+//TODO: extract logic
 const submitOrSpinning = (submitting: boolean, translate: any) => {
     if (!submitting) {
         return (
@@ -695,10 +696,10 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
                     </Suspense>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={(event) => hideHandler(props.setShowCreateNewMeasurement)}>
+                    <Button variant="secondary" /*TODO: maybe disable here too?*/ onClick={(event) => hideHandler(props.setShowCreateNewMeasurement)}>
                         {translate('Cancel')}
                     </Button>
-                    <Button disabled={!showSubmit} variant="primary" onClick={(event) => {
+                    <Button variant="primary" disabled={!showSubmit} onClick={(event) => {
                             // setShowSubmit(!showSubmit);
                             submitHandler(event, selectedDevice, enteredCO2Text, place_id, props.setShowCreateNewMeasurement, placeExistsInDatabase, dispatch, setErrorState, enteredCrowding, enteredLocationDetails, selectedSubLocation, userTimeRadioValue, dateTime, setShowSubmit, setSubmitting);
                         }}>
