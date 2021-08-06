@@ -445,7 +445,7 @@ const updateMarkers = (map: google.maps.Map<Element> | null, dispatch: ReturnTyp
         return;
     }
     // queryPlacesNearbyFromBackend(center.lat(), center.lng(), dispatch);
-    // console.log(`getting bounds for ne lat: ${bounds.getNorthEast().lat} ne lng: ${bounds.getNorthEast().lng()}, sw lat: ${bounds.getSouthWest().lat}, sw lng: ${bounds.getSouthWest().lng}`)
+    // console.log(`getting bounds for ne lat: ${bounds.getNorthEast().lat()} ne lng: ${bounds.getNorthEast().lng()}, sw lat: ${bounds.getSouthWest().lat()}, sw lng: ${bounds.getSouthWest().lng()}`)
     // debugger;
     queryPlacesInBoundsFromBackend(bounds.getNorthEast(), bounds.getSouthWest(), dispatch);
 }
@@ -458,7 +458,8 @@ const onMapIdle = (map: google.maps.Map<Element> | null, mapLoaded: boolean, set
         updateMarkers(map, dispatch);
         return;
     }
-    console.log("map idle callback... updating markers...")
+    // debugger;
+    // console.log("map idle callback... updating markers...")
     updateMarkers(map, dispatch);
 }
 
@@ -497,7 +498,8 @@ const googleMapInContainer = (
                     onZoomChanged={() => onZoomChange(map, setZoomlevel)}
                     onClick={(e: google.maps.MapMouseEvent) => {onClickMaps(e, setCenter, dispatch, service); updateMarkers(map, dispatch)}}
                     onIdle={() => onMapIdle(map, mapLoaded, setMapLoaded, dispatch)}
-                    onTilesLoaded={() => updateMarkers(map, dispatch)}>
+                    /*onTilesLoaded={() => {console.log("tiles loaded"); updateMarkers(map, dispatch)}}*/
+                    >
                         { /* Child components, such as markers, info windows, etc. */}
                         {renderMarkers(placeMarkersFromDatabase, placeMarkerErrors, dispatch, service)}
                 </GoogleMap>
@@ -715,7 +717,7 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
 
 
     useEffect(() => {
-        console.log("set zoom")
+        // console.log("set zoom")
         map?.setZoom(_zoomLevel);
         // debugger;
         // console.log(_zoomLevel);
