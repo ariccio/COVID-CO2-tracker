@@ -491,7 +491,7 @@ const placeMarkersDataDebugText = (placeMarkersFetchInProgres: boolean, placeMar
         return null;
     }
     return (
-        <div>{placeMarkersFromDatabase.places.length} places visible.</div>
+        <div>{placeMarkersFromDatabase.places.length} places loaded.</div>
     );
 }
 
