@@ -93,5 +93,6 @@
     "total-models": "Modelos totales",
     "total-places": "localizaciones totales",
     "total-sublocations": "Total de sublocalizaciones",
-    "loading-user-devices": "Cargando sus dispositivos ..."
+    "loading-user-devices": "Cargando sus dispositivos ...",
+    "submitting-measurement": "Enviando medición..."
 }

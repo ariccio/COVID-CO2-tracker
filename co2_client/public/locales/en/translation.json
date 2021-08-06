@@ -93,5 +93,6 @@
     "total-models": "Total models",
     "total-places": "Total places",
     "total-sublocations": "Total sublocations",
-    "loading-user-devices": "Loading your devices..."
+    "loading-user-devices": "Loading your devices...",
+    "submitting-measurement": "Submitting measurement..."
 }

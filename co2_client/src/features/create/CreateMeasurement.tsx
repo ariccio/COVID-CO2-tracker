@@ -1,6 +1,6 @@
 import React, {useState, useEffect, Suspense} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
-import {Modal, Button, Form, Dropdown, ToggleButtonGroup, ToggleButton} from 'react-bootstrap';
+import {Modal, Button, Form, Dropdown, ToggleButtonGroup, ToggleButton, Spinner} from 'react-bootstrap';
 import DatePicker from 'react-datepicker';
 
 import * as Sentry from "@sentry/browser"; // for manual error reporting.
@@ -297,7 +297,7 @@ const createPlaceIfNotExist = (placeExistsInDatabase: boolean, place_id: string)
     return result;
 }
 
-const createMeasurementHandler = (selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, enteredCrowding: string, enteredLocationDetails: string, selectedSubLocation: number, userTimeRadioValue: ToggleButtonUserRadios, dateTime: Date) => {
+const createMeasurementHandler = (selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, enteredCrowding: string, enteredLocationDetails: string, selectedSubLocation: number, userTimeRadioValue: ToggleButtonUserRadios, dateTime: Date, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
     // debugger;
     const init = newMeasurementRequestInit(selectedDevice, enteredCO2Text, place_id, enteredCrowding, enteredLocationDetails, selectedSubLocation, userTimeRadioValue, dateTime);
     
@@ -319,22 +319,24 @@ const createMeasurementHandler = (selectedDevice: number, enteredCO2Text: string
             console.log("to use it, please remove this message.");
             console.log("here it is anyways:");
             console.log(result);
+            setSubmitting(false);
         }
         else {
-            console.log("TODO: set form invalid.")
+            console.log("TODO: set form invalid.");
+            setShowSubmit(true);
+            setSubmitting(false);
             debugger;
         }
     })
 }
 
-const submitHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, placeExistsInDatabase: boolean, dispatch: ReturnType<typeof useDispatch>, setErrorState: React.Dispatch<React.SetStateAction<string>>, enteredCrowding: string, enteredLocationDetails: string, selectedSubLocation: number, userTimeRadioValue: ToggleButtonUserRadios, dateTime: Date) => {
-    // debugger;
-    //TODO: Disable button on click while waiting for response
-
+const submitHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, placeExistsInDatabase: boolean, dispatch: ReturnType<typeof useDispatch>, setErrorState: React.Dispatch<React.SetStateAction<string>>, enteredCrowding: string, enteredLocationDetails: string, selectedSubLocation: number, userTimeRadioValue: ToggleButtonUserRadios, dateTime: Date, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
+    setShowSubmit(false);
+    setSubmitting(true);
     const placeExistsPromiseOrNull = createPlaceIfNotExist(placeExistsInDatabase, place_id);
     if (placeExistsPromiseOrNull === null) {
         // debugger;
-        createMeasurementHandler(selectedDevice, enteredCO2Text, place_id, setShowCreateNewMeasurement, enteredCrowding, enteredLocationDetails, selectedSubLocation, userTimeRadioValue, dateTime);
+        createMeasurementHandler(selectedDevice, enteredCO2Text, place_id, setShowCreateNewMeasurement, enteredCrowding, enteredLocationDetails, selectedSubLocation, userTimeRadioValue, dateTime, setShowSubmit, setSubmitting);
         updatePlacesInfoFromBackend(place_id, dispatch);
         return;
     }
@@ -345,12 +347,12 @@ const submitHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, selecte
             setErrorState(formatErrors(existsPromise.errors));
             return;
         }
-        createMeasurementHandler(selectedDevice, enteredCO2Text, place_id, setShowCreateNewMeasurement, enteredCrowding, enteredLocationDetails, selectedSubLocation, userTimeRadioValue, dateTime);
+        createMeasurementHandler(selectedDevice, enteredCO2Text, place_id, setShowCreateNewMeasurement, enteredCrowding, enteredLocationDetails, selectedSubLocation, userTimeRadioValue, dateTime, setShowSubmit, setSubmitting);
         updatePlacesInfoFromBackend(place_id, dispatch);
     }).catch((errors) => {
-        //TODO: set errors state?
-        // alert(errors.message);
         setErrorState(errors.message);
+        setShowSubmit(true);
+        setSubmitting(false);
     });
 
 }
@@ -542,6 +544,25 @@ Note to self, on selecting datetime pickers:
 
 */
 
+const submitOrSpinning = (submitting: boolean, translate: any) => {
+    if (!submitting) {
+        return (
+            <>
+                {translate("Submit new measurement")}
+            </>
+        )
+    }
+    return (
+        <>
+            <Spinner animation="border" role="status">
+                  <span className="visually-hidden">
+                      {translate('submitting-measurement')}
+                  </span>
+            </Spinner>
+        </>
+    )
+}
+
 export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (props: CreateNewMeasurementProps) => {
     const [translate] = useTranslation();
 
@@ -571,6 +592,8 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
     const [dateTime, setDateTime] = useState(new Date());
 
     const [datePickerError, setDatePickerError] = useState(null as string | null);
+    const [showSubmit, setShowSubmit] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
 
     const placeName = selectedPlace.name;    
     const place_id = selectedPlace.place_id
@@ -675,8 +698,11 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
                     <Button variant="secondary" onClick={(event) => hideHandler(props.setShowCreateNewMeasurement)}>
                         {translate('Cancel')}
                     </Button>
-                    <Button variant="primary" onClick={(event) => submitHandler(event, selectedDevice, enteredCO2Text, place_id, props.setShowCreateNewMeasurement, placeExistsInDatabase, dispatch, setErrorState, enteredCrowding, enteredLocationDetails, selectedSubLocation, userTimeRadioValue, dateTime)}>
-                        {translate("Submit new measurement")}
+                    <Button disabled={!showSubmit} variant="primary" onClick={(event) => {
+                            // setShowSubmit(!showSubmit);
+                            submitHandler(event, selectedDevice, enteredCO2Text, place_id, props.setShowCreateNewMeasurement, placeExistsInDatabase, dispatch, setErrorState, enteredCrowding, enteredLocationDetails, selectedSubLocation, userTimeRadioValue, dateTime, setShowSubmit, setSubmitting);
+                        }}>
+                        {submitOrSpinning(submitting, translate)}
                     </Button>
                 </Modal.Footer>
 
