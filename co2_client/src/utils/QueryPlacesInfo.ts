@@ -2,7 +2,7 @@ import {API_URL} from './UrlPath';
 import {fetchJSONWithChecks} from './FetchHelpers';
 import {postRequestOptions, userRequestOptions} from './DefaultRequestOptions';
 import {Errors, formatErrors} from './ErrorObject';
-import {SelectedPlaceDatabaseInfo, setPlacesInfoFromDatabase, setPlacesInfoErrors, setPlaceExistsInDatabase, defaultPlaceInfo, setPlaceMarkersFromDatabase, setPlaceMarkersErrors, defaultPlaceMarkers, placesFromDatabaseForMarker} from '../features/places/placesSlice';
+import {SelectedPlaceDatabaseInfo, setPlacesInfoFromDatabase, setPlacesInfoErrors, setPlaceExistsInDatabase, defaultPlaceInfo, setPlaceMarkersFromDatabase, setPlaceMarkersErrors, defaultPlaceMarkers, placesFromDatabaseForMarker, setPlaceMarkersFetchInProgress} from '../features/places/placesSlice';
 
 import {useDispatch} from 'react-redux';
 
@@ -177,6 +177,7 @@ export const queryPlacesInBoundsFromBackend = (northEast: google.maps.LatLng, so
 
 const nearbyResultsFetchedCallback = (result: Promise<nearbyPlacesResponseType>, dispatch: ReturnType<typeof useDispatch>) => {
     return result.then((response) => {
+        dispatch(setPlaceMarkersFetchInProgress(false));
         if (response.errors !== undefined) {
             console.warn("some kind of error while fetching place markers")
             dispatch(setPlaceMarkersErrors(formatErrors(response.errors)));
@@ -194,6 +195,7 @@ const nearbyResultsFetchedCallback = (result: Promise<nearbyPlacesResponseType>,
         }
         // debugger;
     }).catch((errors) => {
+        dispatch(setPlaceMarkersFetchInProgress(false));
         console.error("error getting place markers");
         dispatch(setPlaceMarkersErrors(errors.message))  
     })

@@ -67,7 +67,8 @@ export interface PlacesSlice {
     placesInfoErrors: string,
     placeExistsInDatabase: boolean | null,
     placeMarkersFromDatabase: placesFromDatabaseForMarker,
-    placeMarkersErrors: string
+    placeMarkersErrors: string,
+    placeMarkersFetchInProgress: boolean
 }
 
 const initialState: PlacesSlice = {
@@ -75,7 +76,8 @@ const initialState: PlacesSlice = {
     placesInfoErrors: '',
     placeExistsInDatabase: null,
     placeMarkersFromDatabase: defaultPlaceMarkers,
-    placeMarkersErrors: ''
+    placeMarkersErrors: '',
+    placeMarkersFetchInProgress: false
 }
 
 //TODO: pull in google places slice
@@ -97,15 +99,19 @@ export const placesSlice = createSlice({
         },
         setPlaceMarkersErrors: (state, action: PayloadAction<string>) => {
             state.placeMarkersErrors = action.payload;
+        },
+        setPlaceMarkersFetchInProgress: (state, action: PayloadAction<boolean>) => {
+            state.placeMarkersFetchInProgress = action.payload;
         }
     }
 })
 
-export const {setPlacesInfoFromDatabase, setPlacesInfoErrors, setPlaceExistsInDatabase, setPlaceMarkersFromDatabase, setPlaceMarkersErrors} = placesSlice.actions;
+export const {setPlacesInfoFromDatabase, setPlacesInfoErrors, setPlaceExistsInDatabase, setPlaceMarkersFromDatabase, setPlaceMarkersErrors, setPlaceMarkersFetchInProgress} = placesSlice.actions;
 export const selectPlacesInfoFromDatabase = (state: RootState) => state.placesInfo.placesInfoFromDatabase;
 export const selectPlacesInfoErrors = (state: RootState) => state.placesInfo.placesInfoErrors;
 export const selectPlaceExistsInDatabase = (state: RootState) => state.placesInfo.placeExistsInDatabase;
 
 export const selectPlaceMarkersFromDatabase = (state: RootState) => state.placesInfo.placeMarkersFromDatabase;
 export const selectPlacesMarkersErrors = (state: RootState) => state.placesInfo.placeMarkersErrors;
+export const selectPlaceMarkersFetchInProgress = (state: RootState) => state.placesInfo.placeMarkersFetchInProgress;
 export const placesInfoReducer = placesSlice.reducer;

@@ -17,7 +17,7 @@ import {selectSelectedPlace, selectPlacesServiceStatus, autocompleteSelectedPlac
 import {setSelectedPlace, INTERESTING_FIELDS} from './googleSlice';
 
 import {updatePlacesInfoFromBackend, queryPlacesInBoundsFromBackend} from '../../utils/QueryPlacesInfo';
-import { defaultPlaceMarkers, EachPlaceFromDatabaseForMarker, placesFromDatabaseForMarker, selectPlaceMarkersFromDatabase, selectPlacesInfoErrors, selectPlacesMarkersErrors } from '../places/placesSlice';
+import { defaultPlaceMarkers, EachPlaceFromDatabaseForMarker, placesFromDatabaseForMarker, selectPlaceMarkersFromDatabase, selectPlacesInfoErrors, selectPlacesMarkersErrors, selectPlaceMarkersFetchInProgress, setPlaceMarkersFetchInProgress } from '../places/placesSlice';
 import { setSublocationSelectedLocationID } from '../sublocationsDropdown/sublocationSlice';
 import { updateOnNewPlace } from './googlePlacesServiceUtils';
 import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
@@ -447,6 +447,7 @@ const updateMarkers = (map: google.maps.Map<Element> | null, dispatch: ReturnTyp
     // queryPlacesNearbyFromBackend(center.lat(), center.lng(), dispatch);
     // console.log(`getting bounds for ne lat: ${bounds.getNorthEast().lat()} ne lng: ${bounds.getNorthEast().lng()}, sw lat: ${bounds.getSouthWest().lat()}, sw lng: ${bounds.getSouthWest().lng()}`)
     // debugger;
+    dispatch(setPlaceMarkersFetchInProgress(true));
     queryPlacesInBoundsFromBackend(bounds.getNorthEast(), bounds.getSouthWest(), dispatch);
 }
 
@@ -471,6 +472,28 @@ const onZoomChange = (map: google.maps.Map<Element> | null, setZoomlevel: React.
 }
 
 // 
+
+const placeMarkersDataDebugText = (placeMarkersFetchInProgres: boolean, placeMarkersFromDatabase: placesFromDatabaseForMarker) => {
+    if (placeMarkersFetchInProgres) {
+        return (
+            <div>Loading places for viewport...</div>
+        );
+    }
+
+    if (placeMarkersFromDatabase === defaultPlaceMarkers) {
+        //Map not loaded yet.
+        return null;
+    }
+
+    if (placeMarkersFromDatabase.places === null) {
+        console.log("No markers.");
+        debugger;
+        return null;
+    }
+    return (
+        <div>{placeMarkersFromDatabase.places.length} places visible.</div>
+    );
+}
 
 
 const googleMapInContainer = (
@@ -665,7 +688,8 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
     const [mapLoaded, setMapLoaded] = useState(false);
     const placeMarkersFromDatabase = useSelector(selectPlaceMarkersFromDatabase);
     const placeMarkerErrors = useSelector(selectPlacesMarkersErrors);
-
+    const placeMarkersFetchInProgres = useSelector(selectPlaceMarkersFetchInProgress);
+    
     // const selectedPlaceInfoFromDatabase = useSelector(selectPlacesInfoFromDatabase);
     const selectedPlaceInfoFromDatabaseErrors = useSelector(selectPlacesInfoErrors);
     // const selectedPlaceExistsInDatabase = useSelector(selectPlaceExistsInDatabase);
@@ -741,6 +765,7 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
         return (
             <div>
                 {googleMapInContainer(onLoad, onUnmount, map, setZoomlevel, setCenter, dispatch, mapLoaded, setMapLoaded, placeMarkersFromDatabase, placeMarkerErrors, service)}
+                {placeMarkersDataDebugText(placeMarkersFetchInProgres, placeMarkersFromDatabase)}
                 <br/>
                 <AutocompleteElement map={map} setCenter={setCenter} mapLoaded={mapLoaded}/>
                 <Button onClick={() => {
