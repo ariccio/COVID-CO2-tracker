@@ -31,6 +31,10 @@ const postcssNormalize = require('postcss-normalize');
 
 const appPackageJson = require(paths.appPackageJson);
 
+// import PurgeCSS webpack plugin and glob-all
+const PurgecssPlugin = require('purgecss-webpack-plugin')
+const glob = require('glob-all')
+
 // Source maps are resource heavy and can cause out of memory issue for large source files.
 const shouldUseSourceMap = process.env.GENERATE_SOURCEMAP !== 'false';
 
@@ -638,6 +642,12 @@ module.exports = function (webpackEnv) {
           filename: 'static/css/[name].[contenthash:8].css',
           chunkFilename: 'static/css/[name].[contenthash:8].chunk.css',
         }),
+      // Remove unused css with PurgeCSS. See https://github.com/FullHuman/purgecss
+      // for more information about PurgeCSS.
+      // Specify the path of the html files and source files
+      new PurgecssPlugin({
+        paths: [paths.appHtml, ...glob.sync(`${paths.appSrc}/**/*`, { nodir: true })]
+      }),
       // Generate an asset manifest file with the following content:
       // - "files" key: Mapping of all asset filenames to their corresponding
       //   output file so that tools can pick it up without having to parse
