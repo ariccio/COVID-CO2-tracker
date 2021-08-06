@@ -359,7 +359,7 @@ function markerKey(lat: number, lng: number, index: number): string {
     return `marker-${lat}-${lng}-${index}-key`;
 }
 
-const renderEachMarker = (place: EachPlaceFromDatabaseForMarker, index: number, clusterer: /*clusterType*/ any, dispatch: ReturnType<typeof useDispatch>, service: google.maps.places.PlacesService | null) => {
+const renderEachMarker = (place: EachPlaceFromDatabaseForMarker, index: number, clusterer: /*clusterType*/ any, dispatch: ReturnType<typeof useDispatch>, service: google.maps.places.PlacesService | null, placesSize: number) => {
     const pos: google.maps.LatLngLiteral = {
         lat: parseFloat(place.attributes.place_lat),
         lng: parseFloat(place.attributes.place_lng)
@@ -370,8 +370,17 @@ const renderEachMarker = (place: EachPlaceFromDatabaseForMarker, index: number, 
         updateOnNewPlace(service, dispatch, place.attributes.google_place_id);
     }
     // debugger;
+    let noClustererRedraw = undefined;
+    if (index === (placesSize - 1)) {
+        // console.log("last!");
+        noClustererRedraw = false;
+    }
+    else {
+        noClustererRedraw = true;
+    }
+
     return (
-        <Marker position={pos} key={markerKey(pos.lat, pos.lng, index)} clusterer={clusterer} onClick={clickHandler} /* noClustererRedraw */ />
+        <Marker position={pos} key={markerKey(pos.lat, pos.lng, index)} clusterer={clusterer} onClick={clickHandler} noClustererRedraw={noClustererRedraw} />
     )
 }
 
@@ -382,7 +391,9 @@ const clustererCallback = (placeMarkersFromDatabase: placesFromDatabaseForMarker
     }
     // debugger;
     // interface clusterType = typeof clusterer;
-    return placeMarkersFromDatabase.places.map((place, index) => {return renderEachMarker(place, index, clusterer, dispatch, service)})
+    const placesSize = placeMarkersFromDatabase.places.length;
+
+    return placeMarkersFromDatabase.places.map((place, index) => {return renderEachMarker(place, index, clusterer, dispatch, service, placesSize)})
 
 }
 
