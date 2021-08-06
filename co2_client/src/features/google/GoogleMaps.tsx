@@ -762,6 +762,19 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
     useEffect(legalNoticeNote, []);
     
     if (isLoaded) {
+        
+        // Dump places for debugging, ugly a.f.
+        // if (placeMarkersFromDatabase.places !== null) {
+        //     const copyOfPlaces = Object.assign( new Array(), placeMarkersFromDatabase.places);
+        //     copyOfPlaces?.sort((a, b) => {
+        //         const aid = a.id as unknown as string;
+        //         const bid = b.id as unknown as string;
+        //         // debugger;
+        //         return ( parseInt(aid) - parseInt(bid));
+        //     });
+        //     console.log(copyOfPlaces);
+        // }
+
         return (
             <div>
                 {googleMapInContainer(onLoad, onUnmount, map, setZoomlevel, setCenter, dispatch, mapLoaded, setMapLoaded, placeMarkersFromDatabase, placeMarkerErrors, service)}
