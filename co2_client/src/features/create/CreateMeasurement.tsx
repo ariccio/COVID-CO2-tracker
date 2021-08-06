@@ -313,13 +313,13 @@ const createMeasurementHandler = (selectedDevice: number, enteredCO2Text: string
     const result = fetchJSONWithChecks(NEW_MEASUREMENT_URL, init, 201, true, fetchFailedCallback, fetchSuccessCallback) as Promise<NewMeasurmentResponseType>;
     result.then((result) => {
         if (result.errors === undefined) {
+            setSubmitting(false);
             setShowCreateNewMeasurement(false);
             // debugger;
             console.log("new measurement successfully created. We currently throw the result away.");
             console.log("to use it, please remove this message.");
             console.log("here it is anyways:");
             console.log(result);
-            setSubmitting(false);
         }
         else {
             console.log("TODO: set form invalid.");
@@ -415,7 +415,7 @@ const MaybeMeasurementNote = (props: {enteredCO2Text: string}) => {
     return null;
 }
 
-function datePickerChangeHandler(setDateTime: React.Dispatch<React.SetStateAction<Date>>, setDatePickerError: React.Dispatch<React.SetStateAction<string | null>>, date: Date | [Date, Date] | /* for selectsRange */ null,
+function datePickerChangeHandler(setDateTime: React.Dispatch<React.SetStateAction<Date>>, setDatePickerError: React.Dispatch<React.SetStateAction<string | null>>, date: Date | [Date | null, Date | null] | null,
     _event: React.SyntheticEvent<any> | undefined): void {
         if(date === null) {
             return;
