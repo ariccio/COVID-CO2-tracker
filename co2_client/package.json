@@ -21,6 +21,7 @@
     "@types/react-router-bootstrap": "^0.24.5",
     "@types/react-router-dom": "^5.1.8",
     "bootstrap": "^5.1.0",
+    "purgecss": "^4.0.3",
     "react": "^17.0.1",
     "react-bootstrap": "^1.6.1",
     "react-datepicker": "^4.1.1",
@@ -37,7 +38,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "postbuild": "purgecss --css build/static/css/*.css --content build/index.html build/static/js/*.js --output build/static/css"
   },
   "eslintConfig": {
     "extends": "react-app"
