@@ -81,6 +81,7 @@ const selectDeviceDropdownHandler = (eventKey: string | null, e: React.Synthetic
     console.assert(eventKey !== null);
     if (eventKey === null) {
         alert("TODO: I need to handle this. Event key null.");
+        Sentry.captureMessage("TODO: I need to handle this. Event key null.");
         return;
     }
     if (eventKey === '-1') {
@@ -108,6 +109,21 @@ const selectDeviceDropdownHandler = (eventKey: string | null, e: React.Synthetic
     }
 }
 
+const loadingDevicesDropdownString = (userDevices: UserDevicesInfo) => {
+    if (userDevices === defaultDevicesInfo) {
+        return "loading-user-devices";
+    }
+    return "Create new device";
+}
+
+const loadingDevicesDropdownTitleString = (userDevices: UserDevicesInfo, translate: any) => {
+    if (userDevices === defaultDevicesInfo) {
+        return translate("loading-user-devices");
+    }
+    return "Select device:";
+
+}
+
 const SelectDeviceDropdown = (props: {userDevices: UserDevicesInfo, selectedDevice: number, selectedModelName: string, selectedDeviceSerialNumber: string}) => {
     const dispatch = useDispatch();
     const [translate] = useTranslation();
@@ -118,8 +134,11 @@ const SelectDeviceDropdown = (props: {userDevices: UserDevicesInfo, selectedDevi
     }
 
     if (props.userDevices.devices.length === 0) {
-        console.warn("no devices, probably loading...");
+        console.log("no devices, probably loading...");
     }
+
+    const loadingOrCreateString = loadingDevicesDropdownString(props.userDevices);
+    const loadingOrSelectString = loadingDevicesDropdownTitleString(props.userDevices, translate);
     // "no-devices-yet-loading": "No devices, yet. Loading..."
     // useEffect(() => {
     //     if (props.userDevices === defaultDevicesInfo) {
@@ -131,12 +150,12 @@ const SelectDeviceDropdown = (props: {userDevices: UserDevicesInfo, selectedDevi
         <>
             <Dropdown onSelect={(eventKey: string | null, event: React.SyntheticEvent<unknown>) => selectDeviceDropdownHandler(eventKey, event, props.userDevices, dispatch)}>
                 <Dropdown.Toggle variant="success" id="dropdown-basic">
-                    {props.selectedDevice !== -1 ? `${props.selectedModelName} - ${props.selectedDeviceSerialNumber}` : "Select device:" }
+                    {props.selectedDevice !== -1 ? `${props.selectedModelName} - ${props.selectedDeviceSerialNumber}` :  loadingOrSelectString}
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
                     {devicesToDropdown(props.userDevices)}
                     <Dropdown.Item eventKey={"-1"} as={Link} to={devicesPath}>
-                        + {translate("Create new device")}
+                        + {translate(loadingOrCreateString)}
                     </Dropdown.Item>
                 </Dropdown.Menu>
             </Dropdown>

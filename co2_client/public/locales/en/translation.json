@@ -92,5 +92,6 @@
     "total-manufacturers": "Total manufacturers",
     "total-models": "Total models",
     "total-places": "Total places",
-    "total-sublocations": "Total sublocations"
+    "total-sublocations": "Total sublocations",
+    "loading-user-devices": "Loading your devices..."
 }
