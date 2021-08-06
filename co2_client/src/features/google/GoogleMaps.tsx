@@ -371,7 +371,7 @@ const renderEachMarker = (place: EachPlaceFromDatabaseForMarker, index: number, 
     }
     // debugger;
     return (
-        <Marker position={pos} key={markerKey(pos.lat, pos.lng, index)} clusterer={clusterer} onClick={clickHandler} noClustererRedraw/>
+        <Marker position={pos} key={markerKey(pos.lat, pos.lng, index)} clusterer={clusterer} onClick={clickHandler} /* noClustererRedraw */ />
     )
 }
 
