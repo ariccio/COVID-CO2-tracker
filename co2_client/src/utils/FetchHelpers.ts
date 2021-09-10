@@ -249,7 +249,7 @@ export async function fetchFailed(awaitedResponseOriginal: Response, expectedSta
 export function fetchFilter(error: any): never {
     console.log(`filtering error ${error}`)
     if (error.toString !== undefined) {
-        console.error(error.toString())
+        console.error(`error.toString !== undefined, error.toString(): ${error.toString()}`)
     }
     if (error instanceof SyntaxError) {
         console.error("JSON parsing error, likely a network error anyways.");
@@ -264,6 +264,9 @@ export function fetchFilter(error: any): never {
         console.error(`type error message: ${error.message}`);
         alert("fetch itself failed, are you connected? is the server running? Did you manually interrupt it with a refresh?");
     }
+
+    // The fuck did I forget brackets for?
+    // Now I have to manually test this shit.
     else if (error instanceof DOMException)
     console.error(`fetch iself failed! Error: ${error}`);
     throw error;
