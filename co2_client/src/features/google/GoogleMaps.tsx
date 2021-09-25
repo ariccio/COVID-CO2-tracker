@@ -448,7 +448,9 @@ const updateMarkers = (map: google.maps.Map<Element> | null, dispatch: ReturnTyp
     // console.log(`getting bounds for ne lat: ${bounds.getNorthEast().lat()} ne lng: ${bounds.getNorthEast().lng()}, sw lat: ${bounds.getSouthWest().lat()}, sw lng: ${bounds.getSouthWest().lng()}`)
     // debugger;
     dispatch(setPlaceMarkersFetchInProgress(true));
-    queryPlacesInBoundsFromBackend(bounds.getNorthEast(), bounds.getSouthWest(), dispatch);
+    const ne = bounds.getNorthEast();
+    const sw = bounds.getSouthWest();
+    queryPlacesInBoundsFromBackend(ne, sw, dispatch);
 }
 
 const onMapIdle = (map: google.maps.Map<Element> | null, mapLoaded: boolean, setMapLoaded: React.Dispatch<React.SetStateAction<boolean>>, dispatch: ReturnType<typeof useDispatch>) => {
@@ -797,11 +799,13 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
     }
     if (loadError) {
         Sentry.captureException(loadError);
+
+        //TODO: maybe I can check with a fetch or something?
         return (
             <div>
-                Google maps load failed!
-                {loadError.message}
-                This failure has been reported automatically.
+                Google maps load failed!<br/>
+                Message, if any: {loadError.message}<br/>
+                This failure has been reported automatically. There's usually not much I can do about this - something went wrong loading google libraries - but I keep track of it anyways.
             </div>
         );
     }

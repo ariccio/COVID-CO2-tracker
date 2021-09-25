@@ -113,15 +113,16 @@ type nearbyPlacesResponseType = placesFromDatabaseForMarker & {
 
 function inBoundsPlaceRequestInit(northEast: google.maps.LatLng, southWest: google.maps.LatLng): RequestInit {
     const defaultOptions = postRequestOptions()
+    const place = {
+        east: northEast.lng(),
+        north: northEast.lat(),
+        south: southWest.lat(),
+        west: southWest.lng()
+    };
     const newOptions = {
         ...defaultOptions,
         body: JSON.stringify({
-            place: {
-                east: northEast.lng(),
-                north: northEast.lat(),
-                south: southWest.lng(),
-                west: southWest.lat()
-            }
+            place: place
         })
     };
     return newOptions;
@@ -172,7 +173,6 @@ export const queryPlacesInBoundsFromBackend = (northEast: google.maps.LatLng, so
     }
     const result = fetchJSONWithChecks(PLACES_IN_BOUNDS, init, 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<nearbyPlacesResponseType>;
     return nearbyResultsFetchedCallback(result, dispatch);
-
 }
 
 const nearbyResultsFetchedCallback = (result: Promise<nearbyPlacesResponseType>, dispatch: ReturnType<typeof useDispatch>) => {
