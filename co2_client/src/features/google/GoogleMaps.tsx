@@ -142,7 +142,7 @@ const errorPositionCallback = (error: GeolocationPositionError_, geolocationInPr
 const invokeBrowserGeolocation = (setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>, geolocationInProgress: boolean, setGeolocationInProgress: React.Dispatch<React.SetStateAction<boolean>>) => {
     if ('geolocation' in navigator) {
         const validPositionCallback = (position: /*GeolocationPosition*/ GeolocationPositionShadowType) => {
-            console.assert(geolocationInProgress);
+            // console.assert(geolocationInProgress); //Delayed/stale.
             setGeolocationInProgress(false);
             console.log("got position!");
             console.log(position);
