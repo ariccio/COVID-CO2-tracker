@@ -7,7 +7,7 @@ When you log in with google, I store only 3 pieces of the information returned:
     2. The name associated with your google account, if it's not already stored. I currently do not update on changes.
     3. The permanent unique identifier that google produces for identifying you uniquely in this application. (The 'sub' OAuth field).
 
-Items 1 and 2 are not strictly necessary for the basic functioning of the app, but it makes for a nice user experience. These are not currently displayed anywhere publicly in the app, but likely will be in the future.
+Items 1 and 2 are not strictly necessary for the basic functioning of the app, but it makes for a nice user experience. These are not currently displayed anywhere publicly in the app, but may be in the future.
 
 Item #3, the unique identifier, is central to the functioning of the app, as it lets me implement login without adding to the infinite misery people already have with passwords. I thus do not need to even store passwords.
 

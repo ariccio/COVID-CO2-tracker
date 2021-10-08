@@ -130,7 +130,7 @@ const UserNav: React.FC<UserNavProps> = ({username, googleProfile}) => {
   );
 }
 
-const loadEmail = (dispatch: ReturnType<typeof useDispatch>) => {
+const loadEmail = (dispatch: ReturnType<typeof useDispatch>, username: string) => {
   const emailPromise = get_email();
   emailPromise.then(email => {
     if (email === null) {
@@ -144,7 +144,12 @@ const loadEmail = (dispatch: ReturnType<typeof useDispatch>) => {
         debugger;
       }
       // console.log("got email: ", email.email)
-      dispatch(setUsername(`(logging in...) ${email.email}`));
+      if (username === '') {
+        dispatch(setUsername(`(logging in...) ${email.email}`));
+      }
+      else {
+        console.log(`Not setting username in redux, since username is currently ${username}. Sometimes that returns faster.`);
+      }
       Sentry.setContext("user_info", {
         email: email.email
       });
@@ -170,7 +175,7 @@ export const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
     const dispatch = useDispatch();
 
     
-    useEffect(() => {loadEmail(dispatch)}, [dispatch]);
+    useEffect(() => {loadEmail(dispatch, username)}, [dispatch]);
     
     // Force reload of page after 59 minutes to avoid login timeout. Ugly hack but whatevs.
     useEffect(() => {
