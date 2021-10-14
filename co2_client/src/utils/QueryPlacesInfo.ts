@@ -2,7 +2,7 @@ import {API_URL} from './UrlPath';
 import {fetchJSONWithChecks} from './FetchHelpers';
 import {postRequestOptions, userRequestOptions} from './DefaultRequestOptions';
 import {Errors, formatErrors} from './ErrorObject';
-import {SelectedPlaceDatabaseInfo, setPlacesInfoFromDatabase, setPlacesInfoErrors, setPlaceExistsInDatabase, defaultPlaceInfo, setPlaceMarkersFromDatabase, setPlaceMarkersErrors, defaultPlaceMarkers, placesFromDatabaseForMarker, setPlaceMarkersFetchInProgress} from '../features/places/placesSlice';
+import {SelectedPlaceDatabaseInfo, setPlacesInfoFromDatabase, setPlacesInfoErrors, setPlaceExistsInDatabase, defaultPlaceInfo, setPlaceMarkersFromDatabase, setPlaceMarkersErrors, defaultPlaceMarkers, placesFromDatabaseForMarker, setPlaceMarkersFetchInProgress, setPlaceMarkersFetchFinishMS, setPlaceMarkersFetchStartMS} from '../features/places/placesSlice';
 
 import {useDispatch} from 'react-redux';
 
@@ -164,13 +164,16 @@ function inBoundsPlaceRequestInit(northEast: google.maps.LatLng, southWest: goog
 export const queryPlacesInBoundsFromBackend = (northEast: google.maps.LatLng, southWest: google.maps.LatLng, dispatch: ReturnType<typeof useDispatch>) => {
     const init = inBoundsPlaceRequestInit(northEast, southWest);
     const fetchFailedCallback = async (awaitedResponse: Response): Promise<nearbyPlacesResponseType> => {
+        dispatch(setPlaceMarkersFetchFinishMS(performance.now()));
         console.error("Failed to find nearby places!");
         return awaitedResponse.json();
     }
     const fetchSuccessCallback = async (awaitedResponse: Response): Promise<nearbyPlacesResponseType> => {
+        dispatch(setPlaceMarkersFetchFinishMS(performance.now()));
         console.log("TODO: strong type");
         return awaitedResponse.json();
     }
+    dispatch(setPlaceMarkersFetchStartMS(performance.now()));
     const result = fetchJSONWithChecks(PLACES_IN_BOUNDS, init, 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<nearbyPlacesResponseType>;
     return nearbyResultsFetchedCallback(result, dispatch);
 }

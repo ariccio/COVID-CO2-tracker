@@ -17,7 +17,7 @@ import {selectSelectedPlace, selectPlacesServiceStatus, autocompleteSelectedPlac
 import {setSelectedPlace, INTERESTING_FIELDS} from './googleSlice';
 
 import {updatePlacesInfoFromBackend, queryPlacesInBoundsFromBackend} from '../../utils/QueryPlacesInfo';
-import { defaultPlaceMarkers, EachPlaceFromDatabaseForMarker, placesFromDatabaseForMarker, selectPlaceMarkersFromDatabase, selectPlacesInfoErrors, selectPlacesMarkersErrors, selectPlaceMarkersFetchInProgress, setPlaceMarkersFetchInProgress } from '../places/placesSlice';
+import { defaultPlaceMarkers, EachPlaceFromDatabaseForMarker, placesFromDatabaseForMarker, selectPlaceMarkersFromDatabase, selectPlacesInfoErrors, selectPlacesMarkersErrors, selectPlaceMarkersFetchInProgress, setPlaceMarkersFetchInProgress, setPlaceMarkersFetchStartMS, selectPlaceMarkersFetchStartMS, selectPlaceMarkersFetchFinishMS, setPlaceMarkersFetchFinishMS } from '../places/placesSlice';
 import { setSublocationSelectedLocationID } from '../sublocationsDropdown/sublocationSlice';
 import { updateOnNewPlace } from './googlePlacesServiceUtils';
 import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
@@ -473,9 +473,15 @@ const onZoomChange = (map: google.maps.Map<Element> | null, setZoomlevel: React.
     }
 }
 
-// 
+const durationFromNumbersOrNull = (placeMarkersFetchStartMS: number | null, placeMarkersFetchFinishMS: number | null): number => {
+    if ((!placeMarkersFetchStartMS) || (!placeMarkersFetchFinishMS)) {
+        return 0;
+    }
+    const duration = placeMarkersFetchFinishMS - placeMarkersFetchStartMS;
+    return Math.round(duration);
+}
 
-const placeMarkersDataDebugText = (placeMarkersFetchInProgres: boolean, placeMarkersFromDatabase: placesFromDatabaseForMarker) => {
+const placeMarkersDataDebugText = (placeMarkersFetchInProgres: boolean, placeMarkersFromDatabase: placesFromDatabaseForMarker, placeMarkersFetchStartMS: number | null, placeMarkersFetchFinishMS: number | null) => {
     if (placeMarkersFetchInProgres) {
         return (
             <div>Loading places for viewport...</div>
@@ -492,8 +498,9 @@ const placeMarkersDataDebugText = (placeMarkersFetchInProgres: boolean, placeMar
         debugger;
         return null;
     }
+    const duration = durationFromNumbersOrNull(placeMarkersFetchStartMS, placeMarkersFetchFinishMS);
     return (
-        <div>{placeMarkersFromDatabase.places.length} places loaded.</div>
+        <div>{placeMarkersFromDatabase.places.length} places loaded in {duration}ms.</div>
     );
 }
 
@@ -691,7 +698,8 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
     const placeMarkersFromDatabase = useSelector(selectPlaceMarkersFromDatabase);
     const placeMarkerErrors = useSelector(selectPlacesMarkersErrors);
     const placeMarkersFetchInProgres = useSelector(selectPlaceMarkersFetchInProgress);
-    
+    const placeMarkersFetchStartMS = useSelector(selectPlaceMarkersFetchStartMS);
+    const placeMarkersFetchFinishMS = useSelector(selectPlaceMarkersFetchFinishMS);
     // const selectedPlaceInfoFromDatabase = useSelector(selectPlacesInfoFromDatabase);
     const selectedPlaceInfoFromDatabaseErrors = useSelector(selectPlacesInfoErrors);
     // const selectedPlaceExistsInDatabase = useSelector(selectPlaceExistsInDatabase);
@@ -780,7 +788,7 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
         return (
             <div>
                 {googleMapInContainer(onLoad, onUnmount, map, setZoomlevel, setCenter, dispatch, mapLoaded, setMapLoaded, placeMarkersFromDatabase, placeMarkerErrors, service)}
-                {placeMarkersDataDebugText(placeMarkersFetchInProgres, placeMarkersFromDatabase)}
+                {placeMarkersDataDebugText(placeMarkersFetchInProgres, placeMarkersFromDatabase, placeMarkersFetchStartMS, placeMarkersFetchFinishMS)}
                 <br/>
                 <AutocompleteElement map={map} setCenter={setCenter} mapLoaded={mapLoaded}/>
                 <Button onClick={() => {

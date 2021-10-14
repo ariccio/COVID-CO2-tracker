@@ -68,7 +68,9 @@ export interface PlacesSlice {
     placeExistsInDatabase: boolean | null,
     placeMarkersFromDatabase: placesFromDatabaseForMarker,
     placeMarkersErrors: string,
-    placeMarkersFetchInProgress: boolean
+    placeMarkersFetchInProgress: boolean,
+    placeMarkersFetchStartMS: number | null,
+    placeMarkersFetchFinishMS: number | null
 }
 
 const initialState: PlacesSlice = {
@@ -77,7 +79,9 @@ const initialState: PlacesSlice = {
     placeExistsInDatabase: null,
     placeMarkersFromDatabase: defaultPlaceMarkers,
     placeMarkersErrors: '',
-    placeMarkersFetchInProgress: false
+    placeMarkersFetchInProgress: false,
+    placeMarkersFetchStartMS: null,
+    placeMarkersFetchFinishMS: null
 }
 
 //TODO: pull in google places slice
@@ -102,11 +106,17 @@ export const placesSlice = createSlice({
         },
         setPlaceMarkersFetchInProgress: (state, action: PayloadAction<boolean>) => {
             state.placeMarkersFetchInProgress = action.payload;
+        },
+        setPlaceMarkersFetchStartMS: (state, action: PayloadAction<number>) => {
+            state.placeMarkersFetchStartMS = action.payload;
+        },
+        setPlaceMarkersFetchFinishMS: (state, action: PayloadAction<number>) => {
+            state.placeMarkersFetchFinishMS = action.payload;
         }
     }
 })
 
-export const {setPlacesInfoFromDatabase, setPlacesInfoErrors, setPlaceExistsInDatabase, setPlaceMarkersFromDatabase, setPlaceMarkersErrors, setPlaceMarkersFetchInProgress} = placesSlice.actions;
+export const {setPlacesInfoFromDatabase, setPlacesInfoErrors, setPlaceExistsInDatabase, setPlaceMarkersFromDatabase, setPlaceMarkersErrors, setPlaceMarkersFetchInProgress, setPlaceMarkersFetchStartMS, setPlaceMarkersFetchFinishMS} = placesSlice.actions;
 export const selectPlacesInfoFromDatabase = (state: RootState) => state.placesInfo.placesInfoFromDatabase;
 export const selectPlacesInfoErrors = (state: RootState) => state.placesInfo.placesInfoErrors;
 export const selectPlaceExistsInDatabase = (state: RootState) => state.placesInfo.placeExistsInDatabase;
@@ -114,4 +124,6 @@ export const selectPlaceExistsInDatabase = (state: RootState) => state.placesInf
 export const selectPlaceMarkersFromDatabase = (state: RootState) => state.placesInfo.placeMarkersFromDatabase;
 export const selectPlacesMarkersErrors = (state: RootState) => state.placesInfo.placeMarkersErrors;
 export const selectPlaceMarkersFetchInProgress = (state: RootState) => state.placesInfo.placeMarkersFetchInProgress;
+export const selectPlaceMarkersFetchStartMS = (state: RootState) => state.placesInfo.placeMarkersFetchStartMS;
+export const selectPlaceMarkersFetchFinishMS = (state: RootState) => state.placesInfo.placeMarkersFetchFinishMS;
 export const placesInfoReducer = placesSlice.reducer;
