@@ -256,13 +256,19 @@ export function fetchFilter(error: any): never {
 
     }
     else if (error instanceof TypeError) {
-        console.error("fetch itself failed, likely a network issue.");
-
-        // FetchManager::Loader::Failed:
-        // https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/fetch/fetch_manager.cc;l=261;bpv=1;bpt=1?q=%22failed%20to%20fetch%22
-
-        console.error(`type error message: ${error.message}`);
-        alert("fetch itself failed, are you connected? is the server running? Did you manually interrupt it with a refresh?");
+        if (error.message === 'cancelled') {
+            console.error("fetch itself failed, response was 'cancelled'! Probably an iOS device?");
+            alert("fetch reported 'cancelled'... did you hit the 'x' to stop loading? Did you lose connection? Either way, you need to reload the whole page to continue. It's not my fault :)")
+        }
+        else {
+            console.error("fetch itself failed, likely a network issue.");
+    
+            // FetchManager::Loader::Failed:
+            // https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/fetch/fetch_manager.cc;l=261;bpv=1;bpt=1?q=%22failed%20to%20fetch%22
+    
+            console.error(`type error message: ${error.message}`);
+            alert("fetch itself failed, are you connected? is the server running? Did you manually interrupt it with a refresh?");
+        }
     }
 
     // The fuck did I forget brackets for?
