@@ -98,5 +98,6 @@
     "creating-device": "Creating device...",
     "creating-model": "Creating model...",
     "creating-manufacturer": "Creating manufacturer...",
-    "more-info": "More"
+    "more-info": "More",
+    "locality-selected-warning": "Are you sure you want to select a city or town as your place? Try looking for establishments by name!"
 }

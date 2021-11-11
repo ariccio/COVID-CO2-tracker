@@ -67,11 +67,35 @@ const renderInfoFromDatabase = (selectedPlaceInfoFromDatabase: SelectedPlaceData
     )
 }
 
-const renderPlace = (currentPlace: google.maps.places.PlaceResult, location: ReturnType<typeof useLocation>, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, showCreateNewMeasurement: boolean, selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo, selectedPlaceInfoErrors: string, placesServiceStatus: google.maps.places.PlacesServiceStatus | null, selectedPlaceExistsInDatabase: boolean | null) => {
+const maybeWarningString = (localitySelectedWarningString: string) => {
+    if (localitySelectedWarningString === '') {
+        return (<></>);
+    }
+    return (
+        <>
+            <br/>
+            <br/>
+            <b>
+                <i>
+                    <u>
+                        {localitySelectedWarningString}
+                    </u>
+                </i>
+            </b>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+        </>
+    );
+}
+
+const renderPlace = (currentPlace: google.maps.places.PlaceResult, location: ReturnType<typeof useLocation>, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, showCreateNewMeasurement: boolean, selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo, selectedPlaceInfoErrors: string, placesServiceStatus: google.maps.places.PlacesServiceStatus | null, selectedPlaceExistsInDatabase: boolean | null, localitySelectedWarningString: string) => {
     // debugger;
     return (
         <>
             <RenderSelectedPlaceInfo currentPlace={currentPlace} placesServiceStatus={placesServiceStatus}/>
+            {maybeWarningString(localitySelectedWarningString)}
             <Suspense fallback="loading translation">
                 <NewMeasurementButton currentPlace={currentPlace} location={location} setShowCreateNewMeasurement={setShowCreateNewMeasurement} showCreateNewMeasurement={showCreateNewMeasurement} />
             </Suspense>
@@ -112,6 +136,7 @@ const HomePage: FunctionComponent<{}> = (props: any) => {
     const [translate] = useTranslation();
 
     const [showCreateNewMeasurement, setShowCreateNewMeasurement] = useState(false);
+    const [localitySelectedWarningString, setLocalitySelectedWarningString] = useState('');
 
     //Transparently uses placeResultWithTranslatedType
     const currentPlace = useSelector(selectSelectedPlace);
@@ -134,6 +159,14 @@ const HomePage: FunctionComponent<{}> = (props: any) => {
         });
     }, [dispatch, mapsAPIKey]);
 
+    useEffect(() => {
+        if ((currentPlace.types) && (currentPlace.types[0] === 'locality')) {
+            setLocalitySelectedWarningString(translate("locality-selected-warning"))
+        }
+        else {
+            setLocalitySelectedWarningString('');
+        }
+    })
     useEffect(() => {
         if (infoRef && infoRef.current) {
             infoRef.current.scrollIntoView({behavior: "smooth"});
@@ -168,7 +201,7 @@ const HomePage: FunctionComponent<{}> = (props: any) => {
                     </Col>
                     <Col md={6} xs={12} ref={infoRef}>
                         <div>
-                            {renderPlace(currentPlace, location, setShowCreateNewMeasurement, showCreateNewMeasurement, selectedPlaceInfoFromDatabase, selectedPlaceInfoFromDatabaseErrors, placesServiceStatus, selectedPlaceExistsInDatabase)}
+                            {renderPlace(currentPlace, location, setShowCreateNewMeasurement, showCreateNewMeasurement, selectedPlaceInfoFromDatabase, selectedPlaceInfoFromDatabaseErrors, placesServiceStatus, selectedPlaceExistsInDatabase, localitySelectedWarningString)}
                             <br/>
                             <br/>
                             <Suspense fallback="Loading translations...">
