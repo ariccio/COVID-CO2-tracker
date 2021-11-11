@@ -1,7 +1,10 @@
 import React from 'react';
 import Navbar from 'react-bootstrap/Navbar';
 import Nav from 'react-bootstrap/Nav';
+import Card from 'react-bootstrap/Card';
 import { ABOUT_ME_ARICCIO_URL, YOUTUBE_VIDEO_INSTRUCTIONS_URL } from '../../utils/UrlPath';
+import { LinkContainer } from 'react-router-bootstrap';
+import { moreInfoPath } from '../../paths/paths';
 
 interface BottomNavProps {
 
@@ -19,12 +22,22 @@ export const BottomNav: React.FC<BottomNavProps> = (props: BottomNavProps) => {
             <br/>
             <br/>
             <br/>
-            <p className='font-italic'>
-                About:
+                <Card className="container-fluid justify-content-start mr-auto" style={{width: '30rem', display: "flex", flexDirection: "column"}}>
+                    <Card.Title>
+                        About:
+                    </Card.Title>
+                    <Card.Text style={{fontStyle: 'italic'}}>
+                        <LinkContainer to={moreInfoPath}>
+                            <Nav.Link>
+                                This app provides a way for people to upload CO2 measurements tied to places where they were taken, and for users to view the measurements taken by others. CO2 is a fairly good proxy for indoor air quality, and indor COVID risk. By measuring CO2 indoors, we can estimate how much indoor air has already been exhaled by others, and thus, guess how much of it may contain COVID aerosols.
+                            </Nav.Link>
+                        </LinkContainer>
+                    </Card.Text>
+                </Card>
+                
                 <br/>
                 
-                This app provides a way for people to upload CO2 measurements tied to places where they were taken, and for users to view the measurements taken by others. CO2 is a fairly good proxy for indoor air quality, and indor COVID risk. By measuring CO2 indoors, we can estimate how much indoor air has already been exhaled by others, and thus, guess how much of it may contain COVID aerosols.
-            </p>
+                
             <Navbar>
                 <Nav className="container-fluid justify-content-start mr-auto" variant="tabs" style={{display: "flex", flexDirection: "row", float: "left"}}>
                     <Nav.Link href={YOUTUBE_VIDEO_INSTRUCTIONS_URL}><b><u><i>Instruction video</i></u></b></Nav.Link>

@@ -17,8 +17,9 @@ import {Devices, Device} from './features/devices/Devices';
 // import {get_email} from './utils/Authentication';
 import {DeviceModels} from './features/deviceModels/DeviceModels';
 import {Place} from './features/places/Place';
+import {MoreInfo} from './features/moreInfoPage/MoreInfo';
 
-import {placesPath, homePath, devicesPath, profilePath, deviceModelsPath} from './paths/paths';
+import {placesPath, homePath, devicesPath, profilePath, deviceModelsPath, moreInfoPath} from './paths/paths';
 
 import './App.css';
 import { BottomNav } from './features/nav/BottomNav';
@@ -50,6 +51,7 @@ const routes = () =>
     <Route path={devicesPath} component={Devices}/>
     <Route exact path={placesPath} component={Place}/>
     <Route exact path={deviceModelsPath} component={DeviceModels}/>
+    <Route exact path={moreInfoPath} component={MoreInfo}/>
     <Route exact path='/' render={renderRedirect}/>
     <Route component={notFound}/>
   </Switch>

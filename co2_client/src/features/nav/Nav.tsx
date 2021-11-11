@@ -18,7 +18,7 @@ import * as Sentry from "@sentry/browser"; // for manual error reporting.
 // import {Logout} from '../login/Logout';
 import {formatErrors} from '../../utils/ErrorObject';
 
-import {homePath, devicesPath, profilePath, deviceModelsPath, placesPath} from '../../paths/paths';
+import {homePath, devicesPath, profilePath, deviceModelsPath, placesPath, moreInfoPath} from '../../paths/paths';
 
 // import {HomePage} from '../home/HomePage';
 import {selectGoogleProfile, selectUsername, setUsername, GoogleProfile} from '../login/loginSlice';
@@ -105,16 +105,19 @@ const UserNav: React.FC<UserNavProps> = ({username, googleProfile}) => {
         <Navbar.Collapse  id="basic-navbar-nav">
             <Nav justify={true} fill={false} variant="tabs" style={{display:"flex", flexDirection:"row", float: "left"}}>
                 <LinkContainer to={homePath}>
-                    <Nav.Link>{translate('Home')}</Nav.Link>
+                  <Nav.Link>{translate('Home')}</Nav.Link>
                 </LinkContainer>
                 <LinkContainer to={devicesPath}>
-                    <Nav.Link>{translate('Devices')}</Nav.Link>
+                  <Nav.Link>{translate('Devices')}</Nav.Link>
                 </LinkContainer>
                 <LinkContainer to={deviceModelsPath}>
-                    <Nav.Link>{translate('Models')}</Nav.Link>
+                  <Nav.Link>{translate('Models')}</Nav.Link>
                 </LinkContainer>
                 <LinkContainer to={placesPath}>
-                    <Nav.Link>{translate('Places')}</Nav.Link>
+                  <Nav.Link>{translate('Places')}</Nav.Link>
+                </LinkContainer>
+                <LinkContainer to={moreInfoPath}>
+                  <Nav.Link>{translate("more-info")}</Nav.Link>
                 </LinkContainer>
 
             </Nav>

@@ -8,6 +8,7 @@ export const profilePath: string = '/profile';
 export const deviceModelsPath: string = '/devicemodels';
 // export const loginPath: string = '/login';
 export const placesPath: string = '/places';
+export const moreInfoPath: string = '/moreInfo';
 
 //Found a bug while doing this. Yay!
 // export const signupPath: string = '/signup';
