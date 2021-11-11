@@ -99,5 +99,6 @@
     "creating-model": "Creando modelo...",
     "creating-manufacturer": "Creando fabricante...",
     "more-info": "Más",
-    "locality-selected-warning": "¿Está seguro de que desea seleccionar una ciudad o pueblo como su lugar? ¡Prueba a buscar establecimientos por su nombre!"
+    "locality-selected-warning": "¿Está seguro de que desea seleccionar una ciudad o pueblo como su lugar? ¡Prueba a buscar establecimientos por su nombre!",
+    "aranet4-serial-info": "El número de serie de Aranet4 es un número de 12 dígitos detrás de las pilas AA, en el compartimento de las pilas. También puede encontrarlo en la aplicación Aranet4 después de emparejar su dispositivo, haciendo clic en el ícono de ajustes."
 }

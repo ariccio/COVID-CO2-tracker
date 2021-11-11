@@ -136,6 +136,20 @@ const submitOrSpinning = (submitting: boolean, translate: any) => {
     )
 }
 
+const maybeExtraAranet4InstructionsForSerialNumber = (selectedModelName: string, translate: any) => {
+    if (selectedModelName !== 'Aranet4') {
+        return (
+            <>
+            </>
+        );
+    }
+    return (
+        <Form.Text>
+            {translate("aranet4-serial-info")}
+        </Form.Text>
+    )
+}
+
 
 export const CreateMyDeviceInstance: React.FC<CreateMyDeviceInstanceProps> = (props: CreateMyDeviceInstanceProps) => {
     const selectedModel = useSelector(selectSelectedModel);
@@ -175,6 +189,7 @@ export const CreateMyDeviceInstance: React.FC<CreateMyDeviceInstanceProps> = (pr
                             {translate('almost-there-serial')}
                         </Form.Label>
                         <Form.Control type="text" placeholder="1234567890"/>
+                        {maybeExtraAranet4InstructionsForSerialNumber(selectedModelName, translate)}
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
