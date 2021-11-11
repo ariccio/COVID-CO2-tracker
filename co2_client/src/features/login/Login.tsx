@@ -246,10 +246,13 @@ const googleLoginSuccessCallback = (originalResponse: GoogleLoginResponse | Goog
     //   debugger;
 }
 
+
+// format of error from google is like:
+//  details: "Cookies are not enabled in current environment."
+//  error: "idpiframe_initialization_failed"
 const googleLoginFailedCallback = (error: any, setGoogleLoginErrorState: React.Dispatch<React.SetStateAction<string>>) => {
     console.warn("google login failure!")
     console.error(error);
-    // debugger;
     setGoogleLoginErrorState(`${error.error}, ${error.details}`);
     if (String(error.error).includes("popup_blocked_by_browser")) {
         alert(`Pop up blocked by browser! Try allowing popups.`);
@@ -263,8 +266,8 @@ const googleLoginFailedCallback = (error: any, setGoogleLoginErrorState: React.D
         alert(`Cookies are disabled in this environment. Google Login does not work in incognito mode, or with cookie blockers.`);
         return;
     }
-    alert(`Login failed! Error object: ${String(error)}. NOTE: Google login does not work in incognito mode.`);
-    Sentry.captureMessage(`unhandled google login error! Error object: ${String(error)}.`);
+    alert(`Login failed! Error object: ${String(error.error) + ', ' + String(error.details)}. NOTE: Google login does not work in incognito mode.`);
+    Sentry.captureMessage(`unhandled google login error! Error object: ${String(error.error) + ', ' + String(error.details)}.`);
 }
 
 const googleLogoutSuccessCallback = (dispatch: ReturnType<typeof useDispatch>) => {
