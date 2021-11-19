@@ -32,7 +32,7 @@ const notFound = () => {
   return (
     <>
       <h1>404 route/URL not found.</h1>
-      <Button as={Link} to={'/'}>Back to home</Button>
+      <Link to={'/'}>Back to home</Link>
     </>
   );
 }
