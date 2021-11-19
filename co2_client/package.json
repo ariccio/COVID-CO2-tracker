@@ -11,7 +11,7 @@
     "@testing-library/react": "^12.0.0",
     "@testing-library/user-event": "^13.2.1",
     "@types/googlemaps": "^3.43.3",
-    "@types/jest": "^26.0.24",
+    "@types/jest": "^27.0.3",
     "@types/node": "^16.4.13",
     "@types/react": "^17.0.16",
     "@types/react-bootstrap": "^0.32.26",
