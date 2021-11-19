@@ -1,9 +1,11 @@
 import React, {Suspense, useState} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {Modal, Button, Form, Spinner} from 'react-bootstrap';
-import {useLocation, useHistory} from 'react-router-dom'
+import {useLocation, useNavigate} from 'react-router-dom'
 
 import { useTranslation } from 'react-i18next';
+
+import * as Sentry from "@sentry/react";
 
 // import {ManufacturerDeviceModelsTable} from '../deviceModels/DeviceModelsTable';
 
@@ -185,7 +187,7 @@ interface manufacturerDialogProps {
     setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-const submitHandler = (enteredManufacturerText: string, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
+const submitHandler = (enteredManufacturerText: string, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, navigate: ReturnType<typeof useNavigate>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
     setShowSubmit(false);
     setSubmitting(true);
     const result = createNewManufacturer(enteredManufacturerText);
@@ -194,7 +196,8 @@ const submitHandler = (enteredManufacturerText: string, setShowAddManufacturer: 
         setSubmitting(false);
         if (response.errors !== undefined) {
             alert(formatErrors(response.errors));
-
+            Sentry.captureMessage("Hmm, I need to finish this code.");
+            console.error("TODO")
             //Still having trouble.
             // dispatch(setManufacturerFeedbackText(firstErrorAsString(response.errors)));
             
@@ -214,22 +217,22 @@ const submitHandler = (enteredManufacturerText: string, setShowAddManufacturer: 
 
 }
 
-const submit = (event: React.MouseEvent<HTMLElement, MouseEvent>, enteredManufacturerText: string, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
+const submit = (event: React.MouseEvent<HTMLElement, MouseEvent>, enteredManufacturerText: string, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, navigate: ReturnType<typeof useNavigate>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
     event.stopPropagation();
     event.preventDefault();
-    submitHandler(enteredManufacturerText, setShowAddManufacturer, history, setShowSubmit, setSubmitting);
+    submitHandler(enteredManufacturerText, setShowAddManufacturer, navigate, setShowSubmit, setSubmitting);
 }
 
-const cancelHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>) => {
+const cancelHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, navigate: ReturnType<typeof useNavigate>) => {
     // event.stopPropagation();
     // event.preventDefault();
     setShowAddManufacturer(false);
-    history.goBack();
+    navigate(-1);
 }
 
-const hideHandler = (setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>) => {
+const hideHandler = (setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, navigate: ReturnType<typeof useNavigate>) => {
     setShowAddManufacturer(false);
-    history.goBack();
+    navigate(-1);
 }
 
 const onChangeEvent = (event: React.FormEvent<HTMLFormElement>, dispatch: any) => {
@@ -237,10 +240,10 @@ const onChangeEvent = (event: React.FormEvent<HTMLFormElement>, dispatch: any) =
     dispatch(setEnteredManufacturerText(text));
 }
 
-const onSubmitEvent = (event: React.FormEvent<HTMLFormElement>, enteredManufacturerText: string, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
+const onSubmitEvent = (event: React.FormEvent<HTMLFormElement>, enteredManufacturerText: string, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, navigate: ReturnType<typeof useNavigate>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
     event.stopPropagation();
     event.preventDefault();
-    submitHandler(enteredManufacturerText, setShowAddManufacturer, history, setShowSubmit, setSubmitting);
+    submitHandler(enteredManufacturerText, setShowAddManufacturer, navigate, setShowSubmit, setSubmitting);
     // debugger;
 }
 
@@ -279,7 +282,7 @@ export const CreateManufacturerModalDialog: React.FC<manufacturerDialogProps> = 
     const location = useLocation();
     const enteredManufacturerText = useSelector(selectEnteredManufacturerText);
     const dispatch = useDispatch();
-    const history = useHistory();
+    const navigate = useNavigate();
     const [translate] = useTranslation();
     const [showSubmit, setShowSubmit] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -292,13 +295,13 @@ export const CreateManufacturerModalDialog: React.FC<manufacturerDialogProps> = 
         return null;
     }
     return (
-        <Modal show={props.showAddManufacturer} onHide={() => hideHandler(props.setShowAddManufacturer, history)}>
+        <Modal show={props.showAddManufacturer} onHide={() => hideHandler(props.setShowAddManufacturer, navigate)}>
             <Suspense fallback="loading translations...">
                 <ModalHeader/>
             </Suspense>
             <Modal.Body>
                 (Please reduce administrative burden, don't add nuisance manufacturers.)
-                <Form noValidate onChange={(event) => onChangeEvent(event, dispatch)} onSubmit={(event) => onSubmitEvent(event, enteredManufacturerText, props.setShowAddManufacturer, history, setShowSubmit, setSubmitting)}>
+                <Form noValidate onChange={(event) => onChangeEvent(event, dispatch)} onSubmit={(event) => onSubmitEvent(event, enteredManufacturerText, props.setShowAddManufacturer, navigate, setShowSubmit, setSubmitting)}>
                     <Form.Label>
                         {translate('Manufacturer name')}
                     </Form.Label>
@@ -308,10 +311,10 @@ export const CreateManufacturerModalDialog: React.FC<manufacturerDialogProps> = 
             </Modal.Body>
 
             <Modal.Footer>
-                <Button variant="secondary" onClick={(event) => cancelHandler(event, props.setShowAddManufacturer, history)}>
+                <Button variant="secondary" onClick={(event) => cancelHandler(event, props.setShowAddManufacturer, navigate)}>
                     {translate('Cancel')}
                 </Button>
-                <Button variant="primary" disabled={!showSubmit} onClick={(event) => submit(event, enteredManufacturerText, props.setShowAddManufacturer, history, setShowSubmit, setSubmitting)}>
+                <Button variant="primary" disabled={!showSubmit} onClick={(event) => submit(event, enteredManufacturerText, props.setShowAddManufacturer, navigate, setShowSubmit, setSubmitting)}>
                     {submitOrSpinning(submitting, translate)}
                 </Button>
             </Modal.Footer>

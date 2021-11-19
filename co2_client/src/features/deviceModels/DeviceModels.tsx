@@ -2,7 +2,7 @@ import React, {useEffect, useState, Suspense} from 'react';
 // import { useSelector, useDispatch } from 'react-redux';
 // import {Dropdown} from 'react-bootstrap';
 import {useLocation} from 'react-router-dom';
-import {RouteComponentProps} from 'react-router-dom';
+import {useParams} from 'react-router-dom';
 
 import { useTranslation } from 'react-i18next';
 
@@ -135,9 +135,11 @@ const measurements = (modelMeasurements: ModelMeasurementsResponse | null) => {
 }
 
 
-export const DeviceModels: React.FC<RouteComponentProps<DeviceModelsProps>> = (props: RouteComponentProps<DeviceModelsProps>) => {
+export const DeviceModels: React.FC<{}> = () => {
     const location = useLocation();
     // const dispatch = useDispatch();
+    const {deviceModelId} = useParams();
+    
 
     const [deviceModelInfo, setDeviceModelInfo] = useState(defaultQueryDeviceModelInfoResponse);
     const [errorState, setErrorState] = useState('');
@@ -145,13 +147,13 @@ export const DeviceModels: React.FC<RouteComponentProps<DeviceModelsProps>> = (p
 
     const [modelMeasurements, setModelMeasurements] = useState(null as ModelMeasurementsResponse | null);
     useEffect(() => {
-        if (props.match.params.deviceModelId !== undefined) {
-            if (props.match.params.deviceModelId === 'create') {
+        if (deviceModelId !== undefined) {
+            if (deviceModelId === 'create') {
                 // history.pushState();
                 setShowAddModel(true);
                 return;
             }
-            queryDeviceModelInfo(props.match.params.deviceModelId).then(response => {
+            queryDeviceModelInfo(deviceModelId).then(response => {
                 setDeviceModelInfo(response);
                 if (response.errors !== undefined) {
                     setErrorState(formatErrors(response.errors));
@@ -163,7 +165,7 @@ export const DeviceModels: React.FC<RouteComponentProps<DeviceModelsProps>> = (p
                 // debugger;
             })
         }
-    }, [props.match.params.deviceModelId]);
+    }, [deviceModelId]);
     useEffect(() => {
         if (deviceModelInfo === defaultQueryDeviceModelInfoResponse) {
             return;
@@ -183,7 +185,7 @@ export const DeviceModels: React.FC<RouteComponentProps<DeviceModelsProps>> = (p
             // debugger;
         })
     }, [deviceModelInfo])
-    if (props.match.params.deviceModelId === undefined) {
+    if (deviceModelId === undefined) {
         return (
             <>
                 No model selected. <br/>
@@ -208,7 +210,7 @@ export const DeviceModels: React.FC<RouteComponentProps<DeviceModelsProps>> = (p
 
             {/* </Route> */}
             <>
-                You selected device model: {props.match.params.deviceModelId}
+                You selected device model: {deviceModelId}
                 <Suspense fallback="Loading translation...">
                     <BasicDeviceModelInfo deviceModelInfo={deviceModelInfo} />
                 </Suspense>

@@ -1,7 +1,7 @@
 // import React from 'react';
 
 // import {useSelector, useDispatch} from 'react-redux';
-import {Route, Redirect, Switch, Link} from 'react-router-dom';
+import {Route, Routes, Link, Navigate} from 'react-router-dom';
 import {Button} from 'react-bootstrap';
 // import {ErrorBoundary, FallbackProps} from 'react-error-boundary';
 import * as Sentry from "@sentry/react";
@@ -24,37 +24,31 @@ import {placesPath, homePath, devicesPath, profilePath, deviceModelsPath, moreIn
 import './App.css';
 import { BottomNav } from './features/nav/BottomNav';
 
-const renderRedirect = () =>
-  <Redirect to={homePath}/>
 
-
-const notFound = () => {
-  return (
+const NotFound = () =>
     <>
       <h1>404 route/URL not found.</h1>
       <Link to={'/'}>Back to home</Link>
     </>
-  );
-}
 
 
   //TODO: make this a switch router for 404 handling.
 const routes = () =>
-  <Switch>
-    <Route exact path={homePath} component={HomePageContainer}/>
-    <Route exact path={profilePath} component={Profile}/>
+  <Routes>
+    <Route path={homePath} element={<HomePageContainer/>}/>
+    <Route  path={profilePath} element={<Profile/>}/>
     {/* <Route exact path={loginPath} component={LoginComponent} /> */}
     {/* <Route exact path={signupPath} component={SignupComponent}/> */}
-    <Route path={`${placesPath}/:placeId`} component={Place}/>
-    <Route path={`${deviceModelsPath}/:deviceModelId`} component={DeviceModels}/>
-    <Route path={`${devicesPath}/:deviceId`} component={Device}/>
-    <Route path={devicesPath} component={Devices}/>
-    <Route exact path={placesPath} component={Place}/>
-    <Route exact path={deviceModelsPath} component={DeviceModels}/>
-    <Route exact path={moreInfoPath} component={MoreInfo}/>
-    <Route exact path='/' render={renderRedirect}/>
-    <Route component={notFound}/>
-  </Switch>
+    <Route path={`${placesPath}/:placeId`} element={<Place/>}/>
+    <Route path={`${deviceModelsPath}/:deviceModelId`} element={<DeviceModels/>}/>
+    <Route path={`${devicesPath}/:deviceId`} element={<Device/>}/>
+    <Route path={devicesPath} element={<Devices/>}/>
+    <Route path={placesPath} element={<Place/>}/>
+    <Route path={deviceModelsPath} element={<DeviceModels/>}/>
+    <Route path={moreInfoPath} element={<MoreInfo/>}/>
+    <Route path='/' element={<Navigate replace to={homePath}/>}/>
+    <Route element={<NotFound/>}/>
+  </Routes>
 
 function TopLevelErrorFallback(errorData: {
   error: Error;

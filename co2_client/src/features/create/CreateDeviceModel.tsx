@@ -1,7 +1,7 @@
 import React, {Suspense, useState} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 import {Modal, Button, Form, Spinner} from 'react-bootstrap';
-import {useLocation, useHistory} from 'react-router-dom'
+import {useLocation, useNavigate} from 'react-router-dom'
 
 
 import { useTranslation } from 'react-i18next';
@@ -50,9 +50,9 @@ const ModalHeader = () => {
 }
 
 
-const hideHandler = (setShowAddModel: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>) => {
+const hideHandler = (setShowAddModel: React.Dispatch<React.SetStateAction<boolean>>, navigate: ReturnType<typeof useNavigate>) => {
     setShowAddModel(false);
-    history.goBack();
+    navigate(-1);
 }
 
 const onChangeEvent = (event: React.FormEvent<HTMLFormElement>, dispatch: any) => {
@@ -90,7 +90,7 @@ async function createNewModel(name: string, manufacturer: number): Promise<NewMo
     return result;
 }
 
-const submitHandler = (enteredModelText: string, setShowAddModel: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>, selectedManufacturer: number, dispatch: ReturnType<typeof useDispatch>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
+const submitHandler = (enteredModelText: string, setShowAddModel: React.Dispatch<React.SetStateAction<boolean>>, navigate: ReturnType<typeof useNavigate>, selectedManufacturer: number, dispatch: ReturnType<typeof useDispatch>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
     setShowSubmit(false);
     setSubmitting(true);
 
@@ -105,7 +105,7 @@ const submitHandler = (enteredModelText: string, setShowAddModel: React.Dispatch
             setShowAddModel(false);
             dispatch(setSelectedModel(response.model_id));
             dispatch(setSelectedModelName(response.name));
-            history.goBack();
+            navigate(-1);
 
         }
     }).catch((errors) => {
@@ -115,25 +115,25 @@ const submitHandler = (enteredModelText: string, setShowAddModel: React.Dispatch
     })
 }
 
-const onSubmitEvent = (event: React.FormEvent<HTMLFormElement>, enteredModelText: string, setShowAddModel: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>, selectedManufacturer: number, dispatch: ReturnType<typeof useDispatch>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
+const onSubmitEvent = (event: React.FormEvent<HTMLFormElement>, enteredModelText: string, setShowAddModel: React.Dispatch<React.SetStateAction<boolean>>, navigate: ReturnType<typeof useNavigate>, selectedManufacturer: number, dispatch: ReturnType<typeof useDispatch>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
     event.stopPropagation();
     event.preventDefault();
-    submitHandler(enteredModelText, setShowAddModel, history, selectedManufacturer, dispatch, setShowSubmit, setSubmitting);
+    submitHandler(enteredModelText, setShowAddModel, navigate, selectedManufacturer, dispatch, setShowSubmit, setSubmitting);
     // debugger;
 }
 
 
-const cancelHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, setShowAddModel: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>) => {
+const cancelHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, setShowAddModel: React.Dispatch<React.SetStateAction<boolean>>, navigate: ReturnType<typeof useNavigate>) => {
     // event.stopPropagation();
     // event.preventDefault();
     setShowAddModel(false);
-    history.goBack();
+    navigate(-1);
 }
 
-const submit = (event: React.MouseEvent<HTMLElement, MouseEvent>, enteredModelText: string, setShowAddModel: React.Dispatch<React.SetStateAction<boolean>>, history: ReturnType<typeof useHistory>, selectedManufacturer: number, dispatch: ReturnType<typeof useDispatch>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
+const submit = (event: React.MouseEvent<HTMLElement, MouseEvent>, enteredModelText: string, setShowAddModel: React.Dispatch<React.SetStateAction<boolean>>, navigate: ReturnType<typeof useNavigate>, selectedManufacturer: number, dispatch: ReturnType<typeof useDispatch>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
     event.stopPropagation();
     event.preventDefault();
-    submitHandler(enteredModelText, setShowAddModel, history, selectedManufacturer, dispatch, setShowSubmit, setSubmitting);
+    submitHandler(enteredModelText, setShowAddModel, navigate, selectedManufacturer, dispatch, setShowSubmit, setSubmitting);
 }
 
 
@@ -159,7 +159,7 @@ const submitOrSpinning = (submitting: boolean, translate: any) => {
 
 
 export const CreateDeviceModelModalDialog: React.FC<modelDialogProps> = (props: modelDialogProps) => {
-    const history = useHistory();
+    const navigate = useNavigate();
     const dispatch = useDispatch();
     const location = useLocation();
     const [translate] = useTranslation();
@@ -181,19 +181,20 @@ export const CreateDeviceModelModalDialog: React.FC<modelDialogProps> = (props: 
         props.setShowAddModel(false);
         if (location.pathname.endsWith('create')) {
             debugger;
-            history.replace('/');
+            alert("TODO");
+            // history.replace('/');
         }
         return null;
     }
     return (
         <>
-            <Modal show={props.showAddModel} onHide={() => hideHandler(props.setShowAddModel, history)}>
+            <Modal show={props.showAddModel} onHide={() => hideHandler(props.setShowAddModel, navigate)}>
                 <Suspense fallback="loading translations...">
                     <ModalHeader/>
                 </Suspense>
                 <Modal.Body>
                     (Please reduce administrative burden, don't add nuisance models. TODO: styling this text)
-                    <Form noValidate onChange={(event) => onChangeEvent(event, dispatch)} onSubmit={(event) => onSubmitEvent(event, enteredModelText, props.setShowAddModel, history, selectedManufacturer, dispatch, setShowSubmit, setSubmitting)}>
+                    <Form noValidate onChange={(event) => onChangeEvent(event, dispatch)} onSubmit={(event) => onSubmitEvent(event, enteredModelText, props.setShowAddModel, navigate, selectedManufacturer, dispatch, setShowSubmit, setSubmitting)}>
                         <Form.Label>
                             {translate('Model name')}
                         </Form.Label>
@@ -201,10 +202,10 @@ export const CreateDeviceModelModalDialog: React.FC<modelDialogProps> = (props: 
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={(event) => cancelHandler(event, props.setShowAddModel, history)}>
+                    <Button variant="secondary" onClick={(event) => cancelHandler(event, props.setShowAddModel, navigate)}>
                         {translate('Cancel')}
                     </Button>
-                    <Button variant="primary" disabled={!showSubmit} onClick={(event) => submit(event, enteredModelText, props.setShowAddModel, history, selectedManufacturer, dispatch, setShowSubmit, setSubmitting)}>
+                    <Button variant="primary" disabled={!showSubmit} onClick={(event) => submit(event, enteredModelText, props.setShowAddModel, navigate, selectedManufacturer, dispatch, setShowSubmit, setSubmitting)}>
                         {submitOrSpinning(submitting, translate)}
                         
                     </Button>
