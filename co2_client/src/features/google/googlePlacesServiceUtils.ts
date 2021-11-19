@@ -1,6 +1,5 @@
 import * as Sentry from "@sentry/browser"; // for manual error reporting.
 
-import { NoInfer } from "@reduxjs/toolkit/dist/tsHelpers";
 import { useDispatch } from "react-redux";
 import { updatePlacesInfoFromBackend } from "../../utils/QueryPlacesInfo";
 import { setSublocationSelectedLocationID } from "../sublocationsDropdown/sublocationSlice";
