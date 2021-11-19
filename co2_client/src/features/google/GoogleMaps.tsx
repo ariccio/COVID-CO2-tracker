@@ -172,6 +172,9 @@ const loadCallback = (map: google.maps.Map, setMap: React.Dispatch<React.SetStat
     //   debugger;
     // const bounds = new (window as any).google.maps.LatLngBounds();
     // map.fitBounds(bounds);
+    if (map === null) {
+        console.log("map is null on loadCallback.")
+    }
     setMap(map);
     // console.log(`map zoom ${map.getZoom()}`)
     map.setZoom(15);
@@ -458,7 +461,7 @@ const mapOptions = options(defaultCenter);
 
 const updateMarkers = (map: google.maps.Map | null, dispatch: ReturnType<typeof useDispatch>) => {
     if (!map) {
-        console.log("no map for center yet");
+        console.log("no map to get center from for markers yet?");
         debugger;
         return;
     }
@@ -510,8 +513,8 @@ const onZoomChange = (map: google.maps.Map | null, setZoomlevel: React.Dispatch<
         Sentry.captureMessage("zoom changed, but Google Maps returned undefined for the zoom level?");
         return;
     }
-    console.error("zoom changed on a null map?");
-    debugger;
+    console.log("zoom changed on a null map?");
+    // debugger;
 }
 
 const durationFromNumbersOrNull = (placeMarkersFetchStartMS: number | null, placeMarkersFetchFinishMS: number | null): number => {
@@ -550,7 +553,7 @@ const googleMapInContainer = (
     onLoad: (map: google.maps.Map) => void,
     onUnmount: (map: google.maps.Map | null) => void,
     map: google.maps.Map | null,
-    setZoomlevel: React.Dispatch<React.SetStateAction<number>>,
+    
     setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>,
     dispatch: ReturnType<typeof useDispatch>,
     mapLoaded: boolean,
@@ -562,8 +565,7 @@ const googleMapInContainer = (
     // console.log("rerender map")
 
     if (map === null) {
-        console.error("map is null as passed to the map container function. May cause issues!");
-        debugger;
+        console.log("map is null as passed to the map container function. Not loaded yet.");
     }
     return (
         <div className="map">
@@ -573,7 +575,7 @@ const googleMapInContainer = (
                     onLoad={onLoad}
                     onUnmount={onUnmount}
                     options={mapOptions}
-                    onZoomChanged={() => onZoomChange(map, setZoomlevel)}
+                    
                     onClick={(e: google.maps.MapMouseEvent) => {onClickMaps(e, setCenter, dispatch, service); updateMarkers(map, dispatch)}}
                     onIdle={() => onMapIdle(map, mapLoaded, setMapLoaded, dispatch)}
                     /*onTilesLoaded={() => {console.log("tiles loaded"); updateMarkers(map, dispatch)}}*/
@@ -733,7 +735,7 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
     const [center, setCenter] = useState(defaultCenter);
     
     const [map, setMap] = React.useState(null as google.maps.Map | null);
-    const [_zoomLevel, setZoomlevel] = useState(0);
+    // const [_zoomLevel, setZoomlevel] = useState(0);
     
     const [service, setService] = useState(null as google.maps.places.PlacesService | null);
     // const [placesServiceStatus, setPlacesServiceStatus] = useState(null as google.maps.places.PlacesServiceStatus | null);
@@ -762,9 +764,9 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
         libraries: GOOGLE_LIBRARIES
     })
 
-    const onLoad = React.useCallback((map: google.maps.Map) => {
+    const onLoad = React.useCallback((map_: google.maps.Map) => {
         // console.log("map load")
-        loadCallback(map, setMap, setService);
+        loadCallback(map_, setMap, setService);
         // debugger;
     }, []);
 
@@ -777,17 +779,24 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
         }
         const selected = placeSelectedWithCoords(selectedPlace);
         if (selected) {
-            map?.panTo(selected);
-        }
-        else {
-            if (map) {
-                loadAndPanToLastMeasurement(map);
+            if (map === null) {
+                console.log("No map to pan yet.")
+                return;
             }
+            console.log("Panning to selected place")
+            map.panTo(selected);
+            return;
         }
-
+        if (map) {
+            console.log("loading and panning to last measurement.")
+            loadAndPanToLastMeasurement(map);
+            return;
+        }
+        console.log("No map to pan.")
     }, [username, map])
 
     useEffect(() => {
+        console.log("center changed!");
         centerChange(map, mapLoaded, center, dispatch)
     }, [center])
 
@@ -801,12 +810,12 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
     }, [])
 
 
-    useEffect(() => {
-        // console.log("set zoom")
-        map?.setZoom(_zoomLevel);
-        // debugger;
-        // console.log(_zoomLevel);
-    }, [_zoomLevel])
+    // useEffect(() => {
+    //     // console.log("set zoom")
+    //     map?.setZoom(_zoomLevel);
+    //     // debugger;
+    //     // console.log(_zoomLevel);
+    // }, [_zoomLevel])
 
 
 
@@ -838,7 +847,7 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
 
         return (
             <div>
-                {googleMapInContainer(onLoad, onUnmount, map, setZoomlevel, setCenter, dispatch, mapLoaded, setMapLoaded, placeMarkersFromDatabase, placeMarkerErrors, service)}
+                {googleMapInContainer(onLoad, onUnmount, map, setCenter, dispatch, mapLoaded, setMapLoaded, placeMarkersFromDatabase, placeMarkerErrors, service)}
                 {placeMarkersDataDebugText(placeMarkersFetchInProgres, placeMarkersFromDatabase, placeMarkersFetchStartMS, placeMarkersFetchFinishMS)}
                 <br/>
                 <AutocompleteElement map={map} setCenter={setCenter} mapLoaded={mapLoaded}/>
