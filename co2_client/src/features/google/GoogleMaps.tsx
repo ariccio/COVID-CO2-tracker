@@ -133,7 +133,7 @@ const errorPositionCallback = (error: GeolocationPositionError_, geolocationInPr
         return;
     }
     console.error(error);
-    const errorMessage = `Position failed with an unhandled condition! Code: ${error.code}, message: ${error.message}`;
+    const errorMessage = `Position failed with an unhandled condition! Code: ${error.code}, message: ${error.message}. Full JSON of object: ${JSON.stringify(error)}`;
     alert(errorMessage);
     Sentry.captureMessage(errorMessage);
     throw new Error("never reached!");
@@ -210,7 +210,7 @@ const formSubmitHandler = (event: React.FormEvent<HTMLFormElement>) => {
 const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (props) => {
     // In theory I can add another level of indirection so that this works even if maps fails.
     if (props.map === null) {
-        return (<>Maps STILL loading</>);
+        return (<div>Maps STILL loading</div>);
     }
     const bounds = props.map.getBounds();
     if (bounds === undefined) {
@@ -244,7 +244,7 @@ const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (pr
     );
 }
 
-const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null, dispatch: ReturnType<typeof useDispatch>, map: google.maps.Map<Element> | null, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>, setErrorState: React.Dispatch<React.SetStateAction<string>>) => {
+const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null, dispatch: ReturnType<typeof useDispatch>, map: google.maps.Map | null, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>, setErrorState: React.Dispatch<React.SetStateAction<string>>) => {
     if (autocomplete === null) {
         return;
     }
@@ -262,8 +262,18 @@ const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null
     // autocomplete.
     console.log(`id: ${place.id}`);
     console.log(`place_id: ${place.place_id}`);
-    console.log(`geometry.location.toString: ${place.geometry?.location.toString()}`);
-    console.log(`geometry.viewport.toString: ${place.geometry?.viewport.toString()}`)
+    if (place.geometry?.location !== undefined) {
+        console.log(`geometry.location.toString: ${place.geometry?.location.toString()}`);
+    }
+    else {
+        console.log('place.geometry.location is undefined!')
+    }
+    if (place.geometry?.viewport !== undefined) {
+        console.log(`geometry.viewport.toString: ${place.geometry?.viewport.toString()}`)
+    }
+    else {
+        console.log('place.geometry.viewport is undefined!')
+    }
     // autocomplete.getPlace()
     // debugger;
     // const geometry = autocomplete.getPlace()
@@ -281,11 +291,16 @@ const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null
         if (placeLocation) {
             // debugger;
             // map.setCenter(placeLocation.location)
-            const loc: google.maps.LatLngLiteral = {
-                lat: placeLocation.location.lat(),
-                lng: placeLocation.location.lng()
+            if (placeLocation.location !== undefined) {
+                const loc: google.maps.LatLngLiteral = {
+                    lat: placeLocation.location.lat(),
+                    lng: placeLocation.location.lng()
+                }
+                setCenter(loc);
             }
-            setCenter(loc);
+            else {
+                console.warn("Can't set center because placeLocation is defined, but placeLocatio.location is undefined. Huh?");
+            }
         }
     }
     const placeId = place.place_id;
@@ -304,6 +319,10 @@ const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null
 // The click event is not fired if a Marker or InfoWindow was clicked.
 const onClickMaps = (e: google.maps.MapMouseEvent, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>, dispatch: ReturnType<typeof useDispatch>, service: google.maps.places.PlacesService | null) => {
     // console.log(`dynamic type of event: ${typeof e}?`)
+
+    //ApiMouseEvent appears to just be an IconMouseEvent? Now we have the types for it, yay!
+    type MouseOrIconEvent = (google.maps.MapMouseEvent | google.maps.IconMouseEvent);
+
     if ((e as any) === undefined) {
         throw new Error("MapMouseEvent is undefined. Bug in onClickMaps.");
     }
@@ -315,6 +334,14 @@ const onClickMaps = (e: google.maps.MapMouseEvent, setCenter: React.Dispatch<Rea
         return;
     }
     console.log(`User clicked in google maps container on place ${(e as any).placeId}`);
+
+    if (e.latLng === null) {
+        console.error("latLng is null?");
+        Sentry.captureMessage("latLng found to be null somewhere it shouldn't be?");
+        alert("Something is wrong with Google Maps, you clicked on a place, but Google Maps doesn't have a lat/lng for it? Try reloading.")
+        return;
+    }
+
     // console.log(e);
     // dispatch(setSelectedPlaceIdString((e as any).placeId));
     const latlng: google.maps.LatLngLiteral = {
@@ -429,9 +456,10 @@ const renderMarkers = (placeMarkersFromDatabase: placesFromDatabaseForMarker, pl
 
 const mapOptions = options(defaultCenter);
 
-const updateMarkers = (map: google.maps.Map<Element> | null, dispatch: ReturnType<typeof useDispatch>) => {
+const updateMarkers = (map: google.maps.Map | null, dispatch: ReturnType<typeof useDispatch>) => {
     if (!map) {
         console.log("no map for center yet");
+        debugger;
         return;
     }
     const center = map?.getCenter();
@@ -453,7 +481,11 @@ const updateMarkers = (map: google.maps.Map<Element> | null, dispatch: ReturnTyp
     queryPlacesInBoundsFromBackend(ne, sw, dispatch);
 }
 
-const onMapIdle = (map: google.maps.Map<Element> | null, mapLoaded: boolean, setMapLoaded: React.Dispatch<React.SetStateAction<boolean>>, dispatch: ReturnType<typeof useDispatch>) => {
+const onMapIdle = (map: google.maps.Map | null, mapLoaded: boolean, setMapLoaded: React.Dispatch<React.SetStateAction<boolean>>, dispatch: ReturnType<typeof useDispatch>) => {
+    if (map === null) {
+        console.error("null map is idle?");
+        debugger;
+    }
     //map onLoad isn't really ready. There are no bounds yet. Thus, autocomplete will fail to load. Wait until idle.
     if (!mapLoaded) {
         console.log("map idle callback...");
@@ -466,11 +498,20 @@ const onMapIdle = (map: google.maps.Map<Element> | null, mapLoaded: boolean, set
     updateMarkers(map, dispatch);
 }
 
-const onZoomChange = (map: google.maps.Map<Element> | null, setZoomlevel: React.Dispatch<React.SetStateAction<number>>) => {
+const onZoomChange = (map: google.maps.Map | null, setZoomlevel: React.Dispatch<React.SetStateAction<number>>) => {
     // debugger;
     if (map) {
-        setZoomlevel(map.getZoom());
+        const zoom = map.getZoom();
+        if (zoom !== undefined) {
+            setZoomlevel(zoom);
+            return;
+        }
+        console.error("zoom changed, but Google Maps returned undefined for the zoom level?");
+        Sentry.captureMessage("zoom changed, but Google Maps returned undefined for the zoom level?");
+        return;
     }
+    console.error("zoom changed on a null map?");
+    debugger;
 }
 
 const durationFromNumbersOrNull = (placeMarkersFetchStartMS: number | null, placeMarkersFetchFinishMS: number | null): number => {
@@ -507,8 +548,8 @@ const placeMarkersDataDebugText = (placeMarkersFetchInProgres: boolean, placeMar
 
 const googleMapInContainer = (
     onLoad: (map: google.maps.Map) => void,
-    onUnmount: (map: google.maps.Map) => void,
-    map: google.maps.Map<Element> | null,
+    onUnmount: (map: google.maps.Map | null) => void,
+    map: google.maps.Map | null,
     setZoomlevel: React.Dispatch<React.SetStateAction<number>>,
     setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>,
     dispatch: ReturnType<typeof useDispatch>,
@@ -519,6 +560,11 @@ const googleMapInContainer = (
     service: google.maps.places.PlacesService | null
     ) => {
     // console.log("rerender map")
+
+    if (map === null) {
+        console.error("map is null as passed to the map container function. May cause issues!");
+        debugger;
+    }
     return (
         <div className="map">
             <div className="map-container">
@@ -540,7 +586,7 @@ const googleMapInContainer = (
     );
 }
 
-const centerChange = (map: google.maps.Map<Element> | null, mapLoaded: boolean, center: google.maps.LatLngLiteral, dispatch: ReturnType<typeof useDispatch>) => {
+const centerChange = (map: google.maps.Map | null, mapLoaded: boolean, center: google.maps.LatLngLiteral, dispatch: ReturnType<typeof useDispatch>) => {
     if (!map) {
         console.log("map falsy, not setting center");
         return;
@@ -556,7 +602,7 @@ const centerChange = (map: google.maps.Map<Element> | null, mapLoaded: boolean, 
 }
 
 interface AutocompleteElementProps {
-    map: google.maps.Map<Element> | null,
+    map: google.maps.Map | null,
     setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>,
     mapLoaded: boolean
 }
@@ -627,7 +673,7 @@ const loadLastMeasurement = () => {
     return fetchJSONWithChecks(LAST_MEASUREMENT_URL, userRequestOptions(), 200, true, fetchLastMeasurementCallbackFailed, fetchLastMeasurementCallback) as Promise<lastMeasurementLocationResponseType>;
 }
 
-const loadAndPanToLastMeasurement = (map: google.maps.Map<Element> | null) => {
+const loadAndPanToLastMeasurement = (map: google.maps.Map) => {
     
     // debugger;
     const result = loadLastMeasurement();
@@ -640,7 +686,7 @@ const loadAndPanToLastMeasurement = (map: google.maps.Map<Element> | null) => {
         const loc = responseToLatLngLiteral(response);
         // debugger;
         if (loc) {
-            map?.panTo(loc)
+            map.panTo(loc)
         }
         else {
             console.warn("undefined loc, can't pan map");
@@ -734,7 +780,9 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
             map?.panTo(selected);
         }
         else {
-            loadAndPanToLastMeasurement(map);
+            if (map) {
+                loadAndPanToLastMeasurement(map);
+            }
         }
 
     }, [username, map])
@@ -743,8 +791,11 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
         centerChange(map, mapLoaded, center, dispatch)
     }, [center])
 
-    const onUnmount = React.useCallback(function callback(map: google.maps.Map) {
+    const onUnmount = React.useCallback(function callback(map: google.maps.Map | null) {
         console.log("map unmount")
+        if (map === null) {
+            console.error("map already null?");
+        }
         setMap(null);
         setMapLoaded(false);
     }, [])

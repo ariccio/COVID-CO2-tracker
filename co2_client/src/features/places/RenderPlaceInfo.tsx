@@ -180,6 +180,13 @@ export const RenderSelectedPlaceInfo = (props: {currentPlace: google.maps.places
             </>
         )
     }
+    // if (props.placesServiceStatus !== google.maps.places.PlacesServiceStatus.OK) {
+    //     return (
+    //         <>
+
+    //         </>
+    //     )
+    // }
     return (
         <>
             {renderPlacesServiceStatusWithHighlight(props.placesServiceStatus)}

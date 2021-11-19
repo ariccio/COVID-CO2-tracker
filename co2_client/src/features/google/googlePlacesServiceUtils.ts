@@ -1,3 +1,6 @@
+import * as Sentry from "@sentry/browser"; // for manual error reporting.
+
+import { NoInfer } from "@reduxjs/toolkit/dist/tsHelpers";
 import { useDispatch } from "react-redux";
 import { updatePlacesInfoFromBackend } from "../../utils/QueryPlacesInfo";
 import { setSublocationSelectedLocationID } from "../sublocationsDropdown/sublocationSlice";
@@ -29,19 +32,61 @@ function checkInterestingFields(interestingFields: Array<string>): void {
     }
 }
 
+const reportWeirdness = (result: google.maps.places.PlaceResult | null, status: google.maps.places.PlacesServiceStatus) => {
+    if (status === google.maps.places.PlacesServiceStatus.NOT_FOUND) {
+        //Nothing wrong.
+        return;
+    }
+    if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+        //Nothing wrong.
+        return;
+    }
 
-const getDetailsCallback = (result: google.maps.places.PlaceResult, status: google.maps.places.PlacesServiceStatus, dispatch: ReturnType<typeof useDispatch>) => {
+    console.error(`Google places query returned non-OK status: ${status}`);
+    console.assert(status !== google.maps.places.PlacesServiceStatus.OK);
+
+    if (result !== null) {
+        console.error("unexpected combination of results.");
+        Sentry.captureMessage(`Unexpected combination of PlacesServiceStatus and PlaceResult. PlaceResult: '${JSON.stringify(result)}'`);
+    }
+        
+    if (status === google.maps.places.PlacesServiceStatus.OVER_QUERY_LIMIT) {
+        Sentry.captureMessage("Over google places quota limit!")
+        alert("Used entire budgeted google places/maps API quota! This issue has been automatically reported, but the app won't work correctly until I fix it.");
+        return;
+    }
+    if (status === google.maps.places.PlacesServiceStatus.INVALID_REQUEST) {
+        Sentry.captureMessage("Something wrong with places request (INVALID_REQUEST).");
+        alert("Hmm, I messed up something in the code that looks up google place information. This issue has been automatically reported.");
+        return;
+    }
+    if (status === google.maps.places.PlacesServiceStatus.REQUEST_DENIED) {
+        Sentry.captureMessage("Google Places service request denied (REQUEST_DENIED)");
+        alert("Something is wrong with the API key or GCP permissions used by this app. This issue has been automatically reported, but the app won't work correctly until I fix it.");
+        return;
+    }
+    if (status === google.maps.places.PlacesServiceStatus.UNKNOWN_ERROR) {
+        Sentry.captureMessage("Google Places service hit an unknown error. Not much we can do, but reporting anyways...");
+        alert("Google messed up... try reloading the page! This issue has been automatically reported, but there's not much I can do about it!");
+        return;
+    }
+    Sentry.captureMessage(`Unhandled PlacesServiceStatus: ${status}`);
+    return;
+
+}
+
+const getDetailsCallback = (result: google.maps.places.PlaceResult | null, status: google.maps.places.PlacesServiceStatus, dispatch: ReturnType<typeof useDispatch>) => {
     dispatch(setPlacesServiceStatus(status));
     if (status !== google.maps.places.PlacesServiceStatus.OK) {
-        console.error(`Google places query returned ${status}`);
-        
-        if (status === google.maps.places.PlacesServiceStatus.OVER_QUERY_LIMIT) {
-            alert('Used entire budgeted google places/maps API quota! File an issue on github or contact me.');
-        }
+        reportWeirdness(result, status);
         return;
     }
     // debugger;
     // setPlacesServiceStatus(status);
+    if (result === null) {
+        console.error("PlaceResult is null?");
+        return;
+    }
     const placeForAction = autocompleteSelectedPlaceToAction(result);
     console.log(`selecting place: ${placeForAction.name}`);
     dispatch(setSelectedPlace(placeForAction));
@@ -51,8 +96,7 @@ const getDetailsCallback = (result: google.maps.places.PlaceResult, status: goog
     // dispatch(setSelectedPlaceIdString(placeForAction.place_id))
     dispatch(setSublocationSelectedLocationID(-1));
     if (result.place_id === undefined) {
-        console.error("missing place_id?");
-        return;
+        throw new Error("google places result is missing place_id! Something is broken.");
     }
     // console.log(result.utc_offset_minutes);
     // debugger;
@@ -81,9 +125,19 @@ export const updateOnNewPlace = (service: google.maps.places.PlacesService | nul
         placeId: place_id,
         fields: INTERESTING_FIELDS
     } 
-    const detailsCallbackThunk = (result: google.maps.places.PlaceResult, status: google.maps.places.PlacesServiceStatus) => {
+    const detailsCallbackThunk = (result: google.maps.places.PlaceResult | null, status: google.maps.places.PlacesServiceStatus) => {
         getDetailsCallback(result, status, dispatch);
     }
     // console.warn("places service request...")
+        /**
+     * Retrieves details about the place identified by the given
+     * <code>placeId</code>.
+         getDetails(
+            request: google.maps.places.PlaceDetailsRequest,
+            callback:
+                (a: google.maps.places.PlaceResult|null,
+                 b: google.maps.places.PlacesServiceStatus) => void): void;
+     */
+    
     service.getDetails(request, detailsCallbackThunk);
 }

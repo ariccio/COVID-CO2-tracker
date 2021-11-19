@@ -267,7 +267,7 @@ const googleLoginFailedCallback = (error: any, setGoogleLoginErrorState: React.D
         return;
     }
     alert(`Login failed! Error object: ${String(error.error) + ', ' + String(error.details)}. NOTE: Google login does not work in incognito mode.`);
-    Sentry.captureMessage(`unhandled google login error! Error object: ${String(error.error) + ', ' + String(error.details)}.`);
+    Sentry.captureMessage(`unhandled google login error! Error object: ${String(error.error) + ', ' + String(error.details)}. Full JSON of error object: ${JSON.stringify(error)}`);
 }
 
 const googleLogoutSuccessCallback = (dispatch: ReturnType<typeof useDispatch>) => {
