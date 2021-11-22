@@ -66,6 +66,8 @@ module Api
         # .includes(:model, :user, :measurement, measurement: :sub_location)
         @device_instance = ::Device.includes(:model, :user, :measurement, measurement: :sub_location).find(params.fetch(:id))
         # byebug
+
+        # TODO: duh, When I have more than ten measurements!
         render(
           json: {
             device_id: @device_instance.id,

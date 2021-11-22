@@ -60,7 +60,7 @@ export const AppStatsContainer: FunctionComponent<{}> = (props: any) => {
             setAppStatsResponse(resultValue);
         }).catch((error) => {
             console.warn("some kind of unexpected error fetching app stats");
-            setErrorState(String(error));
+            setErrorState(JSON.stringify(error));
             setAppStatsResponse(defaultAppStatsResponse);
             return;
         })

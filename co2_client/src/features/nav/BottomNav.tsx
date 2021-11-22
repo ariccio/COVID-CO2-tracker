@@ -6,10 +6,6 @@ import { ABOUT_ME_ARICCIO_URL, YOUTUBE_VIDEO_INSTRUCTIONS_URL } from '../../util
 import { LinkContainer } from 'react-router-bootstrap';
 import { moreInfoPath } from '../../paths/paths';
 
-interface BottomNavProps {
-
-}
-
 
 // https://www.internetlegalattorney.com/website-privacy-policy-laws/
 // "The text link should be written in capital letters equal to or greater in size than the surrounding text

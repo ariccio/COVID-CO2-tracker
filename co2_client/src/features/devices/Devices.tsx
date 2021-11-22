@@ -1,7 +1,7 @@
 
 import React, {useEffect, useState, Suspense}  from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-import {RouteComponentProps, Link} from 'react-router-dom';
+import {useParams, Link} from 'react-router-dom';
 import {Button} from 'react-bootstrap';
 
 import * as Sentry from "@sentry/browser"; // for manual error reporting.
@@ -25,9 +25,6 @@ import { selectUserInfoErrorState, selectUserInfoState } from '../profile/profil
 import { deviceModelsPath } from '../../paths/paths';
 // import { selectSelectedManufacturer } from '../manufacturers/manufacturerSlice';
 
-interface deviceProps {
-    deviceId: string
-}
 
 const maybeRenderMeasurements = (deviceInfo: DeviceInfoResponse) => {
     if (deviceInfo.measurements.data === undefined) {
@@ -46,7 +43,7 @@ const maybeRenderMeasurements = (deviceInfo: DeviceInfoResponse) => {
     )
 }
 
-export function Device(props: RouteComponentProps<deviceProps>) {
+export function Device() {
     // console.log(props.match.params.deviceId)
 
     // const selectedModel = useSelector(selectSelectedModel);
@@ -54,8 +51,14 @@ export function Device(props: RouteComponentProps<deviceProps>) {
 
     const [deviceInfo, setDeviceInfo] = useState(defaultDeviceInfoResponse);
     const [errorState, setErrorState] = useState('');
+    const {deviceId} = useParams();
+    if (deviceId === undefined) {
+        debugger;
+
+        throw new Error("Something wrong with react-router, deviceId is undefined in Device?");
+    }
     useEffect(() => {
-        const parsedDeviceID = parseInt(props.match.params.deviceId);
+        const parsedDeviceID = parseInt(deviceId);
         if (isNaN(parsedDeviceID)) {
             return;
         }
@@ -79,22 +82,23 @@ export function Device(props: RouteComponentProps<deviceProps>) {
             }
             setErrorState(error.message);
         })
-    }, [props.match.params.deviceId]);
+    }, [deviceId]);
 
     console.table(deviceInfo);
     if (errorState !== '') {
         return (
             <>
                 <p>
-                    Error loading device info for device {props.match.params.deviceId}!
+                    Error loading device info for device {deviceId}!
                     Error: {errorState}
                 </p>
             </>
         );
     }
+    console.warn("TODO: change to render more than first two measurements :)")
     return (
         <>
-            Model: "<Link to={deviceModelsPath + `/${deviceInfo.device_model_id}`}>{deviceInfo.device_model}</Link>" - serial #: "{deviceInfo.serial}" measurements:
+            Model: "<Link to={deviceModelsPath + `/${deviceInfo.device_model_id}`}>{deviceInfo.device_model}</Link>" - serial #: "{deviceInfo.serial}" first ten measurements:
             {maybeRenderMeasurements(deviceInfo)}
             
         </>

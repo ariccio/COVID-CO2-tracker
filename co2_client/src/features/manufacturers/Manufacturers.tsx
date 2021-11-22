@@ -142,7 +142,6 @@ const RenderDropdown = (props: {manufacturerModels: SingleManufacturerInfoRespon
 } 
 
 const NewModelForManufacturer = (props: {manufacturerModels: SingleManufacturerInfoResponse, selectedModel: number}) => {
-    let location = useLocation();
     const [translate] = useTranslation();
     if (props.selectedModel !== -1) {
         return null;
@@ -155,7 +154,7 @@ const NewModelForManufacturer = (props: {manufacturerModels: SingleManufacturerI
         return null;
     }
     return (
-        <Link to={{pathname:`/devicemodels/create`, state: {background: location}}} className="btn btn-primary">
+        <Link to={{pathname:`/devicemodels/create`}} className="btn btn-primary">
             {translate('create-new-model-manufacturer')} {props.manufacturerModels.name}
         </Link>
     );

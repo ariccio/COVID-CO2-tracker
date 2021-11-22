@@ -17,10 +17,6 @@ import {CreateDeviceModelModalDialog} from '../create/CreateDeviceModel';
 import { SerializedSingleMeasurement } from '../../utils/QueryDeviceInfo';
 import { MeasurementsTable } from '../measurements/MeasurementsTable';
 
-interface DeviceModelsProps {
-    deviceModelId: string
-}
-
 const SHOW_DEVICE_MODEL_URL = (API_URL + '/model');
 
 

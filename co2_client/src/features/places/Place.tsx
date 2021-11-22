@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, Suspense} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import {RouteComponentProps} from 'react-router-dom';
+import {useParams} from 'react-router-dom';
 // import {useLocation} from 'react-router-dom';
 import { updatePlacesInfoFromBackend } from '../../utils/QueryPlacesInfo';
 import { selectPlaceExistsInDatabase, selectPlacesInfoErrors, selectPlacesInfoFromDatabase } from './placesSlice';
@@ -12,11 +12,6 @@ import { RenderFromDatabaseNoGoogleParam } from './RenderPlaceFromDatabase';
 
 import {PlaceDetails} from './PlaceDetails';
 
-interface PlaceProps {
-    placeId: string
-}
-
-
 const DivElem = (props: {elementRef: React.MutableRefObject<HTMLDivElement | null>}) => {
     return (
         <div id='ghost-map' ref={props.elementRef}>
@@ -24,7 +19,7 @@ const DivElem = (props: {elementRef: React.MutableRefObject<HTMLDivElement | nul
     );
 }
 
-export const Place: React.FC<RouteComponentProps<PlaceProps>> = (props) => {
+export const Place: React.FC<{}> = () => {
     // console.log("place")
     // const location = useLocation();
     const dispatch = useDispatch();
@@ -34,6 +29,12 @@ export const Place: React.FC<RouteComponentProps<PlaceProps>> = (props) => {
     
     const mapsAPIKey = useSelector(selectMapsAPIKey);
     const mapsAPIKeyErrorState = useSelector(selectMapsAPIKeyErrorState);
+
+    const {placeId} = useParams();
+    if (placeId === undefined) {
+        debugger;
+        throw new Error("Something wrong with react-router params. placeId is undefined in Place?");
+    }
 
     const elementRef = useRef(null as HTMLDivElement | null);
     useEffect(() => {
@@ -50,16 +51,16 @@ export const Place: React.FC<RouteComponentProps<PlaceProps>> = (props) => {
 
 
     useEffect(() => {
-        if (props.match.params.placeId === undefined) {
+        if (placeId === undefined) {
             return;
         }
-        if (props.match.params.placeId === '') {
+        if (placeId === '') {
             return;
         }
-        updatePlacesInfoFromBackend(props.match.params.placeId, dispatch);
-    }, [dispatch, props.match.params.placeId]);
+        updatePlacesInfoFromBackend(placeId, dispatch);
+    }, [dispatch, placeId]);
 
-    if (props.match.params.placeId === undefined) {
+    if (placeId === undefined) {
         return (
             <>
                 <DivElem elementRef={elementRef}/>
@@ -68,7 +69,7 @@ export const Place: React.FC<RouteComponentProps<PlaceProps>> = (props) => {
         )
     }
 
-    if (props.match.params.placeId === '') {
+    if (placeId === '') {
         return (
             <>
                 <DivElem elementRef={elementRef}/>
@@ -96,10 +97,10 @@ export const Place: React.FC<RouteComponentProps<PlaceProps>> = (props) => {
 
     return (
         <>
-            Place {props.match.params.placeId}
+            Place {placeId}
             <Suspense fallback="loading translations...">
                 <DivElem elementRef={elementRef}/>
-                <PlaceDetails mapsAPIKey={mapsAPIKey} placeId={props.match.params.placeId} divRef={elementRef}/>
+                <PlaceDetails mapsAPIKey={mapsAPIKey} placeId={placeId} divRef={elementRef}/>
                 <RenderFromDatabaseNoGoogleParam selectedPlaceInfoFromDatabase={selectedPlaceInfoFromDatabase} selectedPlaceInfoErrors={selectedPlaceInfoFromDatabaseErrors} selectedPlaceExistsInDatabase={selectedPlaceExistsInDatabase}/>
             </Suspense>
             <br/>

@@ -166,7 +166,8 @@ const HomePage: FunctionComponent<{}> = (props: any) => {
         else {
             setLocalitySelectedWarningString('');
         }
-    })
+    }, [currentPlace.types, translate]);
+
     useEffect(() => {
         if (infoRef && infoRef.current) {
             infoRef.current.scrollIntoView({behavior: "smooth"});
