@@ -103,7 +103,7 @@ module Api
         }
         @setup_places_client.spot(place_id, options)
       # TODO: maybe explicitly report these through sentry?
-      # https://docs.sentry.io/platforms/ruby/guides/rails/usage/#capturing-errors 
+      # https://docs.sentry.io/platforms/ruby/guides/rails/usage/#capturing-errors
       # From: C:\Ruby30-x64\lib\ruby\gems\3.0.0\gems\google_places-2.0.0\lib\google_places\request.rb
       rescue ::GooglePlaces::OverQueryLimitError => e
         render(
