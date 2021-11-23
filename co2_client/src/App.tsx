@@ -1,7 +1,7 @@
 // import React from 'react';
 
 // import {useSelector, useDispatch} from 'react-redux';
-import {Route, Routes, Link, Navigate} from 'react-router-dom';
+import {Route, Routes, Link, Navigate, useParams} from 'react-router-dom';
 // import {ErrorBoundary, FallbackProps} from 'react-error-boundary';
 import * as Sentry from "@sentry/react";
 
@@ -24,11 +24,15 @@ import './App.css';
 import { BottomNav } from './features/nav/BottomNav';
 
 
-const NotFound = () =>
+const NotFound = () => {
+  const params = useParams();
+  return (
     <>
-      <h1>404 route/URL not found.</h1>
+      <h1>404 route/URL <i>'/{params['*']}'</i> not found.</h1>
       <Link to={'/'}>Back to home</Link>
     </>
+  );
+}
 
 
   //TODO: make this a switch router for 404 handling.
@@ -46,7 +50,7 @@ const routes = () =>
     <Route path={deviceModelsPath} element={<DeviceModels/>}/>
     <Route path={moreInfoPath} element={<MoreInfo/>}/>
     <Route path='/' element={<Navigate replace to={homePath}/>}/>
-    <Route element={<NotFound/>}/>
+    <Route path='*' element={<NotFound/>}/>
   </Routes>
 
 function TopLevelErrorFallback(errorData: {

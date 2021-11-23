@@ -181,7 +181,7 @@ export const ShowMeasurementModal: React.FC<ShowMeasurementModalProps> = (props:
         }).catch((error) => {
             console.error("some kind of error in fetch");
             // debugger;
-            setErrors(String(error));
+            setErrors(JSON.stringify(error));
             setMeasurementInfo(defaultShowMeasurementResponse);
             return;
         })

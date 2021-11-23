@@ -164,7 +164,7 @@ const NewModelForManufacturer = (props: {manufacturerModels: SingleManufacturerI
 const renderDropdownOrLoading = (knownManufacturers: ManufacturersArray, manufacturerModels: SingleManufacturerInfoResponse, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, location: ReturnType<typeof useLocation>, dispatch: ReturnType<typeof useDispatch>, errors: string) => {
     if(knownManufacturers !== defaultManufacturersArray) {
         if (knownManufacturers.manufacturers === undefined) {
-            throw new Error(`knownManufacturers.manufacturers is undefined! This is a bug in Manufacturers.tsx. manufacturerModels: ${String(manufacturerModels)}, errors: ${errors}`)
+            throw new Error(`knownManufacturers.manufacturers is undefined! This is a bug in Manufacturers.tsx. manufacturerModels: ${String(manufacturerModels)}, errors: ${JSON.stringify(errors)}`)
         }
         return (
             <Suspense fallback="loading translations...">
