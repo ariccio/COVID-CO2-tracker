@@ -31,10 +31,6 @@ export const Place: React.FC<{}> = () => {
     const mapsAPIKeyErrorState = useSelector(selectMapsAPIKeyErrorState);
 
     const {placeId} = useParams();
-    if (placeId === undefined) {
-        debugger;
-        throw new Error("Something wrong with react-router params. placeId is undefined in Place?");
-    }
 
     const elementRef = useRef(null as HTMLDivElement | null);
     useEffect(() => {
