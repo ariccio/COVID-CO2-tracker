@@ -20,6 +20,8 @@ export const PlaceDetails: React.FC<PlaceDetailsProps> = (props) => {
     const placesServiceStatus = useSelector(selectPlacesServiceStatus);
     const selectedPlace = useSelector(selectSelectedPlace);
 
+
+    //TODO: factor this out, maybe use custom hook?
     const { isLoaded, loadError } = useJsApiLoader({
         id: 'google-map-script',
         googleMapsApiKey: props.mapsAPIKey,
@@ -35,7 +37,7 @@ export const PlaceDetails: React.FC<PlaceDetailsProps> = (props) => {
             // console.log("api not loaded yet.");
             if (loadError !== undefined) {
                 //TODO: bubble this to user?
-                console.error(`Load error: ${loadError}`)
+                console.error(`Load error: ${JSON.stringify(loadError)}`)
             }
             return;
         }

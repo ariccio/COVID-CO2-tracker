@@ -29,7 +29,7 @@ const NotFound = () => {
   return (
     <>
       <h1>404 route/URL <i>'/{params['*']}'</i> not found.</h1>
-      <Link to={'/'}>Back to home</Link>
+      <Link to={'/'} className="btn btn-primary">Back to home</Link>
     </>
   );
 }

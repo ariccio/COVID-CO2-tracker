@@ -93,7 +93,8 @@ const errorPositionCallback = (error: GeolocationPositionError_, geolocationInPr
     setGeolocationInProgress(false);
 
     console.log("GeolocationPositionError interface: https://w3c.github.io/geolocation-api/#position_error_interface");
-    console.error(`GeolocationPositionError.code: ${error.code}, message: ${error.message}`);
+    console.error(`GeolocationPositionError.code: ${error.code}, message: ${error.message}.`);
+    console.error(`Full error object text as stringified JSON: ${JSON.stringify(error)}`);
     //These really are the only three, surprisingly:
     //https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/modules/geolocation/geolocation.cc;l=75;drc=1d00cb24b27d946f3061e0a81e09efed8001ad45?q=GeolocationPositionError
     //https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/modules/geolocation/geolocation_position_error.h;l=39?q=GeolocationPositionError
@@ -104,15 +105,18 @@ const errorPositionCallback = (error: GeolocationPositionError_, geolocationInPr
     if (error.code === /*GeolocationPositionError.PERMISSION_DENIED*/ 1) {
         console.warn("The location acquisition process failed because the document does not have permission to use the Geolocation API.");
         if (!window.isSecureContext) {
-            alert("Location permission denied by user or browser settings, and not running app from a secure (https) context. Move map manually or try reloading with an encrypted context.");
+            alert("Location permission denied by user or browser settings, and not running app from a secure (https) context. Move map manually or try reloading with an encrypted (https) context.");
+            Sentry.captureMessage("GeolocationPositionError.PERMISSION_DENIED, not in a secure context?");
             return;
         }
         if (isMobileSafari()) {
             alert(`Location permission denied by user or browser settings. Move map manually. Some users on iOS devices seem to have disabled location services in the *system* privacy options, and Safari will not show a dialog to prompt you. Check if you have set it to "Never" in Settings -> Privacy -> Location Services -> Safari Websites. Sorry about this, but it's Apple's design decision, not mine..`);
+            Sentry.captureMessage("Safari GeolocationPositionError.PERMISSION_DENIED.");
             return;
         }
         //do nothing
         alert(`Location permission denied by user or browser settings. Move map manually. Secure context: ${window.isSecureContext}`);
+        Sentry.captureMessage("GeolocationPositionError.PERMISSION_DENIED, unknown reason?");
         return;
     }
     else if (error.code === /*GeolocationPositionError.POSITION_UNAVAILABLE*/ 2) {
@@ -123,13 +127,14 @@ const errorPositionCallback = (error: GeolocationPositionError_, geolocationInPr
             }
         console.error("The position of the device could not be determined. For instance, one or more of the location providers used in the location acquisition process reported an internal error that caused the process to fail entirely.");
         console.error("perusing the chromium sources suggests failed network location provider requests are one example.");
-        alert(`Some kind of internal error getting the position. Message given: ${error.message}. Move map manually. Sorry!`);
+        alert(`Some kind of internal error getting the position. Message given by your browser: ${error.message}. Move map manually. Sorry!`);
         Sentry.captureMessage("GeolocationPositionError.POSITION_UNAVAILABLE");
         return;
     }
     else if (error.code === /*GeolocationPositionError.TIMEOUT*/ 3) {
         console.error("The length of time specified by the timeout property has elapsed before the implementation could successfully acquire a new GeolocationPosition object.");
         alert("Geolocation timed out. Something might be wrong with your device, or you're trying to get location in a place that you can't. Move map manually. Sorry!")
+        Sentry.captureMessage("GeolocationPositionError.TIMEOUT");
         return;
     }
     console.error(error);
@@ -866,6 +871,9 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
         );
     }
     if (loadError) {
+        console.warn("Google maps Load error, if you're using a headless browser or a crawler, I shake my fist at you.")
+        console.warn("stringified error:")
+        console.error(JSON.stringify(loadError))
         Sentry.captureException(loadError);
 
         //TODO: maybe I can check with a fetch or something?
@@ -873,7 +881,9 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
             <div>
                 Google maps load failed!<br/>
                 Message, if any: {loadError.message}<br/>
-                This failure has been reported automatically. There's usually not much I can do about this - something went wrong loading google libraries - but I keep track of it anyways.
+                This failure has been reported automatically. There's usually not much I can do about this - something went wrong loading google libraries - but I keep track of it anyways.<br/>
+
+                Full error object: {JSON.stringify(loadError)}
             </div>
         );
     }
