@@ -1,0 +1,9 @@
+These are things I should automate!
+
+rubocop
+rails_best_practices
+fasterer
+reek
+bullet
+
+rubycritic?

@@ -1,0 +1,12 @@
+---
+detectors:
+    TooManyStatements:
+        enabled: false
+
+    IrresponsibleModule:
+        enabled: false
+    UncommunicativeModuleName:
+        enabled: false
+    
+exclude_paths:
+  - db/
