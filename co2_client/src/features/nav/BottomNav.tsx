@@ -2,7 +2,6 @@ import React from 'react';
 import Navbar from 'react-bootstrap/Navbar';
 import Nav from 'react-bootstrap/Nav';
 import Card from 'react-bootstrap/Card';
-import {Link} from 'react-router-dom';
 import { ABOUT_ME_ARICCIO_URL, YOUTUBE_VIDEO_INSTRUCTIONS_URL } from '../../utils/UrlPath';
 import { LinkContainer } from 'react-router-bootstrap';
 import { moreInfoPath } from '../../paths/paths';

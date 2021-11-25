@@ -17,7 +17,7 @@ import {selectSelectedPlace, selectPlacesServiceStatus, autocompleteSelectedPlac
 import {setSelectedPlace, INTERESTING_FIELDS} from './googleSlice';
 
 import {updatePlacesInfoFromBackend, queryPlacesInBoundsFromBackend} from '../../utils/QueryPlacesInfo';
-import { defaultPlaceMarkers, EachPlaceFromDatabaseForMarker, placesFromDatabaseForMarker, selectPlaceMarkersFromDatabase, selectPlacesInfoErrors, selectPlacesMarkersErrors, selectPlaceMarkersFetchInProgress, setPlaceMarkersFetchInProgress, setPlaceMarkersFetchStartMS, selectPlaceMarkersFetchStartMS, selectPlaceMarkersFetchFinishMS, setPlaceMarkersFetchFinishMS } from '../places/placesSlice';
+import { defaultPlaceMarkers, EachPlaceFromDatabaseForMarker, placesFromDatabaseForMarker, selectPlaceMarkersFromDatabase, selectPlacesInfoErrors, selectPlacesMarkersErrors, selectPlaceMarkersFetchInProgress, setPlaceMarkersFetchInProgress, selectPlaceMarkersFetchStartMS, selectPlaceMarkersFetchFinishMS } from '../places/placesSlice';
 import { setSublocationSelectedLocationID } from '../sublocationsDropdown/sublocationSlice';
 import { updateOnNewPlace } from './googlePlacesServiceUtils';
 import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
@@ -76,6 +76,8 @@ function isMobileSafari(): boolean {
 
     //Thank you stack overflow for detecting if mobile safari, which is ugly:
     //https://stackoverflow.com/a/29696509/625687
+
+    //Note to self, "i" is flag for case insensitivity. Why do we have yet-another printf-like DSL?
     const ua = window.navigator.userAgent;
     const iPad = ua.match(/iPad/i);
     const iPhone = ua.match(/iPhone/i);
@@ -88,13 +90,31 @@ function isMobileSafari(): boolean {
     return false;
 }
 
+function isMobileFacebookBrowser(): boolean {
+    // Hmm, let's try and detect a facebook in-app browser instance...
+    // example user agent from sentry:
+    //Mozilla/5.0 (iPhone; CPU iPhone OS 15_1_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/19B81 [FBAN/FBIOS;FBDV/iPhone13,2;FBMD/iPhone;FBSN/iOS;FBSV/15.1.1;FBSS/3;FBID/phone;FBLC/en_US;FBOP/5]
+
+    const ua = window.navigator.userAgent;
+    const FBAN = ua.match(/FBAN/);
+    const FBIOS = ua.match(/FBIOS/);
+    const FBLC = ua.match(/FBLC/);
+    const isAndroidOrIOS = ((FBAN !== null) || (FBIOS !== null));
+    const hasFBLocale = (FBLC !== null);
+    if (isAndroidOrIOS && hasFBLocale) {
+        return true;
+    }
+    return false;
+}
+
 const errorPositionCallback = (error: GeolocationPositionError_, geolocationInProgress: boolean, setGeolocationInProgress: React.Dispatch<React.SetStateAction<boolean>>) => {
     console.assert(geolocationInProgress);
     setGeolocationInProgress(false);
-
+    const userDeniedString = "User denied Geolocation";
+    const errorStr = JSON.stringify(error);
     console.log("GeolocationPositionError interface: https://w3c.github.io/geolocation-api/#position_error_interface");
     console.error(`GeolocationPositionError.code: ${error.code}, message: ${error.message}.`);
-    console.error(`Full error object text as stringified JSON: ${JSON.stringify(error)}`);
+    console.error(`Full error object text as stringified JSON: ${errorStr}`);
     //These really are the only three, surprisingly:
     //https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/modules/geolocation/geolocation.cc;l=75;drc=1d00cb24b27d946f3061e0a81e09efed8001ad45?q=GeolocationPositionError
     //https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/modules/geolocation/geolocation_position_error.h;l=39?q=GeolocationPositionError
@@ -105,13 +125,28 @@ const errorPositionCallback = (error: GeolocationPositionError_, geolocationInPr
     if (error.code === /*GeolocationPositionError.PERMISSION_DENIED*/ 1) {
         console.warn("The location acquisition process failed because the document does not have permission to use the Geolocation API.");
         if (!window.isSecureContext) {
+            console.log("!window.isSecureContext");
             alert("Location permission denied by user or browser settings, and not running app from a secure (https) context. Move map manually or try reloading with an encrypted (https) context.");
             Sentry.captureMessage("GeolocationPositionError.PERMISSION_DENIED, not in a secure context?");
             return;
         }
+        if (isMobileFacebookBrowser()) {
+            console.log("isMobileFacebookBrowser()");
+            alert(`Location permission denied by user or browser settings. Move map manually. You seem to be browsing from facebook, and my telemetry suggests facebook might block location access. If you didn't get a prompt about locaiton permissions, you can try opening in a full browser! (click the three dots at top right, then click 'Open in browser')`);
+
+            // Note: I've seen "Location Services not available." as the error.message in facebook safari webviews.
+
+            Sentry.captureMessage("Facebook GeolocationPositionError.PERMISSION_DENIED.");
+            return;
+        }
         if (isMobileSafari()) {
+            console.log("isMobileSafari()");
             alert(`Location permission denied by user or browser settings. Move map manually. Some users on iOS devices seem to have disabled location services in the *system* privacy options, and Safari will not show a dialog to prompt you. Check if you have set it to "Never" in Settings -> Privacy -> Location Services -> Safari Websites. Sorry about this, but it's Apple's design decision, not mine..`);
             Sentry.captureMessage("Safari GeolocationPositionError.PERMISSION_DENIED.");
+            return;
+        }
+        if (error.message === userDeniedString) {
+            console.log(`error.message === '${userDeniedString}', user probably denied the permissions request. Nothing to do!`);
             return;
         }
         //do nothing
