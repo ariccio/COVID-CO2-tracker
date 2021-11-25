@@ -127,6 +127,10 @@ const errorPositionCallback = (error: GeolocationPositionError_, geolocationInPr
     console.log("GeolocationPositionError interface: https://w3c.github.io/geolocation-api/#position_error_interface");
     console.error(`GeolocationPositionError.code: ${error.code}, message: ${error.message}.`);
     console.error(`Full error object text as stringified JSON: ${errorStr}`);
+    if (error.message !== userDeniedString) {
+        console.log(`error.message !== userDeniedString`);
+        console.log(`i.e.: '${error.message}' !== '${userDeniedString}'`)
+    }
     //These really are the only three, surprisingly:
     //https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/modules/geolocation/geolocation.cc;l=75;drc=1d00cb24b27d946f3061e0a81e09efed8001ad45?q=GeolocationPositionError
     //https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/modules/geolocation/geolocation_position_error.h;l=39?q=GeolocationPositionError
