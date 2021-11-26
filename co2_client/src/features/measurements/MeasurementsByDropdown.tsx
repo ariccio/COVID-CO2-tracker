@@ -130,7 +130,11 @@ export const MeasurementsByDropdown: React.FC<MeasurementsByDropdownProps> = (pr
     const [deviceSerialsErrorState, setDeviceSerialsErrorState] = useState('');
     const [deviceSerials, setDeviceSerials] = useState([] as Array<SerializedSingleDeviceSerial>);
     useEffect(() => {
-
+        if (props.selectedPlaceInfoFromDatabase.measurements_by_sublocation === undefined) {
+            //Seen in sentry, was undefined.
+            console.warn(`"props.selectedPlaceInfoFromDatabase.measurements_by_sublocation" === undefined. No measurements to fetch. Rest of object: ${JSON.stringify(props.selectedPlaceInfoFromDatabase)}`);
+            return;
+        }
         const promise = fetchDeviceNamesForMeasurementsBySublocation(props.selectedPlaceInfoFromDatabase.measurements_by_sublocation);
         promise.then((result) => {
             if (result.errors !== undefined) {

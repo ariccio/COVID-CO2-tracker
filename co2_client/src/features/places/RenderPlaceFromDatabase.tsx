@@ -55,7 +55,7 @@ export const RenderFromDatabaseNoGoogleParam = (props: {selectedPlaceInfoFromDat
         if ((props.selectedPlaceInfoFromDatabase as any).error !== undefined) {
             return (
                 <>
-                    {(props.selectedPlaceInfoFromDatabase as any).error}
+                    Error: {(props.selectedPlaceInfoFromDatabase as any).error}
                 </>
             )
         }
