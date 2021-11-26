@@ -58,6 +58,10 @@ const renderInfoFromDatabase = (selectedPlaceInfoFromDatabase: SelectedPlaceData
         //No place selected yet.
         return null;
     }
+    if (selectedPlaceInfoFromDatabase.measurements_by_sublocation === undefined) {
+            //Seen in sentry, was undefined.
+            console.warn(`"selectedPlaceInfoFromDatabase.measurements_by_sublocation" === undefined. No measurements to fetch. Rest of object: ${JSON.stringify(selectedPlaceInfoFromDatabase)}`);
+        }
     return (
         <>
             <Suspense fallback="loading translations...">

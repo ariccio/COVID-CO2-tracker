@@ -294,9 +294,20 @@ export const fetchSingleDeviceName = (deviceID: string) => {
 
 const deviceNamesRequestInit = (measurements_by_sublocation: Array<SublocationMeasurements>) => {
     const defaultOptions = postRequestOptions();
-    const ids = measurements_by_sublocation.flatMap((value: SublocationMeasurements) => {
+
+    if (measurements_by_sublocation === undefined) {
+        //Seen in sentry.
+        throw new Error("Invalid data passed to deviceNamesRequestInit, measurements_by_sublocation is undefined. This shouldn't happen... I thought I fixed this!");
+    }
+    if (measurements_by_sublocation.flatMap === undefined) {
+        console.warn(`typeof(measurements_by_sublocation.flatMap): ${typeof(measurements_by_sublocation)}`);
+        throw new Error("measurements_by_sublocation.flatMap is undefined. This shouldn't happen... I thought I fixed this!");
+    }
+
+    const ids_unsorted = measurements_by_sublocation.flatMap((value: SublocationMeasurements) => {
         return deviceIDsFromSubLocation(value);
-    }).sort();
+    });
+    const ids = ids_unsorted.sort();
 
     const options = {
         ...defaultOptions,
@@ -310,6 +321,10 @@ const deviceNamesRequestInit = (measurements_by_sublocation: Array<SublocationMe
 }
 
 export const fetchDeviceNamesForMeasurementsBySublocation = (measurements_by_sublocation: Array<SublocationMeasurements>) => {
+    if (measurements_by_sublocation === undefined) {
+        //Seen in sentry.
+        throw new Error("Invalid data passed to fetchDeviceNamesForMeasurementsBySublocation, measurements_by_sublocation is undefined. This shouldn't happen... I thought I fixed this!");
+    }
     const requestInit = deviceNamesRequestInit(measurements_by_sublocation)
     const fetchFailedCallback = async (awaitedResponse: Response): Promise<DeviceIDNamesSerialsResponse> => {
         console.error("failed to get device names from ids!");

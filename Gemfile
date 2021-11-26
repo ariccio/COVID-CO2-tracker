@@ -36,6 +36,8 @@ group :development do
   # gem 'sqlite3', '~> 1.4'
   gem 'active_record_doctor', group: :development
   gem 'rails-erd'
+
+  gem 'bullet', group: 'development'
 end
 
 # group :production do
