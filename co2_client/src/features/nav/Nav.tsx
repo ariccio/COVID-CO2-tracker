@@ -1,5 +1,6 @@
 import React, {useEffect, Suspense} from 'react'; // suspense is for i18n
 import { useSelector, useDispatch } from 'react-redux';
+import {useLocation} from 'react-router-dom';
 // import {Link, Redirect} from 'react-router-dom';
 import NavItem from 'react-bootstrap/NavItem';
 import Navbar from 'react-bootstrap/Navbar';

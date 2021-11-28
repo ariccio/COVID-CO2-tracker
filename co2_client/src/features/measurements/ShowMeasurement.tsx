@@ -122,7 +122,6 @@ const RenderModalBody = (props: {errors: string, measurementInfo: ShowMeasuremen
                     <DeviceIDOrSerial measurementInfo={props.measurementInfo} deviceSerials={props.deviceSerials} deviceSerialsErrorState={props.deviceSerialsErrorState}/>
                 </Suspense>
                 <br/>
-                <br/>
                 {translate("Recorded CO2")}: {props.measurementInfo.data.data.attributes.co2ppm}
                 <br/>
                 <br/>
