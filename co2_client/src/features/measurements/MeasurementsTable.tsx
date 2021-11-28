@@ -154,16 +154,12 @@ const deviceIDOrSerialWithLink = (id: string, deviceSerials?: Array<SerializedSi
         })
         if (found) {
             return (
-                <div>
-                    <td><Link to={`${devicesPath}/${id}`}>S#: {found.attributes.serial}</Link></td>
-                </div>
+                <td><Link to={`${devicesPath}/${id}`}>S#: {found.attributes.serial}</Link></td>
             )
         }
     }
     return (
-        <div>
-            <td><Link to={`${devicesPath}/${id}`}>ID: {id}</Link></td>
-        </div>
+        <td><Link to={`${devicesPath}/${id}`}>ID: {id}</Link></td>
     )
 }
 
@@ -172,11 +168,9 @@ const RebreathedFraction = (props: {co2ppm: number}) => {
     const percent = percentRebreathedFromPPM(props.co2ppm);
     const display = rebreathedToString(percent);
     return (
-        <div>
-            <td>
-                {display}
-            </td>
-        </div>
+        <td>
+            {display}
+        </td>
     )
 }
 

@@ -460,7 +460,6 @@ const RenderFormIfReady = (props: {selectedDevice: number, setEnteredCO2Text: Re
         return null;
     }
     const measurementsOrEmptyArray = measurementsOrEmpty(props.placesInfoFromDatabase);
-    // debugger;
 
     return (
         <div>
@@ -477,9 +476,9 @@ const RenderFormIfReady = (props: {selectedDevice: number, setEnteredCO2Text: Re
                     {translate("Measurement time")}: &nbsp;&nbsp;&nbsp;
                 </span>
             </label>
-            <ToggleButtonGroup type="radio" name="user time choice" value={props.userTimeRadioValue} onChange={props.setUserTimeRadioValue}>
-                <ToggleButton value={ToggleButtonUserRadios.Now}>{translate("Now")}</ToggleButton>
-                <ToggleButton value={ToggleButtonUserRadios.Custom}>{translate("Other Date/Time")}</ToggleButton>
+            <ToggleButtonGroup type="radio" name="user time choice" value={props.userTimeRadioValue} onChange={(value) => {props.setUserTimeRadioValue(value)}}>
+                <ToggleButton id="tag-datetime-user-radio-btn-now" value={ToggleButtonUserRadios.Now}>{translate("Now")}</ToggleButton>
+                <ToggleButton id="tag-datetime-user-radio-btn-custom" value={ToggleButtonUserRadios.Custom}>{translate("Other Date/Time")}</ToggleButton>
             </ToggleButtonGroup>
             <br/>
             {maybeRenderTimeInput(props.userTimeRadioValue, props.dateTime, props.setDateTime, props.datePickerError, props.setDatePickerError)}
