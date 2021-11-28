@@ -120,32 +120,36 @@ const submit = (event: React.MouseEvent<HTMLElement, MouseEvent>, enteredDeviceS
 const submitOrSpinning = (submitting: boolean, translate: any) => {
     if (!submitting) {
         return (
-            <>
-                {translate('Add new')}
-            </>
-        )
+            <div>
+                <span>
+                    {translate('Add new')}
+                </span>
+            </div>
+        );
     }
     return (
-        <>
+        <div>
             <Spinner animation="border" role="status">
                   <span className="visually-hidden">
                       {translate('creating-device')}
                   </span>
             </Spinner>
-        </>
-    )
+        </div>
+    );
 }
 
 const maybeExtraAranet4InstructionsForSerialNumber = (selectedModelName: string, translate: any) => {
     if (selectedModelName !== 'Aranet4') {
         return (
-            <>
-            </>
+            <span>
+            </span>
         );
     }
     return (
         <Form.Text>
-            {translate("aranet4-serial-info")}
+            <span>
+                {translate("aranet4-serial-info")}
+            </span>
         </Form.Text>
     )
 }
@@ -178,7 +182,7 @@ export const CreateMyDeviceInstance: React.FC<CreateMyDeviceInstanceProps> = (pr
     }
 
     return (
-        <>
+        <div>
             <Modal show={props.showAddDeviceInstance} onHide={() => {props.setShowAddDeviceInstance(false)}}>
                 <Suspense fallback="loading translation...">
                     <ModalHeader modelName={selectedModelName}/>
@@ -186,7 +190,9 @@ export const CreateMyDeviceInstance: React.FC<CreateMyDeviceInstanceProps> = (pr
                 <Modal.Body>
                     <Form noValidate onChange={(event) => onChangeEvent(event, dispatch)} onSubmit={(event) => onSubmitEvent(event, enteredDeviceSerialNumberText, props.setShowAddDeviceInstance, navigate, selectedModel, dispatch, location, setShowSubmit, setSubmitting)}>
                         <Form.Label>
-                            {translate('almost-there-serial')}
+                            <span>
+                                {translate('almost-there-serial')}
+                            </span>
                         </Form.Label>
                         <Form.Control type="text" placeholder="1234567890"/>
                         {maybeExtraAranet4InstructionsForSerialNumber(selectedModelName, translate)}
@@ -194,7 +200,9 @@ export const CreateMyDeviceInstance: React.FC<CreateMyDeviceInstanceProps> = (pr
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={(event) => cancelHandler(event, props.setShowAddDeviceInstance, navigate)}>
-                        {translate('Cancel')}
+                        <span>
+                            {translate('Cancel')}
+                        </span>
                     </Button>
                     <Button variant="primary" disabled={!showSubmit} onClick={(event) => submit(event, enteredDeviceSerialNumberText, props.setShowAddDeviceInstance, navigate, selectedModel, dispatch, location, setShowSubmit, setSubmitting)}>
                         {submitOrSpinning(submitting, translate)} {selectedModelName}
@@ -202,6 +210,6 @@ export const CreateMyDeviceInstance: React.FC<CreateMyDeviceInstanceProps> = (pr
                 </Modal.Footer>
 
             </Modal>
-        </>
+        </div>
     );
 }

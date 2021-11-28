@@ -154,16 +154,16 @@ const deviceIDOrSerialWithLink = (id: string, deviceSerials?: Array<SerializedSi
         })
         if (found) {
             return (
-                <>
+                <div>
                     <td><Link to={`${devicesPath}/${id}`}>S#: {found.attributes.serial}</Link></td>
-                </>
+                </div>
             )
         }
     }
     return (
-        <>
+        <div>
             <td><Link to={`${devicesPath}/${id}`}>ID: {id}</Link></td>
-        </>
+        </div>
     )
 }
 
@@ -172,11 +172,11 @@ const RebreathedFraction = (props: {co2ppm: number}) => {
     const percent = percentRebreathedFromPPM(props.co2ppm);
     const display = rebreathedToString(percent);
     return (
-        <>
+        <div>
             <td>
                 {display}
             </td>
-        </>
+        </div>
     )
 }
 
@@ -285,7 +285,7 @@ export const MeasurementsTable: React.FC<MeasurementsTableProps> = (props: Measu
 
     // debugger;
     return (
-        <>
+        <div>
             <Suspense fallback="loading translations">
                 <Table striped bordered hover>
                     <MeasurementTableHeader withDelete={props.withDelete} innerLocation={props.innerLocation} withDevice={props.withDevice} />
@@ -293,6 +293,6 @@ export const MeasurementsTable: React.FC<MeasurementsTableProps> = (props: Measu
                 </Table>
                 <ShowMeasurementModal showMeasurementModal={showMeasurementModal} setShowMeasurementModal={setShowMeasurementModal} selectedMeasurement={selectedMeasurement} setSelectedMeasurement={setSelectedMeasurement}/>
             </Suspense>
-        </>
+        </div>
     )
 }

@@ -313,40 +313,40 @@ export const GoogleLoginLogoutContainer: React.FC<LoginContainerProps> = () => {
     // https://developers.google.com/identity/sign-in/web/sign-in
     if (loginAPIKey === '') {
         return (
-            <>
+            <div>
                 Loading google auth api key...
-            </>
+            </div>
         );
     }
     if (apiKeyErrorState !== '') {
         return (
-            <>
+            <div>
                 Error loading google auth api key: {apiKeyErrorState}
-            </>
+            </div>
         );
     }
     if (googleLoginErrorState !== '') {
         return (
-            <>
+            <div>
                 Error logging in with google: {googleLoginErrorState}
-            </>
+            </div>
         )
     }
     if (googleProfile !== null) {
         //   debugger;
         // console.log("rendering logout.");
         return (
-            <>
+            <div>
                 <GoogleLogout clientId={loginAPIKey} onLogoutSuccess={() => googleLogoutSuccessCallback(dispatch)} />
-            </>
+            </div>
         )
     }
     // https://github.com/anthonyjgrove/react-google-login/blob/master/README.md
     // debugger;
     return (
-        <>
+        <div>
             <GoogleLogin onRequest={() => console.log("login request starting....")} clientId={loginAPIKey} onSuccess={(response) => googleLoginSuccessCallback(response, dispatch)} onFailure={(error) => googleLoginFailedCallback(error, setGoogleLoginErrorState)} isSignedIn={true} />
 
-        </>
+        </div>
     )
 }

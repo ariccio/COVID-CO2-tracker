@@ -58,8 +58,8 @@ export const PlaceDetails: React.FC<PlaceDetailsProps> = (props) => {
     }, [dispatch, props.placeId, service])
 
     return (
-        <>
+        <div>
             <RenderSelectedPlaceInfo currentPlace={selectedPlace} placesServiceStatus={placesServiceStatus}/>
-        </>
+        </div>
     );
 }

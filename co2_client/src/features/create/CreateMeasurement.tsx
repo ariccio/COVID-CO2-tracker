@@ -147,19 +147,23 @@ const SelectDeviceDropdown = (props: {userDevices: UserDevicesInfo, selectedDevi
     // }, [props.userDevices, translate]);
 
     return (
-        <>
+        <div>
             <Dropdown onSelect={(eventKey: string | null, event: React.SyntheticEvent<unknown>) => selectDeviceDropdownHandler(eventKey, event, props.userDevices, dispatch)}>
                 <Dropdown.Toggle variant="success" id="dropdown-basic">
-                    {props.selectedDevice !== -1 ? `${props.selectedModelName} - ${props.selectedDeviceSerialNumber}` :  loadingOrSelectString}
+                    <span>
+                        {props.selectedDevice !== -1 ? `${props.selectedModelName} - ${props.selectedDeviceSerialNumber}` :  loadingOrSelectString}
+                    </span>
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
                     {devicesToDropdown(props.userDevices)}
                     <Dropdown.Item eventKey={"-1"} as={Link} to={devicesPath}>
-                        + {translate(loadingOrCreateString)}
+                        <span>
+                            + {translate(loadingOrCreateString)}
+                        </span>
                     </Dropdown.Item>
                 </Dropdown.Menu>
             </Dropdown>
-        </>
+        </div>
 
     );
 }
@@ -366,14 +370,16 @@ const InnerLocationFormIfNewLocation = (props: {setEnteredLocationDetails: React
     const [translate] = useTranslation();
     if (props.selected === null) {
         return (
-            <>
+            <div>
                 <Form onChange={(event) => onChangeInnerLocationEvent(event, props.setEnteredLocationDetails)} onSubmit={ignoreDefault}>
                     <Form.Label>
-                        {translate("Where inside")} {props.placeName} {translate("did you take the measurement?")}
+                        <span>
+                            {translate("Where inside")} {props.placeName} {translate("did you take the measurement?")}
+                        </span>
                     </Form.Label>
                     <Form.Control type="text" name={"where"}/>
                 </Form>
-            </>
+            </div>
         )
     }
     return null;
@@ -396,20 +402,20 @@ const MaybeMeasurementNote = (props: {enteredCO2Text: string}) => {
     }
     if (parsed < 400) {
         return (
-            <>
+            <span>
                 {translate("low-measurement-message")}
                 <br/>
                 <br/>
-            </>
+            </span>
         )
     }
     if (parsed > 2000) {
         return (
-            <>
+            <span>
                 {translate("high-measurement-message")}
                 <br/>
                 <br/>
-            </>
+            </span>
         )
     };
     return null;
@@ -436,15 +442,15 @@ const maybeRenderTimeInput = (userTimeRadioValue: ToggleButtonUserRadios, dateTi
     }
     if (datePickerError !== null) {
         return (
-            <>
+            <span>
                 Error in date picker component: {datePickerError}
-            </>
+            </span>
         )
     }
     return (
-        <>
+        <span>
             <DatePicker selected={dateTime} onChange={(date, event) => datePickerChangeHandler(setDateTime, setDatePickerError, date, event)} timeInputLabel={"measurement time"} showTimeInput inline/>
-        </>
+        </span>
     )
 }
 
@@ -457,15 +463,19 @@ const RenderFormIfReady = (props: {selectedDevice: number, setEnteredCO2Text: Re
     // debugger;
 
     return (
-        <>
+        <div>
             <Form onChange={(event) => onChangeCo2Event(event, props.setEnteredCO2Text)} onSubmit={ignoreDefault}>
                 <Form.Label>
-                    {translate("co2-level")}
+                    <span>
+                        {translate("co2-level")}
+                    </span>
                 </Form.Label>
                 <Form.Control type="number" placeholder="400" min={0} max={80000} name={"co2ppm"}/> <Suspense fallback="Loading translations..."><MaybeMeasurementNote enteredCO2Text={props.enteredCO2Text} /></Suspense>
             </Form>
             <label className="form-label">
-            {translate("Measurement time")}: &nbsp;&nbsp;&nbsp;
+                <span>
+                    {translate("Measurement time")}: &nbsp;&nbsp;&nbsp;
+                </span>
             </label>
             <ToggleButtonGroup type="radio" name="user time choice" value={props.userTimeRadioValue} onChange={props.setUserTimeRadioValue}>
                 <ToggleButton value={ToggleButtonUserRadios.Now}>{translate("Now")}</ToggleButton>
@@ -475,7 +485,9 @@ const RenderFormIfReady = (props: {selectedDevice: number, setEnteredCO2Text: Re
             {maybeRenderTimeInput(props.userTimeRadioValue, props.dateTime, props.setDateTime, props.datePickerError, props.setDatePickerError)}
             <Form onChange={(event) => onChangeCrowdingEvent(event, props.setEnteredCrowding)} onSubmit={ignoreDefault}>
                 <Form.Label>
-                    {translate("crowding-level")}
+                    <span>
+                        {translate("crowding-level")}
+                    </span>
                 </Form.Label>
                 <Form.Control type="number" min={1} max={5} name={"crowding"}/>
             </Form>
@@ -487,7 +499,7 @@ const RenderFormIfReady = (props: {selectedDevice: number, setEnteredCO2Text: Re
             <Suspense fallback="Loading translations...">
                 <InnerLocationFormIfNewLocation setEnteredLocationDetails={props.setEnteredLocationDetails} placeName={props.placeName} selected={props.selected}/>
             </Suspense>
-        </>
+        </div>
     )
 }
 
@@ -500,7 +512,9 @@ const NotLoggedIn = (props: {showCreateNewMeasurement: boolean, setShowCreateNew
                 <ModalHeaderNotLoggedIn/>
             </Suspense>
             <Modal.Body>
-            {translate("not-logged-in-please")}
+                <span>
+                    {translate("not-logged-in-please")}
+                </span>
             </Modal.Body>
         </Modal>
     );
@@ -510,11 +524,13 @@ const NotLoggedIn = (props: {showCreateNewMeasurement: boolean, setShowCreateNew
 const NothingSelectedItem = () => {
     const [translate] = useTranslation();
     return (
-        <>
+        <div>
             <Dropdown.Item eventKey={'-1'}>
-                {translate("New sublocation")}
+                <span>
+                    {translate("New sublocation")}
+                </span>
             </Dropdown.Item>
-        </>
+        </div>
     )
 }
 
@@ -548,19 +564,21 @@ Note to self, on selecting datetime pickers:
 const submitOrSpinning = (submitting: boolean, translate: any) => {
     if (!submitting) {
         return (
-            <>
-                {translate("Submit new measurement")}
-            </>
+            <div>
+                <span>
+                    {translate("Submit new measurement")}
+                </span>
+            </div>
         )
     }
     return (
-        <>
+        <div>
             <Spinner animation="border" role="status">
                   <span className="visually-hidden">
                       {translate('submitting-measurement')}
                   </span>
             </Spinner>
-        </>
+        </div>
     )
 }
 
@@ -670,9 +688,11 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
     }
     if (username === '') {
         return (
-            <Suspense fallback="loading translations...">
-                <NotLoggedIn showCreateNewMeasurement={props.showCreateNewMeasurement} setShowCreateNewMeasurement={props.setShowCreateNewMeasurement} />
-            </Suspense>
+            <div>
+                <Suspense fallback="loading translations...">
+                    <NotLoggedIn showCreateNewMeasurement={props.showCreateNewMeasurement} setShowCreateNewMeasurement={props.setShowCreateNewMeasurement} />
+                </Suspense>
+            </div>
         );
     }
     // debugger;
@@ -681,13 +701,15 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
     }
     const selected = findSelected(placesInfoFromDatabase.measurements_by_sublocation, selectedSubLocation);
     return (
-        <>
+        <div>
             <Modal show={props.showCreateNewMeasurement} onHide={() => hideHandler(props.setShowCreateNewMeasurement)}>
                 <Suspense fallback="Loading translations...">
                     <ModalHeader placeName={placeName}/>
                 </Suspense>
                 <Modal.Body>
-                    {renderErrors(errorState)}
+                    <span>
+                        {renderErrors(errorState)}
+                    </span>
                     <Suspense fallback="Loading translations...">
                         <SelectDeviceDropdown userDevices={userDevices} selectedDevice={selectedDevice} selectedModelName={selectedModelName} selectedDeviceSerialNumber={selectedDeviceSerialNumber}/>
                     </Suspense>
@@ -697,7 +719,9 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" /*TODO: maybe disable here too?*/ onClick={(event) => hideHandler(props.setShowCreateNewMeasurement)}>
-                        {translate('Cancel')}
+                        <span>
+                            {translate('Cancel')}
+                        </span>
                     </Button>
                     <Button variant="primary" disabled={!showSubmit} onClick={(event) => {
                             // setShowSubmit(!showSubmit);
@@ -709,6 +733,6 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
 
             </Modal>
 
-        </>
+        </div>
     )
 }

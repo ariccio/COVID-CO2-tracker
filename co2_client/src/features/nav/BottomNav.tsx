@@ -15,13 +15,15 @@ import { moreInfoPath } from '../../paths/paths';
 export const BottomNav: React.FC<{}> = () => {
     const aboutText = "This app provides a way for people to upload CO2 measurements tied to places where they were taken, and for users to view the measurements taken by others. CO2 is a fairly good proxy for indoor air quality, and indor COVID risk. By measuring CO2 indoors, we can estimate how much indoor air has already been exhaled by others, and thus, guess how much of it may contain COVID aerosols.";
     return (
-        <>
+        <div>
             <br/>
             <br/>
             <br/>
                 <Card className="container-fluid justify-content-start mr-auto" style={{width: '30rem', display: "flex", flexDirection: "column"}}>
                     <Card.Title>
-                        About:
+                        <span>
+                            About:
+                        </span>
                     </Card.Title>
                     <Card.Text style={{fontStyle: 'italic'}}>
                         <LinkContainer to={moreInfoPath}>
@@ -46,6 +48,6 @@ export const BottomNav: React.FC<{}> = () => {
                     <Nav.Link href="./terms_of_use.txt"><b><u><i>Terms of Use</i></u></b></Nav.Link>
                 </Nav>
             </Navbar>
-        </>
+        </div>
     );
 }

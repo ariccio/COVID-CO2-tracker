@@ -74,32 +74,38 @@ export const ManufacturerDeviceModelsTable = (props: {models: Array<Manufacturer
             return null;
         }
         return (
-            <h3>
-                No models in database
-            </h3>
-        )
+            <div>
+                <h3>
+                    No models in database
+                </h3>
+            </div>
+        );
     }
     if (selectedModel === -1) {
         if (props.models === undefined) {
             throw new Error(`props.models is undefined! This is a bug in DeviceModelsTable.tsx. selectedManufacturer: ${props.selectedManufacturer}, selectedModel: ${selectedModel}, selectedModelName: ${selectedModelName}`);
         }
         return (
-            <>  
+            <div>  
                 {renderTable(props.models, dispatch)}
-            </>
+            </div>
         );
     }
     return (
-        <>
+        <div>
             <div>
-                {translate('Selected a model!')} ({selectedModelName})
+                <span>
+                    {translate('Selected a model!')} ({selectedModelName})
+                </span>
                 <br/>
                 <Button variant="secondary" onClick={() => {dispatch(setSelectedModel(-1)); dispatch(setSelectedModelName(''))}}>
-                    {translate('Unselect')} {selectedModelName}
+                    <span>
+                        {translate('Unselect')} {selectedModelName}
+                    </span>
                 </Button>
             </div>
 
-        </>
+        </div>
     );
 }
 

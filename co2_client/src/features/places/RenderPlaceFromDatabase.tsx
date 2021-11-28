@@ -14,20 +14,20 @@ export const RenderFromDatabaseNoGoogleParam = (props: {selectedPlaceInfoFromDat
 
     if (props.selectedPlaceInfoErrors !== '') {
         return (
-            <>
+            <div>
                 <div>
                     {translate('failed-fetch-measurement-database')} {props.selectedPlaceInfoErrors}
                 </div>
-            </>
+            </div>
         )
     }
     if (props.selectedPlaceInfoFromDatabase === defaultPlaceInfo) {
         // console.assert(selectedPlaceInfoFromDatabase.measurements === null);
         if (props.selectedPlaceExistsInDatabase === null) {
             return (
-                <>
+                <div>
                     {translate('querying-database-check-know')}
-                </>
+                </div>
             )
         }
         if (props.selectedPlaceExistsInDatabase === false) {
@@ -38,11 +38,11 @@ export const RenderFromDatabaseNoGoogleParam = (props: {selectedPlaceInfoFromDat
             )    
         }
         return (
-            <>
+            <div>
                 <br/>
                 Loading place info from database...
                 <br/>
-            </>
+            </div>
         );
     }
     console.assert(props.selectedPlaceExistsInDatabase !== null);
@@ -54,9 +54,9 @@ export const RenderFromDatabaseNoGoogleParam = (props: {selectedPlaceInfoFromDat
         debugger;
         if ((props.selectedPlaceInfoFromDatabase as any).error !== undefined) {
             return (
-                <>
+                <div>
                     Error: {(props.selectedPlaceInfoFromDatabase as any).error}
-                </>
+                </div>
             )
         }
         return null;
@@ -72,12 +72,12 @@ export const RenderFromDatabaseNoGoogleParam = (props: {selectedPlaceInfoFromDat
     }
     // debugger;
     return (
-        <>
+        <div>
             <Suspense fallback="loading translations...">
                 <MeasurementsByDropdown selectedPlaceInfoFromDatabase={props.selectedPlaceInfoFromDatabase}/>
             </Suspense>
             
-        </>
+        </div>
     )
 
 }

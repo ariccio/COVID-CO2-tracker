@@ -31,24 +31,24 @@ const DeviceIDOrSerial = (props: {measurementInfo: ShowMeasurementResponse, devi
     const id = props.measurementInfo.data.data.relationships.device.data.id;
     if (props.deviceSerialsErrorState !== '') {
         return (
-            <>
+            <div>
                 Error getting serial # for device # <Link to={`${devicesPath}/${id}`}>{id}</Link>
                 Error details: {props.deviceSerialsErrorState}
-            </>
+            </div>
         );
     }
     if (props.deviceSerials.length > 0) {
         // debugger;
         return (
-            <>
+            <div>
                 {translate("measurement-by-device")} <Link to={`${devicesPath}/${id}`}>{id}</Link>, {translate("Serial #")} {props.deviceSerials[0].attributes.serial}
-            </>
+            </div>
         )
     }
     return (
-        <>
+        <div>
             {translate("measurement-by-device")} <Link to={`${devicesPath}/${id}`}>{id}</Link>, loading {translate("Serial #")}...
-        </>
+        </div>
     )
 }
 
@@ -63,31 +63,31 @@ const renderPlaceDetails = (measurementInfo: ShowMeasurementResponse, elementRef
     if (mapsAPIKey === '') {
         if (mapsAPIKeyErrorState !== '') {
             return (
-                <>
+                <div>
                     Error loading google maps/places API key. Error details: {mapsAPIKeyErrorState}
                     (Can't show place details)
-                </>
+                </div>
             )
         }
         return (
-            <>
+            <div>
                 Google maps/places API key not loaded at this point in program. Sorry! TODO: just load it. Duh. (It probably should be loaded here)
-            </>
+            </div>
         )
     }
     if (elementRef === null) {
         return (
-            <>
+            <div>
                 elementRef is null. Cannot render place details! (google requires a div element to maybe render a map, for whatever reason)
-            </>
+            </div>
         )
     }
     return (
-        <>
+        <div>
             Will have PROPER place data here when I fix the damn bug.
             In mean time, here's a link to it: <Link to={`${placesPath}/${measurementInfo.place_id}`}>{measurementInfo.place_id}</Link>
             {/* <PlaceDetails mapsAPIKey={mapsAPIKey} placeId={measurementInfo.place_id} divRef={elementRef}/> */}
-        </>
+        </div>
     )
 }
 
@@ -97,23 +97,23 @@ const RenderModalBody = (props: {errors: string, measurementInfo: ShowMeasuremen
     const displayRebreathed = rebreathedToString(percent);
     if (props.errors !== '') {
         return (
-            <>
+            <div>
                 Error while loading measurement info. Details: {props.errors}
-            </>
+            </div>
         )
     }
 
     if (props.measurementInfo === defaultShowMeasurementResponse) {
         return (
-            <>
+            <div>
                 Loading info for measurement...
-            </>
+            </div>
         )
     }
     // debugger;
     // console.log("hello");
     return (
-        <>
+        <div>
             <Modal.Body>
                 {translate("Measurement taken by")}: {props.measurementInfo.taken_by}
                 <br/>
@@ -148,7 +148,7 @@ const RenderModalBody = (props: {errors: string, measurementInfo: ShowMeasuremen
                 {renderPlaceDetails(props.measurementInfo, props.elementRef, props.mapsAPIKey, props.mapsAPIKeyErrorState)}
             </Modal.Body>
 
-        </>
+        </div>
     )
 }
 
@@ -220,7 +220,7 @@ export const ShowMeasurementModal: React.FC<ShowMeasurementModalProps> = (props:
     //     );
     // }
     return (
-        <>
+        <div>
             <Modal show={props.showMeasurementModal} onHide={() => {props.setShowMeasurementModal(false);} }>
                 <ModalHeader measurementID={props.selectedMeasurement}/>
                 <DivElem elementRef={elementRef}/>
@@ -229,6 +229,6 @@ export const ShowMeasurementModal: React.FC<ShowMeasurementModalProps> = (props:
                 </Suspense>
             </Modal>
 
-        </>
+        </div>
     )
 }

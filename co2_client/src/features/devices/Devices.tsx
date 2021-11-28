@@ -30,16 +30,16 @@ const maybeRenderMeasurements = (deviceInfo: DeviceInfoResponse) => {
     if (deviceInfo.measurements.data === undefined) {
         console.log("measurements array is null, this is a bug, and this is an ugly hack to work around it. (Devices.tsx)");
         return (
-            <>
+            <div>
                 <br/>
                 <span>No measurements for device #{deviceInfo.device_id}.</span>
-            </>
+            </div>
         )
     }
     return (
-        <>
+        <div>
             <MeasurementsTable measurements={deviceInfo.measurements.data}/>
-        </>
+        </div>
     )
 }
 
@@ -87,32 +87,34 @@ export function Device() {
     console.table(deviceInfo);
     if (errorState !== '') {
         return (
-            <>
+            <div>
                 <p>
                     Error loading device info for device {deviceId}!
                     Error: {errorState}
                 </p>
-            </>
+            </div>
         );
     }
     console.warn("TODO: change to render more than first two measurements :)")
     return (
-        <>
+        <div>
             Model: "<Link to={deviceModelsPath + `/${deviceInfo.device_model_id}`}>{deviceInfo.device_model}</Link>" - serial #: "{deviceInfo.serial}" first ten measurements:
             {maybeRenderMeasurements(deviceInfo)}
             
-        </>
+        </div>
     );
 }
 
 
 const renderAddDeviceButton = (createDeviceClicked: boolean, setCreateClicked: React.Dispatch<React.SetStateAction<boolean>>, setShowAddDeviceInstance: React.Dispatch<React.SetStateAction<boolean>>, selectedModelName: string) => {
     return (
-        <>
+        <div>
             <Button variant={"primary"} onClick={() => {setCreateClicked(!createDeviceClicked); setShowAddDeviceInstance(true)}}>
-                Add my {selectedModelName}:
+                <span>
+                    Add my {selectedModelName}:
+                </span>
             </Button>
-        </>
+        </div>
     )
 }
 
@@ -120,7 +122,7 @@ const ShowAddDevice = (props: {showAddDeviceInstance: boolean, setShowAddDeviceI
     const [translate] = useTranslation();
     if (props.showAddDeviceInstance) {
         return (
-            <>
+            <div>
                 <p>
                     {translate('Selected device:')}
                 </p>
@@ -128,7 +130,7 @@ const ShowAddDevice = (props: {showAddDeviceInstance: boolean, setShowAddDeviceI
                 <Suspense fallback="loading translations...">
                     <CreateMyDeviceInstance showAddDeviceInstance={props.showAddDeviceInstance} setShowAddDeviceInstance={props.setShowAddDeviceInstance}/>
                 </Suspense>
-            </>
+            </div>
         )
     }
     return null;
@@ -149,23 +151,23 @@ const UnselectModelButton = (props: {selectedModelName: string}) => {
 const selectModelOrUnselectModel = (selectedModelName: string, dispatch: ReturnType<typeof useDispatch>) => {
     if (selectedModelName === '') {
         return (
-            <>
+            <div>
                 <CreateManufacturerOrModel/>
                 <br/>
                 <br/>
                 <br/>
                 <br/>
-            </>
+            </div>
         );
     }
     return (
-        <>
+        <div>
             <Suspense fallback="Loading translations...">
                 <UnselectModelButton selectedModelName={selectedModelName}/>
             </Suspense>
             <br/>
             <br/>
-        </>
+        </div>
     )
 }
 
@@ -197,21 +199,23 @@ const DevicesContainer: React.FC<{}> = () => {
                 Sentry.captureMessage(errorState);
             }
             return (
-                <>
+                <div>
                     {translate('not-logged-in-or-error')}
                     {errorState}
-                </>
+                </div>
             );
         }
          return (
-            <h3>
-                Loading user info...
-            </h3>
+            <div>
+                <h3>
+                    Loading user info...
+                </h3>
+            </div>
         );
     }
 
     return (
-        <>
+        <div>
             <h3>
                 {translate('add-devices-view-stats')}
             </h3>
@@ -229,17 +233,21 @@ const DevicesContainer: React.FC<{}> = () => {
             
 
             <p>
-                TODO: show device instances table.
+                <span>
+                    TODO: show device instances table.
+                </span>
 
-                {/* Will need to refactor DevicesTable into something like UserDevicesTable (because it doesn't use a serializer) */}
-                popular devices: (NOT IMPLEMENTED YET, will show all kinds of stats)
+                <span>
+                    {/* Will need to refactor DevicesTable into something like UserDevicesTable (because it doesn't use a serializer) */}
+                    popular devices: (NOT IMPLEMENTED YET, will show all kinds of stats)
+                </span>
             </p>
 
             <p>
                 {errorState !== '' ? `Errors: ${errorState}` : null}
             </p>
 
-        </>
+        </div>
     )
 }
 

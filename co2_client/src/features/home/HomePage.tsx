@@ -28,17 +28,19 @@ import { AppStatsContainer } from '../stats/Stats';
 const renderMapsWhenLoaded = (mapsAPIKey: string) => {
     if (mapsAPIKey !== '') {
         return (
-            <>
+            <div>
                 <Suspense fallback="google maps container loading translations...">
                     <GoogleMapsContainer api_key={mapsAPIKey}/>
                 </Suspense>
-            </>
+            </div>
         )
     }
     return (
-        <>
-            Loading google maps API key...
-        </>
+        <div>
+            <span>
+                Loading google maps API key...
+            </span>
+        </div>
     );
 }
 
@@ -63,20 +65,20 @@ const renderInfoFromDatabase = (selectedPlaceInfoFromDatabase: SelectedPlaceData
             console.warn(`"selectedPlaceInfoFromDatabase.measurements_by_sublocation" === undefined. No measurements to fetch. Rest of object: ${JSON.stringify(selectedPlaceInfoFromDatabase)}`);
         }
     return (
-        <>
+        <div>
             <Suspense fallback="loading translations...">
                 <RenderFromDatabaseNoGoogleParam selectedPlaceInfoFromDatabase={selectedPlaceInfoFromDatabase} selectedPlaceInfoErrors={selectedPlaceInfoErrors} selectedPlaceExistsInDatabase={selectedPlaceExistsInDatabase} />
             </Suspense>
-        </>
+        </div>
     )
 }
 
 const maybeWarningString = (localitySelectedWarningString: string) => {
     if (localitySelectedWarningString === '') {
-        return (<></>);
+        return (<div></div>);
     }
     return (
-        <>
+        <div>
             <br/>
             <br/>
             <b>
@@ -90,14 +92,14 @@ const maybeWarningString = (localitySelectedWarningString: string) => {
             <br/>
             <br/>
             <br/>
-        </>
+        </div>
     );
 }
 
 const renderPlace = (currentPlace: google.maps.places.PlaceResult, location: ReturnType<typeof useLocation>, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, showCreateNewMeasurement: boolean, selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo, selectedPlaceInfoErrors: string, placesServiceStatus: google.maps.places.PlacesServiceStatus | null, selectedPlaceExistsInDatabase: boolean | null, localitySelectedWarningString: string) => {
     // debugger;
     return (
-        <>
+        <div>
             <RenderSelectedPlaceInfo currentPlace={currentPlace} placesServiceStatus={placesServiceStatus}/>
             {maybeWarningString(localitySelectedWarningString)}
             <Suspense fallback="loading translation">
@@ -107,27 +109,31 @@ const renderPlace = (currentPlace: google.maps.places.PlaceResult, location: Ret
             <br/>
             {renderInfoFromDatabase(selectedPlaceInfoFromDatabase, selectedPlaceInfoErrors, currentPlace, selectedPlaceExistsInDatabase)}
             <br/>
-        </>
+        </div>
     );
 }
 
 function renderError(mapsAPIKeyErrorState: string) {
     return (
-        <>
-            Error loading maps API key!
+        <div>
+            <span>
+                Error loading maps API key!
+            </span>
             <br />
-            {mapsAPIKeyErrorState}
-        </>
+            <span>
+                {mapsAPIKeyErrorState}
+            </span>
+        </div>
     );
 }
 
 function renderWelcomeLoading() {
     return (
-        <>
+        <div>
             <h3>Welcome to the COVID CO2 Tracker!</h3>
             <br />
             Loading maps API key...
-        </>
+        </div>
     );
 }
 
@@ -188,7 +194,7 @@ const HomePage: FunctionComponent<{}> = (props: any) => {
     }
 
     return (
-        <>
+        <div>
             <h3>{translate('welcome-header')}</h3>
             <br/>
             <Button href={YOUTUBE_VIDEO_INSTRUCTIONS_URL}>{translate('Instruction video')}</Button>
@@ -222,17 +228,17 @@ const HomePage: FunctionComponent<{}> = (props: any) => {
                 </Row>
 
             </Container>
-        </>
+        </div>
     )
 }
 
 export const HomePageContainer = () => {
     return (
-        <>
+        <div>
             <Suspense fallback="home page translations loading...">
                 <HomePage/>
             </Suspense>
-        </>
+        </div>
     )
 
 }

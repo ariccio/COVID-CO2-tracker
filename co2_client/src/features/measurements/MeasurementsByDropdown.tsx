@@ -23,9 +23,9 @@ interface MeasurementsByDropdownProps {
 const maybeDescription = (location: SublocationMeasurements, withDescription: boolean) => {
     if (withDescription) {
         return (
-            <>
+            <div>
                 Inner location description: {location.description}
-            </>
+            </div>
         );
     }
     return null;
@@ -40,10 +40,10 @@ const singleLocation = (location: SublocationMeasurements, withDescription: bool
     if (location.measurements.data === undefined) {
         console.log("measurements array is null, this is a bug, and this is an ugly hack to work around it. (MeasurementsByDropdown.tsx)");
         return (
-            <>
+            <div>
                 <br/>
                 <span>No measurements for this sublocation ({location.sub_location_id}, {location.description}).</span>
-            </>
+            </div>
         )
     }
     return (
@@ -87,9 +87,9 @@ const measurements = (sublocations: Array<SublocationMeasurements>, selected: nu
         console.error("missing sublocation!");
         debugger;
         return (
-            <>
+            <div>
                 Selected value not in sublocation array. This is a bug.
-            </>
+            </div>
         );
     }
     return singleLocation(foundSelected, false, deviceSerials);
@@ -97,11 +97,11 @@ const measurements = (sublocations: Array<SublocationMeasurements>, selected: nu
 
 const nothingSelectedItem = () => {
     return (
-        <>
+        <div>
             <Dropdown.Item eventKey={'-1'}>
                 All
             </Dropdown.Item>
-        </>
+        </div>
     )
 }
 
@@ -155,18 +155,22 @@ export const MeasurementsByDropdown: React.FC<MeasurementsByDropdownProps> = (pr
         // debugger;
         console.log('unlikely to hit this path.')
         return (
-            <>
-                {translate('no-place-selected-no-measurements')}
-            </>
+            <div>
+                <span>
+                    {translate('no-place-selected-no-measurements')}
+                </span>
+            </div>
         );
     }
 
     if (deviceSerialsErrorState !== '') {
         console.log("some kind of error while loading device serial numbers...");
         return (
-            <>
-                {translate('error-loading-device-serials')} {deviceSerialsErrorState}
-            </>
+            <div>
+                <span>
+                    {translate('error-loading-device-serials')} {deviceSerialsErrorState}
+                </span>
+            </div>
         )
     }
     // Quiet the log on first load.
@@ -178,10 +182,10 @@ export const MeasurementsByDropdown: React.FC<MeasurementsByDropdownProps> = (pr
     // debugger;
     const selected = findSelected(props.selectedPlaceInfoFromDatabase.measurements_by_sublocation, selectedSubLocation);
     return (
-        <>
+        <div>
             <SublocationsDropdown selected={selected} measurements_by_sublocation={props.selectedPlaceInfoFromDatabase.measurements_by_sublocation} nothingSelectedText={"All measurements:"} nothingSelectedItem={nothingSelectedItem()}/>
             {measurements(props.selectedPlaceInfoFromDatabase.measurements_by_sublocation, selectedSubLocation, deviceSerials)}
             {/* <MeasurementsTable measurements={props.selectedPlaceInfoFromDatabase}/> */}
-        </>
+        </div>
     );
 }

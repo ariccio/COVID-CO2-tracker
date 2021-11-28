@@ -251,7 +251,11 @@ const ModalHeader = () => {
     const [translate] = useTranslation();
     return (
         <Modal.Header closeButton>
-            <Modal.Title>{translate('add-manufacturer')}</Modal.Title>
+            <Modal.Title>
+                <span>
+                    {translate('add-manufacturer')}
+                </span>
+            </Modal.Title>
         </Modal.Header>
     );
 }
@@ -260,19 +264,21 @@ const ModalHeader = () => {
 const submitOrSpinning = (submitting: boolean, translate: any) => {
     if (!submitting) {
         return (
-            <>
-                {translate('Submit new manufacturer')}
-            </>
+            <div>
+                <span>
+                    {translate('Submit new manufacturer')}
+                </span>
+            </div>
         )
     }
     return (
-        <>
+        <div>
             <Spinner animation="border" role="status">
                   <span className="visually-hidden">
                       {translate("creating-manufacturer")}
                   </span>
             </Spinner>
-        </>
+        </div>
     )
 }
 

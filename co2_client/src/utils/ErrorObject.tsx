@@ -46,7 +46,7 @@ function errorObjectMessageStringIfPresent(errorObject: ErrorObjectType): string
 }
 
 export function formatErrors(errorObject: Errors): string {
-    console.log("errors: ", errorObject);
+    console.log("errors: ", JSON.stringify(errorObject));
     if (errorObject === undefined) {
         throw new Error('errorObject itself is undefined. What the hell? This is almost certainly a bug.');
     }

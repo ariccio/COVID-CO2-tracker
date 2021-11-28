@@ -58,41 +58,41 @@ export const Place: React.FC<{}> = () => {
 
     if (placeId === undefined) {
         return (
-            <>
+            <div>
                 <DivElem elementRef={elementRef}/>
                 No place selected.
-            </>
+            </div>
         )
     }
 
     if (placeId === '') {
         return (
-            <>
+            <div>
                 <DivElem elementRef={elementRef}/>
                 placeId empty.
-            </>
+            </div>
         )
     }
 
     if (mapsAPIKeyErrorState !== '') {
         return (
-            <>
+            <div>
                 Error loading maps API key: {mapsAPIKeyErrorState}
                 <DivElem elementRef={elementRef}/>
-            </>
+            </div>
         );
     }
     if (mapsAPIKey === '') {
         return (
-            <>
+            <div>
                 Loading maps API key...
                 <DivElem elementRef={elementRef}/>
-            </>
+            </div>
         );
     }
 
     return (
-        <>
+        <div>
             Place {placeId}
             <Suspense fallback="loading translations...">
                 <DivElem elementRef={elementRef}/>
@@ -101,6 +101,6 @@ export const Place: React.FC<{}> = () => {
             </Suspense>
             <br/>
             There will be graphs and risk analysis here, eventually.
-        </>
+        </div>
     )
 }

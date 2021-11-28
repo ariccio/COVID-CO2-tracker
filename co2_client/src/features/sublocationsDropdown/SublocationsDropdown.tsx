@@ -49,7 +49,7 @@ export const SublocationsDropdown: React.FC<SubLocationsDropdownProps> = (props:
 
     // debugger;
     return (
-        <>
+        <div>
             <Dropdown onSelect={(eventKey: string | null, event: React.SyntheticEvent<unknown>) => {selectSubLocationDropdownHandler(eventKey, event, dispatch)}}>
                 <Dropdown.Toggle variant="success" id="dropdown-basic">
                     { props.selected ? props.selected.description : props.nothingSelectedText} 
@@ -61,6 +61,6 @@ export const SublocationsDropdown: React.FC<SubLocationsDropdownProps> = (props:
                 </Dropdown.Menu>
 
             </Dropdown>
-        </>
+        </div>
     )
 }

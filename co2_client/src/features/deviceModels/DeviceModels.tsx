@@ -86,13 +86,13 @@ const BasicDeviceModelInfo = (props: {deviceModelInfo: QueryDeviceModelInfoRespo
     if (props.deviceModelInfo !== defaultQueryDeviceModelInfoResponse) {
         // debugger;
         return (
-            <>
+            <span>
                 <br/>
                 {translate('model name:')} {props.deviceModelInfo.name}, <br/> 
                 {translate('made by:')} {props.deviceModelInfo.manufacturer_name}, <br/>
                 {translate("total-models-in-database")} {props.deviceModelInfo.count}, <br/>
                 {translate("total-modelmeasurement")} {props.deviceModelInfo.measurement_count} <br/>
-            </>
+            </span>
         );
     }
     return (
@@ -110,19 +110,21 @@ const BasicDeviceModelInfo = (props: {deviceModelInfo: QueryDeviceModelInfoRespo
 const measurements = (modelMeasurements: ModelMeasurementsResponse | null) => {
     if (modelMeasurements === null) {
         return (
-            <>
-                Loading measurements...
-            </>
+            <div>
+                <span>
+                    Loading measurements...
+                </span>
+            </div>
         )
     }
     // debugger;
     if (modelMeasurements.measurements.data === undefined) {
         console.log("measurements array is null, this is a bug, and this is an ugly hack to work around it. (DeviceModels.tsx)");
         return (
-            <>
+            <div>
                 <br/>
                 <span>No measurements for this model.</span>
-            </>
+            </div>
         )
     }
     return (
@@ -183,29 +185,33 @@ export const DeviceModels: React.FC<{}> = () => {
     }, [deviceModelInfo])
     if (deviceModelId === undefined) {
         return (
-            <>
-                No model selected. <br/>
-                
-            </>
+            <div>
+                <span>
+                    No model selected. <br/>
+                    
+                </span>
+            </div>
         );     
     }
 
     if (errorState !== '') {
         return (
-            <>
-                <br/>
-                Error: {errorState}
-                <br/>
-                <br/>
-            </>
+            <div>
+                <span>
+                    <br/>
+                    Error: {errorState}
+                    <br/>
+                    <br/>
+                </span>
+            </div>
         );    
     }
     return (
-        <>
+        <div>
             {/* <Route path={`${deviceModelsPath}/:deviceModelId`}> */}
 
             {/* </Route> */}
-            <>
+            <div>
                 You selected device model: {deviceModelId}
                 <Suspense fallback="Loading translation...">
                     <BasicDeviceModelInfo deviceModelInfo={deviceModelInfo} />
@@ -214,7 +220,7 @@ export const DeviceModels: React.FC<{}> = () => {
                     {showAddModel ? <CreateDeviceModelModalDialog showAddModel={showAddModel} setShowAddModel={setShowAddModel}/> : null}
                 </Suspense>
                 {measurements(modelMeasurements)}
-            </>
-        </>
+            </div>
+        </div>
     )
 }

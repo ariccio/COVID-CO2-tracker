@@ -27,10 +27,10 @@ import { BottomNav } from './features/nav/BottomNav';
 const NotFound = () => {
   const params = useParams();
   return (
-    <>
+    <div>
       <h1>404 route/URL <i>'/{params['*']}'</i> not found.</h1>
       <Link to={'/'} className="btn btn-primary">Back to home</Link>
-    </>
+    </div>
   );
 }
 
@@ -61,7 +61,7 @@ function TopLevelErrorFallback(errorData: {
 }) {
 
   return (
-    <>
+    <div>
       <h1>
         Covid CO2 tracker crashed!
       </h1>
@@ -84,7 +84,7 @@ function TopLevelErrorFallback(errorData: {
         Try reloading the page in the mean time.
         If you've encountered this error multiple times, please consider providing details.
       </p>
-    </>
+    </div>
   );
 }
 
@@ -100,7 +100,7 @@ export function App(): JSX.Element {
   //TODO: https://docs.sentry.io/platforms/javascript/guides/react/enriching-events/user-feedback/
   //https://docs.sentry.io/platforms/javascript/guides/react/components/errorboundary/
   return (
-    <>
+    <div>
       <div className="App">
         <Sentry.ErrorBoundary fallback={TopLevelErrorFallback} showDialog dialogOptions={dialogOptionsForSentry}>
 
@@ -112,7 +112,7 @@ export function App(): JSX.Element {
           <BottomNav/>
         </Sentry.ErrorBoundary>
       </div>
-    </>
+    </div>
   );
 }
 

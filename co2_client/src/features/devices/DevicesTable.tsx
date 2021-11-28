@@ -104,7 +104,7 @@ export const DevicesTable: React.FC<DevicesTableProps> = (props: DevicesTablePro
         throw new Error("props.devices is undefined! This is a bug in DevicesTable.tsx.")
     }
     return (
-        <>
+        <div>
             <Table striped bordered hover>
                 <Suspense fallback="Loading translations...">
                     <DeviceTableHeader/>
@@ -112,6 +112,6 @@ export const DevicesTable: React.FC<DevicesTableProps> = (props: DevicesTablePro
                 {deviceTableBody(props.devices, dispatch)}
             </Table>
 
-        </>
+        </div>
     )
 }

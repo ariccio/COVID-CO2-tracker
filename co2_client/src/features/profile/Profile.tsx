@@ -35,17 +35,17 @@ const maybeRenderMeasurements = (userInfo: UserInfoType) => {
     if (userInfo.user_info.measurements.data === undefined) {
         console.log("measurements array is null, this is a bug, and this is an ugly hack to work around it. (Profile.tsx)");
         return (
-            <>
+            <div>
                 <br/>
                 <span>No measurements by this user. Yet.</span>
-            </>
+            </div>
         )
     }
 
     return (
-        <>
+        <div>
             <MeasurementsTable measurements={userInfo.user_info.measurements.data} withDelete withDevice/>
-        </>
+        </div>
     )
 }
 
@@ -67,18 +67,20 @@ export const Profile: React.FC<ProfileProps> = () => {
     if (userInfo === defaultUserInfo) {
         if (errorState === '') {
             return (
-                <h1>
-                    Loading profile information...
-                </h1>
+                <div>
+                    <h1>
+                        Loading profile information...
+                    </h1>
+                </div>
             );
         }
         return (
-            <>
+            <div>
                 <p>
                     Not logged in!
                     {errorState}
                 </p>
-            </>
+            </div>
             
         )
     }
@@ -94,7 +96,7 @@ export const Profile: React.FC<ProfileProps> = () => {
     }
     //TODO: show device serial in measurements table here?
     return (
-        <>
+        <div>
             <h1>
                 {username}'s profile'
                 
@@ -104,6 +106,6 @@ export const Profile: React.FC<ProfileProps> = () => {
             Measurements:
             {maybeRenderMeasurements(userInfo)}
             {errorState}
-        </>
+        </div>
     )
 }

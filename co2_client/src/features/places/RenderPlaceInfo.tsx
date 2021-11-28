@@ -8,12 +8,12 @@ import { defaultGooglePlacesState } from '../google/googleSlice';
 
 const renderPlacesServiceStatus = (placesServiceStatus: google.maps.places.PlacesServiceStatus) => {
     return (
-        <>
-            <>
+        <div>
+            <span>
                 Google Places service status: {placesServiceStatus}
                 <br/>
-            </>
-        </>
+            </span>
+        </div>
     );
 }
 
@@ -21,27 +21,27 @@ const renderPlacesServiceStatus = (placesServiceStatus: google.maps.places.Place
 const renderPlacesServiceStatusWithHighlight = (placesServiceStatus: google.maps.places.PlacesServiceStatus) => {
     if (placesServiceStatus !== google.maps.places.PlacesServiceStatus.OK) {
         return (
-            <>
+            <div>
                 <b><i><u>
                     {renderPlacesServiceStatus(placesServiceStatus)}
                 </u></i></b>
-            </>
+            </div>
         )
     }
     return (
-        <>
+        <div>
             {renderPlacesServiceStatus(placesServiceStatus)}
-        </>
+        </div>
     )
 }
 
 const renderName = (name?: string) => {
     if (name === undefined) {
         return (
-            <>
+            <div>
                 Missing place name!
                 <br/>
-            </>
+            </div>
         );
     };
     //this is duplicate
@@ -57,61 +57,61 @@ const renderName = (name?: string) => {
 const renderFormattedAddress = (formatted_address?: string) => {
     if (formatted_address === undefined) {
         return (
-            <>
+            <div>
                 Formatted address missing!
                 <br/>
-            </>
+            </div>
         );
     }
     return (
-        <>
+        <div>
             address: <i>{formatted_address}</i>
             <br/>
-        </>
+        </div>
     );
 }
 
 const renderTypes = (types?: Array<string>) => {
     if (types === undefined) {
         return (
-            <>
+            <div>
                 Missing types!
                 <br/>
-            </>
+            </div>
         );
     }
     return (
-        <>
+        <div>
             types: <i>{types.join(', ')}</i>
             <br/>
-        </>
+        </div>
     );
 }
 
 const renderLinkWithName = (url?: string, name?: string) => {
     if (url === undefined) {
         return (
-            <>
+            <div>
                 Missing url!
                 <br/>
-            </>
+            </div>
         );
     }
     if (name === undefined) {
         return (
-            <>
+            <div>
                 Missing name!
                 <br/>
-            </>
+            </div>
         );
     }
     return (
-        <>
+        <div>
             <a href={url}>
                 <b>{name} in Google Maps</b>
             </a>
             <br/>
-        </>
+        </div>
     );
 }
 
@@ -119,22 +119,22 @@ const renderLinkWithName = (url?: string, name?: string) => {
 const renderLinkToPlacesWithName = (place_id?: string, name?: string) => {
     if (place_id === undefined) {
         return (
-            <>
+            <div>
                 Missing place_id!
                 <br/>
-            </>
+            </div>
         );
     }
     if (name === undefined) {
         return (
-            <>
+            <div>
                 Missing name!
                 <br/>
-            </>
+            </div>
         );
     }
     return (
-        <>
+        <div>
             {/* <a href={url}>
                 <b>{name}</b>
             </a> */}
@@ -142,7 +142,7 @@ const renderLinkToPlacesWithName = (place_id?: string, name?: string) => {
                 <b>See detailed info for {name}</b>
             </Link>
             <br/>
-        </>
+        </div>
     );
 }
 
@@ -150,17 +150,17 @@ const renderLinkToPlacesWithName = (place_id?: string, name?: string) => {
 const renderVicinity = (vicinity?: string) => {
     if (vicinity === undefined) {
         return (
-            <>
+            <div>
                 Missing vicinity!
                 <br/>
-            </>
+            </div>
         );
     }
     return (
-        <>
+        <div>
             currentPlace.vicinity <i>{vicinity}</i>
             <br/>
-        </>
+        </div>
     );
 }
 
@@ -175,9 +175,9 @@ export const RenderSelectedPlaceInfo = (props: {currentPlace: google.maps.places
     }
     if (props.placesServiceStatus === null) {
         return (
-            <>
+            <div>
                 Places service still loading response, null status...
-            </>
+            </div>
         )
     }
     // if (props.placesServiceStatus !== google.maps.places.PlacesServiceStatus.OK) {
@@ -188,7 +188,7 @@ export const RenderSelectedPlaceInfo = (props: {currentPlace: google.maps.places
     //     )
     // }
     return (
-        <>
+        <div>
             {renderPlacesServiceStatusWithHighlight(props.placesServiceStatus)}
             {renderLinkWithName(props.currentPlace.url, props.currentPlace.name)}
             {renderLinkToPlacesWithName(props.currentPlace.place_id, props.currentPlace.name)}
@@ -201,6 +201,6 @@ export const RenderSelectedPlaceInfo = (props: {currentPlace: google.maps.places
             {renderVicinity(props.currentPlace.vicinity)}
             {renderName(props.currentPlace.name)}
             <br/>
-        </>
+        </div>
     )
 }

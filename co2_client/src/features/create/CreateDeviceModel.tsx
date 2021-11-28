@@ -141,19 +141,21 @@ const submit = (event: React.MouseEvent<HTMLElement, MouseEvent>, enteredModelTe
 const submitOrSpinning = (submitting: boolean, translate: any) => {
     if (!submitting) {
         return (
-            <>
-                {translate('Create new model')}
-            </>
+            <div>
+                <span>
+                    {translate('Create new model')}
+                </span>
+            </div>
         )
     }
     return (
-        <>
+        <div>
             <Spinner animation="border" role="status">
                   <span className="visually-hidden">
                       {translate("creating-model")}
                   </span>
             </Spinner>
-        </>
+        </div>
     )
 }
 
@@ -187,7 +189,7 @@ export const CreateDeviceModelModalDialog: React.FC<modelDialogProps> = (props: 
         return null;
     }
     return (
-        <>
+        <div>
             <Modal show={props.showAddModel} onHide={() => hideHandler(props.setShowAddModel, navigate)}>
                 <Suspense fallback="loading translations...">
                     <ModalHeader/>
@@ -196,14 +198,18 @@ export const CreateDeviceModelModalDialog: React.FC<modelDialogProps> = (props: 
                     (Please reduce administrative burden, don't add nuisance models. TODO: styling this text)
                     <Form noValidate onChange={(event) => onChangeEvent(event, dispatch)} onSubmit={(event) => onSubmitEvent(event, enteredModelText, props.setShowAddModel, navigate, selectedManufacturer, dispatch, setShowSubmit, setSubmitting)}>
                         <Form.Label>
-                            {translate('Model name')}
+                            <span>
+                                {translate('Model name')}
+                            </span>
                         </Form.Label>
                         <Form.Control type="text" placeholder="some model name..."/>
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={(event) => cancelHandler(event, props.setShowAddModel, navigate)}>
-                        {translate('Cancel')}
+                        <span>
+                            {translate('Cancel')}
+                        </span>
                     </Button>
                     <Button variant="primary" disabled={!showSubmit} onClick={(event) => submit(event, enteredModelText, props.setShowAddModel, navigate, selectedManufacturer, dispatch, setShowSubmit, setSubmitting)}>
                         {submitOrSpinning(submitting, translate)}
@@ -211,6 +217,6 @@ export const CreateDeviceModelModalDialog: React.FC<modelDialogProps> = (props: 
                     </Button>
                 </Modal.Footer>
             </Modal>
-        </>
+        </div>
     );
 }

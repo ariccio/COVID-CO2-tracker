@@ -11,22 +11,22 @@ const AppStats = (props: {appStatsResponse: AppStatsResponse, errorState: string
 
     if (props.errorState !== '') {
         return (
-            <>
+            <div>
                 {translate('error-loading-app-stats')}: {props.errorState}
-            </>
+            </div>
         )
     }
 
     if (props.appStatsResponse === defaultAppStatsResponse) {
         return (
-            <>
+            <div>
                 Loading...
-            </>
+            </div>
         )
     }
 
     return (
-        <>
+        <div>
             {translate('total-users')}: {props.appStatsResponse.users}
             <br/>
             {translate('total-measurements')}: {props.appStatsResponse.measurements}
@@ -40,7 +40,7 @@ const AppStats = (props: {appStatsResponse: AppStatsResponse, errorState: string
             {translate('total-places')}: {props.appStatsResponse.places}
             <br/>
             {translate('total-sublocations')}: {props.appStatsResponse.sublocations}
-        </>
+        </div>
     )
 
 }
@@ -67,12 +67,12 @@ export const AppStatsContainer: FunctionComponent<{}> = (props: any) => {
     }, [])
 
     return (
-        <>
+        <div>
             <Suspense fallback="Loading translations...">
                 <AppStats appStatsResponse={appStatsResponse} errorState={errorState}/>
             </Suspense>
 
-        </>
+        </div>
     );
 }
 

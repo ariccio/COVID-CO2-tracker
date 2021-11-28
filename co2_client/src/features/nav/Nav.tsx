@@ -58,9 +58,9 @@ function loginOrSignupMaybe(username: string): JSX.Element {
   if (username === '') {
     // console.log("no username, rendering login/signup options")
     return (
-      <>
+      <div>
         <GoogleLoginLogoutContainer/>        
-      </>
+      </div>
     )
   }
   // console.log("logged in, rendering profile and logout");
@@ -198,10 +198,10 @@ export const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
     //   console.log(`Current username: ${username}`)
     // }
     return (
-     <>
+     <div>
       <Suspense fallback="navbar loading translations...">
         <UserNav username={username} googleProfile={googleProfile}/>
       </Suspense>
-     </> 
+     </div>
     );
 }

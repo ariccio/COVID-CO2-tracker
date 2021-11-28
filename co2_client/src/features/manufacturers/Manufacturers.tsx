@@ -60,7 +60,9 @@ function manufacturersToDropdown(manufacturers_: ManufacturersArray) {
     return manufacturers.map((manufacturer: EachManufacturer, index: number) => {
         return (
             <Dropdown.Item eventKey={`${manufacturer.id}`} key={dropdownItemRowKey(manufacturer)}>
-                {manufacturer.name}
+                <span>
+                    {manufacturer.name}
+                </span>
             </Dropdown.Item>
         )
     })
@@ -124,14 +126,18 @@ const RenderDropdown = (props: {manufacturerModels: SingleManufacturerInfoRespon
     return (
         <Dropdown onSelect={(eventKey: string | null, event: React.SyntheticEvent<unknown>) => {selectManufacturerHandler(eventKey, event, props.setShowAddManufacturer, dispatch)}}>
             <Dropdown.Toggle variant="success" id="dropdown-basic">
-                {props.manufacturerModels.name === '' ? "Select manufacturer:" : props.manufacturerModels.name} 
+                <span>
+                    {props.manufacturerModels.name === '' ? "Select manufacturer:" : props.manufacturerModels.name}
+                </span>
             </Dropdown.Toggle>
             <Dropdown.Menu>
                 {manufacturersToDropdown(props.knownManufacturers)}
                 <Dropdown.Item eventKey={"-1"}>
                     {/* TODO: this is not valid? Dropdown.item might be a link itself */}
                     {/* <Link to={{pathname: `/manufacturers/create`, state: {background: location}}}> */}
+                    <span>
                         {translate('Create new manufacturer')}
+                    </span>
                     {/* </Link> */}
                 </Dropdown.Item>
             </Dropdown.Menu>
@@ -175,9 +181,9 @@ const renderDropdownOrLoading = (knownManufacturers: ManufacturersArray, manufac
     }
     if (errors !== '') {
         return(
-            <>
+            <div>
                 {errors}
-            </>
+            </div>
         );
     } 
     return (
@@ -192,9 +198,9 @@ const renderDeviceModelsOrLoading = (selectedManufacturer: number | null, manufa
         }
         if (manufacturerModels === initSingleManufactuerInfo) {
             return (
-                <>
+                <div>
                     Loading known models from database...
-                </>
+                </div>
             )
         }
         return (
@@ -204,9 +210,9 @@ const renderDeviceModelsOrLoading = (selectedManufacturer: number | null, manufa
         );
     }
     return(
-        <>
+        <div>
             {errors}
-        </>
+        </div>
     );
 }
 
@@ -232,7 +238,7 @@ export const CreateManufacturerOrModel: React.FC<CreateManufacturerOrModelProps>
     }, [selectedManufacturer, selectedModel])
 
     return (
-        <>
+        <div>
             <Suspense fallback="loading translations...">
                 {(showAddManufacturer) ? <CreateManufacturerModalDialog showAddManufacturer={showAddManufacturer} setShowAddManufacturer={setShowAddManufacturer}/> : null}
             </Suspense>
@@ -244,6 +250,6 @@ export const CreateManufacturerOrModel: React.FC<CreateManufacturerOrModelProps>
             <Suspense fallback="loading translations...">
                 <NewModelForManufacturer manufacturerModels={manufacturerModels} selectedModel={selectedModel} />
             </Suspense>
-        </>
+        </div>
     )
 }
