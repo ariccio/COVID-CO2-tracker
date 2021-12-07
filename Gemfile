@@ -34,10 +34,11 @@ end
 group :development do
   # Use sqlite3 as the database for Active Record
   # gem 'sqlite3', '~> 1.4'
-  gem 'active_record_doctor', group: :development
+  gem 'active_record_doctor'
   gem 'rails-erd'
 
-  gem 'bullet', group: 'development'
+  gem 'bullet'
+  gem 'brakeman'
 end
 
 # group :production do

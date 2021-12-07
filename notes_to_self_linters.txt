@@ -5,5 +5,7 @@ rails_best_practices
 fasterer
 reek
 bullet
+active_record_doctor
+
 
 rubycritic?
