@@ -36,6 +36,7 @@ const NotFound = () => {
 
 
   //TODO: make this a switch router for 404 handling.
+  //TODO: fix nested routes? https://reactrouter.com/docs/en/v6/getting-started/overview#nested-routes
 const routes = () =>
   <Routes>
     <Route path={homePath} element={<HomePageContainer/>}/>

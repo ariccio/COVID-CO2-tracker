@@ -414,8 +414,10 @@ const onClickMaps = (e: google.maps.MapMouseEvent, setCenter: React.Dispatch<Rea
 }
 
 const containerStyle = {
-    width: '400px',
-    height: '400px'
+    // width: '400px',
+    // height: '400px'
+    width: '100%',
+    height: '75vh'
 };
 
 const options = (center: google.maps.LatLngLiteral): google.maps.MapOptions => {
