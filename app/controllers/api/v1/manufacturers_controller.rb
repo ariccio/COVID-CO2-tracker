@@ -63,7 +63,7 @@ module Api
       def all_manufacturers
         render(
           json: {
-            manufacturers: ::Manufacturer.all.as_json(only: [:name, :id])
+            manufacturers: ::Manufacturer.all.order(:name).as_json(only: [:name, :id])
           },
           status: :ok
         )

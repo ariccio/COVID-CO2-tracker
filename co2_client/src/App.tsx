@@ -98,6 +98,9 @@ const dialogOptionsForSentry = {
 // TODO: how to display network errors? some component to render above it?
 export function App(): JSX.Element {
 
+  console.log(`navigator.language: ${navigator.language}`);
+  console.log(`navigator.languages: ${navigator.languages}`);
+
   //TODO: https://docs.sentry.io/platforms/javascript/guides/react/enriching-events/user-feedback/
   //https://docs.sentry.io/platforms/javascript/guides/react/components/errorboundary/
   return (
