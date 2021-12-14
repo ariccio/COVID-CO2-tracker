@@ -299,3 +299,12 @@ Ok, so remember, `characteristicResolvers` was the second parameter to `serviceC
             })    
     ```
 ...this is kinda an ugly way to do it tbh, since it's raw accessing the array :)
+
+12/13/2021 note: for some reason the CO2 characteristic (`f0cd3001-95da-4f4b-9ac8-aa55d312af0c`) isn't working?
+
+
+
+So what do I need to do to make this work? Hmm. 
+
+Here are some Aranet4 UUIDs:
+https://github.com/Anrijs/Aranet4-Python/blob/master/docs/UUIDs.md (I will download a copy as a backup).

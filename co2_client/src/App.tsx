@@ -18,10 +18,11 @@ import {DeviceModels} from './features/deviceModels/DeviceModels';
 import {Place} from './features/places/Place';
 import {MoreInfo} from './features/moreInfoPage/MoreInfo';
 
-import {placesPath, homePath, devicesPath, profilePath, deviceModelsPath, moreInfoPath} from './paths/paths';
+import {placesPath, homePath, devicesPath, profilePath, deviceModelsPath, moreInfoPath, bluetoothPath} from './paths/paths';
 
 import './App.css';
 import { BottomNav } from './features/nav/BottomNav';
+import { BluetoothTesting } from './features/bluetooth/bluetoothDev';
 
 
 const NotFound = () => {
@@ -50,6 +51,7 @@ const routes = () =>
     <Route path={placesPath} element={<Place/>}/>
     <Route path={deviceModelsPath} element={<DeviceModels/>}/>
     <Route path={moreInfoPath} element={<MoreInfo/>}/>
+    <Route path={bluetoothPath} element={<BluetoothTesting/>}/>
     <Route path='/' element={<Navigate replace to={homePath}/>}/>
     <Route path='*' element={<NotFound/>}/>
   </Routes>

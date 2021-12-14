@@ -132,8 +132,8 @@ interface googlePlacesState {
     // google.maps.places.
     selected: placeResultWithTranslatedType,
     placesServiceStatus: google.maps.places.PlacesServiceStatus | null,
-    mapsAPIKey: string,
-    mapsAPIKeyErrorState: string,
+    definitelyNotAMapsAPeeEyeKey: string,
+    mapsAaaPeeEyeKeyErrorState: string,
     // selectedPlaceIdString: string
     // isLoaded: boolean,
     // JSAPILoadError: Error | undefined
@@ -144,8 +144,8 @@ export const defaultGooglePlacesState: googlePlacesState = {
         name: ''
     },
     placesServiceStatus: null,
-    mapsAPIKey: '',
-    mapsAPIKeyErrorState: '',
+    definitelyNotAMapsAPeeEyeKey: '',
+    mapsAaaPeeEyeKeyErrorState: '',
     // selectedPlaceIdString: ''
     // isLoaded: false,
     // JSAPILoadError: undefined
@@ -164,11 +164,11 @@ export const googlePlacesSlice = createSlice({
         setPlacesServiceStatus: (state, action: PayloadAction<google.maps.places.PlacesServiceStatus>) => {
             state.placesServiceStatus = action.payload;
         },
-        setMapsAPIKey: (state, action: PayloadAction<string>) => {
-            state.mapsAPIKey = action.payload;
+        setMapsAaaPeeEyeKey: (state, action: PayloadAction<string>) => {
+            state.definitelyNotAMapsAPeeEyeKey = action.payload;
         },
-        setMapsAPIKeyErrorState: (state, action: PayloadAction<string>) => {
-            state.mapsAPIKeyErrorState = action.payload;
+        setMapsAaaPeeEyeKeyErrorState: (state, action: PayloadAction<string>) => {
+            state.mapsAaaPeeEyeKeyErrorState = action.payload;
         }
         // setSelectedPlaceIdString: (state, action: PayloadAction<string>) => {
         //     state.selectedPlaceIdString = action.payload;
@@ -204,12 +204,12 @@ export function autocompleteSelectedPlaceToAction(action_: google.maps.places.Pl
 }
 
 
-export const {setSelectedPlace, setPlacesServiceStatus, setMapsAPIKey, setMapsAPIKeyErrorState} = googlePlacesSlice.actions;
+export const {setSelectedPlace, setPlacesServiceStatus, setMapsAaaPeeEyeKey: setMapsAPIKey, setMapsAaaPeeEyeKeyErrorState: setMapsAPIKeyErrorState} = googlePlacesSlice.actions;
 
 export const selectSelectedPlace = (state: RootState) => state.places.selected;
 export const selectPlacesServiceStatus = (state: RootState) => state.places.placesServiceStatus;
-export const selectMapsAPIKey = (state: RootState) => state.places.mapsAPIKey;
-export const selectMapsAPIKeyErrorState = (state: RootState) => state.places.mapsAPIKeyErrorState;
+export const selectMapsAPIKey = (state: RootState) => state.places.definitelyNotAMapsAPeeEyeKey;
+export const selectMapsAPIKeyErrorState = (state: RootState) => state.places.mapsAaaPeeEyeKeyErrorState;
 // export const selectSelectedPlaceIdString = (state: RootState) => state.places.selectedPlaceIdString;
 // export const selectIsLoaded = (state: RootState) => state.places.isLoaded;
 // export const selectJSApiLoadError = (state: RootState) => state.places.JSAPILoadError;

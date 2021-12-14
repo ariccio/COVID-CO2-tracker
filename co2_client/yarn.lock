@@ -2277,6 +2277,11 @@
   resolved "https://registry.yarnpkg.com/@types/warning/-/warning-3.0.0.tgz#0d2501268ad8f9962b740d387c4654f5f8e23e52"
   integrity sha1-DSUBJorY+ZYrdA04fEZU9fjiPlI=
 
+"@types/web-bluetooth@^0.0.11":
+  version "0.0.11"
+  resolved "https://registry.yarnpkg.com/@types/web-bluetooth/-/web-bluetooth-0.0.11.tgz#2dc7ae7a809b70723e064b58245103028d5ea616"
+  integrity sha512-2CF3Kk2Rcvg/c2QzO7mXUhY7eL9CC3aKzrF+dNWNmp7Q8bmlvjmUM1nFPMSngawdJ+CcIdu8eJlQRytBgAZR9w==
+
 "@types/webpack-sources@*":
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/@types/webpack-sources/-/webpack-sources-2.1.0.tgz#8882b0bd62d1e0ce62f183d0d01b72e6e82e8c10"

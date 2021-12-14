@@ -19,7 +19,7 @@ import * as Sentry from "@sentry/browser"; // for manual error reporting.
 // import {Logout} from '../login/Logout';
 import {formatErrors} from '../../utils/ErrorObject';
 
-import {homePath, devicesPath, profilePath, deviceModelsPath, placesPath, moreInfoPath} from '../../paths/paths';
+import {homePath, devicesPath, profilePath, deviceModelsPath, placesPath, moreInfoPath, bluetoothPath} from '../../paths/paths';
 
 // import {HomePage} from '../home/HomePage';
 import {selectGoogleProfile, selectUsername, setUsername, GoogleProfile} from '../login/loginSlice';
@@ -119,6 +119,9 @@ const UserNav: React.FC<UserNavProps> = ({username, googleProfile}) => {
                 </LinkContainer>
                 <LinkContainer to={moreInfoPath}>
                   <Nav.Link>{translate("more-info")}</Nav.Link>
+                </LinkContainer>
+                <LinkContainer to={bluetoothPath}>
+                  <Nav.Link>:)</Nav.Link>
                 </LinkContainer>
 
             </Nav>
