@@ -7,8 +7,8 @@ import { useTranslation } from 'react-i18next';
 
 import {Container, Row, Col} from 'react-bootstrap';
 
-import {selectSelectedPlace, defaultGooglePlacesState, selectPlacesServiceStatus, selectMapsAPIKey, selectMapsAPIKeyErrorState, setMapsAPIKey, setMapsAPIKeyErrorState} from '../google/googleSlice';
-import {getGoogleMapsJavascriptAPIKey} from '../../utils/GoogleAPIKeys';
+import {selectSelectedPlace, defaultGooglePlacesState, selectPlacesServiceStatus, selectMapsAaPeEyeKey, selectMapsAaaPeeEyeKeyErrorState, setMapsAaaPeeEyeKey, setMapsAaaPeeEyeKeyErrorState} from '../google/googleSlice';
+import {getGoogleMapsJavascriptAaaaPeeEyeKey} from '../../utils/GoogleAPIKeys';
 
 import {GoogleMapsContainer} from '../google/GoogleMaps';
 
@@ -25,12 +25,12 @@ import { AppStatsContainer } from '../stats/Stats';
 
 
 
-const renderMapsWhenLoaded = (mapsAPIKey: string) => {
-    if (mapsAPIKey !== '') {
+const renderMapsWhenLoaded = (mapsAaaPeeEyeKey: string) => {
+    if (mapsAaaPeeEyeKey !== '') {
         return (
             <div>
                 <Suspense fallback="google maps container loading translations...">
-                    <GoogleMapsContainer api_key={mapsAPIKey}/>
+                    <GoogleMapsContainer definitely_not_an_apeeeye_key={mapsAaaPeeEyeKey}/>
                 </Suspense>
             </div>
         )
@@ -38,7 +38,7 @@ const renderMapsWhenLoaded = (mapsAPIKey: string) => {
     return (
         <div>
             <span>
-                Loading google maps API key...
+                Loading google maps key...
             </span>
         </div>
     );
@@ -113,15 +113,15 @@ const renderPlace = (currentPlace: google.maps.places.PlaceResult, location: Ret
     );
 }
 
-function renderError(mapsAPIKeyErrorState: string) {
+function renderError(mapsAaPeeEyeKeyErrorState: string) {
     return (
         <div>
             <span>
-                Error loading maps API key!
+                Error loading maps key!
             </span>
             <br />
             <span>
-                {mapsAPIKeyErrorState}
+                {mapsAaPeeEyeKeyErrorState}
             </span>
         </div>
     );
@@ -132,14 +132,12 @@ function renderWelcomeLoading() {
         <div>
             <h3>Welcome to the COVID CO2 Tracker!</h3>
             <br />
-            Loading maps API key...
+            Loading maps key...
         </div>
     );
 }
 
 const HomePage: FunctionComponent<{}> = (props: any) => {
-    // const [mapsAPIKey, setMapsAPIKey] = useState("");
-    // const [errorState, setErrorState] = useState("");
     // TODO: when navigating BACK to home page from place, pan map to that place.
     const location = useLocation();
     const dispatch = useDispatch();
@@ -154,20 +152,20 @@ const HomePage: FunctionComponent<{}> = (props: any) => {
     const selectedPlaceInfoFromDatabaseErrors = useSelector(selectPlacesInfoErrors);
     const selectedPlaceExistsInDatabase = useSelector(selectPlaceExistsInDatabase);
     const placesServiceStatus = useSelector(selectPlacesServiceStatus);
-    const mapsAPIKey = useSelector(selectMapsAPIKey);
-    const mapsAPIKeyErrorState = useSelector(selectMapsAPIKeyErrorState);
+    const mapsAaaPeeEyeKey = useSelector(selectMapsAaPeEyeKey);
+    const mapsAaPeeEyeKeyErrorState = useSelector(selectMapsAaaPeeEyeKeyErrorState);
 
     const infoRef = useRef<HTMLDivElement | null>(null);
     useEffect(() => {
-        if (mapsAPIKey !== '') {
+        if (mapsAaaPeeEyeKey !== '') {
             return;
         }
-        getGoogleMapsJavascriptAPIKey().then((key: string) => {
-            dispatch(setMapsAPIKey(key));
+        getGoogleMapsJavascriptAaaaPeeEyeKey().then((key: string) => {
+            dispatch(setMapsAaaPeeEyeKey(key));
         }).catch((error) => {
-            dispatch(setMapsAPIKeyErrorState(error.message));
+            dispatch(setMapsAaaPeeEyeKeyErrorState(error.message));
         });
-    }, [dispatch, mapsAPIKey]);
+    }, [dispatch, mapsAaaPeeEyeKey]);
 
     useEffect(() => {
         if ((currentPlace.types) && (currentPlace.types[0] === 'locality')) {
@@ -184,12 +182,12 @@ const HomePage: FunctionComponent<{}> = (props: any) => {
         }
     }, [selectedPlaceInfoFromDatabase])
   
-    if (mapsAPIKeyErrorState !== '') {
-        return renderError(mapsAPIKeyErrorState);
+    if (mapsAaPeeEyeKeyErrorState !== '') {
+        return renderError(mapsAaPeeEyeKeyErrorState);
     }
     //TODO: google maps goes to default (wrong) center on selecting different location
 
-    if (mapsAPIKey === '') {
+    if (mapsAaaPeeEyeKey === '') {
         return renderWelcomeLoading();     
     }
 
@@ -204,9 +202,9 @@ const HomePage: FunctionComponent<{}> = (props: any) => {
             <Container>
                 <Row className="show-grid">
                     <Col md={6} xs={12}>
-                        {renderMapsWhenLoaded(mapsAPIKey)}
+                        {renderMapsWhenLoaded(mapsAaaPeeEyeKey)}
                         <br/>
-                        {mapsAPIKeyErrorState}
+                        {mapsAaPeeEyeKeyErrorState}
                         <br/>
                         <br/>
                     </Col>

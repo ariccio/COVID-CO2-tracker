@@ -4,12 +4,12 @@ import { GoogleLogin, GoogleLogout, GoogleLoginResponse, GoogleLoginResponseOffl
 
 import * as Sentry from "@sentry/browser";
 
-import { setUsername, selectGoogleProfile, selectLoginAPIKey, setLoginAPIKey, setAPIKeyErrorState, selectAPIKeyErrorState } from './loginSlice';
+import { setUsername, selectGoogleProfile, selectLoginAaaPeeEyeKey, setLoginAaaPeeEyeKey, setAaaPeeEyeKeyErrorState, selectAaaPeeeEyeKeyErrorState } from './loginSlice';
 
 import { logout } from '../../utils/Authentication';
 import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
 import { postRequestOptions } from '../../utils/DefaultRequestOptions';
-import { getGoogleLoginClientAPIKey } from '../../utils/GoogleAPIKeys';
+import { getGoogleLoginClientAaaPeeeEyeKey } from '../../utils/GoogleAPIKeys';
 
 // import { profilePath } from '../../paths/paths';
 import { API_URL } from '../../utils/UrlPath';
@@ -285,43 +285,40 @@ export interface LoginContainerProps {
 }
 
 export const GoogleLoginLogoutContainer: React.FC<LoginContainerProps> = () => {
-    // const [loginAPIKey, setLoginAPIKey] = useState('');
-
-    // const [apiKeyErrorState, setApiKeyErrorState] = useState("");
     const [googleLoginErrorState, setGoogleLoginErrorState] = useState("");
-    const apiKeyErrorState = useSelector(selectAPIKeyErrorState);
-    const loginAPIKey = useSelector(selectLoginAPIKey);
+    const aapeeEyeKeyErrorState = useSelector(selectAaaPeeeEyeKeyErrorState);
+    const loginAaaPeeEyeKey = useSelector(selectLoginAaaPeeEyeKey);
     const googleProfile = useSelector(selectGoogleProfile);
 
     const dispatch = useDispatch();
     // debugger;
     useEffect(() => {
-        if (loginAPIKey !== '') {
+        if (loginAaaPeeEyeKey !== '') {
             return;
         }
-        getGoogleLoginClientAPIKey().then((key: string) => {
+        getGoogleLoginClientAaaPeeeEyeKey().then((key: string) => {
             console.log("got login api key");
-            dispatch(setLoginAPIKey(key));
+            dispatch(setLoginAaaPeeEyeKey(key));
         }).catch((error) => {
             debugger;
-            dispatch(setAPIKeyErrorState(error.message));
+            dispatch(setAaaPeeEyeKeyErrorState(error.message));
         });
     //Only run once on purpose
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dispatch])
 
     // https://developers.google.com/identity/sign-in/web/sign-in
-    if (loginAPIKey === '') {
+    if (loginAaaPeeEyeKey === '') {
         return (
             <div>
                 Loading google auth api key...
             </div>
         );
     }
-    if (apiKeyErrorState !== '') {
+    if (aapeeEyeKeyErrorState !== '') {
         return (
             <div>
-                Error loading google auth api key: {apiKeyErrorState}
+                Error loading google auth api key: {aapeeEyeKeyErrorState}
             </div>
         );
     }
@@ -337,7 +334,7 @@ export const GoogleLoginLogoutContainer: React.FC<LoginContainerProps> = () => {
         // console.log("rendering logout.");
         return (
             <div>
-                <GoogleLogout clientId={loginAPIKey} onLogoutSuccess={() => googleLogoutSuccessCallback(dispatch)} />
+                <GoogleLogout clientId={loginAaaPeeEyeKey} onLogoutSuccess={() => googleLogoutSuccessCallback(dispatch)} />
             </div>
         )
     }
@@ -345,7 +342,7 @@ export const GoogleLoginLogoutContainer: React.FC<LoginContainerProps> = () => {
     // debugger;
     return (
         <div>
-            <GoogleLogin onRequest={() => console.log("login request starting....")} clientId={loginAPIKey} onSuccess={(response) => googleLoginSuccessCallback(response, dispatch)} onFailure={(error) => googleLoginFailedCallback(error, setGoogleLoginErrorState)} isSignedIn={true} />
+            <GoogleLogin onRequest={() => console.log("login request starting....")} clientId={loginAaaPeeEyeKey} onSuccess={(response) => googleLoginSuccessCallback(response, dispatch)} onFailure={(error) => googleLoginFailedCallback(error, setGoogleLoginErrorState)} isSignedIn={true} />
 
         </div>
     )

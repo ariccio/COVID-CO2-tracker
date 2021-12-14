@@ -10,7 +10,7 @@ import { fetchSingleDeviceName, SerializedSingleDeviceSerial } from '../../utils
 
 import {ShowMeasurementResponse, queryMeasurementInfo, defaultShowMeasurementResponse} from '../../utils/QueryMeasurementInfo';
 import { useSelector } from 'react-redux';
-import { selectMapsAPIKey, selectMapsAPIKeyErrorState } from '../google/googleSlice';
+import { selectMapsAaPeEyeKey, selectMapsAaaPeeEyeKeyErrorState } from '../google/googleSlice';
 // import { PlaceDetails } from '../places/PlaceDetails';
 import {placesPath} from '../../paths/paths';
 import { percentRebreathedFromPPM, rebreathedToString } from '../../utils/Rebreathed';
@@ -59,12 +59,12 @@ const DivElem = (props: {elementRef: React.MutableRefObject<HTMLDivElement | nul
     );
 }
 
-const renderPlaceDetails = (measurementInfo: ShowMeasurementResponse, elementRef: React.MutableRefObject<HTMLDivElement | null>, mapsAPIKey: string, mapsAPIKeyErrorState: string) => {
-    if (mapsAPIKey === '') {
-        if (mapsAPIKeyErrorState !== '') {
+const renderPlaceDetails = (measurementInfo: ShowMeasurementResponse, elementRef: React.MutableRefObject<HTMLDivElement | null>, mapsAaaPeeEyeKey: string, mapsAaaPeeEyeKeyErrorState: string) => {
+    if (mapsAaaPeeEyeKey === '') {
+        if (mapsAaaPeeEyeKeyErrorState !== '') {
             return (
                 <div>
-                    Error loading google maps/places API key. Error details: {mapsAPIKeyErrorState}
+                    Error loading google maps/places API key. Error details: {mapsAaaPeeEyeKeyErrorState}
                     (Can't show place details)
                 </div>
             )
@@ -86,12 +86,12 @@ const renderPlaceDetails = (measurementInfo: ShowMeasurementResponse, elementRef
         <div>
             Will have PROPER place data here when I fix the damn bug.
             In mean time, here's a link to it: <Link to={`${placesPath}/${measurementInfo.place_id}`}>{measurementInfo.place_id}</Link>
-            {/* <PlaceDetails mapsAPIKey={mapsAPIKey} placeId={measurementInfo.place_id} divRef={elementRef}/> */}
+            {/* <PlaceDetails placeId={measurementInfo.place_id} divRef={elementRef}/> */}
         </div>
     )
 }
 
-const RenderModalBody = (props: {errors: string, measurementInfo: ShowMeasurementResponse, deviceSerials: Array<SerializedSingleDeviceSerial>, deviceSerialsErrorState: string, elementRef: React.MutableRefObject<HTMLDivElement | null>, mapsAPIKey: string, mapsAPIKeyErrorState: string}) => {
+const RenderModalBody = (props: {errors: string, measurementInfo: ShowMeasurementResponse, deviceSerials: Array<SerializedSingleDeviceSerial>, deviceSerialsErrorState: string, elementRef: React.MutableRefObject<HTMLDivElement | null>, mapsAaaPeeEyeKey: string, mapsAaaPeeEyeKeyErrorState: string}) => {
     const [translate] = useTranslation();
     const percent = percentRebreathedFromPPM(props.measurementInfo.data.data.attributes.co2ppm);
     const displayRebreathed = rebreathedToString(percent);
@@ -144,7 +144,7 @@ const RenderModalBody = (props: {errors: string, measurementInfo: ShowMeasuremen
                 
                 <br/>
                 <br/>
-                {renderPlaceDetails(props.measurementInfo, props.elementRef, props.mapsAPIKey, props.mapsAPIKeyErrorState)}
+                {renderPlaceDetails(props.measurementInfo, props.elementRef, props.mapsAaaPeeEyeKey, props.mapsAaaPeeEyeKeyErrorState)}
             </Modal.Body>
 
         </div>
@@ -153,8 +153,8 @@ const RenderModalBody = (props: {errors: string, measurementInfo: ShowMeasuremen
 
 export const ShowMeasurementModal: React.FC<ShowMeasurementModalProps> = (props: ShowMeasurementModalProps) => {
 
-    const mapsAPIKey = useSelector(selectMapsAPIKey);
-    const mapsAPIKeyErrorState = useSelector(selectMapsAPIKeyErrorState);
+    const mapsAaPeeEyeKey = useSelector(selectMapsAaPeEyeKey);
+    const mapsAaaPeeEyeKeyErrorState = useSelector(selectMapsAaaPeeEyeKeyErrorState);
 
     const [measurementInfo, setMeasurementInfo] = useState(defaultShowMeasurementResponse);
 
@@ -224,7 +224,7 @@ export const ShowMeasurementModal: React.FC<ShowMeasurementModalProps> = (props:
                 <ModalHeader measurementID={props.selectedMeasurement}/>
                 <DivElem elementRef={elementRef}/>
                 <Suspense fallback="Loading translation">
-                    <RenderModalBody errors={errors} measurementInfo={measurementInfo} deviceSerials={deviceSerials} deviceSerialsErrorState={deviceSerialsErrorState} elementRef={elementRef} mapsAPIKey={mapsAPIKey} mapsAPIKeyErrorState={mapsAPIKeyErrorState}/>
+                    <RenderModalBody errors={errors} measurementInfo={measurementInfo} deviceSerials={deviceSerials} deviceSerialsErrorState={deviceSerialsErrorState} elementRef={elementRef} mapsAaaPeeEyeKey={mapsAaPeeEyeKey} mapsAaaPeeEyeKeyErrorState={mapsAaaPeeEyeKeyErrorState}/>
                 </Suspense>
             </Modal>
 

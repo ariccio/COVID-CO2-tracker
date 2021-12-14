@@ -9,7 +9,7 @@ import { selectPlacesServiceStatus, selectSelectedPlace } from '../google/google
 
 
 interface PlaceDetailsProps {
-    mapsAPIKey: string,
+    mapsAaPeeEyeKey: string,
     placeId: string,
     divRef: React.MutableRefObject<HTMLDivElement | null>
 }
@@ -24,7 +24,7 @@ export const PlaceDetails: React.FC<PlaceDetailsProps> = (props) => {
     //TODO: factor this out, maybe use custom hook?
     const { isLoaded, loadError } = useJsApiLoader({
         id: 'google-map-script',
-        googleMapsApiKey: props.mapsAPIKey,
+        definitelyNotAGoogleMapsAaappeeeyeKey: props.mapsAaPeeEyeKey,
         libraries: GOOGLE_LIBRARIES
     })
 

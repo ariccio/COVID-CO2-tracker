@@ -204,12 +204,12 @@ export function autocompleteSelectedPlaceToAction(action_: google.maps.places.Pl
 }
 
 
-export const {setSelectedPlace, setPlacesServiceStatus, setMapsAaaPeeEyeKey: setMapsAPIKey, setMapsAaaPeeEyeKeyErrorState: setMapsAPIKeyErrorState} = googlePlacesSlice.actions;
+export const {setSelectedPlace, setPlacesServiceStatus, setMapsAaaPeeEyeKey, setMapsAaaPeeEyeKeyErrorState} = googlePlacesSlice.actions;
 
 export const selectSelectedPlace = (state: RootState) => state.places.selected;
 export const selectPlacesServiceStatus = (state: RootState) => state.places.placesServiceStatus;
-export const selectMapsAPIKey = (state: RootState) => state.places.definitelyNotAMapsAPeeEyeKey;
-export const selectMapsAPIKeyErrorState = (state: RootState) => state.places.mapsAaaPeeEyeKeyErrorState;
+export const selectMapsAaPeEyeKey = (state: RootState) => state.places.definitelyNotAMapsAPeeEyeKey;
+export const selectMapsAaaPeeEyeKeyErrorState = (state: RootState) => state.places.mapsAaaPeeEyeKeyErrorState;
 // export const selectSelectedPlaceIdString = (state: RootState) => state.places.selectedPlaceIdString;
 // export const selectIsLoaded = (state: RootState) => state.places.isLoaded;
 // export const selectJSApiLoadError = (state: RootState) => state.places.JSAPILoadError;

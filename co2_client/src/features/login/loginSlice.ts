@@ -25,16 +25,16 @@ interface LoginState {
     username: string;
     googleProfile: GoogleProfile | null;
     googleAuthResponse: AuthResponse | null;
-    loginAPIKey: string;
-    apiKeyErrorState: string;
+    loginAaaPeeEyeKey: string;
+    aapeeeyeKeyErrorState: string;
 }
 
 const initialState: LoginState = {
     username: '',
     googleProfile: null,
     googleAuthResponse: null,
-    loginAPIKey: '',
-    apiKeyErrorState: ''
+    loginAaaPeeEyeKey: '',
+    aapeeeyeKeyErrorState: ''
 }
 
 
@@ -51,20 +51,20 @@ export const loginSlice = createSlice({
         setGoogleAuthResponse: (state, action: PayloadAction<AuthResponse | null>) => {
             state.googleAuthResponse = action.payload;
         },
-        setLoginAPIKey: (state, action: PayloadAction<string>) => {
-            state.loginAPIKey = action.payload;
+        setLoginAaaPeeEyeKey: (state, action: PayloadAction<string>) => {
+            state.loginAaaPeeEyeKey = action.payload;
         },
-        setAPIKeyErrorState: (state, action: PayloadAction<string>) => {
-            state.apiKeyErrorState = action.payload;
+        setAaaPeeEyeKeyErrorState: (state, action: PayloadAction<string>) => {
+            state.aapeeeyeKeyErrorState = action.payload;
         }
     }
 })
 
-export const {setUsername, setGoogleProfile, setGoogleAuthResponse, setLoginAPIKey, setAPIKeyErrorState} = loginSlice.actions;
+export const {setUsername, setGoogleProfile, setGoogleAuthResponse, setLoginAaaPeeEyeKey, setAaaPeeEyeKeyErrorState} = loginSlice.actions;
 
 export const selectUsername = (state: RootState) => state.login.username;
 export const selectGoogleProfile = (state: RootState) => state.login.googleProfile;
 export const selectGoogleAuthResponse = (state: RootState) => state.login.googleAuthResponse;
-export const selectLoginAPIKey = (state: RootState) => state.login.loginAPIKey;
-export const selectAPIKeyErrorState = (state: RootState) => state.login.apiKeyErrorState;
+export const selectLoginAaaPeeEyeKey = (state: RootState) => state.login.loginAaaPeeEyeKey;
+export const selectAaaPeeeEyeKeyErrorState = (state: RootState) => state.login.aapeeeyeKeyErrorState;
 export const loginReducer = loginSlice.reducer;

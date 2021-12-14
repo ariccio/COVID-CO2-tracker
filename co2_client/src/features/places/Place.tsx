@@ -6,8 +6,8 @@ import { updatePlacesInfoFromBackend } from '../../utils/QueryPlacesInfo';
 import { selectPlaceExistsInDatabase, selectPlacesInfoErrors, selectPlacesInfoFromDatabase } from './placesSlice';
 
 // import { renderSelectedPlaceInfo} from '../home/HomePage';
-import { selectMapsAPIKey, selectMapsAPIKeyErrorState, setMapsAPIKey, setMapsAPIKeyErrorState } from '../google/googleSlice';
-import { getGoogleMapsJavascriptAPIKey } from '../../utils/GoogleAPIKeys';
+import { selectMapsAaPeEyeKey, selectMapsAaaPeeEyeKeyErrorState, setMapsAaaPeeEyeKey, setMapsAaaPeeEyeKeyErrorState } from '../google/googleSlice';
+import { getGoogleMapsJavascriptAaaaPeeEyeKey } from '../../utils/GoogleAPIKeys';
 import { RenderFromDatabaseNoGoogleParam } from './RenderPlaceFromDatabase';
 
 import {PlaceDetails} from './PlaceDetails';
@@ -27,22 +27,22 @@ export const Place: React.FC<{}> = () => {
     const selectedPlaceInfoFromDatabaseErrors = useSelector(selectPlacesInfoErrors);
     const selectedPlaceExistsInDatabase = useSelector(selectPlaceExistsInDatabase);
     
-    const mapsAPIKey = useSelector(selectMapsAPIKey);
-    const mapsAPIKeyErrorState = useSelector(selectMapsAPIKeyErrorState);
+    const mapsAaPeeEyeKey = useSelector(selectMapsAaPeEyeKey);
+    const mapsAaPeeEyeKeyErrorState = useSelector(selectMapsAaaPeeEyeKeyErrorState);
 
     const {placeId} = useParams();
 
     const elementRef = useRef(null as HTMLDivElement | null);
     useEffect(() => {
-        if (mapsAPIKey !== '') {
+        if (mapsAaPeeEyeKey !== '') {
             return;
         }
-        getGoogleMapsJavascriptAPIKey().then((key: string) => {
-            dispatch(setMapsAPIKey(key));
+        getGoogleMapsJavascriptAaaaPeeEyeKey().then((key: string) => {
+            dispatch(setMapsAaaPeeEyeKey(key));
         }).catch((error) => {
-            dispatch(setMapsAPIKeyErrorState(error.message));
+            dispatch(setMapsAaaPeeEyeKeyErrorState(error.message));
         });
-    }, [dispatch, mapsAPIKey]);
+    }, [dispatch, mapsAaPeeEyeKey]);
 
 
 
@@ -74,15 +74,15 @@ export const Place: React.FC<{}> = () => {
         )
     }
 
-    if (mapsAPIKeyErrorState !== '') {
+    if (mapsAaPeeEyeKeyErrorState !== '') {
         return (
             <div>
-                Error loading maps API key: {mapsAPIKeyErrorState}
+                Error loading maps key: {mapsAaPeeEyeKeyErrorState}
                 <DivElem elementRef={elementRef}/>
             </div>
         );
     }
-    if (mapsAPIKey === '') {
+    if (mapsAaPeeEyeKey === '') {
         return (
             <div>
                 Loading maps API key...
@@ -96,7 +96,7 @@ export const Place: React.FC<{}> = () => {
             Place {placeId}
             <Suspense fallback="loading translations...">
                 <DivElem elementRef={elementRef}/>
-                <PlaceDetails mapsAPIKey={mapsAPIKey} placeId={placeId} divRef={elementRef}/>
+                <PlaceDetails mapsAaPeeEyeKey={mapsAaPeeEyeKey} placeId={placeId} divRef={elementRef}/>
                 <RenderFromDatabaseNoGoogleParam selectedPlaceInfoFromDatabase={selectedPlaceInfoFromDatabase} selectedPlaceInfoErrors={selectedPlaceInfoFromDatabaseErrors} selectedPlaceExistsInDatabase={selectedPlaceExistsInDatabase}/>
             </Suspense>
             <br/>

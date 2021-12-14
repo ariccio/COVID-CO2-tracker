@@ -33,8 +33,8 @@ type Libraries = ("drawing" | "geometry" | "localContext" | "places" | "visualiz
 export const GOOGLE_LIBRARIES: Libraries = ["places"];
 
 
-interface APIKeyProps {
-    api_key: string
+interface ShhhProps {
+    definitely_not_an_apeeeye_key: string
 }
 
 const defaultCenter: google.maps.LatLngLiteral = {
@@ -781,7 +781,7 @@ function placeSelectedWithCoords(selectedPlace: placeResultWithTranslatedType): 
     return latlng;
 }
 
-export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props) => {
+export const GoogleMapsContainer: React.FunctionComponent<ShhhProps> = (props) => {
 
     //TODO: streetview service?
     // https://developers.google.com/maps/documentation/javascript/streetview
@@ -819,7 +819,7 @@ export const GoogleMapsContainer: React.FunctionComponent<APIKeyProps> = (props)
 
     const { isLoaded, loadError } = useJsApiLoader({
         id: 'google-map-script',
-        googleMapsApiKey: props.api_key,
+        definitelyNotAGoogleMapsAaappeeeyeKey: props.definitely_not_an_apeeeye_key,
         libraries: GOOGLE_LIBRARIES
     })
 
