@@ -24,7 +24,7 @@ export const PlaceDetails: React.FC<PlaceDetailsProps> = (props) => {
     //TODO: factor this out, maybe use custom hook?
     const { isLoaded, loadError } = useJsApiLoader({
         id: 'google-map-script',
-        definitelyNotAGoogleMapsAaappeeeyeKey: props.mapsAaPeeEyeKey,
+        googleMapsApiKey: props.mapsAaPeeEyeKey,
         libraries: GOOGLE_LIBRARIES
     })
 

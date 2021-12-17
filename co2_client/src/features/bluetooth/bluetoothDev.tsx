@@ -11,6 +11,24 @@ declare module BluetoothUUID {
 const SENSOR_SERVICE_UUID = 'f0cd1400-95da-4f4b-9ac8-aa55d312af0c'
 
 
+
+
+const characteristicUUIDDescriptions = new Map([
+    ["f0cd1503-95da-4f4b-9ac8-aa55d312af0c", "Aranet4: CO2 measurements"],
+    ["f0cd3001-95da-4f4b-9ac8-aa55d312af0c", "Aranet4: CO2 measurements, interval, time since measurements"],
+    ["f0cd2002-95da-4f4b-9ac8-aa55d312af0c", "Aranet4: measurement interval"],
+    ["f0cd2004-95da-4f4b-9ac8-aa55d312af0c", "Aranet4: seconds since last update"],
+    ["f0cd2001-95da-4f4b-9ac8-aa55d312af0c", "Aranet4: total number of measurements"],
+    ["00002a00-0000-1000-8000-00805f9b34fb", "Aranet4: Device name"],
+    ["00002a19-0000-1000-8000-00805f9b34fb", "Aranet4: Battery level"],
+    ["00002a24-0000-1000-8000-00805f9b34fb", "Aranet4: Model number"],
+    ["00002a25-0000-1000-8000-00805f9b34fb", "Aranet4: Serial number"],
+    ["00002a27-0000-1000-8000-00805f9b34fb", "Aranet4: Hardware revision"],
+    ["00002a28-0000-1000-8000-00805f9b34fb", "Aranet4: Software revision"],
+    ["00002a29-0000-1000-8000-00805f9b34fb", "Aranet4: Manufacturer name (?)"]
+]);
+
+
 function aranet4DeviceRequestOptions(): RequestDeviceOptions {
     const filter: BluetoothLEScanFilter = {
         services: [SENSOR_SERVICE_UUID]
@@ -42,15 +60,44 @@ function dumpBluetoothCharacteristicProperties(properties: BluetoothCharacterist
 
     
     console.log(`\tservices[${serviceIndex}], characteristics[${characteristicIndex}].properties:`);
-    console.log(`\t\tbroadcast: ${properties.broadcast}`);
-    console.log(`\t\tread: ${properties.read}`);
-    console.log(`\t\twriteWithoutResponse: ${properties.writeWithoutResponse}`);
-    console.log(`\t\twrite: ${properties.write}`);
-    console.log(`\t\tnotify: ${properties.notify}`);
-    console.log(`\t\tindicate: ${properties.indicate}`);
-    console.log(`\t\tauthenticatedSignedWrites: ${properties.authenticatedSignedWrites}`);
-    console.log(`\t\treliableWrite: ${properties.reliableWrite}`);
-    console.log(`\t\twritableAuxiliaries: ${properties.writableAuxiliaries}`);
+    if (properties.broadcast) {
+        console.log(`\t\tbroadcast: ${properties.broadcast}`);
+    }
+    if (properties.read) {
+        console.log(`\t\tread: ${properties.read}`);
+    }
+    if (properties.writeWithoutResponse) {
+        console.log(`\t\twriteWithoutResponse: ${properties.writeWithoutResponse}`);
+    }
+    if (properties.write) {
+        console.log(`\t\twrite: ${properties.write}`);
+    }
+    if (properties.notify) {
+        console.log(`\t\tnotify: ${properties.notify}`);
+    }
+    if (properties.indicate) {
+        console.log(`\t\tindicate: ${properties.indicate}`);
+    }
+    if (properties.authenticatedSignedWrites) {
+        console.log(`\t\tauthenticatedSignedWrites: ${properties.authenticatedSignedWrites}`);
+    }
+    if (properties.reliableWrite) {
+        console.log(`\t\treliableWrite: ${properties.reliableWrite}`);
+    }
+    if (properties.writableAuxiliaries) {
+        console.log(`\t\twritableAuxiliaries: ${properties.writableAuxiliaries}`);
+    }
+}
+
+async function hasGetDevices() {
+    const devices = await navigator.bluetooth.getDevices()
+    console.log("bluetooth devices:");
+    console.table(devices);
+    if (devices.length === 0) {
+        debugger;
+    }
+
+
 }
 
 async function bluetoothTestingStuffFunc() {
@@ -61,13 +108,9 @@ async function bluetoothTestingStuffFunc() {
         alert("bluetooth not available?");
         debugger;
     }
-    const devices = await navigator.bluetooth.getDevices()
-    console.log("bluetooth devices:");
-    console.table(devices);
-    if (devices.length === 0) {
-        debugger;
+    if ((navigator.bluetooth.getDevices as any)) {
+        hasGetDevices();
     }
-
     const options = aranet4DeviceRequestOptions();
 
     //https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth/requestDevice
@@ -93,13 +136,35 @@ async function bluetoothTestingStuffFunc() {
         console.log(`services[${serviceIndex}].isPrimary: ${services[serviceIndex].isPrimary}`);
 
         const characteristics = await services[serviceIndex].getCharacteristics();
+
         console.log(`Got characteristics (length ${characteristics.length}):`)
         for (let characteristicIndex = 0; characteristicIndex < characteristics.length; characteristicIndex++) {
             console.log(`\tservices[${serviceIndex}], characteristics[${characteristicIndex}].uuid: ${characteristics[characteristicIndex].uuid}`);
+            if (characteristicUUIDDescriptions.has(characteristics[characteristicIndex].uuid)) {
+                console.log(`\t\tKnown characteristic! ${characteristicUUIDDescriptions.get(characteristics[characteristicIndex].uuid)}`);
+            }
             console.log(`\tservices[${serviceIndex}], characteristics[${characteristicIndex}].value: ${characteristics[characteristicIndex].value}`);
             dumpBluetoothCharacteristicProperties(characteristics[characteristicIndex].properties, serviceIndex, characteristicIndex);
+            
+            if (characteristics[characteristicIndex].properties.read) {
+                try {
+                    const data = await characteristics[characteristicIndex].readValue();
+                    console.log(`\t\tdata: ${data.buffer}`);
+                }
+                catch(e) {
+                    if (e instanceof DOMException) {
+                        console.error(`\t\tCannot read from ${characteristics[characteristicIndex].uuid}!`)
+                    }
+                    else {
+                        throw e;
+                    }
+                }
+            }
+            console.log('');
         }
+        console.log('\n');
     }
+
     debugger;
 }
 

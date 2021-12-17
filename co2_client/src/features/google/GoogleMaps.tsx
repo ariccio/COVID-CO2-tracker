@@ -816,9 +816,10 @@ export const GoogleMapsContainer: React.FunctionComponent<ShhhProps> = (props) =
 
     const [geolocationInProgress, setGeolocationInProgress] = useState(false);
 
+    // debugger;
     const { isLoaded, loadError } = useJsApiLoader({
         id: 'google-map-script',
-        definitelyNotAGoogleMapsAaappeeeyeKey: props.definitely_not_an_apeeeye_key,
+        googleMapsApiKey: props.definitely_not_an_apeeeye_key,
         libraries: GOOGLE_LIBRARIES
     })
 

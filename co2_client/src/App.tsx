@@ -96,12 +96,25 @@ const dialogOptionsForSentry = {
   subtitle: "Sorry, this is a bug of some kind. I missed something! This issue is being automatically reported. If you'd like to help, give additional details in this form. If you've seen this error multiple times, consider providing details. Some errors are hard to debug even with telemetry!"
 }
 
+function checkLanguages(): void {
+  const knownLanguages = [
+    "en",
+    "en-US",
+    "es"
+  ]
+  console.log(`navigator.language: ${navigator.language}`);
+  console.log(`navigator.languages: ${navigator.languages}`);
+
+  for(let i = 0; i < navigator.languages.length; ++i) {
+    if (!knownLanguages.includes(navigator.languages[i])) {
+      Sentry.captureMessage(navigator.languages[i]);
+    }
+  }
+}
 
 // TODO: how to display network errors? some component to render above it?
 export function App(): JSX.Element {
-
-  console.log(`navigator.language: ${navigator.language}`);
-  console.log(`navigator.languages: ${navigator.languages}`);
+  checkLanguages();
 
   //TODO: https://docs.sentry.io/platforms/javascript/guides/react/enriching-events/user-feedback/
   //https://docs.sentry.io/platforms/javascript/guides/react/components/errorboundary/

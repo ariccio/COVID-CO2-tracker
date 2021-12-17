@@ -311,3 +311,6 @@ Ok, so remember, `characteristicResolvers` was the second parameter to `serviceC
 
 So what do I need to do to make this work? Hmm. 
 
+
+
+12/16/2021 Discovery! I don't need to wait for the chome bug to be fixed! The `f0cd1503-95da-4f4b-9ac8-aa55d312af0c` characteristic works fine!
