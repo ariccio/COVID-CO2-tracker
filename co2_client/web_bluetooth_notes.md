@@ -1,3 +1,8 @@
+Here are some Aranet4 UUIDs:
+https://github.com/Anrijs/Aranet4-Python/blob/master/docs/UUIDs.md (I will download a copy as a backup).
+
+
+
 Ok, so, looking at aranet4 sample code by @kasparsd, it seems like aranet4 has several characteristic IDs:
 ```javascript
     'f0cd3001-95da-4f4b-9ac8-aa55d312af0c': // Sensor values.
@@ -306,5 +311,3 @@ Ok, so remember, `characteristicResolvers` was the second parameter to `serviceC
 
 So what do I need to do to make this work? Hmm. 
 
-Here are some Aranet4 UUIDs:
-https://github.com/Anrijs/Aranet4-Python/blob/master/docs/UUIDs.md (I will download a copy as a backup).

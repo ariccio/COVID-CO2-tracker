@@ -242,7 +242,6 @@ const loadCallback = (map: google.maps.Map, setMap: React.Dispatch<React.SetStat
     console.log("maps successfully loaded!");
     const service = new google.maps.places.PlacesService(map);
     setService(service);
-    console.log("TODO: weird error with maps container means zoom button might be outside of container?");
 
 }
 
