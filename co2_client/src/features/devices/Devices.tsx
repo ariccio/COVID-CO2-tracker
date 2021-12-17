@@ -98,7 +98,7 @@ export function Device() {
     console.warn("TODO: change to render more than first two measurements :)")
     return (
         <div>
-            Model: "<Link to={deviceModelsPath + `/${deviceInfo.device_model_id}`}>{deviceInfo.device_model}</Link>" - serial #: "{deviceInfo.serial}" first ten measurements:
+            Model: "<Link to={deviceModelsPath + `/${deviceInfo.device_model_id}`}>{deviceInfo.device_model}</Link>" - serial #: "{deviceInfo.serial}" measurements:
             {maybeRenderMeasurements(deviceInfo)}
             
         </div>

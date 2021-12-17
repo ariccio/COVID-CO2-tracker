@@ -16,13 +16,12 @@ class Device < ApplicationRecord
   # validates :user_id, uniqueness: { scope: :serial, message: 'each device can only belong to single user!' }
 
   def first_ten_measurements
-    # byebug
-    measurements = measurement.first(10)
+    # measurements = measurement.first(10)
     # measurements = ::Measurement.where(device_id: device_id).first(10).include(:device, :sub_location)
     # NOTE: this can be a very slow query TODO: faster
     # measurements.each.map do |measurement|
     #   ::Measurement.measurement_with_device_as_json(measurement)
     # end
-    MeasurementSerializer.new(measurements).serializable_hash
+    MeasurementSerializer.new(measurement).serializable_hash
   end
 end
