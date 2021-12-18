@@ -109,6 +109,8 @@ export const knownLanguages = [
   "en-AU",
   "es-ES",
   "es-es",
+  "fr",
+  "fr-CA"
 ]
 
 
