@@ -195,9 +195,7 @@ export function BluetoothTesting(): JSX.Element {
             Cool things are in progress...
             <br/>
             <Button onClick={onClickButton}>Do something secret</Button>
-            <pre>
-                {debugText}
-            </pre>
+            <pre>{debugText}</pre>
         </div>
     )
 }
