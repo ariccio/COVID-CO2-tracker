@@ -251,7 +251,7 @@ function stringifyGoogleLoginError(error: any): string {
     //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
     //"Example replacer, as an array"
     const errorAsString = `${JSON.stringify(error)}, possibly (?) non-enumerable-props: ${JSON.stringify(error, ["error", "details"])}`
-    debugger;
+    // debugger;
     console.log(`stringified google login error: ${errorAsString}`);
     return errorAsString;
 }
@@ -289,6 +289,7 @@ const googleLogoutSuccessCallback = (dispatch: ReturnType<typeof useDispatch>) =
     dispatch(setUsername(''));
     dispatch(setGoogleProfile(null));
     dispatch(setGoogleAuthResponse(null));
+    window.location.reload();
     // debugger;
 }
 

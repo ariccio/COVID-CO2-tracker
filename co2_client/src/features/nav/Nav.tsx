@@ -16,7 +16,6 @@ import * as Sentry from "@sentry/browser"; // for manual error reporting.
 
 
 // import {Login, LoginFormType} from '../login/Login';
-// import {Logout} from '../login/Logout';
 import {formatErrors} from '../../utils/ErrorObject';
 
 import {homePath, devicesPath, profilePath, deviceModelsPath, placesPath, moreInfoPath, bluetoothPath} from '../../paths/paths';
@@ -129,7 +128,7 @@ const UserNav: React.FC<UserNavProps> = ({username, googleProfile}) => {
                 {/* {profileIfLoggedIn(username)} */}
                 <Nav.Link href="https://github.com/ariccio/COVID-CO2-tracker">Github/{translate('sponsor')}</Nav.Link>
                 {loginOrSignupMaybe(username)}
-                {/* <LinkContainer to='/logout'><NavItem className='nav-item'>Logout {props.username}</NavItem></LinkContainer> */}
+                
                 {/* <NavItem className='nav-item' pullRight>{props.username}</NavItem> */}
             </Nav>
         </Navbar.Collapse>
