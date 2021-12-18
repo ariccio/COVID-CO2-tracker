@@ -246,6 +246,15 @@ const googleLoginSuccessCallback = (originalResponse: GoogleLoginResponse | Goog
     //   debugger;
 }
 
+function stringifyGoogleLoginError(error: any): string {
+    //https://stackoverflow.com/a/44862693/625687
+    //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
+    //"Example replacer, as an array"
+    const errorAsString = `${JSON.stringify(error)}, possibly (?) non-enumerable-props: ${JSON.stringify(error, ["error", "details"])}`
+    debugger;
+    console.log(`stringified google login error: ${errorAsString}`);
+    return errorAsString;
+}
 
 // format of error from google is like:
 //  details: "Cookies are not enabled in current environment."
@@ -254,6 +263,7 @@ const googleLoginFailedCallback = (error: any, setGoogleLoginErrorState: React.D
     console.warn("google login failure!")
     console.error(error);
     setGoogleLoginErrorState(`${error.error}, ${error.details}`);
+    const googleLoginErrorStringified = stringifyGoogleLoginError(error);
     if (String(error.error).includes("popup_blocked_by_browser")) {
         alert(`Pop up blocked by browser! Try allowing popups.`);
         return;
@@ -266,8 +276,9 @@ const googleLoginFailedCallback = (error: any, setGoogleLoginErrorState: React.D
         alert(`Cookies are disabled in this environment. Google Login does not work in incognito mode, or with cookie blockers.`);
         return;
     }
-    alert(`Login failed! Error object: ${JSON.stringify(error)}. NOTE: Google login does not work in incognito mode.`);
-    Sentry.captureMessage(`unhandled google login error! Error object: ${String(error.error) + ', ' + String(error.details)}. Full JSON of error object: ${JSON.stringify(error)}`);
+
+    alert(`Login failed for unexpected reason! Error object: ${JSON.stringify(error)}. This is probably Google's fault.`);
+    Sentry.captureMessage(`unhandled google login error! Error object: ${String(error.error) + ', ' + String(error.details)}. Full JSON of error object: ${googleLoginErrorStringified}`);
 }
 
 const googleLogoutSuccessCallback = (dispatch: ReturnType<typeof useDispatch>) => {
