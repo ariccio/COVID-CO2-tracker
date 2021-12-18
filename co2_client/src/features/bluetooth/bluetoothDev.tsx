@@ -5,7 +5,7 @@ import {useSelector} from 'react-redux';
 
 
 
-import { selectDebugText, setDebugText } from "./bluetoothSlice";
+import { selectCO2, selectDebugText, setCO2, setDebugText } from "./bluetoothSlice";
 
 declare module BluetoothUUID {
     export function getService(name: BluetoothServiceUUID ): string;
@@ -17,10 +17,10 @@ declare module BluetoothUUID {
 const SENSOR_SERVICE_UUID = 'f0cd1400-95da-4f4b-9ac8-aa55d312af0c'
 
 
-
+const ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID = "f0cd1503-95da-4f4b-9ac8-aa55d312af0c";
 
 const characteristicUUIDDescriptions = new Map([
-    ["f0cd1503-95da-4f4b-9ac8-aa55d312af0c", "Aranet4: CO2 measurements"],
+    [ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID, "Aranet4: CO2 measurements"],
     ["f0cd3001-95da-4f4b-9ac8-aa55d312af0c", "Aranet4: CO2 measurements, interval, time since measurements"],
     ["f0cd2002-95da-4f4b-9ac8-aa55d312af0c", "Aranet4: measurement interval"],
     ["f0cd2004-95da-4f4b-9ac8-aa55d312af0c", "Aranet4: seconds since last update"],
@@ -149,7 +149,7 @@ async function bluetoothTestingStuffFunc(dispatch: ReturnType<typeof useDispatch
     for (let serviceIndex = 0; serviceIndex < services.length; serviceIndex++) {
         bluetoothMessages += messages(bluetoothMessages, `services[${serviceIndex}].uuid: ${services[serviceIndex].uuid}`, dispatch);
         bluetoothMessages += messages(bluetoothMessages, `services[${serviceIndex}].isPrimary: ${services[serviceIndex].isPrimary}`, dispatch);
-        debugger;
+        // debugger;
         const characteristics = await services[serviceIndex].getCharacteristics();
 
         bluetoothMessages += messages(bluetoothMessages, `Got characteristics (length ${characteristics.length}):`, dispatch)
@@ -160,11 +160,16 @@ async function bluetoothTestingStuffFunc(dispatch: ReturnType<typeof useDispatch
             }
             bluetoothMessages += messages(bluetoothMessages, `\tservices[${serviceIndex}], characteristics[${characteristicIndex}].value: ${characteristics[characteristicIndex].value}`, dispatch);
             dumpBluetoothCharacteristicProperties(characteristics[characteristicIndex].properties, serviceIndex, characteristicIndex);
-            
             if (characteristics[characteristicIndex].properties.read) {
                 try {
                     const data = await characteristics[characteristicIndex].readValue();
                     bluetoothMessages += messages(bluetoothMessages, `\t\tdata: ${data.buffer}`, dispatch);
+                    if (characteristics[characteristicIndex].uuid === ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID) {
+                        // debugger;
+                        const co2 = data.getUint16(0, true);
+                        dispatch(setCO2(co2))
+                    }
+                            
                 }
                 catch(e) {
                     if (e instanceof DOMException) {
@@ -185,6 +190,7 @@ async function bluetoothTestingStuffFunc(dispatch: ReturnType<typeof useDispatch
 
 export function BluetoothTesting(): JSX.Element {
     const debugText = useSelector(selectDebugText);
+    const co2 = useSelector(selectCO2);
     const dispatch = useDispatch();
 
     const onClickButton = () => {
@@ -194,6 +200,10 @@ export function BluetoothTesting(): JSX.Element {
         <div>
             Cool things are in progress...
             <br/>
+
+            CO2: {co2}
+            <br/>
+
             <Button onClick={onClickButton}>Do something secret</Button>
             <pre>{debugText}</pre>
         </div>
