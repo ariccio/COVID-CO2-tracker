@@ -69,6 +69,7 @@ module Api
           status: :bad_request
         )
       rescue ::ActiveRecord::RecordNotFound => e
+        Sentry.capture_exception(e)
         render(
           json: {
             errors: [create_activerecord_notfound_error("couldn't find google_place_id: #{measurement_params.fetch(:google_place_id)} to create measurement for. Possible bug.", e)]
@@ -76,6 +77,7 @@ module Api
           status: :bad_request
         )
       rescue InvalidComboError => e
+        Sentry.capture_exception(e)
         render(
           json: {
             errors: [create_error('invalid parameter combination: this is a bug', e)]
@@ -93,6 +95,7 @@ module Api
           }, status: :ok
         )
       rescue ::ActiveRecord::RecordNotFound => e
+        Sentry.capture_exception(e)
         render(
           json: {
             errors: [create_activerecord_error("couldn't find measurement #{params[:id]} for deletion.", e)]

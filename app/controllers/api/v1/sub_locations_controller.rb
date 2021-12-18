@@ -7,13 +7,13 @@ module Api
 
       # GET /sub_locations/1
       def show
-        ::Rails.logger.debug('sub_locations show')
+        # ::Rails.logger.debug('sub_locations show')
         render json: @sub_location
       end
 
       # POST /sub_locations
       def create
-        ::Rails.logger.debug('sub_locations create')
+        # ::Rails.logger.debug('sub_locations create')
         @sub_location = SubLocation.new(sub_location_params)
 
         if @sub_location.save
@@ -24,20 +24,20 @@ module Api
       end
 
       # PATCH/PUT /sub_locations/1
-      def update
-        ::Rails.logger.debug('sub_locations update')
-        if @sub_location.update(sub_location_params)
-          render json: @sub_location
-        else
-          render json: @sub_location.errors, status: :unprocessable_entity
-        end
-      end
+      # def update
+      #   ::Rails.logger.debug('sub_locations update')
+      #   if @sub_location.update(sub_location_params)
+      #     render json: @sub_location
+      #   else
+      #     render json: @sub_location.errors, status: :unprocessable_entity
+      #   end
+      # end
 
       # DELETE /sub_locations/1
-      def destroy
-        ::Rails.logger.debug('sub_locations destroy')
-        @sub_location.destroy
-      end
+      # def destroy
+      #   # ::Rails.logger.debug('sub_locations destroy')
+      #   # @sub_location.destroy
+      # end
 
       private
 

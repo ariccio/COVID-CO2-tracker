@@ -14,7 +14,7 @@ module Api
     class DeviceController < ApiController
       skip_before_action :authorized, only: [:show]
       def create
-        Rails.logger.debug("user: #{@user.email} trying to create device with params #{params}")
+        # Rails.logger.debug("user: #{@user.email} trying to create device with params #{params}")
         # find(*args): https://api.rubyonrails.org/v6.1.3.1/classes/ActiveRecord/FinderMethods.html#method-i-find
         # "If one or more records cannot be found for the requested ids, then ActiveRecord::RecordNotFound will be raised"
         @model = ::Model.find(device_params.fetch(:model_id))
@@ -46,6 +46,7 @@ module Api
           status: :created
         )
       rescue ::ActiveRecord::RecordNotFound => e
+        Sentry.capture_exception(e)
         render(
           json: {
             errors: [create_activerecord_notfound_error("Couldn't find record while creating new device instance. Wrong model? Possible bug", e)]
@@ -100,6 +101,7 @@ module Api
         end
         measurement_count = @device_instance.measurement.count
         if measurement_count.positive?
+          Sentry.capture_message('Build device detection code!')
           return render(
             json: {
               errors: [create_error("I haven't built the functionality to delete devices with measurements yet. Device has #{measurement_count} measurements. Delete them first.", nil)]
@@ -109,7 +111,6 @@ module Api
         @device_instance.destroy!
         render(
           json: {
-
           }, status: :ok
         )
       end
