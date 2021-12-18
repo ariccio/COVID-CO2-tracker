@@ -97,20 +97,22 @@ const dialogOptionsForSentry = {
   subtitle: "Sorry, this is a bug of some kind. I missed something! This issue is being automatically reported. If you'd like to help, give additional details in this form. If you've seen this error multiple times, consider providing details. Some errors are hard to debug even with telemetry!"
 }
 
+export const knownLanguages = [
+  "en",
+  "en-US",
+  "en-us",
+  "es",
+  "en-gb",
+  "en-CA",
+  "en-ca",
+  "en-GB",
+  "en-AU",
+  "es-ES",
+  "es-es",
+]
+
+
 function checkLanguages(): void {
-  const knownLanguages = [
-    "en",
-    "en-US",
-    "en-us",
-    "es",
-    "en-gb",
-    "en-CA",
-    "en-ca",
-    "en-GB",
-    "en-AU",
-    "es-ES",
-    "es-es"
-  ]
   console.log(`navigator.language: ${navigator.language}`);
   console.log(`navigator.languages: ${navigator.languages}`);
 
