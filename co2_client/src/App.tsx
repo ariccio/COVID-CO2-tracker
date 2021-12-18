@@ -86,6 +86,7 @@ function TopLevelErrorFallback(errorData: {
       <p>
         Try reloading the page in the mean time.
         If you've encountered this error multiple times, please consider providing details.
+        If you were logged in when the app crashed, I may email you when I fix it to let you know :) 
       </p>
     </div>
   );
@@ -100,7 +101,15 @@ function checkLanguages(): void {
   const knownLanguages = [
     "en",
     "en-US",
-    "es"
+    "en-us",
+    "es",
+    "en-gb",
+    "en-CA",
+    "en-ca",
+    "en-GB",
+    "en-AU",
+    "es-ES",
+    "es-es"
   ]
   console.log(`navigator.language: ${navigator.language}`);
   console.log(`navigator.languages: ${navigator.languages}`);
