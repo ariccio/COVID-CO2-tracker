@@ -33,9 +33,12 @@ i18n
 
 i18n.on('failedLoading', (lng, ns, msg) => {
   debugger;
-  console.warn("Loading a language failed!");
   if (!knownLanguages.includes(lng)) {
+    console.warn("Loading a language failed!");
     Sentry.captureMessage(`i18n failedLoading: (lng, ns, msg) ${lng}, ${ns}, ${msg}`)
+  }
+  else {
+    console.log(`Loading a language (${lng}) failed, but I know about this, and it's fine.`)
   }
 })
 // i18n.on('languageChanged', (lng) => {
