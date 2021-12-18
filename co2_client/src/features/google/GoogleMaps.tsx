@@ -215,7 +215,8 @@ const invokeBrowserGeolocation = (setCenter: React.Dispatch<React.SetStateAction
         navigator.geolocation.getCurrentPosition(validPositionCallback, errorCallback, {timeout: 70_000});
     }
     else {
-        alert("geolocation not available (no reason available)")
+        alert("geolocation not available (something is broken in navigator, doesn't have geolocation?)");
+        Sentry.captureMessage(`'geolocation' NOT in navigator`);
     }
 }
 

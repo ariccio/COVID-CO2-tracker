@@ -115,11 +115,11 @@ export const knownLanguages = [
 function checkLanguages(): void {
   console.log(`navigator.language: ${navigator.language}`);
   console.log(`navigator.languages: ${navigator.languages}`);
+  if (!knownLanguages.includes(navigator.language)) {
+    Sentry.captureMessage(navigator.language);
+  }
 
   for(let i = 0; i < navigator.languages.length; ++i) {
-    if (!knownLanguages.includes(navigator.languages[i])) {
-      Sentry.captureMessage(navigator.languages[i]);
-    }
   }
 }
 
