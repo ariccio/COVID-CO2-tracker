@@ -7,6 +7,7 @@ import {devicemodelsReducer} from '../features/deviceModels/deviceModelsSlice';
 import {placesInfoReducer} from '../features/places/placesSlice';
 import { profileReducer } from '../features/profile/profileSlice';
 import { sublocationReducer } from '../features/sublocationsDropdown/sublocationSlice';
+import {bluetoothReducer} from '../features/bluetooth/bluetoothSlice';
 
 export const rootReducer = combineReducers({
     login: loginReducer,
@@ -16,7 +17,8 @@ export const rootReducer = combineReducers({
     devicemodels: devicemodelsReducer,
     placesInfo: placesInfoReducer,
     profile: profileReducer,
-    sublocation: sublocationReducer
+    sublocation: sublocationReducer,
+    bluetooth: bluetoothReducer
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

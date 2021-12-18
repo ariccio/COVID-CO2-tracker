@@ -1,5 +1,11 @@
 /// <reference types="web-bluetooth" />
 import { Button } from "react-bootstrap";
+import {useDispatch} from 'react-redux';
+import {useSelector} from 'react-redux';
+
+
+
+import { selectDebugText, setDebugText } from "./bluetoothSlice";
 
 declare module BluetoothUUID {
     export function getService(name: BluetoothServiceUUID ): string;
@@ -96,11 +102,16 @@ async function hasGetDevices() {
     if (devices.length === 0) {
         debugger;
     }
-
-
 }
 
-async function bluetoothTestingStuffFunc() {
+function messages(messagesString: string, objectOrString: string, dispatch: ReturnType<typeof useDispatch>): string {
+    let newMessagesString = messagesString + `${objectOrString}\r\n`;
+    console.log(objectOrString);
+    dispatch(setDebugText(newMessagesString))
+    return `${objectOrString}\r\n`;
+}
+
+async function bluetoothTestingStuffFunc(dispatch: ReturnType<typeof useDispatch>) {
     console.log(navigator.bluetooth);
     const available = await navigator.bluetooth.getAvailability();
     console.log("bluetooth available: ", available);
@@ -111,6 +122,7 @@ async function bluetoothTestingStuffFunc() {
     if ((navigator.bluetooth.getDevices as any)) {
         hasGetDevices();
     }
+
     const options = aranet4DeviceRequestOptions();
 
     //https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth/requestDevice
@@ -118,9 +130,12 @@ async function bluetoothTestingStuffFunc() {
     // const co2_descriptor = BluetoothUUID.getCharacteristic('f0cd3001-95da-4f4b-9ac8-aa55d312af0c');
     // console.log(co2_descriptor);
     // debugger;
-    console.log(`device.id: ${device.id}`);
-    console.log(`device.name: ${device.name}`);
-    console.log(`device.uuids: ${device.uuids}`);
+
+    let bluetoothMessages = "";
+
+    bluetoothMessages += messages(bluetoothMessages, `device.id: ${device.id}`, dispatch);
+    bluetoothMessages += messages(bluetoothMessages, `device.name: ${device.name}`, dispatch);
+    bluetoothMessages += messages(bluetoothMessages, `device.uuids: ${device.uuids}`, dispatch);
 
     if (device.gatt === undefined) {
         debugger;
@@ -130,53 +145,59 @@ async function bluetoothTestingStuffFunc() {
 
 
     const services = await deviceServer.getPrimaryServices();
-    console.log(`Got services (length: ${services.length}):`)
+    bluetoothMessages += messages(bluetoothMessages, `Got services (length: ${services.length}):`, dispatch)
     for (let serviceIndex = 0; serviceIndex < services.length; serviceIndex++) {
-        console.log(`services[${serviceIndex}].uuid: ${services[serviceIndex].uuid}`);
-        console.log(`services[${serviceIndex}].isPrimary: ${services[serviceIndex].isPrimary}`);
-
+        bluetoothMessages += messages(bluetoothMessages, `services[${serviceIndex}].uuid: ${services[serviceIndex].uuid}`, dispatch);
+        bluetoothMessages += messages(bluetoothMessages, `services[${serviceIndex}].isPrimary: ${services[serviceIndex].isPrimary}`, dispatch);
+        debugger;
         const characteristics = await services[serviceIndex].getCharacteristics();
 
-        console.log(`Got characteristics (length ${characteristics.length}):`)
+        bluetoothMessages += messages(bluetoothMessages, `Got characteristics (length ${characteristics.length}):`, dispatch)
         for (let characteristicIndex = 0; characteristicIndex < characteristics.length; characteristicIndex++) {
-            console.log(`\tservices[${serviceIndex}], characteristics[${characteristicIndex}].uuid: ${characteristics[characteristicIndex].uuid}`);
+            bluetoothMessages += messages(bluetoothMessages, `\tservices[${serviceIndex}], characteristics[${characteristicIndex}].uuid: ${characteristics[characteristicIndex].uuid}`, dispatch);
             if (characteristicUUIDDescriptions.has(characteristics[characteristicIndex].uuid)) {
-                console.log(`\t\tKnown characteristic! ${characteristicUUIDDescriptions.get(characteristics[characteristicIndex].uuid)}`);
+                bluetoothMessages += messages(bluetoothMessages, `\t\tKnown characteristic! ${characteristicUUIDDescriptions.get(characteristics[characteristicIndex].uuid)}`, dispatch);
             }
-            console.log(`\tservices[${serviceIndex}], characteristics[${characteristicIndex}].value: ${characteristics[characteristicIndex].value}`);
+            bluetoothMessages += messages(bluetoothMessages, `\tservices[${serviceIndex}], characteristics[${characteristicIndex}].value: ${characteristics[characteristicIndex].value}`, dispatch);
             dumpBluetoothCharacteristicProperties(characteristics[characteristicIndex].properties, serviceIndex, characteristicIndex);
             
             if (characteristics[characteristicIndex].properties.read) {
                 try {
                     const data = await characteristics[characteristicIndex].readValue();
-                    console.log(`\t\tdata: ${data.buffer}`);
+                    bluetoothMessages += messages(bluetoothMessages, `\t\tdata: ${data.buffer}`, dispatch);
                 }
                 catch(e) {
                     if (e instanceof DOMException) {
-                        console.error(`\t\tCannot read from ${characteristics[characteristicIndex].uuid}!`)
+                        bluetoothMessages += messages(bluetoothMessages, `\t\tCannot read from ${characteristics[characteristicIndex].uuid}!`, dispatch)
                     }
                     else {
                         throw e;
                     }
                 }
             }
-            console.log('');
+            bluetoothMessages += messages(bluetoothMessages, '\n', dispatch);
         }
-        console.log('\n');
+        bluetoothMessages += messages(bluetoothMessages, '\n', dispatch);
     }
 
     debugger;
 }
 
 export function BluetoothTesting(): JSX.Element {
+    const debugText = useSelector(selectDebugText);
+    const dispatch = useDispatch();
+
     const onClickButton = () => {
-        bluetoothTestingStuffFunc();
+        bluetoothTestingStuffFunc(dispatch);
     }
     return (
         <div>
             Cool things are in progress...
             <br/>
             <Button onClick={onClickButton}>Do something secret</Button>
+            <pre>
+                {debugText}
+            </pre>
         </div>
     )
 }
