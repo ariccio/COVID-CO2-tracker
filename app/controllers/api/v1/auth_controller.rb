@@ -141,7 +141,7 @@ module Api
         @decoded_token = token_from_google
         # byebug
         @user = ::User.find_by!(sub_google_uid: @decoded_token['sub'])
-        Sentry.capture_message("stored email #{@user.email} differs from #{@decoded_token['email']}")
+        Sentry.capture_message("stored email #{@user.email} differs from #{@decoded_token['email']}") if @user.email != @decoded_token['email']
         Rails.logger.warn("stored email #{@user.email} differs from #{@decoded_token['email']}, TODO: write code to update.") if @user.email != @decoded_token['email']
         # byebug
         render_successful_authentication
