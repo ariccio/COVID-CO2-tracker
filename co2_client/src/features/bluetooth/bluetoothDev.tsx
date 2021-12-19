@@ -5,7 +5,7 @@ import {useSelector} from 'react-redux';
 
 
 
-import { selectCO2, selectDebugText, setCO2, setDebugText } from "./bluetoothSlice";
+import { selectCO2, selectDebugText, selectBluetoothAvailableError, setCO2, setDebugText, setBluetoothAvailableError, selectBluetoothAvailable, setBluetoothAvailable } from "./bluetoothSlice";
 
 declare module BluetoothUUID {
     export function getService(name: BluetoothServiceUUID ): string;
@@ -95,14 +95,14 @@ function dumpBluetoothCharacteristicProperties(properties: BluetoothCharacterist
     }
 }
 
-async function hasGetDevices() {
-    const devices = await navigator.bluetooth.getDevices()
-    console.log("bluetooth devices:");
-    console.table(devices);
-    if (devices.length === 0) {
-        debugger;
-    }
-}
+// async function hasGetDevices() {
+//     const devices = await navigator.bluetooth.getDevices()
+//     console.log("bluetooth devices:");
+//     console.table(devices);
+//     if (devices.length === 0) {
+//         debugger;
+//     }
+// }
 
 function messages(messagesString: string, objectOrString: string, dispatch: ReturnType<typeof useDispatch>): string {
     let newMessagesString = messagesString + `${objectOrString}\r\n`;
@@ -111,17 +111,30 @@ function messages(messagesString: string, objectOrString: string, dispatch: Retu
     return `${objectOrString}\r\n`;
 }
 
-async function bluetoothTestingStuffFunc(dispatch: ReturnType<typeof useDispatch>) {
+async function checkBluetooth(dispatch: ReturnType<typeof useDispatch>) {
     console.log(navigator.bluetooth);
+    if (navigator.bluetooth === undefined) {
+        dispatch(setBluetoothAvailableError('bluetooth is unavailable on your platform. (navigator.bluetooth undefined)'));
+        dispatch(setBluetoothAvailable(false));
+        alert('bluetooth is unavailable on your platform. (navigator.bluetooth undefined)');
+        return;
+    }
     const available = await navigator.bluetooth.getAvailability();
     console.log("bluetooth available: ", available);
+    dispatch(setBluetoothAvailable(available));
     if (!available) {
-        alert("bluetooth not available?");
-        debugger;
+        alert("bluetooth may not be available.");
+        dispatch(setBluetoothAvailableError('bluetooth may not be available. navigator.bluetooth.getAvailability() returned false.'));
+        return;
     }
-    if ((navigator.bluetooth.getDevices as any)) {
-        hasGetDevices();
-    }
+    dispatch(setBluetoothAvailableError(null));
+}
+
+async function bluetoothTestingStuffFunc(dispatch: ReturnType<typeof useDispatch>) {
+
+    // if ((navigator.bluetooth.getDevices as any)) {
+    //     hasGetDevices();
+    // }
 
     const options = aranet4DeviceRequestOptions();
 
@@ -184,27 +197,82 @@ async function bluetoothTestingStuffFunc(dispatch: ReturnType<typeof useDispatch
         }
         bluetoothMessages += messages(bluetoothMessages, '\n', dispatch);
     }
+}
 
-    debugger;
+function maybeCO2(co2: number | null) {
+    if (co2 === null) {
+        return (
+            <div>
+                No CO2 value.
+            </div>
+        );
+    }
+    return (
+        <div>
+            CO2: {co2}
+        </div>
+    )
+}
+
+function maybeBluetoothAvailableError(bluetoothAvailableError: string | null) {
+    if (bluetoothAvailableError === null) {
+        return (
+            <div></div>
+        );
+    }
+    return (
+        <div style={{color: 'red'}}>
+            Bluetooth might not be available. Error: {bluetoothAvailableError}
+        </div>
+    )
+}
+
+function maybeBluetoothAvailable(bluetoothAvailable: boolean | null) {
+    if (bluetoothAvailable === null) {
+        return (
+            <div></div>
+        );
+    }
+    if (bluetoothAvailable) {
+        return (
+            <div>
+                Bluetooth available.
+            </div>
+        );
+    }
+    return (
+        <div style={{color: 'red'}}>
+            Bluetooth not available.
+        </div>
+    );
 }
 
 export function BluetoothTesting(): JSX.Element {
     const debugText = useSelector(selectDebugText);
     const co2 = useSelector(selectCO2);
+    const bluetoothAvailableError = useSelector(selectBluetoothAvailableError);
+    const bluetoothAvailable = useSelector(selectBluetoothAvailable);
+
     const dispatch = useDispatch();
 
-    const onClickButton = () => {
+    const checkBluetoothAvailable = () => {
+        checkBluetooth(dispatch);
+    }
+
+    const queryDeviceOverBluetooth = () => {
         bluetoothTestingStuffFunc(dispatch);
     }
+
+
     return (
         <div>
-            Cool things are in progress...
+            <h3>Experimental Bluetooth support</h3>
+            <Button onClick={checkBluetoothAvailable}>Check bluetooth availability</Button>
+            {maybeBluetoothAvailable(bluetoothAvailable)}
+            {maybeBluetoothAvailableError(bluetoothAvailableError)}<br/>
+            {maybeCO2(co2)}<br/>
             <br/>
-
-            CO2: {co2}
-            <br/>
-
-            <Button onClick={onClickButton}>Do something secret</Button>
+            <Button onClick={queryDeviceOverBluetooth}>Query device</Button>
             <pre>{debugText}</pre>
         </div>
     )
