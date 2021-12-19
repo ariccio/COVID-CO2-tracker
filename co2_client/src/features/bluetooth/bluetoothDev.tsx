@@ -1,11 +1,12 @@
 /// <reference types="web-bluetooth" />
 import { Button } from "react-bootstrap";
+
 import {useDispatch} from 'react-redux';
 import {useSelector} from 'react-redux';
 
 
 
-import { selectCO2, selectDebugText, selectBluetoothAvailableError, setCO2, setDebugText, setBluetoothAvailableError, selectBluetoothAvailable, setBluetoothAvailable } from "./bluetoothSlice";
+import { selectCO2, selectDebugText, selectBluetoothAvailableError, setCO2, setDebugText, setBluetoothAvailableError, selectBluetoothAvailable, setBluetoothAvailable, setTemperature, selectTemperature, setBarometricPressure, selectBarometricPressure, selectHumidity, setHumidity, selectBattery, setBattery, setAranet4UnknownField, selectAranet4UnknownField } from "./bluetoothSlice";
 
 declare module BluetoothUUID {
     export function getService(name: BluetoothServiceUUID ): string;
@@ -53,7 +54,7 @@ function aranet4DeviceRequestOptions(): RequestDeviceOptions {
 
 }
 
-function dumpBluetoothCharacteristicProperties(properties: BluetoothCharacteristicProperties, serviceIndex: number, characteristicIndex: number): void {
+function dumpBluetoothCharacteristicProperties(properties: BluetoothCharacteristicProperties, serviceIndex: number, characteristicIndex: number): string {
     // readonly broadcast: boolean;
     // readonly read: boolean;
     // readonly writeWithoutResponse: boolean;
@@ -64,35 +65,36 @@ function dumpBluetoothCharacteristicProperties(properties: BluetoothCharacterist
     // readonly reliableWrite: boolean;
     // readonly writableAuxiliaries: boolean;
 
-    
-    console.log(`\tservices[${serviceIndex}], characteristics[${characteristicIndex}].properties:`);
+    let messages = "";
+    messages += (`\tservices[${serviceIndex}], characteristics[${characteristicIndex}].properties:\n`);
     if (properties.broadcast) {
-        console.log(`\t\tbroadcast: ${properties.broadcast}`);
+        messages += (`\t\tbroadcast: ${properties.broadcast}\n`);
     }
     if (properties.read) {
-        console.log(`\t\tread: ${properties.read}`);
+        messages += (`\t\tread: ${properties.read}\n`);
     }
     if (properties.writeWithoutResponse) {
-        console.log(`\t\twriteWithoutResponse: ${properties.writeWithoutResponse}`);
+        messages += (`\t\twriteWithoutResponse: ${properties.writeWithoutResponse}\n`);
     }
     if (properties.write) {
-        console.log(`\t\twrite: ${properties.write}`);
+        messages += (`\t\twrite: ${properties.write}\n`);
     }
     if (properties.notify) {
-        console.log(`\t\tnotify: ${properties.notify}`);
+        messages += (`\t\tnotify: ${properties.notify}\n`);
     }
     if (properties.indicate) {
-        console.log(`\t\tindicate: ${properties.indicate}`);
+        messages += (`\t\tindicate: ${properties.indicate}\n`);
     }
     if (properties.authenticatedSignedWrites) {
-        console.log(`\t\tauthenticatedSignedWrites: ${properties.authenticatedSignedWrites}`);
+        messages += (`\t\tauthenticatedSignedWrites: ${properties.authenticatedSignedWrites}\n`);
     }
     if (properties.reliableWrite) {
-        console.log(`\t\treliableWrite: ${properties.reliableWrite}`);
+        messages += (`\t\treliableWrite: ${properties.reliableWrite}\n`);
     }
     if (properties.writableAuxiliaries) {
-        console.log(`\t\twritableAuxiliaries: ${properties.writableAuxiliaries}`);
+        messages += (`\t\twritableAuxiliaries: ${properties.writableAuxiliaries}\n`);
     }
+    return messages;
 }
 
 // async function hasGetDevices() {
@@ -163,6 +165,8 @@ async function bluetoothTestingStuffFunc(dispatch: ReturnType<typeof useDispatch
         bluetoothMessages += messages(bluetoothMessages, `services[${serviceIndex}].uuid: ${services[serviceIndex].uuid}`, dispatch);
         bluetoothMessages += messages(bluetoothMessages, `services[${serviceIndex}].isPrimary: ${services[serviceIndex].isPrimary}`, dispatch);
         // debugger;
+
+        //getCharacteristics can fail!
         const characteristics = await services[serviceIndex].getCharacteristics();
 
         bluetoothMessages += messages(bluetoothMessages, `Got characteristics (length ${characteristics.length}):`, dispatch)
@@ -172,7 +176,7 @@ async function bluetoothTestingStuffFunc(dispatch: ReturnType<typeof useDispatch
                 bluetoothMessages += messages(bluetoothMessages, `\t\tKnown characteristic! ${characteristicUUIDDescriptions.get(characteristics[characteristicIndex].uuid)}`, dispatch);
             }
             bluetoothMessages += messages(bluetoothMessages, `\tservices[${serviceIndex}], characteristics[${characteristicIndex}].value: ${characteristics[characteristicIndex].value}`, dispatch);
-            dumpBluetoothCharacteristicProperties(characteristics[characteristicIndex].properties, serviceIndex, characteristicIndex);
+            bluetoothMessages += dumpBluetoothCharacteristicProperties(characteristics[characteristicIndex].properties, serviceIndex, characteristicIndex);
             if (characteristics[characteristicIndex].properties.read) {
                 try {
                     const data = await characteristics[characteristicIndex].readValue();
@@ -181,6 +185,16 @@ async function bluetoothTestingStuffFunc(dispatch: ReturnType<typeof useDispatch
                         // debugger;
                         const co2 = data.getUint16(0, true);
                         dispatch(setCO2(co2))
+                        const temperature = (data.getUint16(2, true) / 20);
+                        dispatch(setTemperature(temperature));
+                        const barometricPressure = (data.getUint16(4, true) / 10);
+                        dispatch(setBarometricPressure(barometricPressure))
+                        const humidity = data.getUint8(6);
+                        dispatch(setHumidity(humidity));
+                        const battery = data.getUint8(7);
+                        dispatch(setBattery(battery));
+                        const unknownField = data.getUint8(8);
+                        dispatch(setAranet4UnknownField(unknownField));
                     }
                             
                 }
@@ -250,6 +264,12 @@ function maybeBluetoothAvailable(bluetoothAvailable: boolean | null) {
 export function BluetoothTesting(): JSX.Element {
     const debugText = useSelector(selectDebugText);
     const co2 = useSelector(selectCO2);
+    const temperature = useSelector(selectTemperature);
+    const barometricPressure = useSelector(selectBarometricPressure);
+    const humidity = useSelector(selectHumidity);
+    const battery = useSelector(selectBattery);
+    const aranet4UnknownField = useSelector(selectAranet4UnknownField);
+
     const bluetoothAvailableError = useSelector(selectBluetoothAvailableError);
     const bluetoothAvailable = useSelector(selectBluetoothAvailable);
 
@@ -271,8 +291,13 @@ export function BluetoothTesting(): JSX.Element {
             {maybeBluetoothAvailable(bluetoothAvailable)}
             {maybeBluetoothAvailableError(bluetoothAvailableError)}<br/>
             {maybeCO2(co2)}<br/>
+            Temperature: {temperature}<br/>
+            Pressure: {barometricPressure}<br/>
+            Humidity: {humidity}<br/>
+            Battery: {battery}<br/>
+            Unknown/undocumented field: {aranet4UnknownField}<br/>
             <br/>
-            <Button onClick={queryDeviceOverBluetooth}>Query device</Button>
+            <Button onClick={queryDeviceOverBluetooth}>Dump device info, attempt query</Button>
             <pre>{debugText}</pre>
         </div>
     )
