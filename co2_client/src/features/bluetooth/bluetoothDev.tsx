@@ -603,22 +603,36 @@ async function getAranet4DataOverBluetooth(dispatch: ReturnType<typeof useDispat
     const options = aranet4DeviceRequestOptions();
     //https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth/requestDevice
 
-    //TODO: requestDevice can throw a DOMException
-    const device = await navigator.bluetooth.requestDevice(options);
-    if (device.gatt === undefined) {
-        debugger;
-        return;
+    try {
+        const device = await navigator.bluetooth.requestDevice(options);
+        if (device.gatt === undefined) {
+            debugger;
+            return;
+        }
+        const deviceServer = await device.gatt.connect();
+        const Aranet4Service = await deviceServer.getPrimaryService(SENSOR_SERVICE_UUID);
+        const co2Characteristic = await Aranet4Service.getCharacteristic(ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID);
+        const co2Data = await co2Characteristic.readValue();
+        parse_ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID(co2Data, dispatch);
+        const genericAccessService = await deviceServer.getPrimaryService('00001800-0000-1000-8000-00805f9b34fb');
+        const nameCharacteristic = await genericAccessService.getCharacteristic('00002a00-0000-1000-8000-00805f9b34fb');
+        const nameData = await nameCharacteristic.readValue();
+        const name = parseUTF8StringDataView(nameData);
+        dispatch(setAranet4DeviceName(name));
     }
-    const deviceServer = await device.gatt.connect();
-    const Aranet4Service = await deviceServer.getPrimaryService(SENSOR_SERVICE_UUID);
-    const co2Characteristic = await Aranet4Service.getCharacteristic(ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID);
-    const co2Data = await co2Characteristic.readValue();
-    parse_ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID(co2Data, dispatch);
-    const genericAccessService = await deviceServer.getPrimaryService('00001800-0000-1000-8000-00805f9b34fb');
-    const nameCharacteristic = await genericAccessService.getCharacteristic('00002a00-0000-1000-8000-00805f9b34fb');
-    const nameData = await nameCharacteristic.readValue();
-    const name = parseUTF8StringDataView(nameData);
-    dispatch(setAranet4DeviceName(name));
+    catch (e) {
+        if (e instanceof DOMException) {
+            alert(`DOMException bluetooth operation likely cancelled. Error code: ${e.code}, message: ${e.message}`);
+            console.error(e);
+            return;
+        }
+        else {
+            console.error(`Unexpected exception during bluetooth. Exception type: ${typeof e}, e: ${e}`);
+            alert(`Unexpected exception during bluetooth. Exception type: ${typeof e}, e: ${e}`);
+            throw e;
+        }
+
+    }
 }
 
 function maybeCO2(co2: number | null) {
