@@ -1,4 +1,6 @@
 https://linux-bluetooth.vger.kernel.narkive.com/ZBk8FySe/patch-v2-gatt-translate-characteristic-names
+
+Also findable at: https://www.spinics.net/lists/linux-bluetooth/msg28719.html
 ```
 {"00002a43-0000-1000-8000-00805f9b34fb","Alert Category ID" },
 {"00002a42-0000-1000-8000-00805f9b34fb","Alert Category ID Bit Mask" },

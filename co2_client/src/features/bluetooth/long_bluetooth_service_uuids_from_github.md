@@ -1,3 +1,6 @@
+from https://gist.github.com/sam016/4abe921b5a9ee27f67b3686910293026, slightly modified:
+
+```
         ['00002a00-0000-1000-8000-00805f9b34fb', 'Device Name'],
         ['00002a01-0000-1000-8000-00805f9b34fb', 'Appearance'],
         ['00002a02-0000-1000-8000-00805f9b34fb', 'Peripheral Privacy Flag'],
@@ -215,3 +218,4 @@
         ['00002b1d-0000-1000-8000-00805f9b34fb', 'RC Feature'],
         ['00002b1e-0000-1000-8000-00805f9b34fb', 'RC Settings'],
         ['00002b1f-0000-1000-8000-00805f9b34fb', 'Reconnection Configuration Control Point'],
+```

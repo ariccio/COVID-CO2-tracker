@@ -34,3 +34,8 @@ Some data may be in the wrong order. For example:
 		Trying to parse data as UTF-8 string: ';'
 		Trying to parse data as uint8 array: '59,0'
 		Trying to parse data as uint16 array: '15104'
+
+
+See also: https://stackoverflow.com/a/55163224
+(quotes the spec): 
+    "Multi-octet fields within the GATT Profile shall be sent least significant octet first (little endian)."
