@@ -8,7 +8,7 @@ import { setSelectedDevice } from "../deviceModels/deviceModelsSlice";
 
 
 
-import { selectCO2, selectDebugText, selectBluetoothAvailableError, setCO2, setDebugText, setBluetoothAvailableError, selectBluetoothAvailable, setBluetoothAvailable, setTemperature, selectTemperature, setBarometricPressure, selectBarometricPressure, selectHumidity, setHumidity, selectBattery, setBattery, setAranet4UnknownField, selectAranet4UnknownField, setDeviceNameFromCharacteristic, setDeviceID, selectDeviceID, setDeviceName, selectDeviceName, selectDeviceNameFromCharacteristic, setAranet4MeasurementInterval, selectAranet4MeasurementInterval, setAranet4TotalMeasurements, selectAranet4TotalMeasurements, setModelNumberString, selectModelNumberString, setFirmwareRevisionString, selectFirmwareRevisionString, setHardwareRevisionString, selectHardwareRevisionString, setSoftwareRevisionString, selectSoftwareRevisionString, setManufacturername, selectManufacturerNameString, setAranet4SecondsSinceLastMeasurement, selectAranet4SecondsSinceLastUpdate } from "./bluetoothSlice";
+import { selectCO2, selectDebugText, selectBluetoothAvailableError, setCO2, setDebugText, setBluetoothAvailableError, selectBluetoothAvailable, setBluetoothAvailable, setTemperature, selectTemperature, setBarometricPressure, selectBarometricPressure, selectHumidity, setHumidity, selectBattery, setBattery, setAranet4UnknownField, selectAranet4UnknownField, setDeviceNameFromCharacteristic, setDeviceID, selectDeviceID, setDeviceName, selectDeviceName, selectDeviceNameFromCharacteristic, setAranet4MeasurementInterval, selectAranet4MeasurementInterval, setAranet4TotalMeasurements, selectAranet4TotalMeasurements, setModelNumberString, selectModelNumberString, setFirmwareRevisionString, selectFirmwareRevisionString, setHardwareRevisionString, selectHardwareRevisionString, setSoftwareRevisionString, selectSoftwareRevisionString, setManufacturerName, selectManufacturerNameString, setAranet4SecondsSinceLastMeasurement, selectAranet4SecondsSinceLastUpdate } from "./bluetoothSlice";
 
 declare module BluetoothUUID {
     export function getService(name: BluetoothServiceUUID ): string;
@@ -35,7 +35,7 @@ const GENERIC_GATT_FIRMWARE_REVISION_STRING_UUID = '00002a26-0000-1000-8000-0080
 const GENERIC_GATT_DEVICE_INFORMATION_SYSTEM_ID_UUID = '00002a23-0000-1000-8000-00805f9b34fb';
 
 
-// const DEVICE_INFORMATION_SERVICE_UUID = '0000180a-0000-1000-8000-00805f9b34fb';
+const DEVICE_INFORMATION_SERVICE_UUID = '0000180a-0000-1000-8000-00805f9b34fb';
 const GENERIC_ACCESS_SERVICE_UUID = '00001800-0000-1000-8000-00805f9b34fb';
 
 
@@ -609,7 +609,7 @@ async function bluetoothTestingStuffFunc(dispatch: ReturnType<typeof useDispatch
                         case (GENERIC_GATT_MANUFACTURER_NAME_STRING_UUID):
                             const manufacturerName = parseUTF8StringDataView(data);
                             bluetoothMessages += messages(bluetoothMessages, `\t\tBluetooth manufacturer name string: ${manufacturerName}`, dispatch);
-                            dispatch(setManufacturername(manufacturerName));
+                            dispatch(setManufacturerName(manufacturerName));
                             break;
                         case (GENERIC_GATT_DEVICE_NAME_UUID):
                             const name = parseUTF8StringDataView(data);
@@ -726,6 +726,36 @@ async function getAranet4DataOverBluetooth(dispatch: ReturnType<typeof useDispat
         const totalMeasurements = totalMeasurementsData.getUint16(0, true);
         dispatch(setAranet4TotalMeasurements(totalMeasurements));
 
+
+
+        const deviceInformationService = await deviceServer.getPrimaryService(DEVICE_INFORMATION_SERVICE_UUID);
+
+        const modelNumberStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_DEVICE_MODEL_NUMBER_STRING_UUID);
+        const modelNumberStringData = await modelNumberStringCharacteristic.readValue();
+        const modelNumberString = parseUTF8StringDataView(modelNumberStringData);
+        dispatch(setModelNumberString(modelNumberString));
+
+        const firmwareStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_FIRMWARE_REVISION_STRING_UUID);
+        const firmwareStringData = await firmwareStringCharacteristic.readValue();
+        const firmwareRevisionString = parseUTF8StringDataView(firmwareStringData);
+        dispatch(setFirmwareRevisionString(firmwareRevisionString));
+
+
+        const hardwareRevisionStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_HARDWARE_REVISION_STRING_UUID);
+        const hardwareRevisionData = await hardwareRevisionStringCharacteristic.readValue();
+        const hardwareRevisionString = parseUTF8StringDataView(hardwareRevisionData);
+        dispatch(setHardwareRevisionString(hardwareRevisionString));
+
+
+        const softwareRevisionStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_SOFTWARE_REVISION_STRING_UUID);
+        const softwareRevisionData = await softwareRevisionStringCharacteristic.readValue();
+        const softwareRevisionString = parseUTF8StringDataView(softwareRevisionData);
+        dispatch(setSoftwareRevisionString(softwareRevisionString));
+
+        const manufactuterNameStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_MANUFACTURER_NAME_STRING_UUID);
+        const manufacturerNameData = await manufactuterNameStringCharacteristic.readValue();
+        const manufacturernameString = parseUTF8StringDataView(manufacturerNameData);
+        dispatch(setManufacturerName(manufacturernameString));
 
 
 
