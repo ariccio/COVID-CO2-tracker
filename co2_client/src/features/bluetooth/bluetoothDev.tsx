@@ -344,7 +344,44 @@ function aranet4DeviceRequestOptions(): RequestDeviceOptions {
         'battery_service',
         'environmental_sensing',
         'generic_attribute',
-        'generic_access'
+        'generic_access',
+        'immediate_alert',
+
+
+        'link_loss',
+        'tx_power',
+        'current_time',
+        'reference_time_update',
+        'next_dst_change',
+        'glucose',
+        'health_thermometer',
+        'device_information',
+        'heart_rate',
+        'phone_alert_status',
+        'blood_pressure',
+        'alert_notification',
+        'human_interface_device',
+        'scan_parameters',
+        'running_speed_and_cadence',
+        'automation_io',
+        'cycling_speed_and_cadence',
+        'cycling_power',
+        'location_and_navigation',
+        'body_composition',
+        'user_data',
+        'weight_scale',
+        'bond_management',
+        'continuous_glucose_monitoring',
+        'internet_protocol_support',
+        'indoor_positioning',
+        'pulse_oximeter',
+        'http_proxy',
+        'transport_discovery',
+        'object_transfer',
+        'fitness_machine',
+        'mesh_provisioning',
+        'mesh_proxy',
+        'reconnection_configuration'
       ];
 
     const deviceRequestOptions: RequestDeviceOptions = {
@@ -529,6 +566,7 @@ async function bluetoothTestingStuffFunc(dispatch: ReturnType<typeof useDispatch
         // debugger;
 
         //getCharacteristics can fail!
+        //Unhandled Rejection (NetworkError): Failed to execute 'getCharacteristics' on 'BluetoothRemoteGATTService': GATT Server is disconnected. Cannot retrieve characteristics. (Re)connect first with `device.gatt.connect`.
         const characteristics = await services[serviceIndex].getCharacteristics();
 
         bluetoothMessages += messages(bluetoothMessages, `Got characteristics (length ${characteristics.length}):`, dispatch)
@@ -628,7 +666,35 @@ async function bluetoothTestingStuffFunc(dispatch: ReturnType<typeof useDispatch
                             bluetoothMessages += messages(bluetoothMessages, `\t\tTrying to parse data as uint8 array: '${asUint8s}'`, dispatch);
                             const asUint16s = parseAsUint16Numbers(data);
                             bluetoothMessages += messages(bluetoothMessages, `\t\tTrying to parse data as uint16 array: '${asUint16s}'`, dispatch);
-                    }
+
+                            const asUint32s = parseAsUint32Numbers(data);
+                            bluetoothMessages += messages(bluetoothMessages, `\t\tTrying to parse data as uint32 array: '${asUint32s}'`, dispatch);
+
+                            const asUint64s = parseAsUint64Numbers(data);
+                            bluetoothMessages += messages(bluetoothMessages, `\t\tTrying to parse data as uint64 array: '${asUint64s}'`, dispatch);
+
+                            // for (let offset = 1; offset < data.byteLength; offset++) {
+                                // const asOffsetUint8 = parseAsUint8NumbersOffset(data, offset);
+                                // if (asOffsetUint8.length > 0) {
+                                //     bluetoothMessages += messages(bluetoothMessages, `\t\t\tTrying to parse data as uint8 array with offset ${offset}: '${asOffsetUint8}'`, dispatch);
+                                // }
+                            // }
+                            const asLEUint16 = parseAsUint16NumbersLittleEndian(data);
+                            if (asLEUint16.length > 0) {
+                                bluetoothMessages += messages(bluetoothMessages, `\t\t\tParsed data as uint16 array as LE: '${asLEUint16}'`, dispatch);
+                            }
+
+                            const asLEUint32 = parseAsUint32NumbersLittleEndian(data);
+                            if (asLEUint32.length > 0) {
+                                bluetoothMessages += messages(bluetoothMessages, `\t\t\tParsed data as uint32 array as LE: '${asLEUint32}'`, dispatch);
+                            }
+
+                            const asLEUint64 = parseAsUint64NumbersLittleEndian(data);
+                            if (asLEUint64.length > 0) {
+                                bluetoothMessages += messages(bluetoothMessages, `\t\t\tParsed data as uint64 array as LE: '${asLEUint64}'`, dispatch);
+                            }
+
+                        }
                             
                 }
                 catch(e) {
@@ -669,11 +735,138 @@ function parseAsUint16Numbers(data: DataView): string {
         uint16Numbers[i] = data.getUint16(i);
     }
     // debugger;
+    const numberStringArray = uint16Numbers.map((uint16Number) => {
+        return String(uint16Number);
+    })
+    return numberStringArray.toString();
+}
+
+function parseAsUint16NumbersLittleEndian(data: DataView): string {
+    if (data.byteLength < 2) {
+        return "(Too short)";
+    }
+    let uint16Numbers = new Array();
+    for (let i = 0; i < (data.byteLength/2); i++) {
+        if ((i*2) > data.byteLength) {
+            debugger;
+        }
+        uint16Numbers[i] = data.getUint16(i, true);
+    }
+    // debugger;
     const numberStringArray = uint16Numbers.map((uint8Number) => {
         return String(uint8Number);
     })
     return numberStringArray.toString();
 }
+
+
+function parseAsUint32Numbers(data: DataView): string {
+    if (data.byteLength < 2) {
+        return "(Too short)";
+    }
+    let uint32Numbers = new Array();
+    for (let i = 0; i < (data.byteLength/4); i++) {
+        if ((i*4) > data.byteLength) {
+            debugger;
+        }
+        if ((data.byteLength/4) < 1) {
+            return '';
+        }
+        try {
+            uint32Numbers[i] = data.getUint32(i);
+        }
+        catch (e) {
+            if (e instanceof RangeError) {
+                debugger;
+                throw e;
+            }
+            throw e;
+        }
+    }
+    // debugger;
+    const numberStringArray = uint32Numbers.map((uint32Number) => {
+        return String(uint32Number);
+    })
+    return numberStringArray.toString();
+}
+
+function parseAsUint32NumbersLittleEndian(data: DataView): string {
+    if (data.byteLength < 2) {
+        return "(Too short)";
+    }
+    let uint32Numbers = new Array();
+    for (let i = 0; i < (data.byteLength/4); i++) {
+        if ((i*4) > data.byteLength) {
+            debugger;
+        }
+        if ((data.byteLength/4) < 1) {
+            return '';
+        }
+        try {
+            uint32Numbers[i] = data.getUint32(i, true);
+        }
+        catch (e) {
+            if (e instanceof RangeError) {
+                debugger;
+                throw e;
+            }
+            throw e;
+        }
+    }
+    // debugger;
+    const numberStringArray = uint32Numbers.map((uint32Number) => {
+        return String(uint32Number);
+    })
+    return numberStringArray.toString();
+}
+
+
+function parseAsUint64Numbers(data: DataView): string {
+    if (data.byteLength < 2) {
+        return "(Too short)";
+    }
+    let uint64Numbers = new Array();
+    for (let i = 0; i < (data.byteLength/8); i++) {
+        if ((i*8) > data.byteLength) {
+            debugger;
+        }
+        if ((data.byteLength/8) < 1) {
+            return '';
+        }
+
+        uint64Numbers[i] = data.getBigUint64(i);
+    }
+    // debugger;
+    const numberStringArray = uint64Numbers.map((uint64Number) => {
+        return String(uint64Number);
+    })
+    return numberStringArray.toString();
+}
+
+function parseAsUint64NumbersLittleEndian(data: DataView): string {
+    if (data.byteLength < 2) {
+        return "(Too short)";
+    }
+    let uint64Numbers = new Array();
+    for (let i = 0; i < (data.byteLength/8); i++) {
+        if ((i*8) > data.byteLength) {
+            debugger;
+        }
+        if ((data.byteLength/8) < 1) {
+            return '';
+        }
+
+        uint64Numbers[i] = data.getBigUint64(i, true);
+    }
+    // debugger;
+    const numberStringArray = uint64Numbers.map((uint64Number) => {
+        return String(uint64Number);
+    })
+    return numberStringArray.toString();
+}
+
+
+
 
 
 function parseUTF8StringDataView(data: DataView): string {
@@ -684,6 +877,7 @@ function parseUTF8StringDataView(data: DataView): string {
     const converted = String.fromCharCode.apply(null, chars);
     return converted;
 }
+
 
 
 async function getAranet4DataOverBluetooth(dispatch: ReturnType<typeof useDispatch>) {
@@ -759,7 +953,19 @@ async function getAranet4DataOverBluetooth(dispatch: ReturnType<typeof useDispat
 
 
 
-        const genericAccessService = await deviceServer.getPrimaryService('00001800-0000-1000-8000-00805f9b34fb');
+        // OK, so there's a problem here. Reading the serial number is currently blocklisted!
+        // See:
+        //  https://github.com/WebBluetoothCG/web-bluetooth/issues/24
+        //  https://github.com/WebBluetoothCG/registries/issues/2#issuecomment-1000950490
+        // This is essentially kinda understandable, since lots of devices may not even have unique serial numbers, but it means that I need to work around this. Grr.
+
+
+        // const serialNumberStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_SERIAL_NUMBER_STRING_UUID);
+        // const serialNumberStringData = await serialNumberStringCharacteristic.readValue();
+        // const serialNumberString = parseUTF8StringDataView(serialNumberStringData);
+        // debugger;
+
+        const genericAccessService = await deviceServer.getPrimaryService(GENERIC_ACCESS_SERVICE_UUID);
         const nameCharacteristic = await genericAccessService.getCharacteristic(GENERIC_GATT_DEVICE_NAME_UUID);
         const nameData = await nameCharacteristic.readValue();
         const name = parseUTF8StringDataView(nameData);
