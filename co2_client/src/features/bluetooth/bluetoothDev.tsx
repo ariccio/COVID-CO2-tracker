@@ -8,7 +8,7 @@ import { setSelectedDevice } from "../deviceModels/deviceModelsSlice";
 
 
 
-import { selectCO2, selectDebugText, selectBluetoothAvailableError, setCO2, setDebugText, setBluetoothAvailableError, selectBluetoothAvailable, setBluetoothAvailable, setTemperature, selectTemperature, setBarometricPressure, selectBarometricPressure, selectHumidity, setHumidity, selectBattery, setBattery, setAranet4UnknownField, selectAranet4UnknownField, setDeviceNameFromCharacteristic, setDeviceID, selectDeviceID, setDeviceName, selectDeviceName, selectDeviceNameFromCharacteristic, setAranet4MeasurementInterval, selectAranet4MeasurementInterval, setAranet4TotalMeasurements, selectAranet4TotalMeasurements, setModelNumberString, selectModelNumberString, setFirmwareRevisionString, selectFirmwareRevisionString, setHardwareRevisionString, selectHardwareRevisionString, setSoftwareRevisionString, selectSoftwareRevisionString, setManufacturerName, selectManufacturerNameString, setAranet4SecondsSinceLastMeasurement, selectAranet4SecondsSinceLastUpdate } from "./bluetoothSlice";
+import { selectCO2, selectDebugText, selectBluetoothAvailableError, setCO2, setDebugText, setBluetoothAvailableError, selectBluetoothAvailable, setBluetoothAvailable, setTemperature, selectTemperature, setBarometricPressure, selectBarometricPressure, selectHumidity, setHumidity, selectBattery, setBattery, setAranet4UnknownField, selectAranet4UnknownField, setDeviceNameFromCharacteristic, setDeviceID, selectDeviceID, setDeviceName, selectDeviceName, selectDeviceNameFromCharacteristic, setAranet4MeasurementInterval, selectAranet4MeasurementInterval, setAranet4TotalMeasurements, selectAranet4TotalMeasurements, setModelNumberString, selectModelNumberString, setFirmwareRevisionString, selectFirmwareRevisionString, setHardwareRevisionString, selectHardwareRevisionString, setSoftwareRevisionString, selectSoftwareRevisionString, setManufacturerName, selectManufacturerNameString, setAranet4SecondsSinceLastMeasurement, selectAranet4SecondsSinceLastUpdate, appendDebugText } from "./bluetoothSlice";
 
 declare module BluetoothUUID {
     export function getService(name: BluetoothServiceUUID ): string;
@@ -446,9 +446,10 @@ function dumpBluetoothCharacteristicProperties(properties: BluetoothCharacterist
 // }
 
 function messages(messagesString: string, objectOrString: string, dispatch: ReturnType<typeof useDispatch>): string {
-    let newMessagesString = messagesString + `${objectOrString}\r\n`;
-    console.log(objectOrString);
-    dispatch(setDebugText(newMessagesString))
+    // let newMessagesString = messagesString + `${objectOrString}\r\n`;
+    // console.log(objectOrString);
+    // dispatch(setDebugText(newMessagesString))
+    dispatch(appendDebugText(`${objectOrString}\r\n`));
     return `${objectOrString}\r\n`;
 }
 

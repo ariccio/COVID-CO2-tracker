@@ -54,6 +54,9 @@ export const bluetoothSlice = createSlice({
         setDebugText: (state, action: PayloadAction<string>) => {
             state.debugText = action.payload;
         },
+        appendDebugText: (state, action: PayloadAction<string>) => {
+            state.debugText += action.payload;
+        },
         setCO2: (state, action: PayloadAction<number | null>) => {
             state.co2 = action.payload;
         },
@@ -114,7 +117,7 @@ export const bluetoothSlice = createSlice({
     }
 });
 
-export const {setDebugText, setCO2, setBluetoothAvailableError, setBluetoothAvailable, setTemperature, setBarometricPressure, setHumidity, setBattery, setAranet4UnknownField, setDeviceNameFromCharacteristic, setDeviceID, setDeviceName, setAranet4MeasurementInterval, setAranet4TotalMeasurements, setModelNumberString, setFirmwareRevisionString, setHardwareRevisionString, setSoftwareRevisionString, setManufacturerName, setAranet4SecondsSinceLastMeasurement} = bluetoothSlice.actions;
+export const {setDebugText, setCO2, setBluetoothAvailableError, setBluetoothAvailable, setTemperature, setBarometricPressure, setHumidity, setBattery, setAranet4UnknownField, setDeviceNameFromCharacteristic, setDeviceID, setDeviceName, setAranet4MeasurementInterval, setAranet4TotalMeasurements, setModelNumberString, setFirmwareRevisionString, setHardwareRevisionString, setSoftwareRevisionString, setManufacturerName, setAranet4SecondsSinceLastMeasurement, appendDebugText} = bluetoothSlice.actions;
 
 export const selectDebugText = (state: RootState) => state.bluetooth.debugText;
 export const selectCO2 = (state: RootState) => state.bluetooth.co2;
