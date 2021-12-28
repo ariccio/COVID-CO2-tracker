@@ -281,3 +281,15 @@ See also: https://stackoverflow.com/a/55163224
         "f0cd1502-95da-4f4b-9ac8-aa55d312af0c" is the sensor calibration.
         "f0cd2003-95da-4f4b-9ac8-aa55d312af0c" appears to be unused - no reference to it in the entire app. Maybe that's why it contains all zeros?
         "F0CD2005-95DA-4F4B-9AC8-AA55D312AF0C" appears to be the characteristic for the sensor logs.
+
+12/27/2021
+    The fuck is this?:
+        O = function(t) {
+            return ('0'.repeat(8) + t.toString(2)).slice(-8).split('').map(parseFloat).reverse()
+        },
+    Also, this:
+        value: function(t) {
+            var n = O(t);
+            return n[3] ? n[2] ? U.InErrorState : U.EndRequest : n[2] ? U.InProgress : U.NotActive
+        }
+

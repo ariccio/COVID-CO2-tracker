@@ -309,11 +309,15 @@ const ARANET_MEASUREMENT_INTERVAL_UUID = "f0cd2002-95da-4f4b-9ac8-aa55d312af0c";
 const ARANET_SECONDS_LAST_UPDATE_UUID = "f0cd2004-95da-4f4b-9ac8-aa55d312af0c";
 const ARANET_CO2_MEASUREMENT_WITH_INTERVAL_TIME_CHARACTERISTIC_UUID = "f0cd3001-95da-4f4b-9ac8-aa55d312af0c";
 // const ARANET_DEVICE_NAME_UUID = GENERIC_GATT_DEVICE_NAME_UUID;
-const ARANET_UNKNOWN_FIELD_1_UUID = 'f0cd1401-95da-4f4b-9ac8-aa55d312af0c';
-const ARANET_UNKNOWN_FIELD_2_UUID = 'f0cd1502-95da-4f4b-9ac8-aa55d312af0c';
+// const ARANET_UNKNOWN_FIELD_1_UUID = 'f0cd1401-95da-4f4b-9ac8-aa55d312af0c';
+// const ARANET_UNKNOWN_FIELD_2_UUID = 'f0cd1502-95da-4f4b-9ac8-aa55d312af0c';
 const ARANET_SET_INTERVAL_UUID = 'f0cd1402-95da-4f4b-9ac8-aa55d312af0c';
 const ARANET_SET_HISTORY_PARAMETER_UUID = 'f0cd1402-95da-4f4b-9ac8-aa55d312af0c';
 
+const ARANET_SENSOR_SETTINGS_STATE_UUID = 'f0cd1401-95da-4f4b-9ac8-aa55d312af0c';
+const ARANET_SENSOR_CALIBRATION_DATA_UUID = 'f0cd1502-95da-4f4b-9ac8-aa55d312af0c';
+const ARANET_UNSED_GATT_UUID = 'f0cd2003-95da-4f4b-9ac8-aa55d312af0c';
+const ARANET_SENSOR_LOGS_UUID = 'f0cd2005-95da-4f4b-9ac8-aa55d312af0c';
 
 const aranet4KnownCharacteristicUUIDDescriptions = new Map([
     [ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID, "Aranet4: current CO2 measurement"],
@@ -328,10 +332,12 @@ const aranet4KnownCharacteristicUUIDDescriptions = new Map([
     [GENERIC_GATT_HARDWARE_REVISION_STRING_UUID, "Hardware Revision String"],
     [GENERIC_GATT_SOFTWARE_REVISION_STRING_UUID, "Software Revision String"],
     [GENERIC_GATT_MANUFACTURER_NAME_STRING_UUID, "Manufacturer Name String"],
-    [ARANET_UNKNOWN_FIELD_1_UUID, "Unknown Aranet4 characteristic field #1, undocumented"],
-    [ARANET_UNKNOWN_FIELD_2_UUID, "Unknown Aranet4 characteristic field #2, undocumented"],
     [ARANET_SET_INTERVAL_UUID, "Set measurement interval"],
-    [ARANET_SET_HISTORY_PARAMETER_UUID, "Set \"History Parameter\""]
+    [ARANET_SET_HISTORY_PARAMETER_UUID, "Set \"History Parameter\""],
+    [ARANET_SENSOR_SETTINGS_STATE_UUID, "Aranet4 sensor settings state"],
+    [ARANET_SENSOR_CALIBRATION_DATA_UUID, "Aranet4 sensor calibration"],
+    [ARANET_UNSED_GATT_UUID, "Aranet4 UNUSED GATT characteristic"],
+    [ARANET_SENSOR_LOGS_UUID, "Aranet4 sensor logs"]
 ]);
 
 
@@ -445,7 +451,7 @@ function dumpBluetoothCharacteristicProperties(properties: BluetoothCharacterist
 //     }
 // }
 
-function messages(messagesString: string, objectOrString: string, dispatch: ReturnType<typeof useDispatch>): string {
+function messages(objectOrString: string, dispatch: ReturnType<typeof useDispatch>): string {
     // let newMessagesString = messagesString + `${objectOrString}\r\n`;
     // console.log(objectOrString);
     // dispatch(setDebugText(newMessagesString))
@@ -485,9 +491,138 @@ function parse_ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID(data: DataView, dispat
     dispatch(setBattery(battery));
     const unknownField = data.getUint8(8);
     dispatch(setAranet4UnknownField(unknownField));
+    debugger;
 
 }
 
+function dumpUnknownGatt(data: DataView, dispatch: ReturnType<typeof useDispatch>): void {
+    messages(`\t\tDataView length: ${data.byteLength} bytes`, dispatch);
+    const asUTF8String = parseUTF8StringDataView(data);
+    messages(`\t\tTrying to parse data as UTF-8 string: '${asUTF8String}'`, dispatch);
+    const asUint8s = parseAsUint8Numbers(data);
+    messages(`\t\tTrying to parse data as uint8 array: '${asUint8s}'`, dispatch);
+    const asUint16s = parseAsUint16Numbers(data);
+    messages(`\t\tTrying to parse data as uint16 array: '${asUint16s}'`, dispatch);
+
+    const asUint32s = parseAsUint32Numbers(data);
+    messages(`\t\tTrying to parse data as uint32 array: '${asUint32s}'`, dispatch);
+
+    const asUint64s = parseAsUint64Numbers(data);
+    messages(`\t\tTrying to parse data as uint64 array: '${asUint64s}'`, dispatch);
+
+    // for (let offset = 1; offset < data.byteLength; offset++) {
+        // const asOffsetUint8 = parseAsUint8NumbersOffset(data, offset);
+        // if (asOffsetUint8.length > 0) {
+        //     bluetoothMessages += messages(bluetoothMessages, `\t\t\tTrying to parse data as uint8 array with offset ${offset}: '${asOffsetUint8}'`, dispatch);
+        // }
+    // }
+    const asLEUint16 = parseAsUint16NumbersLittleEndian(data);
+    if (asLEUint16.length > 0) {
+        messages(`\t\t\tParsed data as uint16 array as LE: '${asLEUint16}'`, dispatch);
+    }
+
+    const asLEUint32 = parseAsUint32NumbersLittleEndian(data);
+    if (asLEUint32.length > 0) {
+        messages(`\t\t\tParsed data as uint32 array as LE: '${asLEUint32}'`, dispatch);
+    }
+
+    const asLEUint64 = parseAsUint64NumbersLittleEndian(data);
+    if (asLEUint64.length > 0) {
+        messages(`\t\t\tParsed data as uint64 array as LE: '${asLEUint64}'`, dispatch);
+    }
+}
+
+function switchOverCharacteristics(data: DataView, dispatch: ReturnType<typeof useDispatch>, characteristic: BluetoothRemoteGATTCharacteristic): void {
+    //yes yes, I know, needs to be genericised.
+    switch (characteristic.uuid) {
+        case (ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID):
+            parse_ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID(data, dispatch);
+            messages(`\t\tAranet4 CO2 measurement parsed.`, dispatch);
+            break;
+        case (ARANET_SECONDS_LAST_UPDATE_UUID):
+            console.assert(data.byteLength === 2);
+            const secondsSinceLastUpdate = data.getUint16(0, true);
+            messages(`\t\tAranet4 seconds since last update: ${secondsSinceLastUpdate}`, dispatch);
+            dispatch(setAranet4SecondsSinceLastMeasurement(secondsSinceLastUpdate))
+            // debugger;
+            break;
+        case (ARANET_MEASUREMENT_INTERVAL_UUID):
+            console.assert(data.byteLength === 2);
+            const interval = data.getUint16(0, true);
+            messages(`\t\tAranet4 measurement interval: ${interval}`, dispatch);
+            dispatch(setAranet4MeasurementInterval(interval));
+            break;
+        case (ARANET_TOTAL_MEASUREMENTS_UUID):
+            console.assert(data.byteLength === 2);
+            const total = data.getUint16(0, true);
+            messages(`\t\tAranet4 total measurements: ${total}`, dispatch);
+            dispatch(setAranet4TotalMeasurements(total));
+            break;
+        case (GENERIC_GATT_DEVICE_INFORMATION_SYSTEM_ID_UUID):
+            //e.g. https://www.bosch-connectivity.com/media/product_detail_scd/scd-ble-communication-protocol.pdf
+            messages(`\t\tBluetooth device_information System ID, has variable structures (I think), let's try parsing...`, dispatch);
+            console.assert(data.byteLength === 8);
+            //first 24 bits/3 bytes
+            const OUI = [data.getUint8(0), data.getUint8(1), data.getUint8(2)];
+            messages(`\t\t\tOrganizationally Unique Identifier: ${OUI[0]} ${OUI[1]} ${OUI[2]} (NOTE: needs to be displayed as hex, not dec)`, dispatch);
+            const MI = [data.getUint8(3), data.getUint8(4), data.getUint8(5), data.getUint8(6), data.getUint8(7)];
+            messages(`\t\t\tManufacturer Identifier: ${MI[0]} ${MI[1]} ${MI[2]} ${MI[3]} ${MI[4]} (NOTE: needs to be displayed as hex, not dec)`, dispatch);
+            break;
+        case (GENERIC_GATT_DEVICE_MODEL_NUMBER_STRING_UUID):
+            const modelNumberString = parseUTF8StringDataView(data);
+            messages(`\t\tBluetooth model number string: ${modelNumberString}`, dispatch);
+            dispatch(setModelNumberString(modelNumberString));
+            break;
+        case (GENERIC_GATT_FIRMWARE_REVISION_STRING_UUID):
+            const firmwareRevisionString = parseUTF8StringDataView(data);
+            messages(`\t\tBluetooth firmware revision string: ${firmwareRevisionString}`, dispatch);
+            dispatch(setFirmwareRevisionString(firmwareRevisionString));
+            break;
+        case (GENERIC_GATT_HARDWARE_REVISION_STRING_UUID):
+            const hardwareRevisionString = parseUTF8StringDataView(data);
+            messages(`\t\tBluetooth hardware revision string: ${hardwareRevisionString}`, dispatch);
+            dispatch(setHardwareRevisionString(hardwareRevisionString));
+            break;
+        case (GENERIC_GATT_SOFTWARE_REVISION_STRING_UUID):
+            const softwareRevisionString = parseUTF8StringDataView(data);
+            messages(`\t\tBluetooth software revision string: ${softwareRevisionString}`, dispatch);
+            dispatch(setSoftwareRevisionString(softwareRevisionString));
+            break;
+        case (GENERIC_GATT_MANUFACTURER_NAME_STRING_UUID):
+            const manufacturerName = parseUTF8StringDataView(data);
+            messages(`\t\tBluetooth manufacturer name string: ${manufacturerName}`, dispatch);
+            dispatch(setManufacturerName(manufacturerName));
+            break;
+        case (GENERIC_GATT_DEVICE_NAME_UUID):
+            const name = parseUTF8StringDataView(data);
+            messages(`\t\tBluetooth device name string (from GATT characteristic): ${name}`, dispatch);
+            dispatch(setDeviceNameFromCharacteristic(name))
+            break;
+        case (GENERIC_GATT_DEVICE_BATTERY_LEVEL_UUID):
+            const batteryLevel = data.getUint8(0);
+            messages(`\t\tBluetooth device battery level: ${batteryLevel}`, dispatch);
+            break;
+        case (ARANET_UNSED_GATT_UUID):
+            messages(`\t\tAranet4 UNUSED characteristic. Should be all zeros!`, dispatch);
+            let dataLoaded = [];
+            for (let i = 0; i < data.byteLength; i++) {
+                dataLoaded.push(data.getUint8(i));
+            }
+            const nonZero = dataLoaded.filter((value) => value !== 0);
+            if (nonZero.length > 0) {
+                messages(`\t\t\tNOT all zeros. Dumping & reporting...`, dispatch);
+                dumpUnknownGatt(data, dispatch);
+                // Sentry.sendMessage(`Aranet4 unused characteristic has non-zero values:`)
+            }
+            else {
+                messages(`\t\t...yes, it's all zeros.`, dispatch)
+            }
+            break;
+        default:
+            dumpUnknownGatt(data, dispatch);
+        }
+
+}
 
 async function bluetoothTestingStuffFunc(dispatch: ReturnType<typeof useDispatch>) {
 
@@ -503,11 +638,11 @@ async function bluetoothTestingStuffFunc(dispatch: ReturnType<typeof useDispatch
     // console.log(co2_descriptor);
     // debugger;
 
-    let bluetoothMessages = "";
+    // let bluetoothMessages = "";
 
-    bluetoothMessages += messages(bluetoothMessages, `device.id: ${device.id} (unique)`, dispatch);
+    messages(`device.id: ${device.id} (unique)`, dispatch);
     dispatch(setDeviceID(device.id));
-    bluetoothMessages += messages(bluetoothMessages, `device.name: ${device.name}`, dispatch);
+    messages(`device.name: ${device.name}`, dispatch);
     if (device.name !== undefined) {
         dispatch(setDeviceName(device.name));
     }
@@ -523,31 +658,31 @@ async function bluetoothTestingStuffFunc(dispatch: ReturnType<typeof useDispatch
 
 
     const services = await deviceServer.getPrimaryServices();
-    bluetoothMessages += messages(bluetoothMessages, `${services.length} services:`, dispatch);
+    messages(`${services.length} services:`, dispatch);
     for (let serviceIndex = 0; serviceIndex < services.length; serviceIndex++) {
         const uuid = services[serviceIndex].uuid;
         const short_uuid = uuid.substring(4,8).toUpperCase();
         if (GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.has(uuid)) {
             const serviceName = GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.get(uuid)
-            bluetoothMessages += messages(bluetoothMessages, `\tservices[${serviceIndex}].uuid: ${uuid}... Known service! ${serviceName}`, dispatch);
+            messages(`\tservices[${serviceIndex}].uuid: ${uuid}... Known service! ${serviceName}`, dispatch);
         }
         else if (GENERIC_GATT_SERVICE_SHORT_ID_DESCRIPTIONS.has(short_uuid)) {
             const serviceName = GENERIC_GATT_SERVICE_SHORT_ID_DESCRIPTIONS.get(short_uuid)
-            bluetoothMessages += messages(bluetoothMessages, `\tservices[${serviceIndex}].uuid: ${uuid}... Known service! ${serviceName}`, dispatch);
+            messages(`\tservices[${serviceIndex}].uuid: ${uuid}... Known service! ${serviceName}`, dispatch);
         }
         else {
-            bluetoothMessages += messages(bluetoothMessages, `\tservices[${serviceIndex}].uuid: ${uuid}`, dispatch);
+            messages(`\tservices[${serviceIndex}].uuid: ${uuid}`, dispatch);
         }
     }
 
-    bluetoothMessages += messages(bluetoothMessages, `----`, dispatch);
-    bluetoothMessages += messages(bluetoothMessages, `----`, dispatch);
+    messages(`----`, dispatch);
+    messages(`----`, dispatch);
 
 
-    bluetoothMessages += messages(bluetoothMessages, `Got services (length: ${services.length}):`, dispatch)
+    messages(`Got services (length: ${services.length}):`, dispatch)
     for (let serviceIndex = 0; serviceIndex < services.length; serviceIndex++) {
         const uuid = services[serviceIndex].uuid;
-        bluetoothMessages += messages(bluetoothMessages, `services[${serviceIndex}].uuid: ${uuid}`, dispatch);
+        messages(`services[${serviceIndex}].uuid: ${uuid}`, dispatch);
         // debugger;
         // if(GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.has(services[serviceIndex].uuid.substring(0,8))) {
         //     debugger;
@@ -556,160 +691,53 @@ async function bluetoothTestingStuffFunc(dispatch: ReturnType<typeof useDispatch
         const short_uuid = uuid.substring(4,8).toUpperCase();
         if (GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.has(uuid)) {
             const serviceName = GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.get(uuid)
-            bluetoothMessages += messages(bluetoothMessages, `services[${serviceIndex}].uuid: ${uuid}... Known service! ${serviceName}`, dispatch);
+            messages(`services[${serviceIndex}].uuid: ${uuid}... Known service! ${serviceName}`, dispatch);
         }
         else if (GENERIC_GATT_SERVICE_SHORT_ID_DESCRIPTIONS.has(short_uuid)) {
             const serviceName = GENERIC_GATT_SERVICE_SHORT_ID_DESCRIPTIONS.get(short_uuid)
-            bluetoothMessages += messages(bluetoothMessages, `\t\tKnown service! ${serviceName}`, dispatch);
+            messages(`\t\tKnown service! ${serviceName}`, dispatch);
         }
 
-        bluetoothMessages += messages(bluetoothMessages, `services[${serviceIndex}].isPrimary: ${services[serviceIndex].isPrimary}`, dispatch);
+        messages(`services[${serviceIndex}].isPrimary: ${services[serviceIndex].isPrimary}`, dispatch);
         // debugger;
 
         //getCharacteristics can fail!
         //Unhandled Rejection (NetworkError): Failed to execute 'getCharacteristics' on 'BluetoothRemoteGATTService': GATT Server is disconnected. Cannot retrieve characteristics. (Re)connect first with `device.gatt.connect`.
         const characteristics = await services[serviceIndex].getCharacteristics();
 
-        bluetoothMessages += messages(bluetoothMessages, `Got characteristics (length ${characteristics.length}):`, dispatch)
+        messages(`Got characteristics (length ${characteristics.length}):`, dispatch)
         for (let characteristicIndex = 0; characteristicIndex < characteristics.length; characteristicIndex++) {
-            bluetoothMessages += messages(bluetoothMessages, `\tservices[${serviceIndex}], characteristics[${characteristicIndex}].uuid: ${characteristics[characteristicIndex].uuid}`, dispatch);
+            messages(`\tservices[${serviceIndex}], characteristics[${characteristicIndex}].uuid: ${characteristics[characteristicIndex].uuid}`, dispatch);
             if (aranet4KnownCharacteristicUUIDDescriptions.has(characteristics[characteristicIndex].uuid)) {
-                bluetoothMessages += messages(bluetoothMessages, `\t\tKnown Aranet4 characteristic! '${aranet4KnownCharacteristicUUIDDescriptions.get(characteristics[characteristicIndex].uuid)}'`, dispatch);
+                messages(`\t\tKnown Aranet4 characteristic! '${aranet4KnownCharacteristicUUIDDescriptions.get(characteristics[characteristicIndex].uuid)}'`, dispatch);
             }
             else if (GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.has(characteristics[characteristicIndex].uuid)) {
-                bluetoothMessages += messages(bluetoothMessages, `\t\tKnown generic GATT characteristic! '${GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.get(characteristics[characteristicIndex].uuid)}'`, dispatch);
+                messages(`\t\tKnown generic GATT characteristic! '${GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.get(characteristics[characteristicIndex].uuid)}'`, dispatch);
 
             }
             else {
-                bluetoothMessages += messages(bluetoothMessages, `\t\tUNKNOWN GATT characteristic! '${characteristics[characteristicIndex].uuid}'`, dispatch);
+                messages(`\t\tUNKNOWN GATT characteristic! '${characteristics[characteristicIndex].uuid}'`, dispatch);
             }
             // bluetoothMessages += messages(bluetoothMessages, `\tservices[${serviceIndex}], characteristics[${characteristicIndex}].value: ${characteristics[characteristicIndex].value}`, dispatch);
-            bluetoothMessages += dumpBluetoothCharacteristicProperties(characteristics[characteristicIndex].properties, serviceIndex, characteristicIndex);
+            dumpBluetoothCharacteristicProperties(characteristics[characteristicIndex].properties, serviceIndex, characteristicIndex);
             if (characteristics[characteristicIndex].properties.read) {
                 try {
                     const data = await characteristics[characteristicIndex].readValue();
-                    
-
-                    //yes yes, I know, needs to be genericised.
-                    switch (characteristics[characteristicIndex].uuid) {
-                        case (ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID):
-                            parse_ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID(data, dispatch);
-                            bluetoothMessages += messages(bluetoothMessages, `\t\tAranet4 CO2 measurement parsed.`, dispatch);
-                            break;
-                        case (ARANET_SECONDS_LAST_UPDATE_UUID):
-                            console.assert(data.byteLength === 2);
-                            const secondsSinceLastUpdate = data.getUint16(0, true);
-                            bluetoothMessages += messages(bluetoothMessages, `\t\tAranet4 seconds since last update: ${secondsSinceLastUpdate}`, dispatch);
-                            dispatch(setAranet4SecondsSinceLastMeasurement(secondsSinceLastUpdate))
-                            // debugger;
-                            break;
-                        case (ARANET_MEASUREMENT_INTERVAL_UUID):
-                            console.assert(data.byteLength === 2);
-                            const interval = data.getUint16(0, true);
-                            bluetoothMessages += messages(bluetoothMessages, `\t\tAranet4 measurement interval: ${interval}`, dispatch);
-                            dispatch(setAranet4MeasurementInterval(interval));
-                            break;
-                        case (ARANET_TOTAL_MEASUREMENTS_UUID):
-                            console.assert(data.byteLength === 2);
-                            const total = data.getUint16(0, true);
-                            bluetoothMessages += messages(bluetoothMessages, `\t\tAranet4 total measurements: ${total}`, dispatch);
-                            dispatch(setAranet4TotalMeasurements(total));
-                            break;
-                        case (GENERIC_GATT_DEVICE_INFORMATION_SYSTEM_ID_UUID):
-                            //e.g. https://www.bosch-connectivity.com/media/product_detail_scd/scd-ble-communication-protocol.pdf
-                            bluetoothMessages += messages(bluetoothMessages, `\t\tBluetooth device_information System ID, has variable structures (I think), let's try parsing...`, dispatch);
-                            console.assert(data.byteLength === 8);
-                            //first 24 bits/3 bytes
-                            const OUI = [data.getUint8(0), data.getUint8(1), data.getUint8(2)];
-                            bluetoothMessages += messages(bluetoothMessages, `\t\t\tOrganizationally Unique Identifier: ${OUI[0]} ${OUI[1]} ${OUI[2]} (NOTE: needs to be displayed as hex, not dec)`, dispatch);
-                            const MI = [data.getUint8(3), data.getUint8(4), data.getUint8(5), data.getUint8(6), data.getUint8(7)];
-                            bluetoothMessages += messages(bluetoothMessages, `\t\t\tManufacturer Identifier: ${MI[0]} ${MI[1]} ${MI[2]} ${MI[3]} ${MI[4]} (NOTE: needs to be displayed as hex, not dec)`, dispatch);
-                            break;
-                        case (GENERIC_GATT_DEVICE_MODEL_NUMBER_STRING_UUID):
-                            const modelNumberString = parseUTF8StringDataView(data);
-                            bluetoothMessages += messages(bluetoothMessages, `\t\tBluetooth model number string: ${modelNumberString}`, dispatch);
-                            dispatch(setModelNumberString(modelNumberString));
-                            break;
-                        case (GENERIC_GATT_FIRMWARE_REVISION_STRING_UUID):
-                            const firmwareRevisionString = parseUTF8StringDataView(data);
-                            bluetoothMessages += messages(bluetoothMessages, `\t\tBluetooth firmware revision string: ${firmwareRevisionString}`, dispatch);
-                            dispatch(setFirmwareRevisionString(firmwareRevisionString));
-                            break;
-                        case (GENERIC_GATT_HARDWARE_REVISION_STRING_UUID):
-                            const hardwareRevisionString = parseUTF8StringDataView(data);
-                            bluetoothMessages += messages(bluetoothMessages, `\t\tBluetooth hardware revision string: ${hardwareRevisionString}`, dispatch);
-                            dispatch(setHardwareRevisionString(hardwareRevisionString));
-                            break;
-                        case (GENERIC_GATT_SOFTWARE_REVISION_STRING_UUID):
-                            const softwareRevisionString = parseUTF8StringDataView(data);
-                            bluetoothMessages += messages(bluetoothMessages, `\t\tBluetooth software revision string: ${softwareRevisionString}`, dispatch);
-                            dispatch(setSoftwareRevisionString(softwareRevisionString));
-                            break;
-                        case (GENERIC_GATT_MANUFACTURER_NAME_STRING_UUID):
-                            const manufacturerName = parseUTF8StringDataView(data);
-                            bluetoothMessages += messages(bluetoothMessages, `\t\tBluetooth manufacturer name string: ${manufacturerName}`, dispatch);
-                            dispatch(setManufacturerName(manufacturerName));
-                            break;
-                        case (GENERIC_GATT_DEVICE_NAME_UUID):
-                            const name = parseUTF8StringDataView(data);
-                            bluetoothMessages += messages(bluetoothMessages, `\t\tBluetooth device name string (from GATT characteristic): ${name}`, dispatch);
-                            dispatch(setDeviceNameFromCharacteristic(name))
-                            break;
-                        case (GENERIC_GATT_DEVICE_BATTERY_LEVEL_UUID):
-                            const batteryLevel = data.getUint8(0);
-                            bluetoothMessages += messages(bluetoothMessages, `\t\tBluetooth device battery level: ${batteryLevel}`, dispatch);
-                            break;
-                        default:
-                            bluetoothMessages += messages(bluetoothMessages, `\t\tDataView length: ${data.byteLength} bytes`, dispatch);
-                            const asUTF8String = parseUTF8StringDataView(data);
-                            bluetoothMessages += messages(bluetoothMessages, `\t\tTrying to parse data as UTF-8 string: '${asUTF8String}'`, dispatch);
-                            const asUint8s = parseAsUint8Numbers(data);
-                            bluetoothMessages += messages(bluetoothMessages, `\t\tTrying to parse data as uint8 array: '${asUint8s}'`, dispatch);
-                            const asUint16s = parseAsUint16Numbers(data);
-                            bluetoothMessages += messages(bluetoothMessages, `\t\tTrying to parse data as uint16 array: '${asUint16s}'`, dispatch);
-
-                            const asUint32s = parseAsUint32Numbers(data);
-                            bluetoothMessages += messages(bluetoothMessages, `\t\tTrying to parse data as uint32 array: '${asUint32s}'`, dispatch);
-
-                            const asUint64s = parseAsUint64Numbers(data);
-                            bluetoothMessages += messages(bluetoothMessages, `\t\tTrying to parse data as uint64 array: '${asUint64s}'`, dispatch);
-
-                            // for (let offset = 1; offset < data.byteLength; offset++) {
-                                // const asOffsetUint8 = parseAsUint8NumbersOffset(data, offset);
-                                // if (asOffsetUint8.length > 0) {
-                                //     bluetoothMessages += messages(bluetoothMessages, `\t\t\tTrying to parse data as uint8 array with offset ${offset}: '${asOffsetUint8}'`, dispatch);
-                                // }
-                            // }
-                            const asLEUint16 = parseAsUint16NumbersLittleEndian(data);
-                            if (asLEUint16.length > 0) {
-                                bluetoothMessages += messages(bluetoothMessages, `\t\t\tParsed data as uint16 array as LE: '${asLEUint16}'`, dispatch);
-                            }
-
-                            const asLEUint32 = parseAsUint32NumbersLittleEndian(data);
-                            if (asLEUint32.length > 0) {
-                                bluetoothMessages += messages(bluetoothMessages, `\t\t\tParsed data as uint32 array as LE: '${asLEUint32}'`, dispatch);
-                            }
-
-                            const asLEUint64 = parseAsUint64NumbersLittleEndian(data);
-                            if (asLEUint64.length > 0) {
-                                bluetoothMessages += messages(bluetoothMessages, `\t\t\tParsed data as uint64 array as LE: '${asLEUint64}'`, dispatch);
-                            }
-
-                        }
+                    switchOverCharacteristics(data, dispatch, characteristics[characteristicIndex]);
                             
                 }
                 catch(e) {
                     if (e instanceof DOMException) {
-                        bluetoothMessages += messages(bluetoothMessages, `\t\tCannot read from ${characteristics[characteristicIndex].uuid}! Error code: '${e.code}', Error message: '${e.message}'`, dispatch)
+                        messages(`\t\tCannot read from ${characteristics[characteristicIndex].uuid}! Error code: '${e.code}', Error message: '${e.message}'`, dispatch)
                     }
                     else {
                         throw e;
                     }
                 }
             }
-            bluetoothMessages += messages(bluetoothMessages, '\n', dispatch);
+            messages('\n', dispatch);
         }
-        bluetoothMessages += messages(bluetoothMessages, '\n', dispatch);
+        messages('\n', dispatch);
     }
 }
 
