@@ -283,13 +283,50 @@ See also: https://stackoverflow.com/a/55163224
         "F0CD2005-95DA-4F4B-9AC8-AA55D312AF0C" appears to be the characteristic for the sensor logs.
 
 12/27/2021
-    The fuck is this?:
+    The fuck is this? (trying to understand the undocumented field for colors):
         O = function(t) {
             return ('0'.repeat(8) + t.toString(2)).slice(-8).split('').map(parseFloat).reverse()
         },
+    ...Hmm, doing it with t = 1 in console:
+        19:22:16.923 t = 1;
+        19:22:16.938 1
+        19:22:23.656 ('0'.repeat(8) + t.toString(2)).slice(-8).split('').map(parseFloat).reverse()
+        19:22:23.670 (8) [1, 0, 0, 0, 0, 0, 0, 0]
+    ...So, this is a weird way of parsing bitfields, me thinks! See, for example (t=1):
+        19:24:30.661 t.toString(2)
+        19:24:30.682 '1'
+    ...If I change it up a bit:
+        19:25:46.021 t = 8
+        19:25:46.037 8
+        19:25:47.202 ('0'.repeat(8) + t.toString(2)).slice(-8).split('').map(parseFloat)
+        19:25:47.217 (8) [0, 0, 0, 0, 1, 0, 0, 0]
+        19:25:59.659 ('0'.repeat(8) + t.toString(2)).slice(-8).split('').map(parseFloat).reverse()
+        19:25:59.677 (8) [0, 0, 0, 1, 0, 0, 0, 0]
+    ...they're doing something really weird by appending it to 8 zeros?:
+        19:26:53.398 t = 1;
+        19:26:53.413 1
+        19:27:08.278 ('0'.repeat(8) + t.toString(2))
+        19:27:08.301 '000000001'
+        19:27:32.705 ('0'.repeat(8) + t.toString(2)).slice(-8)
+        19:27:32.727 '00000001'
+
     Also, this:
         value: function(t) {
             var n = O(t);
             return n[3] ? n[2] ? U.InErrorState : U.EndRequest : n[2] ? U.InProgress : U.NotActive
         }
-
+    Related to this? Maybe it's parsed in this godforsaken statement:
+        l = O(n[8]),
+        s.color = l[1] ? l[0] ? R.default.red : R.default.yellow : l[0] ? R.default.green : R.default.text
+    ...Ok, let's try and break it up, grr. Right side is this:
+        l[1] ? l[0] ? R.default.red : R.default.yellow : l[0] ? R.default.green : R.default.text
+    I suspect this is reasonable:
+        l[1] ? l[0] ? R.default.red : R.default.yellow : l[0] ? (R.default.green : R.default.text)
+    ...then this?:
+        l[1] ? l[0] ? R.default.red : R.default.yellow :(l[0] ? (R.default.green : R.default.text))
+    ...then this?:
+        l[1] ? (l[0] ? R.default.red : R.default.yellow) :(l[0] ? (R.default.green : R.default.text))
+    ...then this?:
+        l[1] ?
+            (l[0] ? R.default.red : R.default.yellow) :
+            (l[0] ? R.default.green : R.default.text)
