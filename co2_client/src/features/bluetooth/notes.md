@@ -330,3 +330,4 @@ See also: https://stackoverflow.com/a/55163224
         l[1] ?
             (l[0] ? R.default.red : R.default.yellow) :
             (l[0] ? R.default.green : R.default.text)
+    ..Ok, so now I think I know what's going on. For a bitfield like this: (8) [1, 0, 0, 0, 0, 0, 0, 0], it's looking to see if bit at 0 is set. If so, it's either red or yellow. If bit at 0 is not set, it's either green or "default.text" (what?).

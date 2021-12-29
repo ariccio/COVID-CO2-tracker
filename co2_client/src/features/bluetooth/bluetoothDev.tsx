@@ -1,5 +1,6 @@
 /// <reference types="web-bluetooth" />
 import { parse } from "path";
+import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { Button } from "react-bootstrap";
 
 import {useDispatch} from 'react-redux';
@@ -8,7 +9,7 @@ import { setSelectedDevice } from "../deviceModels/deviceModelsSlice";
 
 
 
-import { selectCO2, selectDebugText, selectBluetoothAvailableError, setCO2, setDebugText, setBluetoothAvailableError, selectBluetoothAvailable, setBluetoothAvailable, setTemperature, selectTemperature, setBarometricPressure, selectBarometricPressure, selectHumidity, setHumidity, selectBattery, setBattery, setAranet4UnknownField, selectAranet4UnknownField, setDeviceNameFromCharacteristic, setDeviceID, selectDeviceID, setDeviceName, selectDeviceName, selectDeviceNameFromCharacteristic, setAranet4MeasurementInterval, selectAranet4MeasurementInterval, setAranet4TotalMeasurements, selectAranet4TotalMeasurements, setModelNumberString, selectModelNumberString, setFirmwareRevisionString, selectFirmwareRevisionString, setHardwareRevisionString, selectHardwareRevisionString, setSoftwareRevisionString, selectSoftwareRevisionString, setManufacturerName, selectManufacturerNameString, setAranet4SecondsSinceLastMeasurement, selectAranet4SecondsSinceLastUpdate, appendDebugText } from "./bluetoothSlice";
+import { selectCO2, selectDebugText, selectBluetoothAvailableError, setCO2, setDebugText, setBluetoothAvailableError, selectBluetoothAvailable, setBluetoothAvailable, setTemperature, selectTemperature, setBarometricPressure, selectBarometricPressure, selectHumidity, setHumidity, selectBattery, setBattery, setDeviceNameFromCharacteristic, setDeviceID, selectDeviceID, setDeviceName, selectDeviceName, selectDeviceNameFromCharacteristic, setAranet4MeasurementInterval, selectAranet4MeasurementInterval, setAranet4TotalMeasurements, selectAranet4TotalMeasurements, setModelNumberString, selectModelNumberString, setFirmwareRevisionString, selectFirmwareRevisionString, setHardwareRevisionString, selectHardwareRevisionString, setSoftwareRevisionString, selectSoftwareRevisionString, setManufacturerName, selectManufacturerNameString, setAranet4SecondsSinceLastMeasurement, selectAranet4SecondsSinceLastUpdate, appendDebugText, setAranet4Color, selectAranet4Color } from "./bluetoothSlice";
 
 declare module BluetoothUUID {
     export function getService(name: BluetoothServiceUUID ): string;
@@ -442,14 +443,7 @@ function dumpBluetoothCharacteristicProperties(properties: BluetoothCharacterist
     return messages;
 }
 
-// async function hasGetDevices() {
-//     const devices = await navigator.bluetooth.getDevices()
-//     console.log("bluetooth devices:");
-//     console.table(devices);
-//     if (devices.length === 0) {
-//         debugger;
-//     }
-// }
+
 
 function messages(objectOrString: string, dispatch: ReturnType<typeof useDispatch>): string {
     // let newMessagesString = messagesString + `${objectOrString}\r\n`;
@@ -459,23 +453,28 @@ function messages(objectOrString: string, dispatch: ReturnType<typeof useDispatc
     return `${objectOrString}\r\n`;
 }
 
-async function checkBluetooth(dispatch: ReturnType<typeof useDispatch>) {
-    console.log(navigator.bluetooth);
-    if (navigator.bluetooth === undefined) {
-        dispatch(setBluetoothAvailableError('bluetooth is unavailable on your platform. (navigator.bluetooth undefined)'));
-        dispatch(setBluetoothAvailable(false));
-        alert('bluetooth is unavailable on your platform. (navigator.bluetooth undefined)');
+
+function aranet4ParseColor(data: DataView, dispatch: ReturnType<typeof useDispatch>): void {
+    const unknownFieldMaybeColors = data.getUint8(8);
+    const isRedOrYellow = (unknownFieldMaybeColors & 0b000000010);
+
+    if (isRedOrYellow !== 0) {
+        // messages(`\t\tCO2 level might be "red" or "yellow"`, dispatch);
+        const isRed = (unknownFieldMaybeColors & 0b000000001);
+        if (isRed) {
+            dispatch(setAranet4Color('red'));
+            return;
+        }
+        dispatch(setAranet4Color('yellow'));
         return;
     }
-    const available = await navigator.bluetooth.getAvailability();
-    console.log("bluetooth available: ", available);
-    dispatch(setBluetoothAvailable(available));
-    if (!available) {
-        alert("bluetooth may not be available.");
-        dispatch(setBluetoothAvailableError('bluetooth may not be available. navigator.bluetooth.getAvailability() returned false.'));
+    // messages(`\t\tCO2 level might be "green" or something else.`, dispatch);
+    const isGreen = (unknownFieldMaybeColors & 0b000000001);
+    if (isGreen !== 0) {
+        dispatch(setAranet4Color('green'));
         return;
     }
-    dispatch(setBluetoothAvailableError(null));
+    dispatch(setAranet4Color('unspecified'));
 }
 
 function parse_ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID(data: DataView, dispatch: ReturnType<typeof useDispatch>): void {
@@ -489,9 +488,12 @@ function parse_ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID(data: DataView, dispat
     dispatch(setHumidity(humidity));
     const battery = data.getUint8(7);
     dispatch(setBattery(battery));
-    const unknownField = data.getUint8(8);
-    dispatch(setAranet4UnknownField(unknownField));
-    debugger;
+    // const unknownField = data.getUint8(8);
+    // dispatch(setAranet4UnknownField(unknownField));
+
+    aranet4ParseColor(data, dispatch);
+
+    // debugger;
 
 }
 
@@ -502,13 +504,19 @@ function dumpUnknownGatt(data: DataView, dispatch: ReturnType<typeof useDispatch
     const asUint8s = parseAsUint8Numbers(data);
     messages(`\t\tTrying to parse data as uint8 array: '${asUint8s}'`, dispatch);
     const asUint16s = parseAsUint16Numbers(data);
-    messages(`\t\tTrying to parse data as uint16 array: '${asUint16s}'`, dispatch);
+    if (asUint16s.length > 0) {
+        messages(`\t\tTrying to parse data as uint16 array: '${asUint16s}'`, dispatch);
+    }
 
     const asUint32s = parseAsUint32Numbers(data);
-    messages(`\t\tTrying to parse data as uint32 array: '${asUint32s}'`, dispatch);
+    if (asUint32s.length > 0) {
+        messages(`\t\tTrying to parse data as uint32 array: '${asUint32s}'`, dispatch);
+    }
 
     const asUint64s = parseAsUint64Numbers(data);
-    messages(`\t\tTrying to parse data as uint64 array: '${asUint64s}'`, dispatch);
+    if (asUint64s.length > 0) {
+        messages(`\t\tTrying to parse data as uint64 array: '${asUint64s}'`, dispatch);
+    }
 
     // for (let offset = 1; offset < data.byteLength; offset++) {
         // const asOffsetUint8 = parseAsUint8NumbersOffset(data, offset);
@@ -518,17 +526,17 @@ function dumpUnknownGatt(data: DataView, dispatch: ReturnType<typeof useDispatch
     // }
     const asLEUint16 = parseAsUint16NumbersLittleEndian(data);
     if (asLEUint16.length > 0) {
-        messages(`\t\t\tParsed data as uint16 array as LE: '${asLEUint16}'`, dispatch);
+        messages(`\t\tParsed data as uint16 array as LE: '${asLEUint16}'`, dispatch);
     }
 
     const asLEUint32 = parseAsUint32NumbersLittleEndian(data);
     if (asLEUint32.length > 0) {
-        messages(`\t\t\tParsed data as uint32 array as LE: '${asLEUint32}'`, dispatch);
+        messages(`\t\tParsed data as uint32 array as LE: '${asLEUint32}'`, dispatch);
     }
 
     const asLEUint64 = parseAsUint64NumbersLittleEndian(data);
     if (asLEUint64.length > 0) {
-        messages(`\t\t\tParsed data as uint64 array as LE: '${asLEUint64}'`, dispatch);
+        messages(`\t\tParsed data as uint64 array as LE: '${asLEUint64}'`, dispatch);
     }
 }
 
@@ -624,21 +632,11 @@ function switchOverCharacteristics(data: DataView, dispatch: ReturnType<typeof u
 
 }
 
+
 async function bluetoothTestingStuffFunc(dispatch: ReturnType<typeof useDispatch>) {
 
-    // if ((navigator.bluetooth.getDevices as any)) {
-    //     hasGetDevices();
-    // }
 
-    const options = aranet4DeviceRequestOptions();
-
-    //https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth/requestDevice
-    const device = await navigator.bluetooth.requestDevice(options);
-    // const co2_descriptor = BluetoothUUID.getCharacteristic('f0cd3001-95da-4f4b-9ac8-aa55d312af0c');
-    // console.log(co2_descriptor);
-    // debugger;
-
-    // let bluetoothMessages = "";
+    const device = await getADevice();
 
     messages(`device.id: ${device.id} (unique)`, dispatch);
     dispatch(setDeviceID(device.id));
@@ -656,30 +654,37 @@ async function bluetoothTestingStuffFunc(dispatch: ReturnType<typeof useDispatch
     }
     const deviceServer = await device.gatt.connect();
 
-
     const services = await deviceServer.getPrimaryServices();
     messages(`${services.length} services:`, dispatch);
-    for (let serviceIndex = 0; serviceIndex < services.length; serviceIndex++) {
-        const uuid = services[serviceIndex].uuid;
-        const short_uuid = uuid.substring(4,8).toUpperCase();
-        if (GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.has(uuid)) {
-            const serviceName = GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.get(uuid)
-            messages(`\tservices[${serviceIndex}].uuid: ${uuid}... Known service! ${serviceName}`, dispatch);
-        }
-        else if (GENERIC_GATT_SERVICE_SHORT_ID_DESCRIPTIONS.has(short_uuid)) {
-            const serviceName = GENERIC_GATT_SERVICE_SHORT_ID_DESCRIPTIONS.get(short_uuid)
-            messages(`\tservices[${serviceIndex}].uuid: ${uuid}... Known service! ${serviceName}`, dispatch);
-        }
-        else {
-            messages(`\tservices[${serviceIndex}].uuid: ${uuid}`, dispatch);
-        }
-    }
+    checkServiceNames(services, dispatch);
 
     messages(`----`, dispatch);
     messages(`----`, dispatch);
 
 
     messages(`Got services (length: ${services.length}):`, dispatch)
+    await loopOverServices(services, dispatch);
+}
+
+function checkServiceNames(services: BluetoothRemoteGATTService[], dispatch: ReturnType<typeof useDispatch>) {
+    for (let serviceIndex = 0; serviceIndex < services.length; serviceIndex++) {
+        const uuid = services[serviceIndex].uuid;
+        const short_uuid = uuid.substring(4, 8).toUpperCase();
+        if (GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.has(uuid)) {
+            const serviceName = GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.get(uuid);
+            messages(`\tservices[${serviceIndex}].uuid: ${uuid}... Known service! ${serviceName}`, dispatch);
+        }
+        else if (GENERIC_GATT_SERVICE_SHORT_ID_DESCRIPTIONS.has(short_uuid)) {
+            const serviceName = GENERIC_GATT_SERVICE_SHORT_ID_DESCRIPTIONS.get(short_uuid);
+            messages(`\tservices[${serviceIndex}].uuid: ${uuid}... Known service! ${serviceName}`, dispatch);
+        }
+        else {
+            messages(`\tservices[${serviceIndex}].uuid: ${uuid}`, dispatch);
+        }
+    }
+}
+
+async function loopOverServices(services: BluetoothRemoteGATTService[], dispatch: ReturnType<typeof useDispatch>) {
     for (let serviceIndex = 0; serviceIndex < services.length; serviceIndex++) {
         const uuid = services[serviceIndex].uuid;
         messages(`services[${serviceIndex}].uuid: ${uuid}`, dispatch);
@@ -688,54 +693,58 @@ async function bluetoothTestingStuffFunc(dispatch: ReturnType<typeof useDispatch
         //     debugger;
         // }
         //
-        const short_uuid = uuid.substring(4,8).toUpperCase();
+        const short_uuid = uuid.substring(4, 8).toUpperCase();
         if (GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.has(uuid)) {
-            const serviceName = GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.get(uuid)
+            const serviceName = GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.get(uuid);
             messages(`services[${serviceIndex}].uuid: ${uuid}... Known service! ${serviceName}`, dispatch);
         }
         else if (GENERIC_GATT_SERVICE_SHORT_ID_DESCRIPTIONS.has(short_uuid)) {
-            const serviceName = GENERIC_GATT_SERVICE_SHORT_ID_DESCRIPTIONS.get(short_uuid)
+            const serviceName = GENERIC_GATT_SERVICE_SHORT_ID_DESCRIPTIONS.get(short_uuid);
             messages(`\t\tKnown service! ${serviceName}`, dispatch);
         }
 
         messages(`services[${serviceIndex}].isPrimary: ${services[serviceIndex].isPrimary}`, dispatch);
         // debugger;
-
         //getCharacteristics can fail!
         //Unhandled Rejection (NetworkError): Failed to execute 'getCharacteristics' on 'BluetoothRemoteGATTService': GATT Server is disconnected. Cannot retrieve characteristics. (Re)connect first with `device.gatt.connect`.
         const characteristics = await services[serviceIndex].getCharacteristics();
 
-        messages(`Got characteristics (length ${characteristics.length}):`, dispatch)
-        for (let characteristicIndex = 0; characteristicIndex < characteristics.length; characteristicIndex++) {
-            messages(`\tservices[${serviceIndex}], characteristics[${characteristicIndex}].uuid: ${characteristics[characteristicIndex].uuid}`, dispatch);
-            if (aranet4KnownCharacteristicUUIDDescriptions.has(characteristics[characteristicIndex].uuid)) {
-                messages(`\t\tKnown Aranet4 characteristic! '${aranet4KnownCharacteristicUUIDDescriptions.get(characteristics[characteristicIndex].uuid)}'`, dispatch);
-            }
-            else if (GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.has(characteristics[characteristicIndex].uuid)) {
-                messages(`\t\tKnown generic GATT characteristic! '${GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.get(characteristics[characteristicIndex].uuid)}'`, dispatch);
+        messages(`Got characteristics (length ${characteristics.length}):`, dispatch);
+        await loopOverCharacteristics(characteristics, serviceIndex, dispatch);
+        messages('\n', dispatch);
+    }
+}
+
+async function loopOverCharacteristics(characteristics: BluetoothRemoteGATTCharacteristic[], serviceIndex: number, dispatch: ReturnType<typeof useDispatch>) {
+    for (let characteristicIndex = 0; characteristicIndex < characteristics.length; characteristicIndex++) {
+        messages(`\tservices[${serviceIndex}], characteristics[${characteristicIndex}].uuid: ${characteristics[characteristicIndex].uuid}`, dispatch);
+        if (aranet4KnownCharacteristicUUIDDescriptions.has(characteristics[characteristicIndex].uuid)) {
+            messages(`\t\tKnown Aranet4 characteristic! '${aranet4KnownCharacteristicUUIDDescriptions.get(characteristics[characteristicIndex].uuid)}'`, dispatch);
+        }
+        else if (GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.has(characteristics[characteristicIndex].uuid)) {
+            messages(`\t\tKnown generic GATT characteristic! '${GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.get(characteristics[characteristicIndex].uuid)}'`, dispatch);
+
+        }
+        else {
+            messages(`\t\tUNKNOWN GATT characteristic! '${characteristics[characteristicIndex].uuid}'`, dispatch);
+        }
+        // bluetoothMessages += messages(bluetoothMessages, `\tservices[${serviceIndex}], characteristics[${characteristicIndex}].value: ${characteristics[characteristicIndex].value}`, dispatch);
+        const propertiesString = dumpBluetoothCharacteristicProperties(characteristics[characteristicIndex].properties, serviceIndex, characteristicIndex);
+        dispatch(appendDebugText(propertiesString));
+        if (characteristics[characteristicIndex].properties.read) {
+            try {
+                const data = await characteristics[characteristicIndex].readValue();
+                switchOverCharacteristics(data, dispatch, characteristics[characteristicIndex]);
 
             }
-            else {
-                messages(`\t\tUNKNOWN GATT characteristic! '${characteristics[characteristicIndex].uuid}'`, dispatch);
-            }
-            // bluetoothMessages += messages(bluetoothMessages, `\tservices[${serviceIndex}], characteristics[${characteristicIndex}].value: ${characteristics[characteristicIndex].value}`, dispatch);
-            dumpBluetoothCharacteristicProperties(characteristics[characteristicIndex].properties, serviceIndex, characteristicIndex);
-            if (characteristics[characteristicIndex].properties.read) {
-                try {
-                    const data = await characteristics[characteristicIndex].readValue();
-                    switchOverCharacteristics(data, dispatch, characteristics[characteristicIndex]);
-                            
+            catch (e) {
+                if (e instanceof DOMException) {
+                    messages(`\t\tCannot read from ${characteristics[characteristicIndex].uuid}! Error code: '${e.code}', Error message: '${e.message}'`, dispatch);
                 }
-                catch(e) {
-                    if (e instanceof DOMException) {
-                        messages(`\t\tCannot read from ${characteristics[characteristicIndex].uuid}! Error code: '${e.code}', Error message: '${e.message}'`, dispatch)
-                    }
-                    else {
-                        throw e;
-                    }
+                else {
+                    throw e;
                 }
             }
-            messages('\n', dispatch);
         }
         messages('\n', dispatch);
     }
@@ -754,7 +763,7 @@ function parseAsUint8Numbers(data: DataView): string {
 
 function parseAsUint16Numbers(data: DataView): string {
     if (data.byteLength < 2) {
-        return "(Too short)";
+        return "";
     }
     let uint16Numbers = new Array();
     for (let i = 0; i < (data.byteLength/2); i++) {
@@ -772,7 +781,7 @@ function parseAsUint16Numbers(data: DataView): string {
 
 function parseAsUint16NumbersLittleEndian(data: DataView): string {
     if (data.byteLength < 2) {
-        return "(Too short)";
+        return "";
     }
     let uint16Numbers = new Array();
     for (let i = 0; i < (data.byteLength/2); i++) {
@@ -790,8 +799,8 @@ function parseAsUint16NumbersLittleEndian(data: DataView): string {
 
 
 function parseAsUint32Numbers(data: DataView): string {
-    if (data.byteLength < 2) {
-        return "(Too short)";
+    if (data.byteLength < 4) {
+        return "";
     }
     let uint32Numbers = new Array();
     for (let i = 0; i < (data.byteLength/4); i++) {
@@ -820,8 +829,8 @@ function parseAsUint32Numbers(data: DataView): string {
 }
 
 function parseAsUint32NumbersLittleEndian(data: DataView): string {
-    if (data.byteLength < 2) {
-        return "(Too short)";
+    if (data.byteLength < 4) {
+        return "";
     }
     let uint32Numbers = new Array();
     for (let i = 0; i < (data.byteLength/4); i++) {
@@ -851,8 +860,8 @@ function parseAsUint32NumbersLittleEndian(data: DataView): string {
 
 
 function parseAsUint64Numbers(data: DataView): string {
-    if (data.byteLength < 2) {
-        return "(Too short)";
+    if (data.byteLength < 8) {
+        return "";
     }
     let uint64Numbers = new Array();
     for (let i = 0; i < (data.byteLength/8); i++) {
@@ -873,8 +882,8 @@ function parseAsUint64Numbers(data: DataView): string {
 }
 
 function parseAsUint64NumbersLittleEndian(data: DataView): string {
-    if (data.byteLength < 2) {
-        return "(Too short)";
+    if (data.byteLength < 8) {
+        return "";
     }
     let uint64Numbers = new Array();
     for (let i = 0; i < (data.byteLength/8); i++) {
@@ -909,41 +918,112 @@ function parseUTF8StringDataView(data: DataView): string {
 
 
 
-async function getAranet4DataOverBluetooth(dispatch: ReturnType<typeof useDispatch>) {
+async function checkBluetooth(dispatch: ReturnType<typeof useDispatch>) {
+    console.log(navigator.bluetooth);
+    if (navigator.bluetooth === undefined) {
+        dispatch(setBluetoothAvailableError('bluetooth is unavailable on your platform. (navigator.bluetooth undefined)'));
+        dispatch(setBluetoothAvailable(false));
+        alert('bluetooth is unavailable on your platform. (navigator.bluetooth undefined)');
+        return;
+    }
+    const available = await navigator.bluetooth.getAvailability();
+    console.log("bluetooth available: ", available);
+    dispatch(setBluetoothAvailable(available));
+    if (!available) {
+        alert("bluetooth may not be available.");
+        dispatch(setBluetoothAvailableError('bluetooth may not be available. navigator.bluetooth.getAvailability() returned false.'));
+        return;
+    }
+    dispatch(setBluetoothAvailableError(null));
+}
+
+async function getAvailableDevices(): Promise<BluetoothDevice[] | null> {
+    const devices = await navigator.bluetooth.getDevices()
+    if (devices.length === 0) {
+        debugger;
+        console.log("no devices available...")
+        return null;
+    }
+    console.log("bluetooth devices:");
+
+    console.table(devices);
+
+    return devices;
+}
+
+async function getADevice(): Promise<BluetoothDevice> {
+
+    const options = aranet4DeviceRequestOptions();
+
+    //https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth/requestDevice
+    const device = await navigator.bluetooth.requestDevice(options);
+    return device;
+
+
+}
+
+async function maybeConnectDevice(dispatch: ReturnType<typeof useDispatch>, maybeConnectedDevice: (BluetoothRemoteGATTServer | null)): Promise<BluetoothRemoteGATTServer | null> {
+    if (maybeConnectedDevice) {
+        return maybeConnectedDevice;
+    }
+
+    debugger;
     const options = aranet4DeviceRequestOptions();
     //https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth/requestDevice
 
+
+    const device = await navigator.bluetooth.requestDevice(options);
+    if (device.gatt === undefined) {
+        debugger;
+        return null;
+    }
+    dispatch(setDeviceID(device.id));
+    if (device.name !== undefined) {
+        dispatch(setDeviceName(device.name));
+    }
+    else {
+        dispatch(setDeviceName(''));
+    }
+    
+    const deviceServer = await device.gatt.connect();
+    return deviceServer;
+}
+
+
+async function getAranet4DataOverBluetooth(dispatch: ReturnType<typeof useDispatch>, maybeConnectedDevice: (BluetoothRemoteGATTServer | null)) {
     try {
-        const device = await navigator.bluetooth.requestDevice(options);
-        if (device.gatt === undefined) {
+
+        const deviceServer = await maybeConnectDevice(dispatch, maybeConnectedDevice);
+        if (deviceServer === null) {
             debugger;
             return;
         }
-        dispatch(setDeviceID(device.id));
-        if (device.name !== undefined) {
-            dispatch(setDeviceName(device.name));
-        }
-        else {
-            dispatch(setDeviceName(''));
-        }
-        
-        const deviceServer = await device.gatt.connect();
+
         const Aranet4Service = await deviceServer.getPrimaryService(SENSOR_SERVICE_UUID);
+
+        //TODO: should I batch with getCharacteristics instead?
+        console.log("Got primary sensor service!");
+
         const co2Characteristic = await Aranet4Service.getCharacteristic(ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID);
+        console.log("Got co2 characteristic!");
+
         const co2Data = await co2Characteristic.readValue();
         parse_ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID(co2Data, dispatch);
 
+        console.log("Getting seconds since last update...");
         const secondsSinceLastMeasurementCharacteristic = await Aranet4Service.getCharacteristic(ARANET_SECONDS_LAST_UPDATE_UUID);
         const secondsSinceLastMeasurementData = await secondsSinceLastMeasurementCharacteristic.readValue();
         const secondsSinceLastmeasurement = secondsSinceLastMeasurementData.getUint16(0, true);
         dispatch(setAranet4SecondsSinceLastMeasurement(secondsSinceLastmeasurement));
 
 
+        console.log("Getting measurement interval...");
         const measurementIntervalCharacteristic = await Aranet4Service.getCharacteristic(ARANET_MEASUREMENT_INTERVAL_UUID);
         const measurementIntervalData = await measurementIntervalCharacteristic.readValue();
         const measurementInterval = measurementIntervalData.getUint16(0, true);
         dispatch(setAranet4MeasurementInterval(measurementInterval));
 
+        console.log("Getting total number of measurements...");
         const totalMeasurementsCharacteristic = await Aranet4Service.getCharacteristic(ARANET_TOTAL_MEASUREMENTS_UUID);
         const totalMeasurementsData = await totalMeasurementsCharacteristic.readValue();
         const totalMeasurements = totalMeasurementsData.getUint16(0, true);
@@ -951,30 +1031,38 @@ async function getAranet4DataOverBluetooth(dispatch: ReturnType<typeof useDispat
 
 
 
+        console.log("Getting device information service...")
         const deviceInformationService = await deviceServer.getPrimaryService(DEVICE_INFORMATION_SERVICE_UUID);
 
+
+        console.log("Getting model number string...")
         const modelNumberStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_DEVICE_MODEL_NUMBER_STRING_UUID);
         const modelNumberStringData = await modelNumberStringCharacteristic.readValue();
         const modelNumberString = parseUTF8StringDataView(modelNumberStringData);
         dispatch(setModelNumberString(modelNumberString));
 
+        console.log("Getting firmware revision string...")
         const firmwareStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_FIRMWARE_REVISION_STRING_UUID);
         const firmwareStringData = await firmwareStringCharacteristic.readValue();
         const firmwareRevisionString = parseUTF8StringDataView(firmwareStringData);
         dispatch(setFirmwareRevisionString(firmwareRevisionString));
 
 
+        console.log("Getting hardware revision string...")
         const hardwareRevisionStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_HARDWARE_REVISION_STRING_UUID);
         const hardwareRevisionData = await hardwareRevisionStringCharacteristic.readValue();
         const hardwareRevisionString = parseUTF8StringDataView(hardwareRevisionData);
         dispatch(setHardwareRevisionString(hardwareRevisionString));
 
 
+        console.log("Getting software revision string...");
         const softwareRevisionStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_SOFTWARE_REVISION_STRING_UUID);
         const softwareRevisionData = await softwareRevisionStringCharacteristic.readValue();
         const softwareRevisionString = parseUTF8StringDataView(softwareRevisionData);
         dispatch(setSoftwareRevisionString(softwareRevisionString));
 
+
+        console.log("Getting manufacturer name....")
         const manufactuterNameStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_MANUFACTURER_NAME_STRING_UUID);
         const manufacturerNameData = await manufactuterNameStringCharacteristic.readValue();
         const manufacturernameString = parseUTF8StringDataView(manufacturerNameData);
@@ -994,16 +1082,21 @@ async function getAranet4DataOverBluetooth(dispatch: ReturnType<typeof useDispat
         // const serialNumberString = parseUTF8StringDataView(serialNumberStringData);
         // debugger;
 
+        console.log("Getting generic access service...");
         const genericAccessService = await deviceServer.getPrimaryService(GENERIC_ACCESS_SERVICE_UUID);
+
+        console.log("Getting generic GATT device name...");
         const nameCharacteristic = await genericAccessService.getCharacteristic(GENERIC_GATT_DEVICE_NAME_UUID);
         const nameData = await nameCharacteristic.readValue();
         const name = parseUTF8StringDataView(nameData);
+
         dispatch(setDeviceNameFromCharacteristic(name));
 
         //TODO: seconds last update, measurement interval, total measurements, model number string, firmware revision, hardware revision, software revision, manufacturer name
     }
     catch (e) {
         if (e instanceof DOMException) {
+            debugger;
             alert(`DOMException bluetooth operation likely cancelled. Error code: ${e.code}, message: ${e.message}`);
             console.error(e);
             return;
@@ -1065,6 +1158,99 @@ function maybeBluetoothAvailable(bluetoothAvailable: boolean | null) {
     );
 }
 
+interface WatchAdvertisementsOptions {
+    signal: AbortSignal;
+  }
+
+type watchAdvertisements = (options: WatchAdvertisementsOptions) => Promise<undefined>;
+
+type handlerType = ((device: BluetoothDevice, event: BluetoothAdvertisingEvent, abortController: AbortController) => Promise<void>);
+
+const useBluetoothAdvertisementReceived = (bluetoothDevicesKnown: (BluetoothDevice[] | null)): (BluetoothRemoteGATTServer | null) => {
+    // const savedHandler: MutableRefObject<handlerType | undefined> = useRef();
+    const [deviceServer, setDeviceServer] = useState(null as (BluetoothRemoteGATTServer | null));
+    const dispatch = useDispatch();
+
+    const watchAdvertisementEventReceived = async (device: BluetoothDevice, event: BluetoothAdvertisingEvent, abortController: AbortController): Promise<void> => {
+        abortController.abort();
+        messages(`Received advertisement from '${device.name}', id: '${device.id}...`, dispatch);
+
+        messages(`Event: name: '${event.name}', appearance: '${event.appearance}', rssi: '${event.rssi}', txPower: '${event.txPower}'`, dispatch);
+
+        if (device.gatt === undefined) {
+            messages("device.gatt undefined? CANNOT query seemlessly", dispatch);
+            debugger;
+            return;
+        }
+        dispatch(setDeviceID(device.id));
+        if (device.name !== undefined) {
+            dispatch(setDeviceName(device.name));
+        }
+        else {
+            debugger;
+            dispatch(setDeviceName(''));
+        }
+
+        const deviceServer = await device.gatt.connect();
+        messages(`Connected seamlessly!`, dispatch);
+        setDeviceServer(deviceServer);
+
+    }
+
+    useEffect(() => {
+        if (bluetoothDevicesKnown === null) {
+            return;
+        }
+        messages(`The browser reports ${bluetoothDevicesKnown.length} bluetooth devices known. NOTE: for now, only querying one.`, dispatch);
+        if (bluetoothDevicesKnown.length > 1) {
+            console.warn(`There are ${bluetoothDevicesKnown.length} devices! Will ignore all but first.`);
+        }
+        // messages("let's try and request them without a user gesture using the 'advertisementreceived' event and 'watchAdvertisements'...", dispatch);
+
+        //See  https://googlechrome.github.io/samples/web-bluetooth/watch-advertisements-and-connect.html
+        //also https://googlechrome.github.io/samples/web-bluetooth/watch-advertisements-and-connect-async-await.html
+        const abortController = new AbortController();
+
+        const eventListenerRefShim = (event: BluetoothAdvertisingEvent) => {
+            watchAdvertisementEventReceived(bluetoothDevicesKnown[0], event, abortController);
+        }
+
+        const options = {once: true};
+        (bluetoothDevicesKnown[0].addEventListener as any)('advertisementreceived', eventListenerRefShim, options);
+
+        messages("waiting for device advertisements?", dispatch);
+        ((bluetoothDevicesKnown[0].watchAdvertisements as watchAdvertisements)({signal: abortController.signal }));
+
+        return () => {
+            (bluetoothDevicesKnown[0].removeEventListener as any)('advertisementreceived', eventListenerRefShim, options);
+        };
+    }, [bluetoothDevicesKnown]);
+
+    return deviceServer;
+
+}
+
+const MaybeIfValue: React.FC<{text: string, value: any}> = ({text, value}) => {
+    if (value === undefined) {
+        return null;
+    }
+    if (value === null) {
+        return null;
+    }
+    return (
+        <div>
+            <span>{text}</span>{value}<br/>
+        </div>
+    );
+}
+
+
+// NOTE TO SELF, bluetooth can be finicky! Here's the chrome error handling class:
+// https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/modules/bluetooth/bluetooth_error.h;l=36;drc=a817d852ea2f2085624d64154ad847dfa3faaeb6
+// This should also work? https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/modules/bluetooth/bluetooth_error.h
+// The full mapping code is here: https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/modules/bluetooth/bluetooth_error.cc;l=90
+
+
 export function BluetoothTesting(): JSX.Element {
     const debugText = useSelector(selectDebugText);
     const co2 = useSelector(selectCO2);
@@ -1072,7 +1258,7 @@ export function BluetoothTesting(): JSX.Element {
     const barometricPressure = useSelector(selectBarometricPressure);
     const humidity = useSelector(selectHumidity);
     const battery = useSelector(selectBattery);
-    const aranet4UnknownField = useSelector(selectAranet4UnknownField);
+    // const aranet4UnknownField = useSelector(selectAranet4UnknownField);
     const deviceNameFromCharacteristic = useSelector(selectDeviceNameFromCharacteristic);
     const deviceName = useSelector(selectDeviceName);
     const deviceID = useSelector(selectDeviceID);
@@ -1084,12 +1270,43 @@ export function BluetoothTesting(): JSX.Element {
     const softwareRevision = useSelector(selectSoftwareRevisionString);
     const manufacturerName = useSelector(selectManufacturerNameString);
     const aranet4SecondsSinceLastMeasurement = useSelector(selectAranet4SecondsSinceLastUpdate);
+    const aranet4Color = useSelector(selectAranet4Color);
 
     const bluetoothAvailableError = useSelector(selectBluetoothAvailableError);
     const bluetoothAvailable = useSelector(selectBluetoothAvailable);
 
+    const [bluetoothDevicesKnown, setBluetoothDevicesKnown] = useState(null as (BluetoothDevice[] | null));
+
+    const seamlesslyConnectedDeviceServer = useBluetoothAdvertisementReceived(bluetoothDevicesKnown);
+
+
     const dispatch = useDispatch();
 
+    useEffect(() => {
+        async function tryGetDevices() {
+            //Aha! There's a google doc: https://docs.google.com/document/d/1h3uAVXJARHrNWaNACUPiQhLt7XI-fFFQoARSs1WgMDM/edit#heading=h.jdnga4sjs82y
+            if ((navigator.bluetooth.getDevices as any)) {
+                messages('User browser supports getDevices!', dispatch);
+                const knownDevices = await getAvailableDevices();
+                setBluetoothDevicesKnown(knownDevices);
+            }
+        }
+        tryGetDevices();
+    }, []);
+
+    useEffect(() => {
+        if (seamlesslyConnectedDeviceServer === null) {
+            return;
+        }
+        if (seamlesslyConnectedDeviceServer.device.name === undefined) {
+            messages(`Something is WRONG. device.name is undefined!`, dispatch);
+            return;
+        }
+        if (seamlesslyConnectedDeviceServer.device.name.includes('Aranet')) {
+            getAranet4DataOverBluetooth(dispatch, seamlesslyConnectedDeviceServer);
+        }
+    }, [seamlesslyConnectedDeviceServer])
+    
     const checkBluetoothAvailable = () => {
         checkBluetooth(dispatch);
     }
@@ -1099,43 +1316,42 @@ export function BluetoothTesting(): JSX.Element {
         bluetoothTestingStuffFunc(dispatch);
     }
 
-
     const queryAranet4 = () => {
-        getAranet4DataOverBluetooth(dispatch);
+        getAranet4DataOverBluetooth(dispatch, seamlesslyConnectedDeviceServer);
     }
     return (
         <div>
             <h3>Experimental Bluetooth support</h3>
-            <Button onClick={checkBluetoothAvailable}>Check bluetooth availability</Button>
-            {maybeBluetoothAvailable(bluetoothAvailable)}<br/>
-            {maybeBluetoothAvailableError(bluetoothAvailableError)}<br/>
-            <br/>
 
-            Bluetooth device name: {deviceName}<br/>
-            Device name (GATT characteristic): {deviceNameFromCharacteristic}<br/><br/>
+            <MaybeIfValue text={"Bluetooth device name: "} value={deviceName}/>
+            <MaybeIfValue text={"Device name (GATT characteristic): "} value={deviceNameFromCharacteristic}/>
+            <MaybeIfValue text={"Unique Bluetooth device ID: "} value={deviceID}/>
+
             {maybeCO2(co2)}<br/>
             Temperature: {temperature}°C<br/>
             Pressure: {barometricPressure}hPa<br/>
             Relative Humidity: {humidity}%<br/>
             Battery: {battery}%<br/>
+            Aranet4 color: {aranet4Color}<br/>
             <br/>
             
-            Measurement interval (seconds): {measurementInterval}<br/>
-            Seconds since last update: {aranet4SecondsSinceLastMeasurement}<br/>
-            Total number of measurements: {totalMeasurements}<br/>
+            <MaybeIfValue text={"Measurement interval (seconds): "} value={measurementInterval}/>
+            <MaybeIfValue text={"Seconds since last update: "} value={aranet4SecondsSinceLastMeasurement}/>
+            <MaybeIfValue text={"Total number of measurements: "} value={totalMeasurements}/>
             <br/>
-            Manufacturer: {manufacturerName}<br/>
-            Model number: {modelNumber}<br/>
-            Firmware revision: {firmwareRevision}<br/>
-            Software revision: {softwareRevision}<br/>
-            Hardware revision: {hardwareRevision}<br/>
-            <br/>
-            Other fields:<br/>
-            Unique Bluetooth device ID: {deviceID}<br/>
-            Unknown/undocumented field: {aranet4UnknownField}<br/>
+            <MaybeIfValue text={"Manufacturer: "} value={manufacturerName}/>
+            <MaybeIfValue text={"Model number: "} value={modelNumber}/>
+            <MaybeIfValue text={"Firmware revision: "} value={firmwareRevision}/>
+            <MaybeIfValue text={"Software revision: "} value={softwareRevision}/>
+            <MaybeIfValue text={"Hardware revision: "} value={hardwareRevision}/>
             <br/>
             <Button onClick={queryAranet4}>Query Aranet4</Button><br/>
-            <Button onClick={queryDeviceOverBluetooth}>Dump ALL Bluetooth device info, attempt query</Button>
+            <Button onClick={queryDeviceOverBluetooth}>Dump ALL Bluetooth device info, attempt query</Button><br/>
+            <Button onClick={checkBluetoothAvailable}>Check bluetooth availability</Button><br/>
+            {maybeBluetoothAvailable(bluetoothAvailable)}<br/>
+            {maybeBluetoothAvailableError(bluetoothAvailableError)}<br/>
+            <br/>
+
             <pre>{debugText}</pre>
         </div>
     )
