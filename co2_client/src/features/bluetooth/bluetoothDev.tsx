@@ -9,7 +9,7 @@ import { setSelectedDevice } from "../deviceModels/deviceModelsSlice";
 
 
 
-import { selectCO2, selectDebugText, selectBluetoothAvailableError, setCO2, setDebugText, setBluetoothAvailableError, selectBluetoothAvailable, setBluetoothAvailable, setTemperature, selectTemperature, setBarometricPressure, selectBarometricPressure, selectHumidity, setHumidity, selectBattery, setBattery, setDeviceNameFromCharacteristic, setDeviceID, selectDeviceID, setDeviceName, selectDeviceName, selectDeviceNameFromCharacteristic, setAranet4MeasurementInterval, selectAranet4MeasurementInterval, setAranet4TotalMeasurements, selectAranet4TotalMeasurements, setModelNumberString, selectModelNumberString, setFirmwareRevisionString, selectFirmwareRevisionString, setHardwareRevisionString, selectHardwareRevisionString, setSoftwareRevisionString, selectSoftwareRevisionString, setManufacturerName, selectManufacturerNameString, setAranet4SecondsSinceLastMeasurement, selectAranet4SecondsSinceLastUpdate, appendDebugText, setAranet4Color, selectAranet4Color } from "./bluetoothSlice";
+import { selectCO2, selectDebugText, selectBluetoothAvailableError, setCO2, setDebugText, setBluetoothAvailableError, selectBluetoothAvailable, setBluetoothAvailable, setTemperature, selectTemperature, setBarometricPressure, selectBarometricPressure, selectHumidity, setHumidity, selectBattery, setBattery, setDeviceNameFromCharacteristic, setDeviceID, selectDeviceID, setDeviceName, selectDeviceName, selectDeviceNameFromCharacteristic, setAranet4MeasurementInterval, selectAranet4MeasurementInterval, setAranet4TotalMeasurements, selectAranet4TotalMeasurements, setModelNumberString, selectModelNumberString, setFirmwareRevisionString, selectFirmwareRevisionString, setHardwareRevisionString, selectHardwareRevisionString, setSoftwareRevisionString, selectSoftwareRevisionString, setManufacturerName, selectManufacturerNameString, setAranet4SecondsSinceLastMeasurement, selectAranet4SecondsSinceLastUpdate, appendDebugText, setAranet4Color, selectAranet4Color, selectAranet4Calibration, setAranet4Calibration } from "./bluetoothSlice";
 
 declare module BluetoothUUID {
     export function getService(name: BluetoothServiceUUID ): string;
@@ -340,6 +340,11 @@ const aranet4KnownCharacteristicUUIDDescriptions = new Map([
     [ARANET_UNSED_GATT_UUID, "Aranet4 UNUSED GATT characteristic"],
     [ARANET_SENSOR_LOGS_UUID, "Aranet4 sensor logs"]
 ]);
+
+
+//0x10000000000000000 === 18446744073709551615 === 2 ^60
+const ARANET4_AT_FACTORY_CALIBRATION_VALUE = 0x10000000000000000;
+const UNIX_MONDAY_JANUARY_1_2018 = 1514764800;
 
 
 function aranet4DeviceRequestOptions(): RequestDeviceOptions {
@@ -1029,7 +1034,19 @@ async function getAranet4DataOverBluetooth(dispatch: ReturnType<typeof useDispat
         const totalMeasurements = totalMeasurementsData.getUint16(0, true);
         dispatch(setAranet4TotalMeasurements(totalMeasurements));
 
+        console.log("Getting sensor calibration...");
+        const sensorCalibrationCharacteristic = await Aranet4Service.getCharacteristic(ARANET_SENSOR_CALIBRATION_DATA_UUID);
+        const sensorCalibrationData = await sensorCalibrationCharacteristic.readValue();
+        const rawSensorCalibrationValue = sensorCalibrationData.getBigUint64(0, true);
+        // ARANET4_AT_FACTORY_CALIBRATION_VALUE
+        const UNIX_MONDAY_JANUARY_1_2018 = 1514764800;
 
+        debugger;
+        // if (rawSensorCalibrationValue === ARANET4_AT_FACTORY_CALIBRATION_VALUE) {
+        //     dispatch(setAranet4Calibration("Factory calibration"));
+        // }
+
+        // UNIX_MONDAY_JANUARY_1_2018
 
         console.log("Getting device information service...")
         const deviceInformationService = await deviceServer.getPrimaryService(DEVICE_INFORMATION_SERVICE_UUID);
@@ -1091,6 +1108,7 @@ async function getAranet4DataOverBluetooth(dispatch: ReturnType<typeof useDispat
         const name = parseUTF8StringDataView(nameData);
 
         dispatch(setDeviceNameFromCharacteristic(name));
+
 
         //TODO: seconds last update, measurement interval, total measurements, model number string, firmware revision, hardware revision, software revision, manufacturer name
     }
@@ -1271,6 +1289,7 @@ export function BluetoothTesting(): JSX.Element {
     const manufacturerName = useSelector(selectManufacturerNameString);
     const aranet4SecondsSinceLastMeasurement = useSelector(selectAranet4SecondsSinceLastUpdate);
     const aranet4Color = useSelector(selectAranet4Color);
+    const aranet4Calibration = useSelector(selectAranet4Calibration);
 
     const bluetoothAvailableError = useSelector(selectBluetoothAvailableError);
     const bluetoothAvailable = useSelector(selectBluetoothAvailable);
@@ -1338,6 +1357,7 @@ export function BluetoothTesting(): JSX.Element {
             <MaybeIfValue text={"Measurement interval (seconds): "} value={measurementInterval}/>
             <MaybeIfValue text={"Seconds since last update: "} value={aranet4SecondsSinceLastMeasurement}/>
             <MaybeIfValue text={"Total number of measurements: "} value={totalMeasurements}/>
+            <MaybeIfValue text={"Calibration: "} value={aranet4Calibration}/>
             <br/>
             <MaybeIfValue text={"Manufacturer: "} value={manufacturerName}/>
             <MaybeIfValue text={"Model number: "} value={modelNumber}/>

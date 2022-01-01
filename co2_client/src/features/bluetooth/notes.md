@@ -331,3 +331,19 @@ See also: https://stackoverflow.com/a/55163224
             (l[0] ? R.default.red : R.default.yellow) :
             (l[0] ? R.default.green : R.default.text)
     ..Ok, so now I think I know what's going on. For a bitfield like this: (8) [1, 0, 0, 0, 0, 0, 0, 0], it's looking to see if bit at 0 is set. If so, it's either red or yellow. If bit at 0 is not set, it's either green or "default.text" (what?).
+
+
+12/28/2021: this is an intersting bit of code for maybe parsing calibration?
+    if (z) {
+        if (z.error) return w.default.t.calibration.error[z.error] || w.default.t.calibration.error.unexpected;
+        if (z.atFactory) return w.default.t.calibration.factory;
+        if (z.before) {
+            var t = (0, O.default)(),
+                l = (0, O.default)(z.before),
+                n = t.diff(l, 'days');
+            if (n < 1) return w.default.t.calibration.today;
+            var u = t.diff(l, 'months');
+            return u < 1 ? w.default.t.calibration.daysAgo(n) : w.default.t.calibration.monthsAgo(u)
+        }
+        return (0, O.default)(z.timestamp).format('LLL')
+    }
