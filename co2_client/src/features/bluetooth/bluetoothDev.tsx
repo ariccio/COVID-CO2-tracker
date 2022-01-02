@@ -365,33 +365,11 @@ function aranet4DeviceRequestOptions(): RequestDeviceOptions {
         'tx_power',
         'current_time',
         'reference_time_update',
-        'next_dst_change',
-        'glucose',
-        'health_thermometer',
-        'device_information',
-        'heart_rate',
-        'phone_alert_status',
-        'blood_pressure',
         'alert_notification',
-        'human_interface_device',
         'scan_parameters',
-        'running_speed_and_cadence',
         'automation_io',
-        'cycling_speed_and_cadence',
-        'cycling_power',
-        'location_and_navigation',
-        'body_composition',
         'user_data',
-        'weight_scale',
         'bond_management',
-        'continuous_glucose_monitoring',
-        'internet_protocol_support',
-        'indoor_positioning',
-        'pulse_oximeter',
-        'http_proxy',
-        'transport_discovery',
-        'object_transfer',
-        'fitness_machine',
         'mesh_provisioning',
         'mesh_proxy',
         'reconnection_configuration'
@@ -523,13 +501,6 @@ function dumpUnknownGatt(data: DataView, dispatch: ReturnType<typeof useDispatch
     if (asUint64s.length > 0) {
         messages(`\t\tTrying to parse data as uint64 array: '${asUint64s}'`, dispatch);
     }
-
-    // for (let offset = 1; offset < data.byteLength; offset++) {
-        // const asOffsetUint8 = parseAsUint8NumbersOffset(data, offset);
-        // if (asOffsetUint8.length > 0) {
-        //     bluetoothMessages += messages(bluetoothMessages, `\t\t\tTrying to parse data as uint8 array with offset ${offset}: '${asOffsetUint8}'`, dispatch);
-        // }
-    // }
     const asLEUint16 = parseAsUint16NumbersLittleEndian(data);
     if (asLEUint16.length > 0) {
         messages(`\t\tParsed data as uint16 array as LE: '${asLEUint16}'`, dispatch);
@@ -754,36 +725,43 @@ async function loopOverServices(services: BluetoothRemoteGATTService[], dispatch
 async function loopOverCharacteristics(characteristics: BluetoothRemoteGATTCharacteristic[], serviceIndex: number, dispatch: ReturnType<typeof useDispatch>) {
     for (let characteristicIndex = 0; characteristicIndex < characteristics.length; characteristicIndex++) {
         messages(`\tservices[${serviceIndex}], characteristics[${characteristicIndex}].uuid: ${characteristics[characteristicIndex].uuid}`, dispatch);
-        if (aranet4KnownCharacteristicUUIDDescriptions.has(characteristics[characteristicIndex].uuid)) {
-            messages(`\t\tKnown Aranet4 characteristic! '${aranet4KnownCharacteristicUUIDDescriptions.get(characteristics[characteristicIndex].uuid)}'`, dispatch);
-        }
-        else if (GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.has(characteristics[characteristicIndex].uuid)) {
-            messages(`\t\tKnown generic GATT characteristic! '${GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.get(characteristics[characteristicIndex].uuid)}'`, dispatch);
-
-        }
-        else {
-            messages(`\t\tUNKNOWN GATT characteristic! '${characteristics[characteristicIndex].uuid}'`, dispatch);
-        }
+        checkKnownFunctionDescription(characteristics, characteristicIndex, dispatch);
         // bluetoothMessages += messages(bluetoothMessages, `\tservices[${serviceIndex}], characteristics[${characteristicIndex}].value: ${characteristics[characteristicIndex].value}`, dispatch);
         const propertiesString = dumpBluetoothCharacteristicProperties(characteristics[characteristicIndex].properties, serviceIndex, characteristicIndex);
         dispatch(appendDebugText(propertiesString));
         if (characteristics[characteristicIndex].properties.read) {
-            try {
-                const data = await characteristics[characteristicIndex].readValue();
-                switchOverCharacteristics(data, dispatch, characteristics[characteristicIndex]);
-
-            }
-            catch (e) {
-                if (e instanceof DOMException) {
-                    messages(`\t\tCannot read from ${characteristics[characteristicIndex].uuid}! Error code: '${e.code}', Error message: '${e.message}'`, dispatch);
-                }
-                else {
-                    throw e;
-                }
-            }
+            await readableCharacteristic(characteristics, characteristicIndex, dispatch);
         }
         messages('\n', dispatch);
     }
+}
+
+async function readableCharacteristic(characteristics: BluetoothRemoteGATTCharacteristic[], characteristicIndex: number, dispatch: ReturnType<typeof useDispatch>) {
+    try {
+        const data = await characteristics[characteristicIndex].readValue();
+        switchOverCharacteristics(data, dispatch, characteristics[characteristicIndex]);
+
+    }
+    catch (e) {
+        if (e instanceof DOMException) {
+            messages(`\t\tCannot read from ${characteristics[characteristicIndex].uuid}! Error code: '${e.code}', Error message: '${e.message}'`, dispatch);
+        }
+        else {
+            throw e;
+        }
+    }
+}
+
+function checkKnownFunctionDescription(characteristics: BluetoothRemoteGATTCharacteristic[], characteristicIndex: number, dispatch: ReturnType<typeof useDispatch>) {
+    if (aranet4KnownCharacteristicUUIDDescriptions.has(characteristics[characteristicIndex].uuid)) {
+        messages(`\t\tKnown Aranet4 characteristic! '${aranet4KnownCharacteristicUUIDDescriptions.get(characteristics[characteristicIndex].uuid)}'`, dispatch);
+        return;
+    }
+    else if (GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.has(characteristics[characteristicIndex].uuid)) {
+        messages(`\t\tKnown generic GATT characteristic! '${GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.get(characteristics[characteristicIndex].uuid)}'`, dispatch);
+        return;
+    }
+    messages(`\t\tUNKNOWN GATT characteristic! '${characteristics[characteristicIndex].uuid}'`, dispatch);
 }
 
 function parseAsUint8Numbers(data: DataView): string {
@@ -846,16 +824,7 @@ function parseAsUint32Numbers(data: DataView): string {
         if ((data.byteLength/4) < 1) {
             return '';
         }
-        try {
-            uint32Numbers[i] = data.getUint32(i);
-        }
-        catch (e) {
-            if (e instanceof RangeError) {
-                debugger;
-                throw e;
-            }
-            throw e;
-        }
+        uint32Numbers[i] = data.getUint32(i);
     }
     // debugger;
     const numberStringArray = uint32Numbers.map((uint32Number) => {
@@ -876,16 +845,7 @@ function parseAsUint32NumbersLittleEndian(data: DataView): string {
         if ((data.byteLength/4) < 1) {
             return '';
         }
-        try {
-            uint32Numbers[i] = data.getUint32(i, true);
-        }
-        catch (e) {
-            if (e instanceof RangeError) {
-                debugger;
-                throw e;
-            }
-            throw e;
-        }
+        uint32Numbers[i] = data.getUint32(i, true);
     }
     // debugger;
     const numberStringArray = uint32Numbers.map((uint32Number) => {
@@ -940,9 +900,6 @@ function parseAsUint64NumbersLittleEndian(data: DataView): string {
 }
 
 
-
-
-
 function parseUTF8StringDataView(data: DataView): string {
     let chars = new Array(data.byteLength);
     for (let i = 0; i < (data.byteLength); i++) {
@@ -952,16 +909,15 @@ function parseUTF8StringDataView(data: DataView): string {
     return converted;
 }
 
-
-
 async function checkBluetooth(dispatch: ReturnType<typeof useDispatch>) {
-    console.log(navigator.bluetooth);
+    console.assert(navigator.bluetooth);
     if (navigator.bluetooth === undefined) {
         dispatch(setBluetoothAvailableError('bluetooth is unavailable on your platform. (navigator.bluetooth undefined)'));
         dispatch(setBluetoothAvailable(false));
         alert('bluetooth is unavailable on your platform. (navigator.bluetooth undefined)');
         return;
     }
+    console.assert(navigator.bluetooth.getAvailability);
     const available = await navigator.bluetooth.getAvailability();
     console.log("bluetooth available: ", available);
     dispatch(setBluetoothAvailable(available));
@@ -974,7 +930,9 @@ async function checkBluetooth(dispatch: ReturnType<typeof useDispatch>) {
 }
 
 async function getAvailableDevices(): Promise<BluetoothDevice[] | null> {
-    const devices = await navigator.bluetooth.getDevices()
+    console.assert(navigator.bluetooth);
+    console.assert(navigator.bluetooth.getDevices);
+    const devices = await navigator.bluetooth.getDevices();
     if (devices.length === 0) {
         debugger;
         console.log("no devices available...")
@@ -991,6 +949,8 @@ async function getADevice(): Promise<BluetoothDevice> {
 
     const options = aranet4DeviceRequestOptions();
 
+    console.assert(navigator.bluetooth);
+    console.assert(navigator.bluetooth.referringDevice);
     //https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth/requestDevice
     const device = await navigator.bluetooth.requestDevice(options);
     return device;
@@ -1005,6 +965,9 @@ async function maybeConnectDevice(dispatch: ReturnType<typeof useDispatch>, mayb
 
     debugger;
     const options = aranet4DeviceRequestOptions();
+    
+    console.assert(navigator.bluetooth);
+    console.assert(navigator.bluetooth.requestDevice);
     //https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth/requestDevice
 
 
@@ -1060,29 +1023,17 @@ async function innerGetAranet4DataOverBluetooth(dispatch: ReturnType<typeof useD
     const co2Data = await co2Characteristic.readValue();
     parse_ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID(co2Data, dispatch);
 
-    console.log("Getting seconds since last update...");
-    const secondsSinceLastMeasurementCharacteristic = await Aranet4Service.getCharacteristic(ARANET_SECONDS_LAST_UPDATE_UUID);
-    const secondsSinceLastMeasurementData = await secondsSinceLastMeasurementCharacteristic.readValue();
-    const secondsSinceLastmeasurement = secondsSinceLastMeasurementData.getUint16(0, true);
+    const secondsSinceLastmeasurement = await queryAranet4SecondsSinceLastMeasurement(Aranet4Service);
     dispatch(setAranet4SecondsSinceLastMeasurement(secondsSinceLastmeasurement));
 
 
-    console.log("Getting measurement interval...");
-    const measurementIntervalCharacteristic = await Aranet4Service.getCharacteristic(ARANET_MEASUREMENT_INTERVAL_UUID);
-    const measurementIntervalData = await measurementIntervalCharacteristic.readValue();
-    const measurementInterval = measurementIntervalData.getUint16(0, true);
+    const measurementInterval = await queryAranet4MeasurementInterval(Aranet4Service);
     dispatch(setAranet4MeasurementInterval(measurementInterval));
 
-    console.log("Getting total number of measurements...");
-    const totalMeasurementsCharacteristic = await Aranet4Service.getCharacteristic(ARANET_TOTAL_MEASUREMENTS_UUID);
-    const totalMeasurementsData = await totalMeasurementsCharacteristic.readValue();
-    const totalMeasurements = totalMeasurementsData.getUint16(0, true);
+    const totalMeasurements = await queryAranet4TotalMeasurements(Aranet4Service);
     dispatch(setAranet4TotalMeasurements(totalMeasurements));
 
-    console.log("Getting sensor calibration...");
-    const sensorCalibrationCharacteristic = await Aranet4Service.getCharacteristic(ARANET_SENSOR_CALIBRATION_DATA_UUID);
-    const sensorCalibrationData = await sensorCalibrationCharacteristic.readValue();
-    const rawSensorCalibrationValue = sensorCalibrationData.getBigUint64(0, true);
+    const rawSensorCalibrationValue = await queryAranet4SensorCalibration(Aranet4Service);
     // ARANET4_AT_FACTORY_CALIBRATION_VALUE
     // const UNIX_MONDAY_JANUARY_1_2018 = 1514764800;
 
@@ -1108,46 +1059,25 @@ async function innerGetAranet4DataOverBluetooth(dispatch: ReturnType<typeof useD
     // const sensorLogsData = await sensorLogsCharacteristic.readValue();
 
 
-
-
     console.log("Getting device information service...")
     const deviceInformationService = await deviceServer.getPrimaryService(DEVICE_INFORMATION_SERVICE_UUID);
 
 
-    console.log("Getting model number string...")
-    const modelNumberStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_DEVICE_MODEL_NUMBER_STRING_UUID);
-    const modelNumberStringData = await modelNumberStringCharacteristic.readValue();
-    const modelNumberString = parseUTF8StringDataView(modelNumberStringData);
+    const modelNumberString = await queryBluetoothModelNumberString(deviceInformationService);
     dispatch(setModelNumberString(modelNumberString));
 
-    console.log("Getting firmware revision string...")
-    const firmwareStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_FIRMWARE_REVISION_STRING_UUID);
-    const firmwareStringData = await firmwareStringCharacteristic.readValue();
-    const firmwareRevisionString = parseUTF8StringDataView(firmwareStringData);
+    const firmwareRevisionString = await queryBluetoothFirmwareRevisionString(deviceInformationService);
     dispatch(setFirmwareRevisionString(firmwareRevisionString));
 
 
-    console.log("Getting hardware revision string...")
-    const hardwareRevisionStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_HARDWARE_REVISION_STRING_UUID);
-    const hardwareRevisionData = await hardwareRevisionStringCharacteristic.readValue();
-    const hardwareRevisionString = parseUTF8StringDataView(hardwareRevisionData);
+    const hardwareRevisionString = await queryBluetoothHardwareRevisionString(deviceInformationService);
     dispatch(setHardwareRevisionString(hardwareRevisionString));
 
-
-    console.log("Getting software revision string...");
-    const softwareRevisionStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_SOFTWARE_REVISION_STRING_UUID);
-    const softwareRevisionData = await softwareRevisionStringCharacteristic.readValue();
-    const softwareRevisionString = parseUTF8StringDataView(softwareRevisionData);
+    const softwareRevisionString = await queryBluetoothSoftwareRevisionSoftwareRevisionString(deviceInformationService);
     dispatch(setSoftwareRevisionString(softwareRevisionString));
 
-
-    console.log("Getting manufacturer name....")
-    const manufactuterNameStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_MANUFACTURER_NAME_STRING_UUID);
-    const manufacturerNameData = await manufactuterNameStringCharacteristic.readValue();
-    const manufacturernameString = parseUTF8StringDataView(manufacturerNameData);
+    const manufacturernameString = await queryBluetoothManufacturerNameString(deviceInformationService);
     dispatch(setManufacturerName(manufacturernameString));
-
-
 
     // OK, so there's a problem here. Reading the serial number is currently blocklisted!
     // See:
@@ -1164,10 +1094,7 @@ async function innerGetAranet4DataOverBluetooth(dispatch: ReturnType<typeof useD
     console.log("Getting generic access service...");
     const genericAccessService = await deviceServer.getPrimaryService(GENERIC_ACCESS_SERVICE_UUID);
 
-    console.log("Getting generic GATT device name...");
-    const nameCharacteristic = await genericAccessService.getCharacteristic(GENERIC_GATT_DEVICE_NAME_UUID);
-    const nameData = await nameCharacteristic.readValue();
-    const name = parseUTF8StringDataView(nameData);
+    const name = await queryBluetoothDeviceNameString(genericAccessService);
 
     dispatch(setDeviceNameFromCharacteristic(name));
 
@@ -1176,6 +1103,86 @@ async function innerGetAranet4DataOverBluetooth(dispatch: ReturnType<typeof useD
 
 }
 
+
+async function queryBluetoothDeviceNameString(genericAccessService: BluetoothRemoteGATTService) {
+    console.log("Getting generic GATT device name...");
+    const nameCharacteristic = await genericAccessService.getCharacteristic(GENERIC_GATT_DEVICE_NAME_UUID);
+    const nameData = await nameCharacteristic.readValue();
+    const name = parseUTF8StringDataView(nameData);
+    return name;
+}
+
+async function queryBluetoothManufacturerNameString(deviceInformationService: BluetoothRemoteGATTService) {
+    console.log("Getting manufacturer name....");
+    const manufactuterNameStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_MANUFACTURER_NAME_STRING_UUID);
+    const manufacturerNameData = await manufactuterNameStringCharacteristic.readValue();
+    const manufacturernameString = parseUTF8StringDataView(manufacturerNameData);
+    return manufacturernameString;
+}
+
+async function queryBluetoothSoftwareRevisionSoftwareRevisionString(deviceInformationService: BluetoothRemoteGATTService) {
+    console.log("Getting software revision string...");
+    const softwareRevisionStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_SOFTWARE_REVISION_STRING_UUID);
+    const softwareRevisionData = await softwareRevisionStringCharacteristic.readValue();
+    const softwareRevisionString = parseUTF8StringDataView(softwareRevisionData);
+    return softwareRevisionString;
+}
+
+async function queryBluetoothHardwareRevisionString(deviceInformationService: BluetoothRemoteGATTService) {
+    console.log("Getting hardware revision string...");
+    const hardwareRevisionStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_HARDWARE_REVISION_STRING_UUID);
+    const hardwareRevisionData = await hardwareRevisionStringCharacteristic.readValue();
+    const hardwareRevisionString = parseUTF8StringDataView(hardwareRevisionData);
+    return hardwareRevisionString;
+}
+
+async function queryBluetoothFirmwareRevisionString(deviceInformationService: BluetoothRemoteGATTService) {
+    console.log("Getting firmware revision string...");
+    const firmwareStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_FIRMWARE_REVISION_STRING_UUID);
+    const firmwareStringData = await firmwareStringCharacteristic.readValue();
+    const firmwareRevisionString = parseUTF8StringDataView(firmwareStringData);
+    return firmwareRevisionString;
+}
+
+async function queryBluetoothModelNumberString(deviceInformationService: BluetoothRemoteGATTService) {
+    console.log("Getting model number string...");
+    const modelNumberStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_DEVICE_MODEL_NUMBER_STRING_UUID);
+    const modelNumberStringData = await modelNumberStringCharacteristic.readValue();
+    const modelNumberString = parseUTF8StringDataView(modelNumberStringData);
+    return modelNumberString;
+}
+
+async function queryAranet4SensorCalibration(Aranet4Service: BluetoothRemoteGATTService) {
+    console.log("Getting sensor calibration...");
+    const sensorCalibrationCharacteristic = await Aranet4Service.getCharacteristic(ARANET_SENSOR_CALIBRATION_DATA_UUID);
+    const sensorCalibrationData = await sensorCalibrationCharacteristic.readValue();
+    const rawSensorCalibrationValue = sensorCalibrationData.getBigUint64(0, true);
+    return rawSensorCalibrationValue;
+}
+
+async function queryAranet4TotalMeasurements(Aranet4Service: BluetoothRemoteGATTService) {
+    console.log("Getting total number of measurements...");
+    const totalMeasurementsCharacteristic = await Aranet4Service.getCharacteristic(ARANET_TOTAL_MEASUREMENTS_UUID);
+    const totalMeasurementsData = await totalMeasurementsCharacteristic.readValue();
+    const totalMeasurements = totalMeasurementsData.getUint16(0, true);
+    return totalMeasurements;
+}
+
+async function queryAranet4MeasurementInterval(Aranet4Service: BluetoothRemoteGATTService) {
+    console.log("Getting measurement interval...");
+    const measurementIntervalCharacteristic = await Aranet4Service.getCharacteristic(ARANET_MEASUREMENT_INTERVAL_UUID);
+    const measurementIntervalData = await measurementIntervalCharacteristic.readValue();
+    const measurementInterval = measurementIntervalData.getUint16(0, true);
+    return measurementInterval;
+}
+
+async function queryAranet4SecondsSinceLastMeasurement(Aranet4Service: BluetoothRemoteGATTService) {
+    console.log("Getting seconds since last update...");
+    const secondsSinceLastMeasurementCharacteristic = await Aranet4Service.getCharacteristic(ARANET_SECONDS_LAST_UPDATE_UUID);
+    const secondsSinceLastMeasurementData = await secondsSinceLastMeasurementCharacteristic.readValue();
+    const secondsSinceLastmeasurement = secondsSinceLastMeasurementData.getUint16(0, true);
+    return secondsSinceLastmeasurement;
+}
 
 async function getAranet4DataOverBluetooth(dispatch: ReturnType<typeof useDispatch>, maybeConnectedDevice: (BluetoothRemoteGATTServer | null)) {
     try {
@@ -1286,10 +1293,16 @@ const useBluetoothAdvertisementReceived = (bluetoothDevicesKnown: (BluetoothDevi
 
     useEffect(() => {
         if (bluetoothDevicesKnown === null) {
-            messages('No bluetooth devices known, nothing to seamlessly connect to?', dispatch);
+            messages('Loading known bluetooth devices...', dispatch);
             return;
         }
+        if (bluetoothDevicesKnown.length === 0) {
+            messages('Zero available bluetooth devices.', dispatch);
+        }
         messages(`The browser reports ${bluetoothDevicesKnown.length} bluetooth devices known. NOTE: for now, only querying one.`, dispatch);
+        for (let i = 0; i < bluetoothDevicesKnown.length; ++i) {
+            messages(`\tDevice ${i}: ${bluetoothDevicesKnown[i].name}`, dispatch);
+        }
         if (bluetoothDevicesKnown.length > 1) {
             console.warn(`There are ${bluetoothDevicesKnown.length} devices! Will ignore all but first.`);
         }
@@ -1323,7 +1336,11 @@ const MaybeIfValue: React.FC<{text: string, value: any}> = ({text, value}) => {
         return null;
     }
     if (value === null) {
-        return null;
+        return (
+        <div>
+            <span>{text}</span>Loading...<br/>
+        </div>            
+        )
     }
     return (
         <div>
@@ -1332,6 +1349,49 @@ const MaybeIfValue: React.FC<{text: string, value: any}> = ({text, value}) => {
     );
 }
 
+
+function falsyNavigatorBluetooth(dispatch: ReturnType<typeof useDispatch>) {
+    dispatch(setBluetoothAvailable(false));
+    if (navigator.bluetooth === null) {
+        dispatch(setBluetoothAvailableError("navigator.bluetooth === null, bluetooth is not availabe."));
+    }
+    else if (navigator.bluetooth === undefined) {
+        dispatch(setBluetoothAvailableError("navigator.bluetooth === undefined, bluetooth is not availabe."));
+    }
+    else {
+        Sentry.captureMessage(`navigator.bluetooth === ${navigator.bluetooth}`);
+        dispatch(setBluetoothAvailableError(`navigator.bluetooth === ${navigator.bluetooth}, bluetooth is not availabe.`));
+    }
+    messages('Cannot use bluetooth, navigator.bluetooth is not exposed properly.', dispatch);
+
+}
+
+function falsyGetDevices(dispatch: ReturnType<typeof useDispatch>) {
+    if ((navigator.bluetooth.getDevices as any) === undefined) {
+        messages('Cannot seamlessly connect, getDevices is undefined', dispatch);
+        return;
+    }
+    else if ((navigator.bluetooth.getDevices as any) === null) {
+        messages('Cannot seamlessly connect, getDevices is null', dispatch);
+        return;
+    }
+    Sentry.captureMessage(`getDevices is an unexpected value: ${navigator.bluetooth.getDevices}`);
+    messages(`Cannot seamlessly connect, getDevices is an unexpected value: ${navigator.bluetooth.getDevices}`, dispatch);
+}
+
+function getDevicesSupported(dispatch: ReturnType<typeof useDispatch>, setBluetoothDevicesKnown: React.Dispatch<React.SetStateAction<BluetoothDevice[] | null>>): boolean {
+    if (!(navigator.bluetooth)) {
+        falsyNavigatorBluetooth(dispatch);
+        setBluetoothDevicesKnown([]);
+        return false;
+    }
+    if(!(navigator.bluetooth.getDevices as any)) {
+        falsyGetDevices(dispatch);
+        setBluetoothDevicesKnown([]);
+        return false;
+    }
+    return true;
+}
 
 // NOTE TO SELF, bluetooth can be finicky! Here's the chrome error handling class:
 // https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/modules/bluetooth/bluetooth_error.h;l=36;drc=a817d852ea2f2085624d64154ad847dfa3faaeb6
@@ -1373,12 +1433,14 @@ export function BluetoothTesting(): JSX.Element {
 
     useEffect(() => {
         async function tryGetDevices() {
-            //Aha! There's a google doc: https://docs.google.com/document/d/1h3uAVXJARHrNWaNACUPiQhLt7XI-fFFQoARSs1WgMDM/edit#heading=h.jdnga4sjs82y
-            if ((navigator.bluetooth.getDevices as any)) {
-                messages('User browser supports getDevices!', dispatch);
-                const knownDevices = await getAvailableDevices();
-                setBluetoothDevicesKnown(knownDevices);
+            if (!getDevicesSupported(dispatch, setBluetoothDevicesKnown)) {
+                return;
             }
+            console.assert(navigator.bluetooth.getDevices as any);
+            //Aha! There's a google doc: https://docs.google.com/document/d/1h3uAVXJARHrNWaNACUPiQhLt7XI-fFFQoARSs1WgMDM/edit#heading=h.jdnga4sjs82y
+            messages('User browser supports getDevices!', dispatch);
+            const knownDevices = await getAvailableDevices();
+            setBluetoothDevicesKnown(knownDevices);
         }
         tryGetDevices();
     }, []);
