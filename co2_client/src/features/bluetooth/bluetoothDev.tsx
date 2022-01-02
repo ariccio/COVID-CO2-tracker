@@ -7,6 +7,7 @@ import {useDispatch} from 'react-redux';
 import {useSelector} from 'react-redux';
 import { setSelectedDevice } from "../deviceModels/deviceModelsSlice";
 
+import * as Sentry from "@sentry/react";
 
 
 import { selectCO2, selectDebugText, selectBluetoothAvailableError, setCO2, setDebugText, setBluetoothAvailableError, selectBluetoothAvailable, setBluetoothAvailable, setTemperature, selectTemperature, setBarometricPressure, selectBarometricPressure, selectHumidity, setHumidity, selectBattery, setBattery, setDeviceNameFromCharacteristic, setDeviceID, selectDeviceID, setDeviceName, selectDeviceName, selectDeviceNameFromCharacteristic, setAranet4MeasurementInterval, selectAranet4MeasurementInterval, setAranet4TotalMeasurements, selectAranet4TotalMeasurements, setModelNumberString, selectModelNumberString, setFirmwareRevisionString, selectFirmwareRevisionString, setHardwareRevisionString, selectHardwareRevisionString, setSoftwareRevisionString, selectSoftwareRevisionString, setManufacturerName, selectManufacturerNameString, setAranet4SecondsSinceLastMeasurement, selectAranet4SecondsSinceLastUpdate, appendDebugText, setAranet4Color, selectAranet4Color, selectAranet4Calibration, setAranet4Calibration } from "./bluetoothSlice";
@@ -34,7 +35,7 @@ const GENERIC_GATT_SOFTWARE_REVISION_STRING_UUID = '00002a28-0000-1000-8000-0080
 const GENERIC_GATT_MANUFACTURER_NAME_STRING_UUID = '00002a29-0000-1000-8000-00805f9b34fb';
 const GENERIC_GATT_FIRMWARE_REVISION_STRING_UUID = '00002a26-0000-1000-8000-00805f9b34fb';
 const GENERIC_GATT_DEVICE_INFORMATION_SYSTEM_ID_UUID = '00002a23-0000-1000-8000-00805f9b34fb';
-
+const GENERIC_GATT_PREFERRED_PERIPHERAL_CONNECTION_PARAMETERS = '00002a04-0000-1000-8000-00805f9b34fb';
 
 const DEVICE_INFORMATION_SERVICE_UUID = '0000180a-0000-1000-8000-00805f9b34fb';
 const GENERIC_ACCESS_SERVICE_UUID = '00001800-0000-1000-8000-00805f9b34fb';
@@ -89,7 +90,7 @@ const GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS = new Map([
     ['00002a01-0000-1000-8000-00805f9b34fb', 'Appearance'],
     ['00002a02-0000-1000-8000-00805f9b34fb', 'Peripheral Privacy Flag'],
     ['00002a03-0000-1000-8000-00805f9b34fb', 'Reconnection Address'],
-    ['00002a04-0000-1000-8000-00805f9b34fb', 'Peripheral Preferred Connection Parameters'],
+    [GENERIC_GATT_PREFERRED_PERIPHERAL_CONNECTION_PARAMETERS, 'Peripheral Preferred Connection Parameters'],
     ['00002a05-0000-1000-8000-00805f9b34fb', 'Service Changed'],
     ['00002a06-0000-1000-8000-00805f9b34fb', 'Alert Level'],
     ['00002a07-0000-1000-8000-00805f9b34fb', 'Tx Power Level'],
@@ -343,9 +344,9 @@ const aranet4KnownCharacteristicUUIDDescriptions = new Map([
 
 
 //0x10000000000000000 === 18446744073709551615 === 2 ^60
-const ARANET4_AT_FACTORY_CALIBRATION_VALUE = 0x10000000000000000;
-const UNIX_MONDAY_JANUARY_1_2018 = 1514764800;
-
+const ARANET4_MINIMUM_FACTORY_CALIBRATION_VALUE = BigInt(0x10000000000000000);
+const UNIX_MONDAY_JANUARY_1_2018 = BigInt(1514764800);
+const ARANET_4_BAD_CALIBRATION_STRING = "Calibration unstable, bad, or otherwise not at factory in unspecified ways.";
 
 function aranet4DeviceRequestOptions(): RequestDeviceOptions {
     const filter: BluetoothLEScanFilter = {
@@ -614,6 +615,36 @@ function switchOverCharacteristics(data: DataView, dispatch: ReturnType<typeof u
         case (GENERIC_GATT_DEVICE_BATTERY_LEVEL_UUID):
             const batteryLevel = data.getUint8(0);
             messages(`\t\tBluetooth device battery level: ${batteryLevel}`, dispatch);
+            break;
+        case (ARANET_SENSOR_CALIBRATION_DATA_UUID):
+            const rawSensorCalibrationValue = data.getBigUint64(0, true);
+
+            if (rawSensorCalibrationValue === ARANET4_MINIMUM_FACTORY_CALIBRATION_VALUE) {
+                dispatch(setAranet4Calibration(ARANET_4_BAD_CALIBRATION_STRING));
+                messages(`\t\tI think this calibration value is an error value. ${rawSensorCalibrationValue}`, dispatch);
+            }
+            else if (rawSensorCalibrationValue > ARANET4_MINIMUM_FACTORY_CALIBRATION_VALUE) {
+                messages(`\t\tMaybe at factory calibration? (${rawSensorCalibrationValue})`, dispatch);
+                dispatch(setAranet4Calibration(`Maybe at factory? (${rawSensorCalibrationValue})`));
+                Sentry.captureMessage(`Aranet4 calibration: ${rawSensorCalibrationValue}`);
+            }
+            else if ((rawSensorCalibrationValue < ARANET4_MINIMUM_FACTORY_CALIBRATION_VALUE) && (rawSensorCalibrationValue > UNIX_MONDAY_JANUARY_1_2018)) {
+                messages(`\t\tMaybe at factory calibration? (${rawSensorCalibrationValue})`, dispatch);
+                dispatch(setAranet4Calibration(`Maybe at factory? (${rawSensorCalibrationValue})`));
+                Sentry.captureMessage(`Aranet4 calibration: ${rawSensorCalibrationValue}`);
+            }
+            else if (rawSensorCalibrationValue < UNIX_MONDAY_JANUARY_1_2018) {
+                dispatch(setAranet4Calibration(`Likely NON-factory: (${rawSensorCalibrationValue})`));
+                messages(`\t\tLikely NON-Factory calibration (${rawSensorCalibrationValue})`, dispatch);
+            }
+            break;
+        case (GENERIC_GATT_PREFERRED_PERIPHERAL_CONNECTION_PARAMETERS):
+            const minimumConnectionInterval = data.getUint16(0, true);
+            const maximumConnectionInterval = data.getUint16(2, true);
+            const slaveLatency = data.getUint16(4,true);
+            const connectionSupervisionTimeoutMultiplier = data.getUint16(6, true);
+            messages(`\t\tMinimum Connection Interval: ${minimumConnectionInterval}, Maximum Connection Interval: ${maximumConnectionInterval}, Slave Latency: ${slaveLatency}, Connection Supervision Timeout Multiplier: ${connectionSupervisionTimeoutMultiplier}`, dispatch);
+
             break;
         case (ARANET_UNSED_GATT_UUID):
             messages(`\t\tAranet4 UNUSED characteristic. Should be all zeros!`, dispatch);
@@ -994,123 +1025,161 @@ async function maybeConnectDevice(dispatch: ReturnType<typeof useDispatch>, mayb
     return deviceServer;
 }
 
+// function unixTimeToJSTime(rawUnixTime: bigint): Date {
+//    
+//     const asNumber = Number(rawUnixTime);
+//     debugger;
+//     const date = new Date(asNumber);
+//
+//     // const milisecondsScale = BigInt(1000);
+//     // const miliseconds = (milisecondsScale * rawUnixTime);
+//     // if (miliseconds > Number.MAX_SAFE_INTEGER) {
+//     //     Sentry.captureMessage(`miliseconds (${miliseconds}) > Number.MAX_SAFE_INTEGER (${Number.MAX_SAFE_INTEGER})`);
+//     //     throw new Error(`miliseconds > Number.MAX_SAFE_INTEGER`);
+//     // }
+//     // const milisecondsNumber = Number(miliseconds);
+//
+//     return date;
+// }
+
+async function innerGetAranet4DataOverBluetooth(dispatch: ReturnType<typeof useDispatch>, maybeConnectedDevice: (BluetoothRemoteGATTServer | null)) {
+    const deviceServer = await maybeConnectDevice(dispatch, maybeConnectedDevice);
+    if (deviceServer === null) {
+        debugger;
+        return;
+    }
+
+    const Aranet4Service = await deviceServer.getPrimaryService(SENSOR_SERVICE_UUID);
+
+    //TODO: should I batch with getCharacteristics instead?
+    console.log("Got primary sensor service!");
+
+    const co2Characteristic = await Aranet4Service.getCharacteristic(ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID);
+    console.log("Got co2 characteristic!");
+
+    const co2Data = await co2Characteristic.readValue();
+    parse_ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID(co2Data, dispatch);
+
+    console.log("Getting seconds since last update...");
+    const secondsSinceLastMeasurementCharacteristic = await Aranet4Service.getCharacteristic(ARANET_SECONDS_LAST_UPDATE_UUID);
+    const secondsSinceLastMeasurementData = await secondsSinceLastMeasurementCharacteristic.readValue();
+    const secondsSinceLastmeasurement = secondsSinceLastMeasurementData.getUint16(0, true);
+    dispatch(setAranet4SecondsSinceLastMeasurement(secondsSinceLastmeasurement));
+
+
+    console.log("Getting measurement interval...");
+    const measurementIntervalCharacteristic = await Aranet4Service.getCharacteristic(ARANET_MEASUREMENT_INTERVAL_UUID);
+    const measurementIntervalData = await measurementIntervalCharacteristic.readValue();
+    const measurementInterval = measurementIntervalData.getUint16(0, true);
+    dispatch(setAranet4MeasurementInterval(measurementInterval));
+
+    console.log("Getting total number of measurements...");
+    const totalMeasurementsCharacteristic = await Aranet4Service.getCharacteristic(ARANET_TOTAL_MEASUREMENTS_UUID);
+    const totalMeasurementsData = await totalMeasurementsCharacteristic.readValue();
+    const totalMeasurements = totalMeasurementsData.getUint16(0, true);
+    dispatch(setAranet4TotalMeasurements(totalMeasurements));
+
+    console.log("Getting sensor calibration...");
+    const sensorCalibrationCharacteristic = await Aranet4Service.getCharacteristic(ARANET_SENSOR_CALIBRATION_DATA_UUID);
+    const sensorCalibrationData = await sensorCalibrationCharacteristic.readValue();
+    const rawSensorCalibrationValue = sensorCalibrationData.getBigUint64(0, true);
+    // ARANET4_AT_FACTORY_CALIBRATION_VALUE
+    // const UNIX_MONDAY_JANUARY_1_2018 = 1514764800;
+
+    if (rawSensorCalibrationValue === ARANET4_MINIMUM_FACTORY_CALIBRATION_VALUE) {
+        dispatch(setAranet4Calibration(ARANET_4_BAD_CALIBRATION_STRING));
+    }
+    else if (rawSensorCalibrationValue > ARANET4_MINIMUM_FACTORY_CALIBRATION_VALUE) {
+        dispatch(setAranet4Calibration(`Maybe at factory? (${rawSensorCalibrationValue})`));
+        Sentry.captureMessage(`Aranet4 calibration: ${rawSensorCalibrationValue}`);
+    }
+    else if ((rawSensorCalibrationValue < ARANET4_MINIMUM_FACTORY_CALIBRATION_VALUE) && (rawSensorCalibrationValue > UNIX_MONDAY_JANUARY_1_2018)) {
+        dispatch(setAranet4Calibration(`Maybe at factory? (${rawSensorCalibrationValue})`));
+        Sentry.captureMessage(`Aranet4 calibration: ${rawSensorCalibrationValue}`);
+    }
+    else if (rawSensorCalibrationValue < UNIX_MONDAY_JANUARY_1_2018) {
+        dispatch(setAranet4Calibration(`Likely NON-factory: (${rawSensorCalibrationValue})`));
+    }
+
+    // UNIX_MONDAY_JANUARY_1_2018
+
+    // console.log("Getting sensor logs...");
+    // const sensorLogsCharacteristic = await Aranet4Service.getCharacteristic(ARANET_SENSOR_LOGS_UUID);
+    // const sensorLogsData = await sensorLogsCharacteristic.readValue();
+
+
+
+
+    console.log("Getting device information service...")
+    const deviceInformationService = await deviceServer.getPrimaryService(DEVICE_INFORMATION_SERVICE_UUID);
+
+
+    console.log("Getting model number string...")
+    const modelNumberStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_DEVICE_MODEL_NUMBER_STRING_UUID);
+    const modelNumberStringData = await modelNumberStringCharacteristic.readValue();
+    const modelNumberString = parseUTF8StringDataView(modelNumberStringData);
+    dispatch(setModelNumberString(modelNumberString));
+
+    console.log("Getting firmware revision string...")
+    const firmwareStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_FIRMWARE_REVISION_STRING_UUID);
+    const firmwareStringData = await firmwareStringCharacteristic.readValue();
+    const firmwareRevisionString = parseUTF8StringDataView(firmwareStringData);
+    dispatch(setFirmwareRevisionString(firmwareRevisionString));
+
+
+    console.log("Getting hardware revision string...")
+    const hardwareRevisionStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_HARDWARE_REVISION_STRING_UUID);
+    const hardwareRevisionData = await hardwareRevisionStringCharacteristic.readValue();
+    const hardwareRevisionString = parseUTF8StringDataView(hardwareRevisionData);
+    dispatch(setHardwareRevisionString(hardwareRevisionString));
+
+
+    console.log("Getting software revision string...");
+    const softwareRevisionStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_SOFTWARE_REVISION_STRING_UUID);
+    const softwareRevisionData = await softwareRevisionStringCharacteristic.readValue();
+    const softwareRevisionString = parseUTF8StringDataView(softwareRevisionData);
+    dispatch(setSoftwareRevisionString(softwareRevisionString));
+
+
+    console.log("Getting manufacturer name....")
+    const manufactuterNameStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_MANUFACTURER_NAME_STRING_UUID);
+    const manufacturerNameData = await manufactuterNameStringCharacteristic.readValue();
+    const manufacturernameString = parseUTF8StringDataView(manufacturerNameData);
+    dispatch(setManufacturerName(manufacturernameString));
+
+
+
+    // OK, so there's a problem here. Reading the serial number is currently blocklisted!
+    // See:
+    //  https://github.com/WebBluetoothCG/web-bluetooth/issues/24
+    //  https://github.com/WebBluetoothCG/registries/issues/2#issuecomment-1000950490
+    // This is essentially kinda understandable, since lots of devices may not even have unique serial numbers, but it means that I need to work around this. Grr.
+
+
+    // const serialNumberStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_SERIAL_NUMBER_STRING_UUID);
+    // const serialNumberStringData = await serialNumberStringCharacteristic.readValue();
+    // const serialNumberString = parseUTF8StringDataView(serialNumberStringData);
+    // debugger;
+
+    console.log("Getting generic access service...");
+    const genericAccessService = await deviceServer.getPrimaryService(GENERIC_ACCESS_SERVICE_UUID);
+
+    console.log("Getting generic GATT device name...");
+    const nameCharacteristic = await genericAccessService.getCharacteristic(GENERIC_GATT_DEVICE_NAME_UUID);
+    const nameData = await nameCharacteristic.readValue();
+    const name = parseUTF8StringDataView(nameData);
+
+    dispatch(setDeviceNameFromCharacteristic(name));
+
+
+    //TODO: seconds last update, measurement interval, total measurements, model number string, firmware revision, hardware revision, software revision, manufacturer name
+
+}
+
 
 async function getAranet4DataOverBluetooth(dispatch: ReturnType<typeof useDispatch>, maybeConnectedDevice: (BluetoothRemoteGATTServer | null)) {
     try {
-
-        const deviceServer = await maybeConnectDevice(dispatch, maybeConnectedDevice);
-        if (deviceServer === null) {
-            debugger;
-            return;
-        }
-
-        const Aranet4Service = await deviceServer.getPrimaryService(SENSOR_SERVICE_UUID);
-
-        //TODO: should I batch with getCharacteristics instead?
-        console.log("Got primary sensor service!");
-
-        const co2Characteristic = await Aranet4Service.getCharacteristic(ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID);
-        console.log("Got co2 characteristic!");
-
-        const co2Data = await co2Characteristic.readValue();
-        parse_ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID(co2Data, dispatch);
-
-        console.log("Getting seconds since last update...");
-        const secondsSinceLastMeasurementCharacteristic = await Aranet4Service.getCharacteristic(ARANET_SECONDS_LAST_UPDATE_UUID);
-        const secondsSinceLastMeasurementData = await secondsSinceLastMeasurementCharacteristic.readValue();
-        const secondsSinceLastmeasurement = secondsSinceLastMeasurementData.getUint16(0, true);
-        dispatch(setAranet4SecondsSinceLastMeasurement(secondsSinceLastmeasurement));
-
-
-        console.log("Getting measurement interval...");
-        const measurementIntervalCharacteristic = await Aranet4Service.getCharacteristic(ARANET_MEASUREMENT_INTERVAL_UUID);
-        const measurementIntervalData = await measurementIntervalCharacteristic.readValue();
-        const measurementInterval = measurementIntervalData.getUint16(0, true);
-        dispatch(setAranet4MeasurementInterval(measurementInterval));
-
-        console.log("Getting total number of measurements...");
-        const totalMeasurementsCharacteristic = await Aranet4Service.getCharacteristic(ARANET_TOTAL_MEASUREMENTS_UUID);
-        const totalMeasurementsData = await totalMeasurementsCharacteristic.readValue();
-        const totalMeasurements = totalMeasurementsData.getUint16(0, true);
-        dispatch(setAranet4TotalMeasurements(totalMeasurements));
-
-        console.log("Getting sensor calibration...");
-        const sensorCalibrationCharacteristic = await Aranet4Service.getCharacteristic(ARANET_SENSOR_CALIBRATION_DATA_UUID);
-        const sensorCalibrationData = await sensorCalibrationCharacteristic.readValue();
-        const rawSensorCalibrationValue = sensorCalibrationData.getBigUint64(0, true);
-        // ARANET4_AT_FACTORY_CALIBRATION_VALUE
-        const UNIX_MONDAY_JANUARY_1_2018 = 1514764800;
-
-        debugger;
-        // if (rawSensorCalibrationValue === ARANET4_AT_FACTORY_CALIBRATION_VALUE) {
-        //     dispatch(setAranet4Calibration("Factory calibration"));
-        // }
-
-        // UNIX_MONDAY_JANUARY_1_2018
-
-        console.log("Getting device information service...")
-        const deviceInformationService = await deviceServer.getPrimaryService(DEVICE_INFORMATION_SERVICE_UUID);
-
-
-        console.log("Getting model number string...")
-        const modelNumberStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_DEVICE_MODEL_NUMBER_STRING_UUID);
-        const modelNumberStringData = await modelNumberStringCharacteristic.readValue();
-        const modelNumberString = parseUTF8StringDataView(modelNumberStringData);
-        dispatch(setModelNumberString(modelNumberString));
-
-        console.log("Getting firmware revision string...")
-        const firmwareStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_FIRMWARE_REVISION_STRING_UUID);
-        const firmwareStringData = await firmwareStringCharacteristic.readValue();
-        const firmwareRevisionString = parseUTF8StringDataView(firmwareStringData);
-        dispatch(setFirmwareRevisionString(firmwareRevisionString));
-
-
-        console.log("Getting hardware revision string...")
-        const hardwareRevisionStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_HARDWARE_REVISION_STRING_UUID);
-        const hardwareRevisionData = await hardwareRevisionStringCharacteristic.readValue();
-        const hardwareRevisionString = parseUTF8StringDataView(hardwareRevisionData);
-        dispatch(setHardwareRevisionString(hardwareRevisionString));
-
-
-        console.log("Getting software revision string...");
-        const softwareRevisionStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_SOFTWARE_REVISION_STRING_UUID);
-        const softwareRevisionData = await softwareRevisionStringCharacteristic.readValue();
-        const softwareRevisionString = parseUTF8StringDataView(softwareRevisionData);
-        dispatch(setSoftwareRevisionString(softwareRevisionString));
-
-
-        console.log("Getting manufacturer name....")
-        const manufactuterNameStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_MANUFACTURER_NAME_STRING_UUID);
-        const manufacturerNameData = await manufactuterNameStringCharacteristic.readValue();
-        const manufacturernameString = parseUTF8StringDataView(manufacturerNameData);
-        dispatch(setManufacturerName(manufacturernameString));
-
-
-
-        // OK, so there's a problem here. Reading the serial number is currently blocklisted!
-        // See:
-        //  https://github.com/WebBluetoothCG/web-bluetooth/issues/24
-        //  https://github.com/WebBluetoothCG/registries/issues/2#issuecomment-1000950490
-        // This is essentially kinda understandable, since lots of devices may not even have unique serial numbers, but it means that I need to work around this. Grr.
-
-
-        // const serialNumberStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_SERIAL_NUMBER_STRING_UUID);
-        // const serialNumberStringData = await serialNumberStringCharacteristic.readValue();
-        // const serialNumberString = parseUTF8StringDataView(serialNumberStringData);
-        // debugger;
-
-        console.log("Getting generic access service...");
-        const genericAccessService = await deviceServer.getPrimaryService(GENERIC_ACCESS_SERVICE_UUID);
-
-        console.log("Getting generic GATT device name...");
-        const nameCharacteristic = await genericAccessService.getCharacteristic(GENERIC_GATT_DEVICE_NAME_UUID);
-        const nameData = await nameCharacteristic.readValue();
-        const name = parseUTF8StringDataView(nameData);
-
-        dispatch(setDeviceNameFromCharacteristic(name));
-
-
-        //TODO: seconds last update, measurement interval, total measurements, model number string, firmware revision, hardware revision, software revision, manufacturer name
+        innerGetAranet4DataOverBluetooth(dispatch, maybeConnectedDevice);
     }
     catch (e) {
         if (e instanceof DOMException) {
@@ -1322,6 +1391,7 @@ export function BluetoothTesting(): JSX.Element {
             return;
         }
         if (seamlesslyConnectedDeviceServer.device.name.includes('Aranet')) {
+            messages('Starting automatic query...', dispatch);
             getAranet4DataOverBluetooth(dispatch, seamlesslyConnectedDeviceServer);
         }
     }, [seamlesslyConnectedDeviceServer])
