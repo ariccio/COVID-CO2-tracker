@@ -1286,6 +1286,7 @@ const useBluetoothAdvertisementReceived = (bluetoothDevicesKnown: (BluetoothDevi
 
     useEffect(() => {
         if (bluetoothDevicesKnown === null) {
+            messages('No bluetooth devices known, nothing to seamlessly connect to?', dispatch);
             return;
         }
         messages(`The browser reports ${bluetoothDevicesKnown.length} bluetooth devices known. NOTE: for now, only querying one.`, dispatch);
