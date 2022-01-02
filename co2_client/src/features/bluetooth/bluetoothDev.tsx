@@ -10,7 +10,7 @@ import { setSelectedDevice } from "../deviceModels/deviceModelsSlice";
 import * as Sentry from "@sentry/react";
 
 
-import { selectCO2, selectDebugText, selectBluetoothAvailableError, setCO2, setDebugText, setBluetoothAvailableError, selectBluetoothAvailable, setBluetoothAvailable, setTemperature, selectTemperature, setBarometricPressure, selectBarometricPressure, selectHumidity, setHumidity, selectBattery, setBattery, setDeviceNameFromCharacteristic, setDeviceID, selectDeviceID, setDeviceName, selectDeviceName, selectDeviceNameFromCharacteristic, setAranet4MeasurementInterval, selectAranet4MeasurementInterval, setAranet4TotalMeasurements, selectAranet4TotalMeasurements, setModelNumber, selectModelNumber, setFirmwareRevision, selectFirmwareRevision, setHardwareRevision, selectHardwareRevision, setSoftwareRevision, selectSoftwareRevision, setManufacturerName, selectManufacturerName, setAranet4SecondsSinceLastMeasurement, selectAranet4SecondsSinceLastUpdate, appendDebugText, setAranet4Color, selectAranet4Color, selectAranet4Calibration, setAranet4Calibration } from "./bluetoothSlice";
+import { selectDebugText, selectBluetoothAvailableError, setCO2, setBluetoothAvailableError, selectBluetoothAvailable, setBluetoothAvailable, setTemperature, setBarometricPressure, setHumidity, selectBattery, setBattery, setDeviceNameFromCharacteristic, setDeviceID, selectDeviceID, setDeviceName, selectDeviceName, selectDeviceNameFromCharacteristic, setAranet4MeasurementInterval, setAranet4TotalMeasurements, setModelNumber, setFirmwareRevision, setHardwareRevision, setSoftwareRevision, setManufacturerName, selectGattDeviceInformation, setAranet4SecondsSinceLastMeasurement, appendDebugText, setAranet4Color, setAranet4Calibration, selectMeasurementData, selectAranet4SpecificData, setRFData, selectRFData, RFData } from "./bluetoothSlice";
 
 declare module BluetoothUUID {
     export function getService(name: BluetoothServiceUUID ): string;
@@ -603,7 +603,7 @@ function switchOverCharacteristics(data: DataView, dispatch: ReturnType<typeof u
             else if (rawSensorCalibrationValue > ARANET4_MINIMUM_FACTORY_CALIBRATION_VALUE) {
                 messages(`\t\tMaybe at factory calibration? (${rawSensorCalibrationValue})`, dispatch);
                 dispatch(setAranet4Calibration(`Maybe at factory? (${rawSensorCalibrationValue})`));
-                Sentry.captureMessage(`Aranet4 calibration: ${rawSensorCalibrationValue}`);
+                // Sentry.captureMessage(`Aranet4 calibration: ${rawSensorCalibrationValue}`);
             }
             else if ((rawSensorCalibrationValue < ARANET4_MINIMUM_FACTORY_CALIBRATION_VALUE) && (rawSensorCalibrationValue > UNIX_MONDAY_JANUARY_1_2018)) {
                 messages(`\t\tMaybe at factory calibration? (${rawSensorCalibrationValue})`, dispatch);
@@ -1266,12 +1266,30 @@ type watchAdvertisements = (options: WatchAdvertisementsOptions) => Promise<unde
 
 type handlerType = ((device: BluetoothDevice, event: BluetoothAdvertisingEvent, abortController: AbortController) => Promise<void>);
 
+
+function rfDataFromEvent(event: BluetoothAdvertisingEvent) {
+    let rfData: RFData = {
+        txPower: null,
+        rssi: null
+    };
+
+    if (event.txPower !== undefined) {
+        rfData.txPower = event.txPower;
+    }
+    if (event.rssi !== undefined) {
+        rfData.rssi = event.rssi;
+    }
+    return rfData;
+}
+
 const watchAdvertisementEventReceived = async (device: BluetoothDevice, event: BluetoothAdvertisingEvent, abortController: AbortController, dispatch: ReturnType<typeof useDispatch>, setDeviceServer: React.Dispatch<React.SetStateAction<BluetoothRemoteGATTServer | null>>): Promise<void> => {
     abortController.abort();
     messages(`Received advertisement from '${device.name}', id: '${device.id}...`, dispatch);
 
     messages(`Event: name: '${event.name}', appearance: '${event.appearance}', rssi: '${event.rssi}', txPower: '${event.txPower}'`, dispatch);
+    const rfData: RFData = rfDataFromEvent(event);
 
+    dispatch(setRFData(rfData));
     if (device.gatt === undefined) {
         messages("device.gatt undefined? CANNOT query seemlessly", dispatch);
         debugger;
@@ -1344,18 +1362,23 @@ const MaybeIfValue: React.FC<{text: string, value: any}> = ({text, value}) => {
         return null;
     }
     if (value === null) {
-        return (
-        <div>
-            <span>{text}</span>Loading...<br/>
-        </div>            
-        )
+        return null;
     }
+
+    // if (value === null) {
+    //     return (
+    //     <div>
+    //         <span>{text}</span>Loading...<br/>
+    //     </div>            
+    //     )
+    // }
     return (
         <div>
             <span>{text}</span>{value}<br/>
         </div>
     );
 }
+
 
 
 function falsyNavigatorBluetooth(dispatch: ReturnType<typeof useDispatch>) {
@@ -1406,31 +1429,48 @@ function getDevicesSupported(dispatch: ReturnType<typeof useDispatch>, setBlueto
 // This should also work? https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/modules/bluetooth/bluetooth_error.h
 // The full mapping code is here: https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/modules/bluetooth/bluetooth_error.cc;l=90
 
+async function tryGetDevices(dispatch: ReturnType<typeof useDispatch>, setBluetoothDevicesKnown: React.Dispatch<React.SetStateAction<BluetoothDevice[] | null>>) {
+    if (!getDevicesSupported(dispatch, setBluetoothDevicesKnown)) {
+        return;
+    }
+    console.assert(navigator.bluetooth.getDevices as any);
+    //Aha! There's a google doc: https://docs.google.com/document/d/1h3uAVXJARHrNWaNACUPiQhLt7XI-fFFQoARSs1WgMDM/edit#heading=h.jdnga4sjs82y
+    messages('User browser supports getDevices!', dispatch);
+    const knownDevices = await getAvailableDevices();
+    setBluetoothDevicesKnown(knownDevices);
+}
+
+function trySeamlessConnectionOnceAvailable(dispatch: ReturnType<typeof useDispatch>, seamlesslyConnectedDeviceServer: BluetoothRemoteGATTServer | null) {
+    if (seamlesslyConnectedDeviceServer === null) {
+        return;
+    }
+    if (seamlesslyConnectedDeviceServer.device.name === undefined) {
+        messages(`Something is WRONG. device.name is undefined!`, dispatch);
+        return;
+    }
+    if (seamlesslyConnectedDeviceServer.device.name.includes('Aranet')) {
+        messages('Starting automatic query...', dispatch);
+        getAranet4DataOverBluetooth(dispatch, seamlesslyConnectedDeviceServer).then(() => {
+            messages('query complete!', dispatch);
+        })
+    }
+}
 
 export function BluetoothTesting(): JSX.Element {
     const debugText = useSelector(selectDebugText);
-    const co2 = useSelector(selectCO2);
-    const temperature = useSelector(selectTemperature);
-    const barometricPressure = useSelector(selectBarometricPressure);
-    const humidity = useSelector(selectHumidity);
-    const battery = useSelector(selectBattery);
-    // const aranet4UnknownField = useSelector(selectAranet4UnknownField);
+    const bluetoothAvailableError = useSelector(selectBluetoothAvailableError);
+    const bluetoothAvailable = useSelector(selectBluetoothAvailable);
+
     const deviceNameFromCharacteristic = useSelector(selectDeviceNameFromCharacteristic);
     const deviceName = useSelector(selectDeviceName);
     const deviceID = useSelector(selectDeviceID);
-    const measurementInterval = useSelector(selectAranet4MeasurementInterval);
-    const totalMeasurements = useSelector(selectAranet4TotalMeasurements);
-    const modelNumber = useSelector(selectModelNumber);
-    const firmwareRevision = useSelector(selectFirmwareRevision);
-    const hardwareRevision = useSelector(selectHardwareRevision);
-    const softwareRevision = useSelector(selectSoftwareRevision);
-    const manufacturerName = useSelector(selectManufacturerName);
-    const aranet4SecondsSinceLastMeasurement = useSelector(selectAranet4SecondsSinceLastUpdate);
-    const aranet4Color = useSelector(selectAranet4Color);
-    const aranet4Calibration = useSelector(selectAranet4Calibration);
+    const deviceInformation = useSelector(selectGattDeviceInformation);
+    
+    const rfData = useSelector(selectRFData);
 
-    const bluetoothAvailableError = useSelector(selectBluetoothAvailableError);
-    const bluetoothAvailable = useSelector(selectBluetoothAvailable);
+    const measurementData = useSelector(selectMeasurementData);
+    const aranet4SpecificData = useSelector(selectAranet4SpecificData);
+    const battery = useSelector(selectBattery);
 
     const [bluetoothDevicesKnown, setBluetoothDevicesKnown] = useState(null as (BluetoothDevice[] | null));
 
@@ -1440,33 +1480,11 @@ export function BluetoothTesting(): JSX.Element {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        async function tryGetDevices() {
-            if (!getDevicesSupported(dispatch, setBluetoothDevicesKnown)) {
-                return;
-            }
-            console.assert(navigator.bluetooth.getDevices as any);
-            //Aha! There's a google doc: https://docs.google.com/document/d/1h3uAVXJARHrNWaNACUPiQhLt7XI-fFFQoARSs1WgMDM/edit#heading=h.jdnga4sjs82y
-            messages('User browser supports getDevices!', dispatch);
-            const knownDevices = await getAvailableDevices();
-            setBluetoothDevicesKnown(knownDevices);
-        }
-        tryGetDevices();
+        tryGetDevices(dispatch, setBluetoothDevicesKnown);
     }, [dispatch]);
 
     useEffect(() => {
-        if (seamlesslyConnectedDeviceServer === null) {
-            return;
-        }
-        if (seamlesslyConnectedDeviceServer.device.name === undefined) {
-            messages(`Something is WRONG. device.name is undefined!`, dispatch);
-            return;
-        }
-        if (seamlesslyConnectedDeviceServer.device.name.includes('Aranet')) {
-            messages('Starting automatic query...', dispatch);
-            getAranet4DataOverBluetooth(dispatch, seamlesslyConnectedDeviceServer).then(() => {
-                messages('query complete!', dispatch);
-            })
-        }
+        trySeamlessConnectionOnceAvailable(dispatch, seamlesslyConnectedDeviceServer);
     }, [seamlesslyConnectedDeviceServer, dispatch])
     
     const checkBluetoothAvailable = () => {
@@ -1474,7 +1492,6 @@ export function BluetoothTesting(): JSX.Element {
     }
 
     const queryDeviceOverBluetooth = () => {
-        dispatch(setDebugText(''));
         bluetoothTestingStuffFunc(dispatch);
     }
 
@@ -1489,24 +1506,26 @@ export function BluetoothTesting(): JSX.Element {
             <MaybeIfValue text={"Device name (GATT characteristic): "} value={deviceNameFromCharacteristic}/>
             <MaybeIfValue text={"Unique Bluetooth device ID: "} value={deviceID}/>
 
-            {maybeCO2(co2)}<br/>
-            Temperature: {temperature}°C<br/>
-            Pressure: {barometricPressure}hPa<br/>
-            Relative Humidity: {humidity}%<br/>
+            {maybeCO2(measurementData.co2)}<br/>
+            Temperature: {measurementData.temperature}°C<br/>
+            Pressure: {measurementData.barometricPressure}hPa<br/>
+            Relative Humidity: {measurementData.humidity}%<br/>
             Battery: {battery}%<br/>
-            Aranet4 color: {aranet4Color}<br/>
+            Aranet4 color: {aranet4SpecificData.aranet4Color}<br/>
             <br/>
             
-            <MaybeIfValue text={"Measurement interval (seconds): "} value={measurementInterval}/>
-            <MaybeIfValue text={"Seconds since last update: "} value={aranet4SecondsSinceLastMeasurement}/>
-            <MaybeIfValue text={"Total number of measurements: "} value={totalMeasurements}/>
-            <MaybeIfValue text={"Calibration: "} value={aranet4Calibration}/>
+            <MaybeIfValue text={"Measurement interval (seconds): "} value={aranet4SpecificData.aranet4MeasurementInterval}/>
+            <MaybeIfValue text={"Seconds since last update: "} value={aranet4SpecificData.aranet4SecondsSinceLastMeasurement}/>
+            <MaybeIfValue text={"Total number of measurements: "} value={aranet4SpecificData.aranet4TotalMeasurements}/>
+            <MaybeIfValue text={"Calibration: "} value={aranet4SpecificData.aranet4Calibration}/>
             <br/>
-            <MaybeIfValue text={"Manufacturer: "} value={manufacturerName}/>
-            <MaybeIfValue text={"Model number: "} value={modelNumber}/>
-            <MaybeIfValue text={"Firmware revision: "} value={firmwareRevision}/>
-            <MaybeIfValue text={"Software revision: "} value={softwareRevision}/>
-            <MaybeIfValue text={"Hardware revision: "} value={hardwareRevision}/>
+            <MaybeIfValue text={"Manufacturer: "} value={deviceInformation.manufacturerName}/>
+            <MaybeIfValue text={"Model number: "} value={deviceInformation.modelNumber}/>
+            <MaybeIfValue text={"Firmware revision: "} value={deviceInformation.firmwareRevision}/>
+            <MaybeIfValue text={"Software revision: "} value={deviceInformation.softwareRevision}/>
+            <MaybeIfValue text={"Hardware revision: "} value={deviceInformation.hardwareRevision}/>
+            <MaybeIfValue text={"Signal strength (db): "} value={rfData.rssi}/>
+            <MaybeIfValue text={"Aranet4 transmission power (db): "} value={rfData.txPower}/>
             <br/>
             <Button onClick={queryAranet4}>Query Aranet4</Button><br/>
             <Button onClick={queryDeviceOverBluetooth}>Dump ALL Bluetooth device info, attempt query</Button><br/>
