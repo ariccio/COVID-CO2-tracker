@@ -1,5 +1,5 @@
 /// <reference types="web-bluetooth" />
-import { parse } from "path";
+// import { parse } from "path";
 import { MutableRefObject, useEffect, useRef, useState } from "react";
 import { Button } from "react-bootstrap";
 
@@ -10,7 +10,7 @@ import { setSelectedDevice } from "../deviceModels/deviceModelsSlice";
 import * as Sentry from "@sentry/react";
 
 
-import { selectCO2, selectDebugText, selectBluetoothAvailableError, setCO2, setDebugText, setBluetoothAvailableError, selectBluetoothAvailable, setBluetoothAvailable, setTemperature, selectTemperature, setBarometricPressure, selectBarometricPressure, selectHumidity, setHumidity, selectBattery, setBattery, setDeviceNameFromCharacteristic, setDeviceID, selectDeviceID, setDeviceName, selectDeviceName, selectDeviceNameFromCharacteristic, setAranet4MeasurementInterval, selectAranet4MeasurementInterval, setAranet4TotalMeasurements, selectAranet4TotalMeasurements, setModelNumberString, selectModelNumberString, setFirmwareRevisionString, selectFirmwareRevisionString, setHardwareRevisionString, selectHardwareRevisionString, setSoftwareRevisionString, selectSoftwareRevisionString, setManufacturerName, selectManufacturerNameString, setAranet4SecondsSinceLastMeasurement, selectAranet4SecondsSinceLastUpdate, appendDebugText, setAranet4Color, selectAranet4Color, selectAranet4Calibration, setAranet4Calibration } from "./bluetoothSlice";
+import { selectCO2, selectDebugText, selectBluetoothAvailableError, setCO2, setDebugText, setBluetoothAvailableError, selectBluetoothAvailable, setBluetoothAvailable, setTemperature, selectTemperature, setBarometricPressure, selectBarometricPressure, selectHumidity, setHumidity, selectBattery, setBattery, setDeviceNameFromCharacteristic, setDeviceID, selectDeviceID, setDeviceName, selectDeviceName, selectDeviceNameFromCharacteristic, setAranet4MeasurementInterval, selectAranet4MeasurementInterval, setAranet4TotalMeasurements, selectAranet4TotalMeasurements, setModelNumber, selectModelNumber, setFirmwareRevision, selectFirmwareRevision, setHardwareRevision, selectHardwareRevision, setSoftwareRevision, selectSoftwareRevision, setManufacturerName, selectManufacturerName, setAranet4SecondsSinceLastMeasurement, selectAranet4SecondsSinceLastUpdate, appendDebugText, setAranet4Color, selectAranet4Color, selectAranet4Calibration, setAranet4Calibration } from "./bluetoothSlice";
 
 declare module BluetoothUUID {
     export function getService(name: BluetoothServiceUUID ): string;
@@ -353,26 +353,32 @@ function aranet4DeviceRequestOptions(): RequestDeviceOptions {
         services: [SENSOR_SERVICE_UUID]
     }
     const services: BluetoothServiceUUID[] = [
-        'device_information',
+
+        //KNOWN aranet4 services
         'battery_service',
-        'environmental_sensing',
+        'device_information',
         'generic_attribute',
         'generic_access',
+        
+        
+        //Aranet4 SHOULD support these, but no.
+        'environmental_sensing',
         'immediate_alert',
 
-
-        'link_loss',
-        'tx_power',
-        'current_time',
-        'reference_time_update',
-        'alert_notification',
-        'scan_parameters',
-        'automation_io',
-        'user_data',
+        
+        //Purely investigatory services to query. I haven't seen these, but I'd be curious if they show up!
+        // 'alert_notification',
+        // 'automation_io', //https://www.bluetooth.org/docman/handlers/DownloadDoc.ashx?doc_id=304971
         'bond_management',
-        'mesh_provisioning',
-        'mesh_proxy',
-        'reconnection_configuration'
+        // 'current_time',
+        'link_loss',
+        // 'mesh_provisioning',
+        // 'mesh_proxy',
+        // 'reference_time_update',
+        'reconnection_configuration',
+        'scan_parameters',
+        'tx_power',
+        // 'user_data',
       ];
 
     const deviceRequestOptions: RequestDeviceOptions = {
@@ -556,22 +562,22 @@ function switchOverCharacteristics(data: DataView, dispatch: ReturnType<typeof u
         case (GENERIC_GATT_DEVICE_MODEL_NUMBER_STRING_UUID):
             const modelNumberString = parseUTF8StringDataView(data);
             messages(`\t\tBluetooth model number string: ${modelNumberString}`, dispatch);
-            dispatch(setModelNumberString(modelNumberString));
+            dispatch(setModelNumber(modelNumberString));
             break;
         case (GENERIC_GATT_FIRMWARE_REVISION_STRING_UUID):
             const firmwareRevisionString = parseUTF8StringDataView(data);
             messages(`\t\tBluetooth firmware revision string: ${firmwareRevisionString}`, dispatch);
-            dispatch(setFirmwareRevisionString(firmwareRevisionString));
+            dispatch(setFirmwareRevision(firmwareRevisionString));
             break;
         case (GENERIC_GATT_HARDWARE_REVISION_STRING_UUID):
             const hardwareRevisionString = parseUTF8StringDataView(data);
             messages(`\t\tBluetooth hardware revision string: ${hardwareRevisionString}`, dispatch);
-            dispatch(setHardwareRevisionString(hardwareRevisionString));
+            dispatch(setHardwareRevision(hardwareRevisionString));
             break;
         case (GENERIC_GATT_SOFTWARE_REVISION_STRING_UUID):
             const softwareRevisionString = parseUTF8StringDataView(data);
             messages(`\t\tBluetooth software revision string: ${softwareRevisionString}`, dispatch);
-            dispatch(setSoftwareRevisionString(softwareRevisionString));
+            dispatch(setSoftwareRevision(softwareRevisionString));
             break;
         case (GENERIC_GATT_MANUFACTURER_NAME_STRING_UUID):
             const manufacturerName = parseUTF8StringDataView(data);
@@ -779,7 +785,7 @@ function parseAsUint16Numbers(data: DataView): string {
     if (data.byteLength < 2) {
         return "";
     }
-    let uint16Numbers = new Array();
+    let uint16Numbers = [];
     for (let i = 0; i < (data.byteLength/2); i++) {
         if ((i*2) > data.byteLength) {
             debugger;
@@ -797,7 +803,7 @@ function parseAsUint16NumbersLittleEndian(data: DataView): string {
     if (data.byteLength < 2) {
         return "";
     }
-    let uint16Numbers = new Array();
+    let uint16Numbers = [];
     for (let i = 0; i < (data.byteLength/2); i++) {
         if ((i*2) > data.byteLength) {
             debugger;
@@ -816,7 +822,7 @@ function parseAsUint32Numbers(data: DataView): string {
     if (data.byteLength < 4) {
         return "";
     }
-    let uint32Numbers = new Array();
+    let uint32Numbers = [];
     for (let i = 0; i < (data.byteLength/4); i++) {
         if ((i*4) > data.byteLength) {
             debugger;
@@ -837,7 +843,7 @@ function parseAsUint32NumbersLittleEndian(data: DataView): string {
     if (data.byteLength < 4) {
         return "";
     }
-    let uint32Numbers = new Array();
+    let uint32Numbers = [];
     for (let i = 0; i < (data.byteLength/4); i++) {
         if ((i*4) > data.byteLength) {
             debugger;
@@ -859,7 +865,7 @@ function parseAsUint64Numbers(data: DataView): string {
     if (data.byteLength < 8) {
         return "";
     }
-    let uint64Numbers = new Array();
+    let uint64Numbers = [];
     for (let i = 0; i < (data.byteLength/8); i++) {
         if ((i*8) > data.byteLength) {
             debugger;
@@ -881,7 +887,7 @@ function parseAsUint64NumbersLittleEndian(data: DataView): string {
     if (data.byteLength < 8) {
         return "";
     }
-    let uint64Numbers = new Array();
+    let uint64Numbers = [];
     for (let i = 0; i < (data.byteLength/8); i++) {
         if ((i*8) > data.byteLength) {
             debugger;
@@ -1064,17 +1070,17 @@ async function innerGetAranet4DataOverBluetooth(dispatch: ReturnType<typeof useD
 
 
     const modelNumberString = await queryBluetoothModelNumberString(deviceInformationService);
-    dispatch(setModelNumberString(modelNumberString));
+    dispatch(setModelNumber(modelNumberString));
 
     const firmwareRevisionString = await queryBluetoothFirmwareRevisionString(deviceInformationService);
-    dispatch(setFirmwareRevisionString(firmwareRevisionString));
+    dispatch(setFirmwareRevision(firmwareRevisionString));
 
 
     const hardwareRevisionString = await queryBluetoothHardwareRevisionString(deviceInformationService);
-    dispatch(setHardwareRevisionString(hardwareRevisionString));
+    dispatch(setHardwareRevision(hardwareRevisionString));
 
     const softwareRevisionString = await queryBluetoothSoftwareRevisionSoftwareRevisionString(deviceInformationService);
-    dispatch(setSoftwareRevisionString(softwareRevisionString));
+    dispatch(setSoftwareRevision(softwareRevisionString));
 
     const manufacturernameString = await queryBluetoothManufacturerNameString(deviceInformationService);
     dispatch(setManufacturerName(manufacturernameString));
@@ -1260,36 +1266,38 @@ type watchAdvertisements = (options: WatchAdvertisementsOptions) => Promise<unde
 
 type handlerType = ((device: BluetoothDevice, event: BluetoothAdvertisingEvent, abortController: AbortController) => Promise<void>);
 
+const watchAdvertisementEventReceived = async (device: BluetoothDevice, event: BluetoothAdvertisingEvent, abortController: AbortController, dispatch: ReturnType<typeof useDispatch>, setDeviceServer: React.Dispatch<React.SetStateAction<BluetoothRemoteGATTServer | null>>): Promise<void> => {
+    abortController.abort();
+    messages(`Received advertisement from '${device.name}', id: '${device.id}...`, dispatch);
+
+    messages(`Event: name: '${event.name}', appearance: '${event.appearance}', rssi: '${event.rssi}', txPower: '${event.txPower}'`, dispatch);
+
+    if (device.gatt === undefined) {
+        messages("device.gatt undefined? CANNOT query seemlessly", dispatch);
+        debugger;
+        return;
+    }
+    dispatch(setDeviceID(device.id));
+    if (device.name !== undefined) {
+        dispatch(setDeviceName(device.name));
+    }
+    else {
+        debugger;
+        dispatch(setDeviceName(''));
+    }
+
+    const deviceServer = await device.gatt.connect();
+    messages(`Connected seamlessly!`, dispatch);
+    setDeviceServer(deviceServer);
+
+}
+
+
 const useBluetoothAdvertisementReceived = (bluetoothDevicesKnown: (BluetoothDevice[] | null)): (BluetoothRemoteGATTServer | null) => {
     // const savedHandler: MutableRefObject<handlerType | undefined> = useRef();
     const [deviceServer, setDeviceServer] = useState(null as (BluetoothRemoteGATTServer | null));
     const dispatch = useDispatch();
 
-    const watchAdvertisementEventReceived = async (device: BluetoothDevice, event: BluetoothAdvertisingEvent, abortController: AbortController): Promise<void> => {
-        abortController.abort();
-        messages(`Received advertisement from '${device.name}', id: '${device.id}...`, dispatch);
-
-        messages(`Event: name: '${event.name}', appearance: '${event.appearance}', rssi: '${event.rssi}', txPower: '${event.txPower}'`, dispatch);
-
-        if (device.gatt === undefined) {
-            messages("device.gatt undefined? CANNOT query seemlessly", dispatch);
-            debugger;
-            return;
-        }
-        dispatch(setDeviceID(device.id));
-        if (device.name !== undefined) {
-            dispatch(setDeviceName(device.name));
-        }
-        else {
-            debugger;
-            dispatch(setDeviceName(''));
-        }
-
-        const deviceServer = await device.gatt.connect();
-        messages(`Connected seamlessly!`, dispatch);
-        setDeviceServer(deviceServer);
-
-    }
 
     useEffect(() => {
         if (bluetoothDevicesKnown === null) {
@@ -1313,7 +1321,7 @@ const useBluetoothAdvertisementReceived = (bluetoothDevicesKnown: (BluetoothDevi
         const abortController = new AbortController();
 
         const eventListenerRefShim = (event: BluetoothAdvertisingEvent) => {
-            watchAdvertisementEventReceived(bluetoothDevicesKnown[0], event, abortController);
+            watchAdvertisementEventReceived(bluetoothDevicesKnown[0], event, abortController, dispatch, setDeviceServer);
         }
 
         const options = {once: true};
@@ -1325,7 +1333,7 @@ const useBluetoothAdvertisementReceived = (bluetoothDevicesKnown: (BluetoothDevi
         return () => {
             (bluetoothDevicesKnown[0].removeEventListener as any)('advertisementreceived', eventListenerRefShim, options);
         };
-    }, [bluetoothDevicesKnown]);
+    }, [bluetoothDevicesKnown, dispatch]);
 
     return deviceServer;
 
@@ -1412,11 +1420,11 @@ export function BluetoothTesting(): JSX.Element {
     const deviceID = useSelector(selectDeviceID);
     const measurementInterval = useSelector(selectAranet4MeasurementInterval);
     const totalMeasurements = useSelector(selectAranet4TotalMeasurements);
-    const modelNumber = useSelector(selectModelNumberString);
-    const firmwareRevision = useSelector(selectFirmwareRevisionString);
-    const hardwareRevision = useSelector(selectHardwareRevisionString);
-    const softwareRevision = useSelector(selectSoftwareRevisionString);
-    const manufacturerName = useSelector(selectManufacturerNameString);
+    const modelNumber = useSelector(selectModelNumber);
+    const firmwareRevision = useSelector(selectFirmwareRevision);
+    const hardwareRevision = useSelector(selectHardwareRevision);
+    const softwareRevision = useSelector(selectSoftwareRevision);
+    const manufacturerName = useSelector(selectManufacturerName);
     const aranet4SecondsSinceLastMeasurement = useSelector(selectAranet4SecondsSinceLastUpdate);
     const aranet4Color = useSelector(selectAranet4Color);
     const aranet4Calibration = useSelector(selectAranet4Calibration);
@@ -1443,7 +1451,7 @@ export function BluetoothTesting(): JSX.Element {
             setBluetoothDevicesKnown(knownDevices);
         }
         tryGetDevices();
-    }, []);
+    }, [dispatch]);
 
     useEffect(() => {
         if (seamlesslyConnectedDeviceServer === null) {
@@ -1459,7 +1467,7 @@ export function BluetoothTesting(): JSX.Element {
                 messages('query complete!', dispatch);
             })
         }
-    }, [seamlesslyConnectedDeviceServer])
+    }, [seamlesslyConnectedDeviceServer, dispatch])
     
     const checkBluetoothAvailable = () => {
         checkBluetooth(dispatch);

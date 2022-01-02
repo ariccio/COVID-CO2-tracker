@@ -1,6 +1,14 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
 
+interface GenericGattDeviceInformationCharacteristics {
+    modelNumber: string | null;
+    firmwareRevision: string | null;
+    hardwareRevision: string | null;
+    softwareRevision: string | null;
+    manufacturerName: string | null;
+}
+
 interface bluetoothState {
     debugText: string;
     co2: number | null;
@@ -16,11 +24,15 @@ interface bluetoothState {
     deviceName: string | null;
     deviceID: string | null;
     aranet4TotalMeasurements: number | null;
-    modelNumberString: string | null;
-    firmwareRevisionString: string | null;
-    hardwareRevisionString: string | null;
-    softwareRevisionString: string | null;
+    
+    
+    modelNumber: string | null;
+    firmwareRevision: string | null;
+    hardwareRevision: string | null;
+    softwareRevision: string | null;
     manufacturerName: string | null;
+
+
     aranet4SecondsSinceLastMeasurement: number | null;
     aranet4Color: string | null;
     aranet4Calibration: string | null;
@@ -41,10 +53,10 @@ const initialState: bluetoothState = {
     deviceID: null,
     aranet4MeasurementInterval: null,
     aranet4TotalMeasurements: null,
-    modelNumberString: null,
-    firmwareRevisionString: null,
-    hardwareRevisionString: null,
-    softwareRevisionString: null,
+    modelNumber: null,
+    firmwareRevision: null,
+    hardwareRevision: null,
+    softwareRevision: null,
     manufacturerName: null,
     aranet4SecondsSinceLastMeasurement: null,
     aranet4Color: null,
@@ -100,17 +112,17 @@ export const bluetoothSlice = createSlice({
         setAranet4TotalMeasurements: (state, action: PayloadAction<number | null>) => {
             state.aranet4TotalMeasurements = action.payload;
         },
-        setModelNumberString: (state, action: PayloadAction<string | null>) => {
-            state.modelNumberString = action.payload;
+        setModelNumber: (state, action: PayloadAction<string | null>) => {
+            state.modelNumber = action.payload;
         },
-        setFirmwareRevisionString: (state, action: PayloadAction<string | null>) => {
-            state.firmwareRevisionString = action.payload;
+        setFirmwareRevision: (state, action: PayloadAction<string | null>) => {
+            state.firmwareRevision = action.payload;
         },
-        setHardwareRevisionString: (state, action: PayloadAction<string | null>) => {
-            state.hardwareRevisionString = action.payload;
+        setHardwareRevision: (state, action: PayloadAction<string | null>) => {
+            state.hardwareRevision = action.payload;
         },
-        setSoftwareRevisionString: (state, action: PayloadAction<string | null>) => {
-            state.softwareRevisionString = action.payload;
+        setSoftwareRevision: (state, action: PayloadAction<string | null>) => {
+            state.softwareRevision = action.payload;
         },
         setManufacturerName: (state, action: PayloadAction<string | null>) => {
             state.manufacturerName = action.payload;
@@ -127,7 +139,7 @@ export const bluetoothSlice = createSlice({
     }
 });
 
-export const {setDebugText, setCO2, setBluetoothAvailableError, setBluetoothAvailable, setTemperature, setBarometricPressure, setHumidity, setBattery, setDeviceNameFromCharacteristic, setDeviceID, setDeviceName, setAranet4MeasurementInterval, setAranet4TotalMeasurements, setModelNumberString, setFirmwareRevisionString, setHardwareRevisionString, setSoftwareRevisionString, setManufacturerName, setAranet4SecondsSinceLastMeasurement, appendDebugText, setAranet4Color, setAranet4Calibration} = bluetoothSlice.actions;
+export const {setDebugText, setCO2, setBluetoothAvailableError, setBluetoothAvailable, setTemperature, setBarometricPressure, setHumidity, setBattery, setDeviceNameFromCharacteristic, setDeviceID, setDeviceName, setAranet4MeasurementInterval, setAranet4TotalMeasurements, setModelNumber, setFirmwareRevision, setHardwareRevision, setSoftwareRevision, setManufacturerName, setAranet4SecondsSinceLastMeasurement, appendDebugText, setAranet4Color, setAranet4Calibration} = bluetoothSlice.actions;
 
 export const selectDebugText = (state: RootState) => state.bluetooth.debugText;
 export const selectCO2 = (state: RootState) => state.bluetooth.co2;
@@ -143,11 +155,11 @@ export const selectDeviceName = (state: RootState) => state.bluetooth.deviceName
 export const selectDeviceID = (state: RootState) => state.bluetooth.deviceID;
 export const selectAranet4MeasurementInterval = (state: RootState) => state.bluetooth.aranet4MeasurementInterval;
 export const selectAranet4TotalMeasurements = (state: RootState) => state.bluetooth.aranet4TotalMeasurements;
-export const selectModelNumberString = (state: RootState) => state.bluetooth.modelNumberString;
-export const selectFirmwareRevisionString = (state: RootState) => state.bluetooth.firmwareRevisionString;
-export const selectHardwareRevisionString = (state: RootState) => state.bluetooth.hardwareRevisionString;
-export const selectSoftwareRevisionString = (state: RootState) => state.bluetooth.softwareRevisionString;
-export const selectManufacturerNameString = (state: RootState) => state.bluetooth.manufacturerName;
+export const selectModelNumber = (state: RootState) => state.bluetooth.modelNumber;
+export const selectFirmwareRevision = (state: RootState) => state.bluetooth.firmwareRevision;
+export const selectHardwareRevision = (state: RootState) => state.bluetooth.hardwareRevision;
+export const selectSoftwareRevision = (state: RootState) => state.bluetooth.softwareRevision;
+export const selectManufacturerName = (state: RootState) => state.bluetooth.manufacturerName;
 export const selectAranet4SecondsSinceLastUpdate = (state: RootState) => state.bluetooth.aranet4SecondsSinceLastMeasurement;
 export const selectAranet4Color = (state: RootState) => state.bluetooth.aranet4Color;
 export const selectAranet4Calibration = (state: RootState) => state.bluetooth.aranet4Calibration;
