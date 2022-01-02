@@ -1393,7 +1393,9 @@ export function BluetoothTesting(): JSX.Element {
         }
         if (seamlesslyConnectedDeviceServer.device.name.includes('Aranet')) {
             messages('Starting automatic query...', dispatch);
-            getAranet4DataOverBluetooth(dispatch, seamlesslyConnectedDeviceServer);
+            getAranet4DataOverBluetooth(dispatch, seamlesslyConnectedDeviceServer).then(() => {
+                messages('query complete!', dispatch);
+            })
         }
     }, [seamlesslyConnectedDeviceServer])
     
