@@ -5,12 +5,17 @@ import { Button } from "react-bootstrap";
 
 import {useDispatch} from 'react-redux';
 import {useSelector} from 'react-redux';
-import { setSelectedDevice } from "../deviceModels/deviceModelsSlice";
-
 import * as Sentry from "@sentry/react";
 
 
-import { selectDebugText, selectBluetoothAvailableError, setCO2, setBluetoothAvailableError, selectBluetoothAvailable, setBluetoothAvailable, setTemperature, setBarometricPressure, setHumidity, selectBattery, setBattery, setDeviceNameFromCharacteristic, setDeviceID, selectDeviceID, setDeviceName, selectDeviceName, selectDeviceNameFromCharacteristic, setAranet4MeasurementInterval, setAranet4TotalMeasurements, setModelNumber, setFirmwareRevision, setHardwareRevision, setSoftwareRevision, setManufacturerName, selectGattDeviceInformation, setAranet4SecondsSinceLastMeasurement, appendDebugText, setAranet4Color, setAranet4Calibration, selectMeasurementData, selectAranet4SpecificData, setRFData, selectRFData, RFData } from "./bluetoothSlice";
+import Bowser from "bowser"; 
+
+import { setSelectedDevice } from "../deviceModels/deviceModelsSlice";
+
+import {isMobileSafari} from '../../utils/Browsers';
+
+
+import { selectDebugText, selectBluetoothAvailableError, setCO2, setBluetoothAvailableError, selectBluetoothAvailable, setBluetoothAvailable, setTemperature, setBarometricPressure, setHumidity, selectBattery, setBattery, setDeviceNameFromCharacteristic, setDeviceID, selectDeviceID, setDeviceName, selectDeviceName, selectDeviceNameFromCharacteristic, setAranet4MeasurementInterval, setAranet4TotalMeasurements, setModelNumber, setFirmwareRevision, setHardwareRevision, setSoftwareRevision, setManufacturerName, selectGattDeviceInformation, setAranet4SecondsSinceLastMeasurement, appendDebugText, setAranet4Color, setAranet4Calibration, selectMeasurementData, selectAranet4SpecificData, setRFData, selectRFData, RFData, setSupportsGetDevices, setSupportsBluetooth, selectSupportsBluetooth, selectSupportsGetDevices } from "./bluetoothSlice";
 
 declare module BluetoothUUID {
     export function getService(name: BluetoothServiceUUID ): string;
@@ -1048,7 +1053,7 @@ async function innerGetAranet4DataOverBluetooth(dispatch: ReturnType<typeof useD
     }
     else if (rawSensorCalibrationValue > ARANET4_MINIMUM_FACTORY_CALIBRATION_VALUE) {
         dispatch(setAranet4Calibration(`Maybe at factory? (${rawSensorCalibrationValue})`));
-        Sentry.captureMessage(`Aranet4 calibration: ${rawSensorCalibrationValue}`);
+        // Sentry.captureMessage(`Aranet4 calibration: ${rawSensorCalibrationValue}`);
     }
     else if ((rawSensorCalibrationValue < ARANET4_MINIMUM_FACTORY_CALIBRATION_VALUE) && (rawSensorCalibrationValue > UNIX_MONDAY_JANUARY_1_2018)) {
         dispatch(setAranet4Calibration(`Maybe at factory? (${rawSensorCalibrationValue})`));
@@ -1324,6 +1329,7 @@ const useBluetoothAdvertisementReceived = (bluetoothDevicesKnown: (BluetoothDevi
         }
         if (bluetoothDevicesKnown.length === 0) {
             messages('Zero available bluetooth devices.', dispatch);
+            return;
         }
         messages(`The browser reports ${bluetoothDevicesKnown.length} bluetooth devices known. NOTE: for now, only querying one.`, dispatch);
         for (let i = 0; i < bluetoothDevicesKnown.length; ++i) {
@@ -1343,10 +1349,27 @@ const useBluetoothAdvertisementReceived = (bluetoothDevicesKnown: (BluetoothDevi
         }
 
         const options = {once: true};
+        if (bluetoothDevicesKnown[0] === undefined) {
+            debugger;
+            return;
+        }
+        if (bluetoothDevicesKnown[0].addEventListener === undefined) {
+            debugger;
+            return;
+        }
         (bluetoothDevicesKnown[0].addEventListener as any)('advertisementreceived', eventListenerRefShim, options);
 
         messages("waiting for device advertisements?", dispatch);
+        if (bluetoothDevicesKnown[0].watchAdvertisements === undefined) {
+            debugger;
+            return;
+        }
         ((bluetoothDevicesKnown[0].watchAdvertisements as watchAdvertisements)({signal: abortController.signal }));
+
+        if (bluetoothDevicesKnown[0].removeEventListener === undefined) {
+            debugger;
+            return;
+        }
 
         return () => {
             (bluetoothDevicesKnown[0].removeEventListener as any)('advertisementreceived', eventListenerRefShim, options);
@@ -1414,13 +1437,17 @@ function getDevicesSupported(dispatch: ReturnType<typeof useDispatch>, setBlueto
     if (!(navigator.bluetooth)) {
         falsyNavigatorBluetooth(dispatch);
         setBluetoothDevicesKnown([]);
+        dispatch(setSupportsBluetooth(false));
         return false;
     }
     if(!(navigator.bluetooth.getDevices as any)) {
         falsyGetDevices(dispatch);
         setBluetoothDevicesKnown([]);
+        dispatch(setSupportsGetDevices(false));
         return false;
     }
+    dispatch(setSupportsGetDevices(true));
+    dispatch(setSupportsBluetooth(true));
     return true;
 }
 
@@ -1454,6 +1481,58 @@ function trySeamlessConnectionOnceAvailable(dispatch: ReturnType<typeof useDispa
             messages('query complete!', dispatch);
         })
     }
+}
+
+//
+function DisplayAppleNotSupported(): JSX.Element {
+    const [runningOnMobileSafari, _] = useState(isMobileSafari());
+
+    if (runningOnMobileSafari) {
+        return (
+            <div>
+                <a href="https://www.zdnet.com/article/apple-declined-to-implement-16-web-apis-in-safari-due-to-privacy-concerns/">Apple does NOT support Web Bluetooth</a>. Sorry! Complain to Apple :)<br/>
+            </div>
+        );
+    }
+    return (
+        <div>
+
+        </div>
+    );
+}
+
+function DisplayChromeSupported(): JSX.Element {
+    const supportsGetDevices = useSelector(selectSupportsGetDevices);
+    const [browser, _setBrowser] = useState(Bowser.getParser(window.navigator.userAgent).getBrowser());
+    const [os, _setOS] = useState(Bowser.getParser(window.navigator.userAgent).getOS());
+    if (browser.name === 'Chrome') {
+        if ((os.name === 'Android')|| (os.name === 'Windows') || (os.name === 'macOS')) {
+            if (!supportsGetDevices)
+                return (
+                    <div>
+                        You might be able to seamlessly work with bluetooth. Try <a href="https://www.androidcentral.com/how-enable-flags-chrome">enabling</a> the new permissions backend. Type <i>chrome://flags/#enable-web-bluetooth-new-permissions-backend</i> into your address bar and hit enter, and enable that option.<br/>
+                    </div>
+                );
+        }
+    }
+    return (
+        <div>Hangoon</div>
+    )
+}
+
+function Compatibility(): JSX.Element {
+    const supportsBluetooth = useSelector(selectSupportsBluetooth);
+    const supportsGetDevices = useSelector(selectSupportsGetDevices);
+    
+
+    return (
+        <div>
+            <MaybeIfValue text={"Bluetooth supported: "} value={supportsBluetooth}/>
+            <MaybeIfValue text={"getDevicesSupported: "} value={supportsGetDevices}/>
+            <DisplayAppleNotSupported/>
+            <DisplayChromeSupported/>
+        </div>
+    );
 }
 
 export function BluetoothTesting(): JSX.Element {
@@ -1501,6 +1580,7 @@ export function BluetoothTesting(): JSX.Element {
     return (
         <div>
             <h3>Experimental Bluetooth support</h3>
+            <Compatibility/>
 
             <MaybeIfValue text={"Bluetooth device name: "} value={deviceName}/>
             <MaybeIfValue text={"Device name (GATT characteristic): "} value={deviceNameFromCharacteristic}/>
