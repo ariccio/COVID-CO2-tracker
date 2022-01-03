@@ -961,7 +961,7 @@ async function getADevice(): Promise<BluetoothDevice> {
     const options = aranet4DeviceRequestOptions();
 
     console.assert(navigator.bluetooth);
-    console.assert(navigator.bluetooth.referringDevice);
+    console.assert(navigator.bluetooth.requestDevice);
     //https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth/requestDevice
     const device = await navigator.bluetooth.requestDevice(options);
     return device;
