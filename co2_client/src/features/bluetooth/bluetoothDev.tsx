@@ -15,7 +15,7 @@ import { setSelectedDevice } from "../deviceModels/deviceModelsSlice";
 import {isMobileSafari} from '../../utils/Browsers';
 
 
-import { selectDebugText, selectBluetoothAvailableError, setCO2, setBluetoothAvailableError, selectBluetoothAvailable, setBluetoothAvailable, setTemperature, setBarometricPressure, setHumidity, selectBattery, setBattery, setDeviceNameFromCharacteristic, setDeviceID, selectDeviceID, setDeviceName, selectDeviceName, selectDeviceNameFromCharacteristic, setAranet4MeasurementInterval, setAranet4TotalMeasurements, setModelNumber, setFirmwareRevision, setHardwareRevision, setSoftwareRevision, setManufacturerName, selectGattDeviceInformation, setAranet4SecondsSinceLastMeasurement, appendDebugText, setAranet4Color, setAranet4Calibration, selectMeasurementData, selectAranet4SpecificData, setRFData, selectRFData, RFData, setSupportsGetDevices, setSupportsBluetooth, selectSupportsBluetooth, selectSupportsGetDevices } from "./bluetoothSlice";
+import { selectDebugText, selectBluetoothAvailableError, setCO2, setBluetoothAvailableError, selectBluetoothAvailable, setBluetoothAvailable, setTemperature, setBarometricPressure, setHumidity, selectBattery, setBattery, setDeviceNameFromCharacteristic, setDeviceID, selectDeviceID, setDeviceName, selectDeviceName, selectDeviceNameFromCharacteristic, setAranet4MeasurementInterval, setAranet4TotalMeasurements, setModelNumber, setFirmwareRevision, setHardwareRevision, setSoftwareRevision, setManufacturerName, selectGattDeviceInformation, setAranet4SecondsSinceLastMeasurement, appendDebugText, setAranet4Color, setAranet4Calibration, selectMeasurementData, selectAranet4SpecificData, setRFData, selectRFData, RFData, setSupportsGetDevices, setSupportsBluetooth, selectSupportsBluetooth, selectSupportsGetDevices, selectDeviceServer, setDeviceServer } from "./bluetoothSlice";
 
 declare module BluetoothUUID {
     export function getService(name: BluetoothServiceUUID ): string;
@@ -974,7 +974,7 @@ async function maybeConnectDevice(dispatch: ReturnType<typeof useDispatch>, mayb
         return maybeConnectedDevice;
     }
 
-    debugger;
+    // debugger;
     const options = aranet4DeviceRequestOptions();
     
     console.assert(navigator.bluetooth);
@@ -996,6 +996,7 @@ async function maybeConnectDevice(dispatch: ReturnType<typeof useDispatch>, mayb
     }
     
     const deviceServer = await device.gatt.connect();
+    dispatch(setDeviceServer(deviceServer));
     return deviceServer;
 }
 
@@ -1333,7 +1334,7 @@ function rfDataFromEvent(event: BluetoothAdvertisingEvent) {
     return rfData;
 }
 
-const watchAdvertisementEventReceived = async (device: BluetoothDevice, event: BluetoothAdvertisingEvent, abortController: AbortController, dispatch: ReturnType<typeof useDispatch>, setDeviceServer: React.Dispatch<React.SetStateAction<BluetoothRemoteGATTServer | null>>): Promise<void> => {
+const watchAdvertisementEventReceived = async (device: BluetoothDevice, event: BluetoothAdvertisingEvent, abortController: AbortController, dispatch: ReturnType<typeof useDispatch>): Promise<void> => {
     abortController.abort();
     messages(`Received advertisement from '${device.name}', id: '${device.id}...`, dispatch);
 
@@ -1357,14 +1358,16 @@ const watchAdvertisementEventReceived = async (device: BluetoothDevice, event: B
 
     const deviceServer = await device.gatt.connect();
     messages(`Connected seamlessly!`, dispatch);
-    setDeviceServer(deviceServer);
+    dispatch(setDeviceServer(deviceServer));
 
 }
 
 
 const useBluetoothAdvertisementReceived = (bluetoothDevicesKnown: (BluetoothDevice[] | null)): (BluetoothRemoteGATTServer | null) => {
     // const savedHandler: MutableRefObject<handlerType | undefined> = useRef();
-    const [deviceServer, setDeviceServer] = useState(null as (BluetoothRemoteGATTServer | null));
+    // const [deviceServer, setDeviceServer] = useState(null as (BluetoothRemoteGATTServer | null));
+    const deviceServer = useSelector(selectDeviceServer);
+    
     const dispatch = useDispatch();
 
     // useEffect(() => {
@@ -1399,7 +1402,7 @@ const useBluetoothAdvertisementReceived = (bluetoothDevicesKnown: (BluetoothDevi
         const abortController = new AbortController();
         const deviceToConnectTo = bluetoothDevicesKnown[0];
         const eventListenerRefShim = (event: BluetoothAdvertisingEvent) => {
-            watchAdvertisementEventReceived(deviceToConnectTo, event, abortController, dispatch, setDeviceServer);
+            watchAdvertisementEventReceived(deviceToConnectTo, event, abortController, dispatch);
         }
 
         const options = {once: true};
@@ -1456,6 +1459,28 @@ const MaybeIfValue: React.FC<{text: string, value: any}> = ({text, value}) => {
     );
 }
 
+const MaybeIfValueBoolean: React.FC<{text: string, value: boolean | null}> = ({text, value}) => {
+    if (value === null) {
+        return null;
+    }
+    if (!value) {
+        return null;
+    }
+
+    // if (value === null) {
+    //     return (
+    //     <div>
+    //         <span>{text}</span>Loading...<br/>
+    //     </div>            
+    //     )
+    // }
+    return (
+        <div>
+            <span>{text}</span><br/>
+        </div>
+    );
+}
+
 function falsyNavigatorBluetooth(dispatch: ReturnType<typeof useDispatch>) {
     dispatch(setBluetoothAvailable(false));
     if (navigator.bluetooth === null) {
@@ -1492,12 +1517,15 @@ function getDevicesSupported(dispatch: ReturnType<typeof useDispatch>, setBlueto
         dispatch(setSupportsBluetooth(false));
         return false;
     }
+    dispatch(setSupportsBluetooth(true));
+    // debugger;
     if(!(navigator.bluetooth.getDevices as any)) {
         falsyGetDevices(dispatch);
         setBluetoothDevicesKnown([]);
         dispatch(setSupportsGetDevices(false));
         return false;
     }
+    // debugger;
     dispatch(setSupportsGetDevices(true));
     dispatch(setSupportsBluetooth(true));
     return true;
@@ -1579,8 +1607,8 @@ function Compatibility(): JSX.Element {
 
     return (
         <div>
-            <MaybeIfValue text={"Bluetooth supported: "} value={supportsBluetooth}/>
-            <MaybeIfValue text={"getDevicesSupported: "} value={supportsGetDevices}/>
+            <MaybeIfValueBoolean text={"Bluetooth supported."} value={supportsBluetooth}/>
+            <MaybeIfValueBoolean text={"getDevicesSupported."} value={supportsGetDevices}/>
             <DisplayAppleNotSupported/>
             <DisplayChromeSupported/>
         </div>
@@ -1690,11 +1718,7 @@ const usePolling = (seamlesslyConnectedDeviceServer: BluetoothRemoteGATTServer |
 
 
     // setRepeatingQueryTimerHandle(handle);
-    return () => {
-        if (timingHandle !== null) {
-            clearTimeout(timingHandle)
-        }        
-    };
+    return (timingHandle !== null);
 
 }
 
@@ -1742,14 +1766,17 @@ export function BluetoothTesting(): JSX.Element {
         getAranet4DataOverBluetooth(dispatch, seamlesslyConnectedDeviceServer);
     }
 
+    const connectDevice = () => {
+        maybeConnectDevice(dispatch, seamlesslyConnectedDeviceServer);
+    }
     useEffect(() => {
     }, [seamlesslyConnectedDeviceServer, dispatch]);
 
 
     return (
         <div>
-            <h3>Experimental Bluetooth support</h3>
-            <Compatibility/>
+            <h3>Experimental Bluetooth support</h3><br/>
+            <Compatibility/><br/>
 
             <MaybeIfValue text={"Bluetooth device name: "} value={deviceName}/>
             <MaybeIfValue text={"Device name (GATT characteristic): "} value={deviceNameFromCharacteristic}/>
@@ -1777,9 +1804,10 @@ export function BluetoothTesting(): JSX.Element {
             <MaybeIfValue text={"Signal strength (db): "} value={rfData.rssi}/>
             <MaybeIfValue text={"Aranet4 transmission power (db): "} value={rfData.txPower}/>
             <br/>
-            <Button onClick={queryAranet4}>Query Aranet4</Button><br/>
+            <Button onClick={queryAranet4}>Query Aranet4</Button>
             <Button onClick={queryDeviceOverBluetooth}>Dump ALL Bluetooth device info, attempt query</Button><br/>
-            <Button onClick={checkBluetoothAvailable}>Check bluetooth availability</Button><br/>
+            <Button onClick={checkBluetoothAvailable}>Check bluetooth availability</Button>
+            <Button onClick={()=>{connectDevice()}} disabled={!!pollingHook}  >Start polling</Button><br/>
             {maybeBluetoothAvailable(bluetoothAvailable)}<br/>
             {maybeBluetoothAvailableError(bluetoothAvailableError)}<br/>
             <br/>

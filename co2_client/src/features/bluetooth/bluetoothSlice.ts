@@ -50,6 +50,7 @@ interface bluetoothState {
     rfData: RFData;
     supportsGetDevices: boolean | null;
     supportsBluetooth: boolean | null;
+    deviceServer: (BluetoothRemoteGATTServer | null);
 }
 
 
@@ -92,7 +93,8 @@ const initialState: bluetoothState = {
         txPower: null
     },
     supportsGetDevices: null,
-    supportsBluetooth: null
+    supportsBluetooth: null,
+    deviceServer: null
 }
 
 export const bluetoothSlice = createSlice({
@@ -182,12 +184,15 @@ export const bluetoothSlice = createSlice({
         },
         setSupportsBluetooth: (state, action: PayloadAction<boolean | null>) => {
             state.supportsBluetooth = action.payload;
+        },
+        setDeviceServer: (state, action: PayloadAction<BluetoothRemoteGATTServer | null>) => {
+            state.deviceServer = action.payload;
         }
 
     }
 });
 
-export const {setCO2, setBluetoothAvailableError, setBluetoothAvailable, setTemperature, setBarometricPressure, setHumidity, setBattery, setDeviceNameFromCharacteristic, setDeviceID, setDeviceName, setAranet4MeasurementInterval, setAranet4TotalMeasurements, setModelNumber, setFirmwareRevision, setHardwareRevision, setSoftwareRevision, setManufacturerName, setAranet4SecondsSinceLastMeasurement, appendDebugText, setAranet4Color, setAranet4Calibration, setRFData, setSupportsGetDevices, setSupportsBluetooth} = bluetoothSlice.actions;
+export const {setCO2, setBluetoothAvailableError, setBluetoothAvailable, setTemperature, setBarometricPressure, setHumidity, setBattery, setDeviceNameFromCharacteristic, setDeviceID, setDeviceName, setAranet4MeasurementInterval, setAranet4TotalMeasurements, setModelNumber, setFirmwareRevision, setHardwareRevision, setSoftwareRevision, setManufacturerName, setAranet4SecondsSinceLastMeasurement, appendDebugText, setAranet4Color, setAranet4Calibration, setRFData, setSupportsGetDevices, setSupportsBluetooth, setDeviceServer} = bluetoothSlice.actions;
 
 export const selectDebugText = (state: RootState) => state.bluetooth.debugText;
 export const selectBluetoothAvailableError = (state: RootState) => state.bluetooth.bluetoothAvailableError;
@@ -208,6 +213,9 @@ export const selectRFData = (state: RootState) => state.bluetooth.rfData;
 
 export const selectSupportsGetDevices = (state: RootState) => state.bluetooth.supportsGetDevices;
 export const selectSupportsBluetooth = (state: RootState) => state.bluetooth.supportsBluetooth;
+
+export const selectDeviceServer = (state: RootState) => state.bluetooth.deviceServer;
+
 // export const selectAranet4MeasurementInterval = (state: RootState) => state.bluetooth.aranet4MeasurementInterval;
 // export const selectAranet4TotalMeasurements = (state: RootState) => state.bluetooth.aranet4TotalMeasurements;
 // export const selectAranet4SecondsSinceLastUpdate = (state: RootState) => state.bluetooth.aranet4SecondsSinceLastMeasurement;
