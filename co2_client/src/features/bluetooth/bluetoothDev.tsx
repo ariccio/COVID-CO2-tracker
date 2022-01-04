@@ -1016,64 +1016,56 @@ async function maybeConnectDevice(dispatch: ReturnType<typeof useDispatch>, mayb
 //     return date;
 // }
 
-async function innerGetAranet4DataOverBluetooth(dispatch: ReturnType<typeof useDispatch>, maybeConnectedDevice: (BluetoothRemoteGATTServer | null)) {
+async function innerGetAllAranet4DataOverBluetooth(dispatch: ReturnType<typeof useDispatch>, maybeConnectedDevice: (BluetoothRemoteGATTServer | null)) {
     const deviceServer = await maybeConnectDevice(dispatch, maybeConnectedDevice);
     if (deviceServer === null) {
         debugger;
         return;
     }
-
-    const Aranet4Service = await deviceServer.getPrimaryService(SENSOR_SERVICE_UUID);
-
-    //TODO: should I batch with getCharacteristics instead?
-    console.log("Got primary sensor service!");
-
-    const co2Characteristic = await Aranet4Service.getCharacteristic(ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID);
-    console.log("Got co2 characteristic!");
-
-    const co2Data = await co2Characteristic.readValue();
-    parse_ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID(co2Data, dispatch);
-
-    const secondsSinceLastmeasurement = await queryAranet4SecondsSinceLastMeasurement(Aranet4Service);
-    dispatch(setAranet4SecondsSinceLastMeasurement(secondsSinceLastmeasurement));
-
-
-    const measurementInterval = await queryAranet4MeasurementInterval(Aranet4Service);
-    dispatch(setAranet4MeasurementInterval(measurementInterval));
-
-    const totalMeasurements = await queryAranet4TotalMeasurements(Aranet4Service);
-    dispatch(setAranet4TotalMeasurements(totalMeasurements));
-
-    const rawSensorCalibrationValue = await queryAranet4SensorCalibration(Aranet4Service);
-    // ARANET4_AT_FACTORY_CALIBRATION_VALUE
-    // const UNIX_MONDAY_JANUARY_1_2018 = 1514764800;
-
-    if (rawSensorCalibrationValue === ARANET4_MINIMUM_FACTORY_CALIBRATION_VALUE) {
-        dispatch(setAranet4Calibration(ARANET_4_BAD_CALIBRATION_STRING));
+    if (!deviceServer.connected) {
+        debugger;
     }
-    else if (rawSensorCalibrationValue > ARANET4_MINIMUM_FACTORY_CALIBRATION_VALUE) {
-        dispatch(setAranet4Calibration(`Maybe at factory? (${rawSensorCalibrationValue})`));
-        // Sentry.captureMessage(`Aranet4 calibration: ${rawSensorCalibrationValue}`);
-    }
-    else if ((rawSensorCalibrationValue < ARANET4_MINIMUM_FACTORY_CALIBRATION_VALUE) && (rawSensorCalibrationValue > UNIX_MONDAY_JANUARY_1_2018)) {
-        dispatch(setAranet4Calibration(`Maybe at factory? (${rawSensorCalibrationValue})`));
-        Sentry.captureMessage(`Aranet4 calibration: ${rawSensorCalibrationValue}`);
-    }
-    else if (rawSensorCalibrationValue < UNIX_MONDAY_JANUARY_1_2018) {
-        dispatch(setAranet4Calibration(`Likely NON-factory: (${rawSensorCalibrationValue})`));
-    }
-
-    // UNIX_MONDAY_JANUARY_1_2018
-
-    // console.log("Getting sensor logs...");
-    // const sensorLogsCharacteristic = await Aranet4Service.getCharacteristic(ARANET_SENSOR_LOGS_UUID);
-    // const sensorLogsData = await sensorLogsCharacteristic.readValue();
+    await queryAranet4BasicInformation(deviceServer, dispatch);
 
 
     console.log("Getting device information service...")
     const deviceInformationService = await deviceServer.getPrimaryService(DEVICE_INFORMATION_SERVICE_UUID);
 
 
+    await queryDeviceInformationService(deviceInformationService, dispatch);
+
+    //TODO: model number string
+
+}
+async function innerGetBasicAranet4DataOverBluetooth(dispatch: ReturnType<typeof useDispatch>, maybeConnectedDevice: (BluetoothRemoteGATTServer | null)) {
+    const deviceServer = await maybeConnectDevice(dispatch, maybeConnectedDevice);
+    if (deviceServer === null) {
+        debugger;
+        return;
+    }
+    if (!deviceServer.connected) {
+        debugger;
+    }
+    await queryAranet4BasicInformation(deviceServer, dispatch);
+}
+
+
+
+async function queryAranet4BasicInformation(deviceServer: BluetoothRemoteGATTServer, dispatch: ReturnType<typeof useDispatch>) {
+    console.log("Getting generic access service...");
+    const genericAccessService = await deviceServer.getPrimaryService(GENERIC_ACCESS_SERVICE_UUID);
+
+    const name = await queryBluetoothDeviceNameString(genericAccessService);
+
+    dispatch(setDeviceNameFromCharacteristic(name));
+
+    const Aranet4Service = await deviceServer.getPrimaryService(SENSOR_SERVICE_UUID);
+
+    //TODO: should I batch with getCharacteristics instead?
+    await queryAranet4InformationService(Aranet4Service, dispatch);
+}
+
+async function queryDeviceInformationService(deviceInformationService: BluetoothRemoteGATTService, dispatch: ReturnType<typeof useDispatch>) {
     const modelNumberString = await queryBluetoothModelNumberString(deviceInformationService);
     dispatch(setModelNumber(modelNumberString));
 
@@ -1095,28 +1087,62 @@ async function innerGetAranet4DataOverBluetooth(dispatch: ReturnType<typeof useD
     //  https://github.com/WebBluetoothCG/web-bluetooth/issues/24
     //  https://github.com/WebBluetoothCG/registries/issues/2#issuecomment-1000950490
     // This is essentially kinda understandable, since lots of devices may not even have unique serial numbers, but it means that I need to work around this. Grr.
-
-
+    
     // const serialNumberStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_SERIAL_NUMBER_STRING_UUID);
     // const serialNumberStringData = await serialNumberStringCharacteristic.readValue();
     // const serialNumberString = parseUTF8StringDataView(serialNumberStringData);
     // debugger;
 
-    console.log("Getting generic access service...");
-    const genericAccessService = await deviceServer.getPrimaryService(GENERIC_ACCESS_SERVICE_UUID);
 
-    const name = await queryBluetoothDeviceNameString(genericAccessService);
-
-    dispatch(setDeviceNameFromCharacteristic(name));
-
-
-    //TODO: seconds last update, measurement interval, total measurements, model number string, firmware revision, hardware revision, software revision, manufacturer name
 
 }
 
+async function queryAranet4InformationService(Aranet4Service: BluetoothRemoteGATTService, dispatch: ReturnType<typeof useDispatch>) {
+    console.log("Got primary sensor service!");
+
+    const co2Characteristic = await Aranet4Service.getCharacteristic(ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID);
+    // console.log("Got co2 characteristic!");
+
+    const co2Data = await co2Characteristic.readValue();
+    parse_ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID(co2Data, dispatch);
+
+    const secondsSinceLastmeasurement = await queryAranet4SecondsSinceLastMeasurement(Aranet4Service);
+    dispatch(setAranet4SecondsSinceLastMeasurement(secondsSinceLastmeasurement));
+
+
+    const measurementInterval = await queryAranet4MeasurementInterval(Aranet4Service);
+    dispatch(setAranet4MeasurementInterval(measurementInterval));
+
+    const totalMeasurements = await queryAranet4TotalMeasurements(Aranet4Service);
+    dispatch(setAranet4TotalMeasurements(totalMeasurements));
+
+    const rawSensorCalibrationValue = await queryAranet4SensorCalibration(Aranet4Service);
+    // ARANET4_AT_FACTORY_CALIBRATION_VALUE
+    // const UNIX_MONDAY_JANUARY_1_2018 = 1514764800;
+    if (rawSensorCalibrationValue === ARANET4_MINIMUM_FACTORY_CALIBRATION_VALUE) {
+        dispatch(setAranet4Calibration(ARANET_4_BAD_CALIBRATION_STRING));
+    }
+    else if (rawSensorCalibrationValue > ARANET4_MINIMUM_FACTORY_CALIBRATION_VALUE) {
+        dispatch(setAranet4Calibration(`Maybe at factory? (${rawSensorCalibrationValue})`));
+        // Sentry.captureMessage(`Aranet4 calibration: ${rawSensorCalibrationValue}`);
+    }
+    else if ((rawSensorCalibrationValue < ARANET4_MINIMUM_FACTORY_CALIBRATION_VALUE) && (rawSensorCalibrationValue > UNIX_MONDAY_JANUARY_1_2018)) {
+        dispatch(setAranet4Calibration(`Maybe at factory? (${rawSensorCalibrationValue})`));
+        Sentry.captureMessage(`Aranet4 calibration: ${rawSensorCalibrationValue}`);
+    }
+    else if (rawSensorCalibrationValue < UNIX_MONDAY_JANUARY_1_2018) {
+        dispatch(setAranet4Calibration(`Likely NON-factory: (${rawSensorCalibrationValue})`));
+    }
+    // UNIX_MONDAY_JANUARY_1_2018
+
+    // console.log("Getting sensor logs...");
+    // const sensorLogsCharacteristic = await Aranet4Service.getCharacteristic(ARANET_SENSOR_LOGS_UUID);
+    // const sensorLogsData = await sensorLogsCharacteristic.readValue();
+
+}
 
 async function queryBluetoothDeviceNameString(genericAccessService: BluetoothRemoteGATTService) {
-    console.log("Getting generic GATT device name...");
+    // console.log("Getting generic GATT device name...");
     const nameCharacteristic = await genericAccessService.getCharacteristic(GENERIC_GATT_DEVICE_NAME_UUID);
     const nameData = await nameCharacteristic.readValue();
     const name = parseUTF8StringDataView(nameData);
@@ -1124,7 +1150,7 @@ async function queryBluetoothDeviceNameString(genericAccessService: BluetoothRem
 }
 
 async function queryBluetoothManufacturerNameString(deviceInformationService: BluetoothRemoteGATTService) {
-    console.log("Getting manufacturer name....");
+    // console.log("Getting manufacturer name....");
     const manufactuterNameStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_MANUFACTURER_NAME_STRING_UUID);
     const manufacturerNameData = await manufactuterNameStringCharacteristic.readValue();
     const manufacturernameString = parseUTF8StringDataView(manufacturerNameData);
@@ -1132,7 +1158,7 @@ async function queryBluetoothManufacturerNameString(deviceInformationService: Bl
 }
 
 async function queryBluetoothSoftwareRevisionSoftwareRevisionString(deviceInformationService: BluetoothRemoteGATTService) {
-    console.log("Getting software revision string...");
+    // console.log("Getting software revision string...");
     const softwareRevisionStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_SOFTWARE_REVISION_STRING_UUID);
     const softwareRevisionData = await softwareRevisionStringCharacteristic.readValue();
     const softwareRevisionString = parseUTF8StringDataView(softwareRevisionData);
@@ -1140,7 +1166,7 @@ async function queryBluetoothSoftwareRevisionSoftwareRevisionString(deviceInform
 }
 
 async function queryBluetoothHardwareRevisionString(deviceInformationService: BluetoothRemoteGATTService) {
-    console.log("Getting hardware revision string...");
+    // console.log("Getting hardware revision string...");
     const hardwareRevisionStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_HARDWARE_REVISION_STRING_UUID);
     const hardwareRevisionData = await hardwareRevisionStringCharacteristic.readValue();
     const hardwareRevisionString = parseUTF8StringDataView(hardwareRevisionData);
@@ -1148,7 +1174,7 @@ async function queryBluetoothHardwareRevisionString(deviceInformationService: Bl
 }
 
 async function queryBluetoothFirmwareRevisionString(deviceInformationService: BluetoothRemoteGATTService) {
-    console.log("Getting firmware revision string...");
+    // console.log("Getting firmware revision string...");
     const firmwareStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_FIRMWARE_REVISION_STRING_UUID);
     const firmwareStringData = await firmwareStringCharacteristic.readValue();
     const firmwareRevisionString = parseUTF8StringDataView(firmwareStringData);
@@ -1156,7 +1182,7 @@ async function queryBluetoothFirmwareRevisionString(deviceInformationService: Bl
 }
 
 async function queryBluetoothModelNumberString(deviceInformationService: BluetoothRemoteGATTService) {
-    console.log("Getting model number string...");
+    // console.log("Getting model number string...");
     const modelNumberStringCharacteristic = await deviceInformationService.getCharacteristic(GENERIC_GATT_DEVICE_MODEL_NUMBER_STRING_UUID);
     const modelNumberStringData = await modelNumberStringCharacteristic.readValue();
     const modelNumberString = parseUTF8StringDataView(modelNumberStringData);
@@ -1164,7 +1190,7 @@ async function queryBluetoothModelNumberString(deviceInformationService: Bluetoo
 }
 
 async function queryAranet4SensorCalibration(Aranet4Service: BluetoothRemoteGATTService) {
-    console.log("Getting sensor calibration...");
+    // console.log("Getting sensor calibration...");
     const sensorCalibrationCharacteristic = await Aranet4Service.getCharacteristic(ARANET_SENSOR_CALIBRATION_DATA_UUID);
     const sensorCalibrationData = await sensorCalibrationCharacteristic.readValue();
     const rawSensorCalibrationValue = sensorCalibrationData.getBigUint64(0, true);
@@ -1172,7 +1198,7 @@ async function queryAranet4SensorCalibration(Aranet4Service: BluetoothRemoteGATT
 }
 
 async function queryAranet4TotalMeasurements(Aranet4Service: BluetoothRemoteGATTService) {
-    console.log("Getting total number of measurements...");
+    // console.log("Getting total number of measurements...");
     const totalMeasurementsCharacteristic = await Aranet4Service.getCharacteristic(ARANET_TOTAL_MEASUREMENTS_UUID);
     const totalMeasurementsData = await totalMeasurementsCharacteristic.readValue();
     const totalMeasurements = totalMeasurementsData.getUint16(0, true);
@@ -1180,7 +1206,7 @@ async function queryAranet4TotalMeasurements(Aranet4Service: BluetoothRemoteGATT
 }
 
 async function queryAranet4MeasurementInterval(Aranet4Service: BluetoothRemoteGATTService) {
-    console.log("Getting measurement interval...");
+    // console.log("Getting measurement interval...");
     const measurementIntervalCharacteristic = await Aranet4Service.getCharacteristic(ARANET_MEASUREMENT_INTERVAL_UUID);
     const measurementIntervalData = await measurementIntervalCharacteristic.readValue();
     const measurementInterval = measurementIntervalData.getUint16(0, true);
@@ -1188,7 +1214,7 @@ async function queryAranet4MeasurementInterval(Aranet4Service: BluetoothRemoteGA
 }
 
 async function queryAranet4SecondsSinceLastMeasurement(Aranet4Service: BluetoothRemoteGATTService) {
-    console.log("Getting seconds since last update...");
+    // console.log("Getting seconds since last update...");
     const secondsSinceLastMeasurementCharacteristic = await Aranet4Service.getCharacteristic(ARANET_SECONDS_LAST_UPDATE_UUID);
     const secondsSinceLastMeasurementData = await secondsSinceLastMeasurementCharacteristic.readValue();
     const secondsSinceLastmeasurement = secondsSinceLastMeasurementData.getUint16(0, true);
@@ -1197,12 +1223,32 @@ async function queryAranet4SecondsSinceLastMeasurement(Aranet4Service: Bluetooth
 
 async function getAranet4DataOverBluetooth(dispatch: ReturnType<typeof useDispatch>, maybeConnectedDevice: (BluetoothRemoteGATTServer | null)) {
     try {
-        innerGetAranet4DataOverBluetooth(dispatch, maybeConnectedDevice);
+        innerGetAllAranet4DataOverBluetooth(dispatch, maybeConnectedDevice);
     }
     catch (e) {
         if (e instanceof DOMException) {
             debugger;
-            alert(`DOMException bluetooth operation likely cancelled. Error code: ${e.code}, message: ${e.message}`);
+            alert(`DOMException: bluetooth operation likely cancelled. Error code: ${e.code}, message: ${e.message}`);
+            console.error(e);
+            return;
+        }
+        else {
+            console.error(`Unexpected exception during bluetooth. Exception type: ${typeof e}, e: ${e}`);
+            alert(`Unexpected exception during bluetooth. Exception type: ${typeof e}, e: ${e}`);
+            throw e;
+        }
+
+    }
+}
+
+async function getBasicAranet4DataOverBluetooth(dispatch: ReturnType<typeof useDispatch>, maybeConnectedDevice: (BluetoothRemoteGATTServer | null)) {
+    try {
+        innerGetBasicAranet4DataOverBluetooth(dispatch, maybeConnectedDevice);
+    }
+    catch (e) {
+        if (e instanceof DOMException) {
+            debugger;
+            alert(`DOMException: bluetooth operation likely cancelled. Error code: ${e.code}, message: ${e.message}`);
             console.error(e);
             return;
         }
@@ -1321,6 +1367,8 @@ const useBluetoothAdvertisementReceived = (bluetoothDevicesKnown: (BluetoothDevi
     const [deviceServer, setDeviceServer] = useState(null as (BluetoothRemoteGATTServer | null));
     const dispatch = useDispatch();
 
+    // useEffect(() => {
+    // }, [deviceServer?.connected])
 
     useEffect(() => {
         if (bluetoothDevicesKnown === null) {
@@ -1330,6 +1378,12 @@ const useBluetoothAdvertisementReceived = (bluetoothDevicesKnown: (BluetoothDevi
         if (bluetoothDevicesKnown.length === 0) {
             messages('Zero available bluetooth devices.', dispatch);
             return;
+        }
+        if (deviceServer) {
+            if (deviceServer?.connected) {
+                messages('Connected? Eh?', dispatch);
+                return;
+            }
         }
         messages(`The browser reports ${bluetoothDevicesKnown.length} bluetooth devices known. NOTE: for now, only querying one.`, dispatch);
         for (let i = 0; i < bluetoothDevicesKnown.length; ++i) {
@@ -1343,38 +1397,38 @@ const useBluetoothAdvertisementReceived = (bluetoothDevicesKnown: (BluetoothDevi
         //See  https://googlechrome.github.io/samples/web-bluetooth/watch-advertisements-and-connect.html
         //also https://googlechrome.github.io/samples/web-bluetooth/watch-advertisements-and-connect-async-await.html
         const abortController = new AbortController();
-
+        const deviceToConnectTo = bluetoothDevicesKnown[0];
         const eventListenerRefShim = (event: BluetoothAdvertisingEvent) => {
-            watchAdvertisementEventReceived(bluetoothDevicesKnown[0], event, abortController, dispatch, setDeviceServer);
+            watchAdvertisementEventReceived(deviceToConnectTo, event, abortController, dispatch, setDeviceServer);
         }
 
         const options = {once: true};
-        if (bluetoothDevicesKnown[0] === undefined) {
+        if (deviceToConnectTo === undefined) {
             debugger;
             return;
         }
-        if (bluetoothDevicesKnown[0].addEventListener === undefined) {
+        if (deviceToConnectTo.addEventListener === undefined) {
             debugger;
             return;
         }
-        (bluetoothDevicesKnown[0].addEventListener as any)('advertisementreceived', eventListenerRefShim, options);
+        (deviceToConnectTo.addEventListener as any)('advertisementreceived', eventListenerRefShim, options);
 
         messages("waiting for device advertisements?", dispatch);
-        if (bluetoothDevicesKnown[0].watchAdvertisements === undefined) {
+        if (deviceToConnectTo.watchAdvertisements === undefined) {
             debugger;
             return;
         }
-        ((bluetoothDevicesKnown[0].watchAdvertisements as watchAdvertisements)({signal: abortController.signal }));
+        ((deviceToConnectTo.watchAdvertisements as watchAdvertisements)({signal: abortController.signal }));
 
-        if (bluetoothDevicesKnown[0].removeEventListener === undefined) {
+        if (deviceToConnectTo.removeEventListener === undefined) {
             debugger;
             return;
         }
 
         return () => {
-            (bluetoothDevicesKnown[0].removeEventListener as any)('advertisementreceived', eventListenerRefShim, options);
+            (deviceToConnectTo.removeEventListener as any)('advertisementreceived', eventListenerRefShim, options);
         };
-    }, [bluetoothDevicesKnown, dispatch]);
+    }, [bluetoothDevicesKnown, dispatch, deviceServer?.connected]);
 
     return deviceServer;
 
@@ -1401,8 +1455,6 @@ const MaybeIfValue: React.FC<{text: string, value: any}> = ({text, value}) => {
         </div>
     );
 }
-
-
 
 function falsyNavigatorBluetooth(dispatch: ReturnType<typeof useDispatch>) {
     dispatch(setBluetoothAvailable(false));
@@ -1516,7 +1568,7 @@ function DisplayChromeSupported(): JSX.Element {
         }
     }
     return (
-        <div>Hangoon</div>
+        <div></div>
     )
 }
 
@@ -1533,6 +1585,117 @@ function Compatibility(): JSX.Element {
             <DisplayChromeSupported/>
         </div>
     );
+}
+
+// const stopPollingAndReconnect = async (seamlesslyConnectedDeviceServer: BluetoothRemoteGATTServer, timerHandle: number | null, setTimerHandle: React.Dispatch<React.SetStateAction<number | null>>) => {
+//     // debugger;
+//     console.log('aranet4 disconnected!');
+//     await seamlesslyConnectedDeviceServer.connect();
+//     // clearIntervalHandle(handle);
+//     // await tryGetDevices(dispatch, setBluetoothDevicesKnown);
+
+// }
+
+const polling = async (seamlesslyConnectedDeviceServer: BluetoothRemoteGATTServer | null, timerHandle: number | null, setTimerHandle: React.Dispatch<React.SetStateAction<number | null>>, dispatch: ReturnType<typeof useDispatch>, pollingInterval: number) => {
+    // debugger;
+    if (seamlesslyConnectedDeviceServer === null) {
+        console.log('no device server to poll...');
+        setTimerHandle(null);
+        return;
+    }
+    // console.log('Polling aranet4...');
+    if (!seamlesslyConnectedDeviceServer.connected) {
+        if (timerHandle !== null) {
+            clearTimeout(timerHandle);
+            setTimerHandle(null);
+        }
+
+        // await stopPollingAndReconnect(seamlesslyConnectedDeviceServer, timerHandle, setTimerHandle, dispatch);
+        // debugger;
+        // await startPolling(timerHandle, setTimerHandle, dispatch, pollingInterval, polling);
+        messages('Connection lost before polling device!', dispatch);
+        setTimerHandle(null);
+        // debugger
+        return;
+    }
+
+    try {
+
+        await getBasicAranet4DataOverBluetooth(dispatch, seamlesslyConnectedDeviceServer);
+    }
+    catch (e) {
+        if (e instanceof DOMException) {
+            debugger;
+        }
+        else {
+            console.error(e);
+            debugger;
+            throw e;
+        }
+    }
+    messages('Polling aranet4 complete!', dispatch);
+    setTimerHandle(null);
+};
+
+const POLLING_INTERVAL = (1000 * 10);
+
+const usePolling = (seamlesslyConnectedDeviceServer: BluetoothRemoteGATTServer | null) => {
+    const dispatch = useDispatch();
+    const [timingHandle, setTimingHandle] = useState(null as (number | null))
+    const [bumpPolling, setBumpPolling] = useState(false);
+
+    useEffect(() => {
+        if (timingHandle === null) {
+            if (seamlesslyConnectedDeviceServer === null) {
+                messages('No server, no polling', dispatch);
+                return;
+            }
+            if (!(seamlesslyConnectedDeviceServer.connected)) {
+                messages('not connected, cannot poll.', dispatch);
+                return;
+            }
+            // if (seamlesslyConnectedDeviceServer.connected)
+            messages(`Requesting aranet4 polling (in ${POLLING_INTERVAL/1000} seconds)...`, dispatch);
+            const handle: number = setTimeout(() => {polling(seamlesslyConnectedDeviceServer, timingHandle, setTimingHandle, dispatch, POLLING_INTERVAL)}, POLLING_INTERVAL) as any as number;
+            setTimingHandle(handle);
+        }
+        else {
+            console.log("Polling in progress...");
+        }
+        return (() => {
+            if (timingHandle !== null) {
+                clearTimeout(timingHandle);
+            }
+        });
+    
+    }, [seamlesslyConnectedDeviceServer, dispatch, timingHandle, bumpPolling, seamlesslyConnectedDeviceServer?.connected]);
+
+    useEffect(() => {
+        async function connectOnLoss() {
+            if (seamlesslyConnectedDeviceServer !== null) {
+                if (seamlesslyConnectedDeviceServer.connected) {
+                    return;
+                }
+                const shouldBeFalse = seamlesslyConnectedDeviceServer.connected;
+                messages(`Aranet4 connection lost! Reconnecting automatically.`, dispatch)
+                await seamlesslyConnectedDeviceServer.connect();
+                console.assert(shouldBeFalse !== seamlesslyConnectedDeviceServer.connected);
+                // setTimingHandle(null);
+                messages('Reconnected...', dispatch);
+                setBumpPolling(!bumpPolling);
+            }
+        }
+        connectOnLoss();
+    }, [seamlesslyConnectedDeviceServer, dispatch, bumpPolling]);
+
+
+    // setRepeatingQueryTimerHandle(handle);
+    return () => {
+        if (timingHandle !== null) {
+            clearTimeout(timingHandle)
+        }        
+    };
+
 }
 
 export function BluetoothTesting(): JSX.Element {
@@ -1554,7 +1717,8 @@ export function BluetoothTesting(): JSX.Element {
     const [bluetoothDevicesKnown, setBluetoothDevicesKnown] = useState(null as (BluetoothDevice[] | null));
 
     const seamlesslyConnectedDeviceServer = useBluetoothAdvertisementReceived(bluetoothDevicesKnown);
-
+    const pollingHook = usePolling(seamlesslyConnectedDeviceServer);
+    // const [repeatingQueryTimerHandle, setRepeatingQueryTimerHandle] = useState(null as (ReturnType<typeof setTimeout> | null));
 
     const dispatch = useDispatch();
 
@@ -1564,7 +1728,7 @@ export function BluetoothTesting(): JSX.Element {
 
     useEffect(() => {
         trySeamlessConnectionOnceAvailable(dispatch, seamlesslyConnectedDeviceServer);
-    }, [seamlesslyConnectedDeviceServer, dispatch])
+    }, [seamlesslyConnectedDeviceServer, dispatch]);
     
     const checkBluetoothAvailable = () => {
         checkBluetooth(dispatch);
@@ -1577,6 +1741,11 @@ export function BluetoothTesting(): JSX.Element {
     const queryAranet4 = () => {
         getAranet4DataOverBluetooth(dispatch, seamlesslyConnectedDeviceServer);
     }
+
+    useEffect(() => {
+    }, [seamlesslyConnectedDeviceServer, dispatch]);
+
+
     return (
         <div>
             <h3>Experimental Bluetooth support</h3>
