@@ -22,6 +22,7 @@ interface Aranet4SpecificData {
     aranet4SecondsSinceLastMeasurement: number | null;
     aranet4Color: string | null;
     aranet4Calibration: string | null;
+    aranet4MeasurementTime: Date | null
 }
 
 export interface RFData {
@@ -82,7 +83,8 @@ const initialState: bluetoothState = {
         aranet4TotalMeasurements: null,
         aranet4SecondsSinceLastMeasurement: null,
         aranet4Color: null,
-        aranet4Calibration: null
+        aranet4Calibration: null,
+        aranet4MeasurementTime: null
     },
 
     rfData: {
@@ -141,6 +143,13 @@ export const bluetoothSlice = createSlice({
         },
         setAranet4SecondsSinceLastMeasurement: (state, action: PayloadAction<number | null>) => {
             state.aranet4SpecificData.aranet4SecondsSinceLastMeasurement = action.payload;
+            if (action.payload) {
+                const now = Date.now();
+                const seconds = action.payload * 1000;
+                state.aranet4SpecificData.aranet4MeasurementTime = (new Date(now - seconds));
+            }
+
+            //TODO: set 
         },
         setAranet4Color: (state, action: PayloadAction<string | null>) => {
             state.aranet4SpecificData.aranet4Color = action.payload;

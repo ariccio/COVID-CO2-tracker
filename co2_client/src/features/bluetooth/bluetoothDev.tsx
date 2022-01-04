@@ -1633,7 +1633,7 @@ const polling = async (seamlesslyConnectedDeviceServer: BluetoothRemoteGATTServe
             throw e;
         }
     }
-    messages('Polling aranet4 complete!', dispatch);
+    // messages('Polling aranet4 complete!', dispatch);
     setTimerHandle(null);
 };
 
@@ -1764,6 +1764,7 @@ export function BluetoothTesting(): JSX.Element {
             <br/>
             
             <MaybeIfValue text={"Measurement interval (seconds): "} value={aranet4SpecificData.aranet4MeasurementInterval}/>
+            <MaybeIfValue text={"Measurement taken: "} value={aranet4SpecificData.aranet4MeasurementTime?.toLocaleTimeString()}/>
             <MaybeIfValue text={"Seconds since last update: "} value={aranet4SpecificData.aranet4SecondsSinceLastMeasurement}/>
             <MaybeIfValue text={"Total number of measurements: "} value={aranet4SpecificData.aranet4TotalMeasurements}/>
             <MaybeIfValue text={"Calibration: "} value={aranet4SpecificData.aranet4Calibration}/>
