@@ -1379,7 +1379,7 @@ const useBluetoothAdvertisementReceived = (bluetoothDevicesKnown: (BluetoothDevi
             return;
         }
         if (bluetoothDevicesKnown.length === 0) {
-            messages('Zero available bluetooth devices.', dispatch);
+            messages('Zero available bluetooth devices from "getDevices" .', dispatch);
             return;
         }
         if (deviceServer) {
@@ -1590,7 +1590,9 @@ function DisplayChromeSupported(): JSX.Element {
             if (!supportsGetDevices)
                 return (
                     <div>
-                        You might be able to seamlessly work with bluetooth. Try <a href="https://www.androidcentral.com/how-enable-flags-chrome">enabling</a> the new permissions backend. Type <i>chrome://flags/#enable-web-bluetooth-new-permissions-backend</i> into your address bar and hit enter, and enable that option.<br/>
+                        You might be able to seamlessly work with bluetooth. Try <a href="https://www.androidcentral.com/how-enable-flags-chrome">enabling</a> the new permissions backend and experimental web platform features:<br/>
+                        Type <i>chrome://flags/#enable-web-bluetooth-new-permissions-backend</i> into your address bar and hit enter, and enable that option.<br/>
+                        Type <i>chrome://flags/#enable-experimental-web-platform-features</i> into your address bar and hit enter, and enable that option.<br/>
                     </div>
                 );
         }
@@ -1714,7 +1716,7 @@ const usePolling = (seamlesslyConnectedDeviceServer: BluetoothRemoteGATTServer |
             }
         }
         connectOnLoss();
-    }, [seamlesslyConnectedDeviceServer, dispatch, bumpPolling]);
+    }, [seamlesslyConnectedDeviceServer, dispatch, bumpPolling, seamlesslyConnectedDeviceServer?.connected]);
 
 
     // setRepeatingQueryTimerHandle(handle);
@@ -1791,7 +1793,7 @@ export function BluetoothTesting(): JSX.Element {
             <br/>
             
             <MaybeIfValue text={"Measurement interval (seconds): "} value={aranet4SpecificData.aranet4MeasurementInterval}/>
-            <MaybeIfValue text={"Measurement taken: "} value={aranet4SpecificData.aranet4MeasurementTime?.toLocaleTimeString()}/>
+            <MaybeIfValue text={"Measurement taken: "} value={aranet4SpecificData.aranet4MeasurementTime}/>
             <MaybeIfValue text={"Seconds since last update: "} value={aranet4SpecificData.aranet4SecondsSinceLastMeasurement}/>
             <MaybeIfValue text={"Total number of measurements: "} value={aranet4SpecificData.aranet4TotalMeasurements}/>
             <MaybeIfValue text={"Calibration: "} value={aranet4SpecificData.aranet4Calibration}/>

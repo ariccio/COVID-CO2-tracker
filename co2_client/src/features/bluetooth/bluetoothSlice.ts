@@ -22,7 +22,7 @@ interface Aranet4SpecificData {
     aranet4SecondsSinceLastMeasurement: number | null;
     aranet4Color: string | null;
     aranet4Calibration: string | null;
-    aranet4MeasurementTime: Date | null
+    aranet4MeasurementTime: string | null
 }
 
 export interface RFData {
@@ -148,7 +148,7 @@ export const bluetoothSlice = createSlice({
             if (action.payload) {
                 const now = Date.now();
                 const seconds = action.payload * 1000;
-                state.aranet4SpecificData.aranet4MeasurementTime = (new Date(now - seconds));
+                state.aranet4SpecificData.aranet4MeasurementTime = (new Date(now - seconds)).toLocaleTimeString();
             }
 
             //TODO: set 
