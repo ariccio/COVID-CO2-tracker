@@ -26,5 +26,8 @@
     "@types/react-native": "~0.64.12",
     "typescript": "~4.3.5"
   },
-  "private": true
+  "private": true,
+  "resolutions": {
+    "react-devtools-core": "<4.11.0"
+  }
 }
