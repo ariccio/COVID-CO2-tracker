@@ -2,12 +2,45 @@ import {useEffect, useState} from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, PermissionsAndroid } from 'react-native';
 
-import { BleManager, Device, BleError } from 'react-native-ble-plx';
+import { BleManager, Device, BleError, LogLevel, Service } from 'react-native-ble-plx';
+import { Provider } from 'react-redux'
+
+
+import { store } from './src/app/store';
+
+import * as BLUETOOTH from '../co2_client/src/utils/BluetoothConstants';
+
+// 
+// 
+
 
 export const manager = new BleManager();
+manager.setLogLevel(LogLevel.Debug);
 
 // const BleManagerModule = NativeModules.BleManager;
 // const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
+
+function dumpServiceDescriptions(services: Service[]) {
+  for (let serviceIndex = 0; serviceIndex < services.length; ++serviceIndex) {
+    const thisService = services[serviceIndex];
+    console.log(`\tservice ${serviceIndex}:`)
+
+    const short_uuid = thisService.uuid.substring(4, 8).toUpperCase();
+    if (BLUETOOTH.GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.has(thisService.uuid)) {
+      const serviceName = BLUETOOTH.GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.get(thisService.uuid);
+      console.log(`\t\tservices[${serviceIndex}].uuid: ${thisService.uuid}... Known service! ${serviceName}`);
+    }
+    else if (BLUETOOTH.GENERIC_GATT_SERVICE_SHORT_ID_DESCRIPTIONS.has(short_uuid)) {
+      const serviceName = BLUETOOTH.GENERIC_GATT_SERVICE_SHORT_ID_DESCRIPTIONS.get(short_uuid);
+      console.log(`\t\tservices[${serviceIndex}].uuid: ${thisService.uuid}... Known service! ${serviceName}`);
+  }
+
+    console.log(`\t\tid: ${thisService.id}`);
+    console.log(`\t\tisPrimary: ${thisService.isPrimary}`);
+    console.log(`\t\tuuid: ${thisService.uuid}`);
+
+  }
+}
 
 const scanCallback = async (error: BleError | null, scannedDevice: Device | null, setDevice: React.Dispatch<React.SetStateAction<Device | null>>) => {
   if (error) {
@@ -68,8 +101,12 @@ const scanCallback = async (error: BleError | null, scannedDevice: Device | null
       // debugger;
       const connectedDevice = await scannedDevice.connect();
       const deviceWithServicesAndCharacteristics = await connectedDevice.discoverAllServicesAndCharacteristics();
-      setDevice(deviceWithServicesAndCharacteristics);
       console.log("Connected!")
+      const services = await connectedDevice.services();
+      console.log("services:");
+      console.table(services);
+      dumpServiceDescriptions(services);
+      setDevice(deviceWithServicesAndCharacteristics);
 
     }
     
@@ -99,7 +136,6 @@ const requestLocationPermission = async (setHasBluetooth: React.Dispatch<React.S
   }
 }
 
-// https://expo.canny.io/feature-requests/p/bluetooth-1
 
 
 const useBluetoothConnect = () => {
@@ -116,6 +152,19 @@ const useBluetoothConnect = () => {
     }
   }, [hasBluetooth]);
 
+  useEffect(() => {
+    if (device === null) {
+      return;
+    }
+    if (device.serviceUUIDs === null) {
+      console.log("Device object lacks service UUIDs?");
+      // debugger;
+      return;
+    }
+    console.log("serviceUUIDs:");
+    console.table(device.serviceUUIDs);
+  }, [device]);
+
   return device;
 }
 export default function App() {
@@ -126,18 +175,20 @@ export default function App() {
       return;
     }
     // device.
-    console.log("has device!");
+    console.log("has device! Device object:");
     console.table(device);
     
   }, [device]);
 
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <Text>Fartipelago!</Text>
-      <Text>ID: {device?.id}</Text>
-      <StatusBar style="auto" />
-    </View>
+    <Provider store={store}>
+      <View style={styles.container}>
+        <Text>Open up App.tsx to start working on your app!</Text>
+        <Text>Fartipelago!</Text>
+        <Text>ID: {device?.id}</Text>
+        <StatusBar style="auto" />
+      </View>
+    </Provider>
   );
 }
 

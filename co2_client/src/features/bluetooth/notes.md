@@ -347,3 +347,7 @@ See also: https://stackoverflow.com/a/55163224
         }
         return (0, O.default)(z.timestamp).format('LLL')
     }
+
+
+1/9/2022: Found another source of GATT attributes!
+    https://github.com/ghostyguo/BleUuidExplorer/blob/master/app/src/main/java/ghostysoft/bleuuidexplorer/GattAttributes.java

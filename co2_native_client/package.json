@@ -10,15 +10,17 @@
   },
   "dependencies": {
     "@config-plugins/react-native-ble-plx": "^0.0.2",
+    "@reduxjs/toolkit": "^1.7.1",
     "expo": "~44.0.0",
     "expo-dev-client": "~0.8.0",
+    "expo-splash-screen": "~0.14.1",
     "expo-status-bar": "~1.2.0",
     "react": "17.0.1",
     "react-dom": "17.0.1",
     "react-native": "0.64.3",
     "react-native-ble-plx": "^2.0.3",
     "react-native-web": "0.17.1",
-    "expo-splash-screen": "~0.14.1"
+    "react-redux": "^7.2.6"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",
