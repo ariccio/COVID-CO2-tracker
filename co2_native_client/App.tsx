@@ -1,17 +1,74 @@
 import {useEffect, useState} from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, PermissionsAndroid } from 'react-native';
+import { StyleSheet, Text, View, PermissionsAndroid, Button } from 'react-native';
 
-import { BleManager, Device, BleError, LogLevel, Service } from 'react-native-ble-plx';
-import { Provider } from 'react-redux'
+import { BleManager, Device, BleError, LogLevel, Service, Characteristic } from 'react-native-ble-plx';
+import { Provider, useDispatch, useSelector } from 'react-redux'
 
+import * as WebBrowser from 'expo-web-browser';
+import * as Google from 'expo-auth-session/providers/google';
 
 import { store } from './src/app/store';
 
 import * as BLUETOOTH from '../co2_client/src/utils/BluetoothConstants';
+import { selectDeviceID, selectDeviceName, selectDeviceRSSI, selectHasBluetooth, setDeviceID, setDeviceName, setHasBluetooth, setRssi } from './src/bluetooth/bluetoothSlice';
 
 // 
 // 
+
+
+const MaybeIfValue: React.FC<{text: string, value: any}> = ({text, value}) => {
+  if (value === undefined) {
+    console.error("value missing?");
+    return null;
+  }
+  if (value === null) {
+    return null;
+  }
+  return (
+    <Text>
+        {text}{value}
+    </Text>
+  );
+}
+
+
+const ValueOrLoading: React.FC<{text: string, value: any}> = ({text, value}) => {
+  if (value === undefined) {
+    console.error("value missing?");
+    return null;
+  }
+  if (value === null) {
+    return (
+      <Text>
+          Loading {text}...
+      </Text>
+    );
+    }
+  return (
+    <Text>
+        {text}{value}
+    </Text>
+  );
+}
+
+const BluetoothData: React.FC<{device: Device | null}> = ({device}) => {
+  const id = useSelector(selectDeviceID);
+  const name = useSelector(selectDeviceName);
+  const rssi = useSelector(selectDeviceRSSI);
+
+  return (
+    <>
+        <ValueOrLoading text={"id: "} value={id}/>
+        <ValueOrLoading text={"name: "} value={name}/>
+        <ValueOrLoading text={"rssi: "} value={rssi}/>
+
+        <MaybeIfValue text={"localName: "} value={(device?.localName) ? device.localName : null}/>
+        <MaybeIfValue text={"manufacturerData: "} value={(device?.manufacturerData) ? device?.manufacturerData : null}/>
+        
+    </>
+  )
+}
 
 
 export const manager = new BleManager();
@@ -20,7 +77,28 @@ manager.setLogLevel(LogLevel.Debug);
 // const BleManagerModule = NativeModules.BleManager;
 // const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
-function dumpServiceDescriptions(services: Service[]) {
+function checkKnownFunctionDescription(characteristic: Characteristic) {
+  if (BLUETOOTH.aranet4KnownCharacteristicUUIDDescriptions.has(characteristic.uuid)) {
+      console.log(`\t\t\t${characteristic.uuid}: Known Aranet4 characteristic! '${BLUETOOTH.aranet4KnownCharacteristicUUIDDescriptions.get(characteristic.uuid)}'`);
+      return;
+  }
+  else if (BLUETOOTH.GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.has(characteristic.uuid)) {
+    console.log(`\t\t\t${characteristic.uuid}: Known generic GATT characteristic! '${BLUETOOTH.GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.get(characteristic.uuid)}'`);
+      return;
+  }
+  console.log(`\t\t\tUNKNOWN GATT characteristic! '${characteristic.uuid}'`);
+}
+
+function dumpCharacteristics(characteristics: Characteristic[]) {
+  for (let characteristicIndex = 0; characteristicIndex < characteristics.length; ++characteristicIndex) {
+    const thisCharacteristic = characteristics[characteristicIndex];
+    checkKnownFunctionDescription(thisCharacteristic);
+    
+
+  }
+}
+
+async function dumpServiceDescriptions(services: Service[]) {
   for (let serviceIndex = 0; serviceIndex < services.length; ++serviceIndex) {
     const thisService = services[serviceIndex];
     console.log(`\tservice ${serviceIndex}:`)
@@ -35,101 +113,86 @@ function dumpServiceDescriptions(services: Service[]) {
       console.log(`\t\tservices[${serviceIndex}].uuid: ${thisService.uuid}... Known service! ${serviceName}`);
   }
 
-    console.log(`\t\tid: ${thisService.id}`);
-    console.log(`\t\tisPrimary: ${thisService.isPrimary}`);
-    console.log(`\t\tuuid: ${thisService.uuid}`);
+    // console.log(`\t\tid: ${thisService.id}`);
+    const characteristics = await thisService.characteristics();
+    dumpCharacteristics(characteristics);
 
   }
 }
 
-const scanCallback = async (error: BleError | null, scannedDevice: Device | null, setDevice: React.Dispatch<React.SetStateAction<Device | null>>) => {
+const scanCallback = async (error: BleError | null, scannedDevice: Device | null, setDevice: React.Dispatch<React.SetStateAction<Device | null>>, dispatch: ReturnType<typeof useDispatch>) => {
   if (error) {
-    console.log("error!");
+    console.error(`error scanning: ${error}`);
     debugger;
     // Handle error (scanning will be stopped automatically)
     return
     }
 
-    // // Check if it is a device you are looking for based on advertisement data
-    // // or other criteria.
-    // if (device.name === 'TI BLE Sensor Tag' || 
-    //     device.name === 'SensorTag') {
-        
-    //     // Stop scanning as it's not necessary if you are scanning for one device.
-        
-    //     // Proceed with connection.
-    //   }
-
-    /*
-      Device {serviceUUIDs: null, isConnectable: null, overflowServiceUUIDs: null, txPowerLevel: null, serviceData: null, …}
-      id: "8C:79:F5:88:9A:BE"
-      isConnectable: null
-      localName: null
-      manufacturerData: "dQBCBAGAYIx59Yiavo559YiavQEAAAAAAAA="
-      mtu: 23
-      name: null
-      overflowServiceUUIDs: null
-      rssi: -79
-      serviceData: null
-      serviceUUIDs: null
-      solicitedServiceUUIDs: null
-      txPowerLevel: null
-      _manager: BleManager
-      _eventEmitter: NativeEventEmitter {_subscriber: EventSubscriptionVendor, _disableCallsIntoModule: false}
-      _scanEventSubscription: null
-      _uniqueId: 0
-    */
     console.log("New device!");
 
-    if (scannedDevice) {
-      if (scannedDevice.id) {
-        console.log(`\tscannedDevice.id: ${scannedDevice.id}`);
-      }
-      if (scannedDevice.localName) {
-        console.log(`\tscannedDevice.localName ${scannedDevice.localName}`);
-      }
-      if (scannedDevice.name) {
-        console.log(`\tscannedDevice.name: ${scannedDevice.name}`);
-      }
-      if (scannedDevice.serviceData) {
-        console.log(`\tscannedDevice.serviceData: ${scannedDevice.serviceData}`);
-      }
-    }
+    dumpNewScannedDeviceInfo(scannedDevice);
     if (scannedDevice && (scannedDevice.name?.startsWith('Aranet4'))) {
       console.log("Connecting to aranet4...");
+      if (scannedDevice.id) {
+        dispatch(setDeviceID(scannedDevice.id));
+      }
+      else {
+        //TODO: bubble error up?
+        console.error("No ID?");
+      }
+      if (scannedDevice.name) {
+        dispatch(setDeviceName(scannedDevice.name))
+      }
+      else {
+        console.error("No name?");
+      }
+
       manager.stopDeviceScan();
       // debugger;
       const connectedDevice = await scannedDevice.connect();
       const deviceWithServicesAndCharacteristics = await connectedDevice.discoverAllServicesAndCharacteristics();
       console.log("Connected!")
-      const services = await connectedDevice.services();
+      const services = await deviceWithServicesAndCharacteristics.services();
       console.log("services:");
       console.table(services);
       dumpServiceDescriptions(services);
-      setDevice(deviceWithServicesAndCharacteristics);
+      const withRSSI = await deviceWithServicesAndCharacteristics.readRSSI();
+      setDevice(withRSSI);
+      if (withRSSI.rssi) {
+        dispatch(setRssi(withRSSI.rssi));
+      }
+      else {
+        console.error("No rssi?");
+      }
+      // if (withRSSI.txPowerLevel) {
+      //   dispatch(setTxPower(withRSSI.txPowerLevel));
+      // }
+      // else {
+      //   console.error("No txPowerLevel?");
+      // }
 
     }
     
     // debugger;
 }
 
-const scanAndConnect = (setDevice: React.Dispatch<React.SetStateAction<Device | null>>) => {
+const scanAndConnect = (setDevice: React.Dispatch<React.SetStateAction<Device | null>>, dispatch: ReturnType<typeof useDispatch>) => {
   console.log("fartipelago!");
-  manager.startDeviceScan(null, null, (error, scannedDevice) => scanCallback(error, scannedDevice, setDevice));
+  manager.startDeviceScan(null, null, (error, scannedDevice) => scanCallback(error, scannedDevice, setDevice, dispatch));
 }
 
-const requestLocationPermission = async (setHasBluetooth: React.Dispatch<React.SetStateAction<boolean>>) => {
+const requestLocationPermission = async (dispatch: ReturnType<typeof useDispatch>) => {
   //https://reactnative.dev/docs/permissionsandroid
   const result = await PermissionsAndroid.request(
     PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
   );
   if (result === PermissionsAndroid.RESULTS.GRANTED) {
     console.log("good");
-    setHasBluetooth(true);
+    dispatch(setHasBluetooth(true));
     // Do something
   } else {
     console.log(`no good: ${result}`);
-    setHasBluetooth(false);
+    dispatch(setHasBluetooth(false));
     debugger;
     // Denied
     // Do something
@@ -138,17 +201,21 @@ const requestLocationPermission = async (setHasBluetooth: React.Dispatch<React.S
 
 
 
-const useBluetoothConnect = () => {
-  const [hasBluetooth, setHasBluetooth] = useState(false);
+const useBluetoothConnectAranet = () => {
+  // const [hasBluetooth, setHasBluetooth] = useState(false);
   const [device, setDevice] = useState(null as (Device | null));
+  const hasBluetooth = useSelector(selectHasBluetooth);
+  const deviceID = useSelector(selectDeviceID);
+  const dispatch = useDispatch();
+
 
   useEffect(() => {
-    requestLocationPermission(setHasBluetooth);
+    requestLocationPermission(dispatch);
   }, [])
 
   useEffect(() => {
     if (hasBluetooth) {
-      scanAndConnect(setDevice);
+      scanAndConnect(setDevice, dispatch);
     }
   }, [hasBluetooth]);
 
@@ -156,19 +223,50 @@ const useBluetoothConnect = () => {
     if (device === null) {
       return;
     }
-    if (device.serviceUUIDs === null) {
-      console.log("Device object lacks service UUIDs?");
-      // debugger;
-      return;
+    if (deviceID) {
+      manager.readCharacteristicForDevice(deviceID, BLUETOOTH.DEVICE_INFORMATION_SERVICE_UUID, BLUETOOTH.GENERIC_GATT_SERIAL_NUMBER_STRING_UUID).then((characteristic) => {
+        console.log(`got serial characteristic`);
+        console.table(characteristic);
+      })
     }
-    console.log("serviceUUIDs:");
-    console.table(device.serviceUUIDs);
-  }, [device]);
+
+    
+  }, [device, deviceID]);
 
   return device;
 }
-export default function App() {
-  const device = useBluetoothConnect();
+
+function dumpNewScannedDeviceInfo(scannedDevice: Device | null) {
+  if (scannedDevice) {
+    if (scannedDevice.id) {
+      console.log(`\tscannedDevice.id: ${scannedDevice.id}`);
+    }
+    if (scannedDevice.localName) {
+      console.log(`\tscannedDevice.localName ${scannedDevice.localName}`);
+    }
+    if (scannedDevice.name) {
+      console.log(`\tscannedDevice.name: ${scannedDevice.name}`);
+    }
+    if (scannedDevice.serviceData) {
+      console.log(`\tscannedDevice.serviceData: ${scannedDevice.serviceData}`);
+    }
+  }
+}
+
+/*
+    await queryAranet4BasicInformation(deviceServer, dispatch);
+
+
+    console.log("Getting device information service...")
+    const deviceInformationService = await deviceServer.getPrimaryService(BLUETOOTH.DEVICE_INFORMATION_SERVICE_UUID);
+
+
+    await queryDeviceInformationService(deviceInformationService, dispatch);
+
+*/
+
+function App_() {
+  const device = useBluetoothConnectAranet();
 
   useEffect(() => {
     if (device === null) {
@@ -180,16 +278,39 @@ export default function App() {
     
   }, [device]);
 
+
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    // expoClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
+    // iosClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
+    androidClientId: '460477494607-vslsidjdslivkafohmt992tls0dh6cf5.apps.googleusercontent.com',
+    // webClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
+  });
+
+  useEffect(() => {
+    if (response?.type === 'success') {
+      const { authentication } = response;
+      console.log(authentication);
+      console.table(authentication);
+      }
+  }, [response]);
+
   return (
-    <Provider store={store}>
+    
       <View style={styles.container}>
-        <Text>Open up App.tsx to start working on your app!</Text>
-        <Text>Fartipelago!</Text>
-        <Text>ID: {device?.id}</Text>
+        <BluetoothData device={device}/>
+        <Button disabled={!request} title="Login" onPress={() => {promptAsync();}}/>
         <StatusBar style="auto" />
       </View>
-    </Provider>
   );
+}
+
+export default function App() {
+
+  return (
+    <Provider store={store}>
+      <App_/>
+    </Provider>
+  )
 }
 
 const styles = StyleSheet.create({

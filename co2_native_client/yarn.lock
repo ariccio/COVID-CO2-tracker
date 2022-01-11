@@ -2592,7 +2592,7 @@ expand-brackets@^2.1.4:
     snapdragon "^0.8.1"
     to-regex "^3.0.1"
 
-expo-application@~4.0.1:
+expo-application@^4.0.1, expo-application@~4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/expo-application/-/expo-application-4.0.1.tgz#d38a1315c06c253b843c951ddc6fbb9a026f05cc"
   integrity sha512-yZM/SrpWdi84m5+5F3VDfhrMZOz/uKwXcgBhOP1wzfXt0otGSRW1V5tM+a0sgaKZsDRCGojTU7Jm73BVwwVrwg==
