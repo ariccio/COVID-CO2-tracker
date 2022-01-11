@@ -136,6 +136,23 @@ const UserNav: React.FC<UserNavProps> = ({username, googleProfile}) => {
   );
 }
 
+const companies = [
+  'facebook.com',
+  'google.com',
+  'twitter.com',
+  'apple.com',
+  'netflix.com',
+  'amazon.com'
+];
+
+function checkEmails(email: string) {
+  for (let i = 0; i < companies.length; ++i) {
+    if (email.endsWith(companies[i])) {
+      alert(`I see you work at ${companies[i]}... please hire me :)`);
+    }
+  }
+}
+
 const loadEmail = (dispatch: ReturnType<typeof useDispatch>, username: string) => {
   const emailPromise = get_email();
   emailPromise.then(email => {
@@ -152,6 +169,7 @@ const loadEmail = (dispatch: ReturnType<typeof useDispatch>, username: string) =
       // console.log("got email: ", email.email)
       if (username === '') {
         dispatch(setUsername(`(logging in...) ${email.email}`));
+        checkEmails(email.email);
       }
       else {
         console.log(`Not setting username in redux, since username is currently ${username}. Sometimes that returns faster.`);

@@ -278,6 +278,10 @@ function App_() {
     
   }, [device]);
 
+  useEffect(() => {
+    console.log("Note to self (TODO): there's really nothing sensitive about the client ID, but I'd like to obfuscate it anyways.");
+  }, []);
+
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     // expoClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
