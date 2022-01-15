@@ -136,6 +136,8 @@ const UserNav: React.FC<UserNavProps> = ({username, googleProfile}) => {
   );
 }
 
+
+//Yes, I know most of these guys won't use gmail. It's worth a shot though :)
 const companies = [
   'facebook.com',
   'google.com',
