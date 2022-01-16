@@ -5,17 +5,20 @@ import { StyleSheet, Text, View, PermissionsAndroid, Button } from 'react-native
 import { BleManager, Device, BleError, LogLevel, Service, Characteristic } from 'react-native-ble-plx';
 import { Provider, useDispatch, useSelector } from 'react-redux'
 
+import {Buffer} from 'buffer';
+
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 
 import { store } from './src/app/store';
 
 import * as BLUETOOTH from '../co2_client/src/utils/BluetoothConstants';
-import { selectDeviceID, selectDeviceName, selectDeviceRSSI, selectHasBluetooth, setDeviceID, setDeviceName, setHasBluetooth, setRssi } from './src/bluetooth/bluetoothSlice';
+import { selectDeviceID, selectDeviceName, selectDeviceRSSI, selectDeviceSerialNumberString, selectHasBluetooth, selectScanningStatusString, setDeviceID, setDeviceName, setDeviceSerialNumber, setHasBluetooth, setRssi, setScanningStatusString } from './src/bluetooth/bluetoothSlice';
 
 // 
 // 
 
+//https://github.com/thespacemanatee/Smart-Shef-IoT/blob/4782c95f383040f36e4ae7ce063166cce5c76129/smart_shef_app/src/utils/hooks/useMonitorHumidityCharacteristic.ts
 
 const MaybeIfValue: React.FC<{text: string, value: any}> = ({text, value}) => {
   if (value === undefined) {
@@ -56,12 +59,16 @@ const BluetoothData: React.FC<{device: Device | null}> = ({device}) => {
   const id = useSelector(selectDeviceID);
   const name = useSelector(selectDeviceName);
   const rssi = useSelector(selectDeviceRSSI);
+  const bluetoothScanningStatus = useSelector(selectScanningStatusString);
+  const serialNumber = useSelector(selectDeviceSerialNumberString);
 
   return (
     <>
+        <MaybeIfValue text={"bluetooth status: "} value={bluetoothScanningStatus}/>
         <ValueOrLoading text={"id: "} value={id}/>
         <ValueOrLoading text={"name: "} value={name}/>
         <ValueOrLoading text={"rssi: "} value={rssi}/>
+        <ValueOrLoading text={"Serial number: "} value={serialNumber}/>
 
         <MaybeIfValue text={"localName: "} value={(device?.localName) ? device.localName : null}/>
         <MaybeIfValue text={"manufacturerData: "} value={(device?.manufacturerData) ? device?.manufacturerData : null}/>
@@ -93,8 +100,6 @@ function dumpCharacteristics(characteristics: Characteristic[]) {
   for (let characteristicIndex = 0; characteristicIndex < characteristics.length; ++characteristicIndex) {
     const thisCharacteristic = characteristics[characteristicIndex];
     checkKnownFunctionDescription(thisCharacteristic);
-    
-
   }
 }
 
@@ -123,47 +128,25 @@ async function dumpServiceDescriptions(services: Service[]) {
 const scanCallback = async (error: BleError | null, scannedDevice: Device | null, setDevice: React.Dispatch<React.SetStateAction<Device | null>>, dispatch: ReturnType<typeof useDispatch>) => {
   if (error) {
     console.error(`error scanning: ${error}`);
+    dispatch(setScanningStatusString(`error scanning: ${error}`));
     debugger;
     // Handle error (scanning will be stopped automatically)
     return
     }
 
     console.log("New device!");
-
+    
     dumpNewScannedDeviceInfo(scannedDevice);
-    if (scannedDevice && (scannedDevice.name?.startsWith('Aranet4'))) {
-      console.log("Connecting to aranet4...");
-      if (scannedDevice.id) {
-        dispatch(setDeviceID(scannedDevice.id));
-      }
-      else {
-        //TODO: bubble error up?
-        console.error("No ID?");
-      }
-      if (scannedDevice.name) {
-        dispatch(setDeviceName(scannedDevice.name))
-      }
-      else {
-        console.error("No name?");
-      }
-
-      manager.stopDeviceScan();
-      // debugger;
-      const connectedDevice = await scannedDevice.connect();
-      const deviceWithServicesAndCharacteristics = await connectedDevice.discoverAllServicesAndCharacteristics();
-      console.log("Connected!")
-      const services = await deviceWithServicesAndCharacteristics.services();
-      console.log("services:");
-      console.table(services);
-      dumpServiceDescriptions(services);
-      const withRSSI = await deviceWithServicesAndCharacteristics.readRSSI();
-      setDevice(withRSSI);
-      if (withRSSI.rssi) {
-        dispatch(setRssi(withRSSI.rssi));
-      }
-      else {
-        console.error("No rssi?");
-      }
+    if (!scannedDevice) {
+      dispatch(setScanningStatusString(`scannedDevice is null?: Something's wrong.`));
+      return;
+    }
+    if (scannedDevice.name === null) {
+      dispatch(setScanningStatusString(`scannedDevice has no name. ID: ${scannedDevice.id}`));
+      return;
+    }
+    if ((scannedDevice.name.startsWith('Aranet4'))) {
+      await foundAranet4(scannedDevice, dispatch, setDevice);
       // if (withRSSI.txPowerLevel) {
       //   dispatch(setTxPower(withRSSI.txPowerLevel));
       // }
@@ -172,26 +155,33 @@ const scanCallback = async (error: BleError | null, scannedDevice: Device | null
       // }
 
     }
+    else {
+      dispatch(setScanningStatusString(`found non-aranet device: ${scannedDevice.name}`));
+    }
     
     // debugger;
 }
 
 const scanAndConnect = (setDevice: React.Dispatch<React.SetStateAction<Device | null>>, dispatch: ReturnType<typeof useDispatch>) => {
   console.log("fartipelago!");
+  dispatch(setScanningStatusString('Beginning device scan...'));
   manager.startDeviceScan(null, null, (error, scannedDevice) => scanCallback(error, scannedDevice, setDevice, dispatch));
 }
 
 const requestLocationPermission = async (dispatch: ReturnType<typeof useDispatch>) => {
+  dispatch(setScanningStatusString('Need permission to use bluetooth first.'));
+
   //https://reactnative.dev/docs/permissionsandroid
-  const result = await PermissionsAndroid.request(
-    PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
-  );
+  const result = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
+
   if (result === PermissionsAndroid.RESULTS.GRANTED) {
     console.log("good");
     dispatch(setHasBluetooth(true));
+    dispatch(setScanningStatusString('Bluetooth permission granted!'));
     // Do something
   } else {
     console.log(`no good: ${result}`);
+    dispatch(setScanningStatusString(`Bluetooth permission denied by user: ${result}`));
     dispatch(setHasBluetooth(false));
     debugger;
     // Denied
@@ -199,7 +189,26 @@ const requestLocationPermission = async (dispatch: ReturnType<typeof useDispatch
   }
 }
 
+function parseUTF8StringBuffer(data: Buffer): string {
+  let chars = new Array(data.byteLength);
+  for (let i = 0; i < (data.byteLength); i++) {
+      chars[i] = data.readUInt8(i);
+  }
+  const converted = String.fromCharCode.apply(null, chars);
+  return converted;
+}
 
+
+async function readDataFromAranet4(dispatch: ReturnType<typeof useDispatch>, deviceID: string) {
+  const rawSerialNumberCharacteristicValue = await manager.readCharacteristicForDevice(deviceID, BLUETOOTH.DEVICE_INFORMATION_SERVICE_UUID, BLUETOOTH.GENERIC_GATT_SERIAL_NUMBER_STRING_UUID);
+  if (rawSerialNumberCharacteristicValue.value === null) {
+    console.error("bug");
+    return;
+  }
+  const deviceSerialNumberCharacteristicAsBuffer = Buffer.from(rawSerialNumberCharacteristicValue.value, 'base64');
+  const deviceSerialNumberCharacteristicAsString = parseUTF8StringBuffer(deviceSerialNumberCharacteristicAsBuffer);
+  dispatch(setDeviceSerialNumber(deviceSerialNumberCharacteristicAsString));
+}
 
 const useBluetoothConnectAranet = () => {
   // const [hasBluetooth, setHasBluetooth] = useState(false);
@@ -207,6 +216,7 @@ const useBluetoothConnectAranet = () => {
   const hasBluetooth = useSelector(selectHasBluetooth);
   const deviceID = useSelector(selectDeviceID);
   const dispatch = useDispatch();
+  
 
 
   useEffect(() => {
@@ -224,16 +234,52 @@ const useBluetoothConnectAranet = () => {
       return;
     }
     if (deviceID) {
-      manager.readCharacteristicForDevice(deviceID, BLUETOOTH.DEVICE_INFORMATION_SERVICE_UUID, BLUETOOTH.GENERIC_GATT_SERIAL_NUMBER_STRING_UUID).then((characteristic) => {
-        console.log(`got serial characteristic`);
-        console.table(characteristic);
-      })
+      dispatch(setScanningStatusString(`Beginning data read...`));
+      readDataFromAranet4(dispatch, deviceID);
     }
 
     
   }, [device, deviceID]);
 
   return device;
+}
+
+async function foundAranet4(scannedDevice: Device, dispatch: ReturnType<typeof useDispatch>, setDevice: React.Dispatch<React.SetStateAction<Device | null>>) {
+  dispatch(setScanningStatusString(`Found aranet4! (${scannedDevice.id}) Connecting...`));
+  console.log("Connecting to aranet4...");
+  if (scannedDevice.id) {
+    dispatch(setDeviceID(scannedDevice.id));
+  }
+  else {
+    //TODO: bubble error up?
+    console.error("No ID?");
+  }
+  if (scannedDevice.name) {
+    dispatch(setDeviceName(scannedDevice.name));
+  }
+  else {
+    console.error("No name?");
+  }
+  manager.stopDeviceScan();
+  // debugger;
+  const connectedDevice = await scannedDevice.connect();
+  dispatch(setScanningStatusString(`Connected to aranet4 ${scannedDevice.id}). Discovering services and characteristics...`));
+  const deviceWithServicesAndCharacteristics = await connectedDevice.discoverAllServicesAndCharacteristics();
+
+  console.log("Connected!");
+  const services = await deviceWithServicesAndCharacteristics.services();
+  console.log("services:");
+  console.table(services);
+  dumpServiceDescriptions(services);
+  const withRSSI = await deviceWithServicesAndCharacteristics.readRSSI();
+  setDevice(withRSSI);
+  if (withRSSI.rssi) {
+    dispatch(setRssi(withRSSI.rssi));
+  }
+  else {
+    console.error("No rssi?");
+  }
+  dispatch(setScanningStatusString(null));
 }
 
 function dumpNewScannedDeviceInfo(scannedDevice: Device | null) {
@@ -267,6 +313,7 @@ function dumpNewScannedDeviceInfo(scannedDevice: Device | null) {
 
 function App_() {
   const device = useBluetoothConnectAranet();
+  
 
   useEffect(() => {
     if (device === null) {
@@ -301,6 +348,7 @@ function App_() {
   return (
     
       <View style={styles.container}>
+        
         <BluetoothData device={device}/>
         <Button disabled={!request} title="Login" onPress={() => {promptAsync();}}/>
         <StatusBar style="auto" />

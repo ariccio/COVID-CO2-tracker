@@ -12,6 +12,7 @@ interface GenericDeviceInformation {
     // deviceNameFromCharacteristic: string | null;
     deviceName: string | null;
     deviceID: string | null; //Looks like a MAC address?
+    deviceSerialNumber: string | null
 
 }
 
@@ -47,6 +48,7 @@ export interface BluetoothDeviceState {
 export interface BluetoothState {
     device: BluetoothDeviceState;
     hasBluetooth: boolean;
+    scanningStatusString: string | null;
 }
 
 const initialState: BluetoothState = {
@@ -75,13 +77,15 @@ const initialState: BluetoothState = {
             hardwareRevision: null,
             manufacturerName: null,
             modelNumber: null,
-            softwareRevision: null
+            softwareRevision: null,
+            deviceSerialNumber: null
         },
         rfData: {
             rssi: null,
             txPower: null
         }
-    }
+    },
+    scanningStatusString: null
 };
 
 
@@ -98,22 +102,30 @@ export const bluetoothSlice = createSlice({
         setRssi: (state, action: PayloadAction<number | null>) => {
             state.device.rfData.rssi = action.payload;
         },
+        setDeviceSerialNumber: (state, action: PayloadAction<string | null>) => {
+            state.device.gattDeviceInformation.deviceSerialNumber = action.payload;
+        },
         // setTxPower: (state, action: PayloadAction<number | null>) => {
         //     state.device.rfData.txPower = action.payload;
         // },
         setHasBluetooth: (state, action: PayloadAction<boolean>) => {
             state.hasBluetooth = action.payload;
+        },
+        setScanningStatusString: (state, action: PayloadAction<string | null>) => {
+            state.scanningStatusString = action.payload;
         }
 
     }
 })
 
-export const {setDeviceID, setDeviceName, setRssi, setHasBluetooth} = bluetoothSlice.actions;
+export const {setDeviceID, setDeviceName, setRssi, setHasBluetooth, setScanningStatusString, setDeviceSerialNumber} = bluetoothSlice.actions;
 
 export const selectHasBluetooth = (state: RootState) => state.bluetooth.hasBluetooth;
 export const selectDeviceID = (state: RootState) => state.bluetooth.device.gattDeviceInformation.deviceID;
 export const selectDeviceName = (state: RootState) => state.bluetooth.device.gattDeviceInformation.deviceName;
 export const selectDeviceRSSI = (state: RootState) => state.bluetooth.device.rfData.rssi;
+export const selectScanningStatusString = (state: RootState) => state.bluetooth.scanningStatusString;
+export const selectDeviceSerialNumberString = (state: RootState) => state.bluetooth.device.gattDeviceInformation.deviceSerialNumber;
 
 export const bluetoothReducer = bluetoothSlice.reducer;
 
