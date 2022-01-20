@@ -13,7 +13,7 @@ import * as Google from 'expo-auth-session/providers/google';
 import { store } from './src/app/store';
 
 import * as BLUETOOTH from '../co2_client/src/utils/BluetoothConstants';
-import { selectDeviceID, selectDeviceName, selectDeviceRSSI, selectDeviceSerialNumberString, selectHasBluetooth, selectScanningStatusString, setDeviceID, setDeviceName, setDeviceSerialNumber, setHasBluetooth, setRssi, setScanningStatusString } from './src/bluetooth/bluetoothSlice';
+import { selectDeviceBatterylevel, selectDeviceID, selectDeviceName, selectDeviceRSSI, selectDeviceSerialNumberString, selectHasBluetooth, selectScanningErrorStatusString, selectScanningStatusString, setDeviceBatteryLevel, setDeviceID, setDeviceName, setDeviceSerialNumber, setHasBluetooth, setRssi, setScanningErrorStatusString, setScanningStatusString } from './src/bluetooth/bluetoothSlice';
 
 // 
 // 
@@ -60,15 +60,19 @@ const BluetoothData: React.FC<{device: Device | null}> = ({device}) => {
   const name = useSelector(selectDeviceName);
   const rssi = useSelector(selectDeviceRSSI);
   const bluetoothScanningStatus = useSelector(selectScanningStatusString);
+  const bluetoothScanningErrorStatus = useSelector(selectScanningErrorStatusString);
   const serialNumber = useSelector(selectDeviceSerialNumberString);
+  const deviceBatteryLevel = useSelector(selectDeviceBatterylevel);
 
   return (
     <>
         <MaybeIfValue text={"bluetooth status: "} value={bluetoothScanningStatus}/>
+        <MaybeIfValue text={"bluetooth errors: "} value = {(bluetoothScanningErrorStatus.length > 0) ? bluetoothScanningErrorStatus : null}/>
         <ValueOrLoading text={"id: "} value={id}/>
         <ValueOrLoading text={"name: "} value={name}/>
         <ValueOrLoading text={"rssi: "} value={rssi}/>
         <ValueOrLoading text={"Serial number: "} value={serialNumber}/>
+        <ValueOrLoading text={"Battery: "} value={deviceBatteryLevel}/>
 
         <MaybeIfValue text={"localName: "} value={(device?.localName) ? device.localName : null}/>
         <MaybeIfValue text={"manufacturerData: "} value={(device?.manufacturerData) ? device?.manufacturerData : null}/>
@@ -128,7 +132,7 @@ async function dumpServiceDescriptions(services: Service[]) {
 const scanCallback = async (error: BleError | null, scannedDevice: Device | null, setDevice: React.Dispatch<React.SetStateAction<Device | null>>, dispatch: ReturnType<typeof useDispatch>) => {
   if (error) {
     console.error(`error scanning: ${error}`);
-    dispatch(setScanningStatusString(`error scanning: ${error}`));
+    dispatch(setScanningErrorStatusString(`error scanning: ${error}`));
     debugger;
     // Handle error (scanning will be stopped automatically)
     return
@@ -138,7 +142,7 @@ const scanCallback = async (error: BleError | null, scannedDevice: Device | null
     
     dumpNewScannedDeviceInfo(scannedDevice);
     if (!scannedDevice) {
-      dispatch(setScanningStatusString(`scannedDevice is null?: Something's wrong.`));
+      dispatch(setScanningErrorStatusString(`scannedDevice is null?: Something's wrong.`));
       return;
     }
     if (scannedDevice.name === null) {
@@ -198,17 +202,180 @@ function parseUTF8StringBuffer(data: Buffer): string {
   return converted;
 }
 
-
-async function readDataFromAranet4(dispatch: ReturnType<typeof useDispatch>, deviceID: string) {
-  const rawSerialNumberCharacteristicValue = await manager.readCharacteristicForDevice(deviceID, BLUETOOTH.DEVICE_INFORMATION_SERVICE_UUID, BLUETOOTH.GENERIC_GATT_SERIAL_NUMBER_STRING_UUID);
-  if (rawSerialNumberCharacteristicValue.value === null) {
-    console.error("bug");
-    return;
+function parseUint8Buffer(data: Buffer): number {
+  if (data.byteLength > 1) {
+    throw new Error("Only for parsing single byte buffers?")
   }
-  const deviceSerialNumberCharacteristicAsBuffer = Buffer.from(rawSerialNumberCharacteristicValue.value, 'base64');
-  const deviceSerialNumberCharacteristicAsString = parseUTF8StringBuffer(deviceSerialNumberCharacteristicAsBuffer);
-  dispatch(setDeviceSerialNumber(deviceSerialNumberCharacteristicAsString));
+
+  const value = data.readUInt8(0);
+  return value;
 }
+
+
+// async function readDataFromAranet4(dispatch: ReturnType<typeof useDispatch>, deviceID: string) {
+//   const rawSerialNumberCharacteristicValue = await manager.readCharacteristicForDevice(deviceID, BLUETOOTH.DEVICE_INFORMATION_SERVICE_UUID, BLUETOOTH.GENERIC_GATT_SERIAL_NUMBER_STRING_UUID);
+//   if (rawSerialNumberCharacteristicValue.value === null) {
+//     console.error("bug");
+//     debugger;
+//     return;
+//   }
+//   const deviceSerialNumberCharacteristicAsBuffer = Buffer.from(rawSerialNumberCharacteristicValue.value, 'base64');
+//   const deviceSerialNumberCharacteristicAsString = parseUTF8StringBuffer(deviceSerialNumberCharacteristicAsBuffer);
+//   dispatch(setDeviceSerialNumber(deviceSerialNumberCharacteristicAsString));
+// }
+
+
+async function readStringCharacteristicFromDevice(deviceID: string, serviceUUID: string, characteristicUUID: string, serviceName: string, characteristicName: string): Promise<string> {
+  const rawStringCharacteristicValue = await manager.readCharacteristicForDevice(deviceID, serviceUUID, characteristicUUID);
+  if (rawStringCharacteristicValue.value === null) {
+    debugger;
+    throw new Error(`${serviceName}: ${characteristicName} value is null?`);
+  }
+  const stringCharacteristicAsBuffer = Buffer.from(rawStringCharacteristicValue.value, 'base64');
+  const stringCharacteristicAsString = parseUTF8StringBuffer(stringCharacteristicAsBuffer);
+  return stringCharacteristicAsString;
+}
+
+async function readSerialNumberFromBluetoothDevice(deviceID: string): Promise<string> {
+  return readStringCharacteristicFromDevice(deviceID, BLUETOOTH.DEVICE_INFORMATION_SERVICE_UUID, BLUETOOTH.GENERIC_GATT_SERIAL_NUMBER_STRING_UUID, "DEVICE_INFORMATION_SERVICE_UUID", "GENERIC_GATT_SERIAL_NUMBER_STRING_UUID");
+
+  // const rawSerialNumberCharacteristicValue = await manager.readCharacteristicForDevice(deviceID, BLUETOOTH.DEVICE_INFORMATION_SERVICE_UUID, BLUETOOTH.GENERIC_GATT_SERIAL_NUMBER_STRING_UUID);
+  // if (rawSerialNumberCharacteristicValue.value === null) {
+  //   debugger;
+  //   throw new Error("GENERIC_GATT_SERIAL_NUMBER_STRING_UUID.value is null?");
+  // }
+  // const deviceSerialNumberCharacteristicAsBuffer = Buffer.from(rawSerialNumberCharacteristicValue.value, 'base64');
+  // const deviceSerialNumberCharacteristicAsString = parseUTF8StringBuffer(deviceSerialNumberCharacteristicAsBuffer);
+  // return deviceSerialNumberCharacteristicAsString; 
+}
+
+async function readUint8CharacteristicFromDevice(deviceID: string, serviceUUID: string, characteristicUUID: string, serviceName: string, characteristicName: string): Promise<number> {
+  const rawUint8CharacteristicValue = await manager.readCharacteristicForDevice(deviceID, serviceUUID, characteristicUUID);
+  if (rawUint8CharacteristicValue.value === null) {
+    debugger;
+    throw new Error(`${serviceName}: ${characteristicName} value is null?`);
+  }
+  const uint8CharacteristicAsBuffer = Buffer.from(rawUint8CharacteristicValue.value, 'base64');
+  const uint8CharacteristicAsUint8 = parseUint8Buffer(uint8CharacteristicAsBuffer);
+  return uint8CharacteristicAsUint8;
+}
+
+async function readDeviceNameFromBluetoothDevice(deviceID: string): Promise<string> {
+  return readStringCharacteristicFromDevice(deviceID, BLUETOOTH.GENERIC_ACCESS_SERVICE_UUID, BLUETOOTH.GENERIC_GATT_DEVICE_NAME_UUID, "GENERIC_ACCESS_SERVICE_UUID", "GENERIC_GATT_DEVICE_NAME_UUID");
+
+  // const rawDeviceNameCharacteristicValue = await manager.readCharacteristicForDevice(deviceID, BLUETOOTH.GENERIC_ACCESS_SERVICE_UUID, BLUETOOTH.GENERIC_GATT_DEVICE_NAME_UUID);
+  // if (rawDeviceNameCharacteristicValue.value === null) {
+  //   debugger;
+  //   throw new Error("GENERIC_GATT_DEVICE_NAME_UUID.value is null?");
+  // }
+  // const deviceNameCharacteristicAsBuffer = Buffer.from(rawDeviceNameCharacteristicValue.value, 'base64');
+  // const deviceNameCharacteristicAsString = parseUTF8StringBuffer(deviceNameCharacteristicAsBuffer);
+  // return deviceNameCharacteristicAsString;
+}
+
+async function readBatteryLevelFromBluetoothDevice(deviceID: string): Promise<number> {
+  return readUint8CharacteristicFromDevice(deviceID, BLUETOOTH.GENERIC_ACCESS_SERVICE_UUID, BLUETOOTH.GENERIC_GATT_DEVICE_BATTERY_LEVEL_UUID, "GENERIC_ACCESS_SERVICE_UUID", "GENERIC_GATT_DEVICE_BATTERY_LEVEL_UUID");
+}
+
+function noDevice(deviceID: string | null, device: Device | null): boolean {
+  // if (device === null) {
+  //   return true;
+  // }
+  if (deviceID === null) {
+    return true;
+  }
+  return false;
+}
+
+const useAranet4SerialNumber = (deviceID: string | null, device: Device | null) => {
+  const dispatch = useDispatch();
+  const [serialNumberError, setError] = useState(null as (Error | null));
+  const [serialNumberString, setSerialNumberString] = useState(null as (string | null));
+
+  useEffect(() => {
+    if (noDevice(deviceID, device)) {
+      return;
+    }
+    // dispatch(setScanningStatusString(`Beginning serial number read...`));
+    
+    readSerialNumberFromBluetoothDevice(deviceID!).then((serialNumberString) => {
+      // dispatch(setDeviceSerialNumber(serialNumberString));
+      setSerialNumberString(serialNumberString);
+      if (serialNumberString.length === 0) {
+        console.warn(`Device ${deviceID} has an empty serial number string?`);
+        setError(new Error(`Device ${deviceID} has an empty serial number string?`));
+      }
+      // dispatch(setScanningStatusString(`Got serial number! ('${serialNumberString}')`));
+      // dispatch(setScanningStatusString(null));
+    }).catch((error) => {
+      // console.error(error);
+      setError(error);
+      debugger;
+    });
+  }, [device, deviceID]);
+
+  return {serialNumberString, serialNumberError};
+}
+
+const useBluetoothDeviceName = (deviceID: string | null, device: Device | null) => {
+  const dispatch = useDispatch();
+  const [deviceNameError, setDeviceNameError] = useState(null as (Error | null));
+  const [deviceNameString, setDeviceNameString] = useState(null as (string | null));
+  
+  useEffect(() => {
+    if (noDevice(deviceID, device)) {
+      return;
+    }
+    // dispatch(setScanningStatusString(`Beginning device name read...`));
+    readDeviceNameFromBluetoothDevice(deviceID!).then((deviceNameString) => {
+      setDeviceNameString(deviceNameString);
+      if (deviceNameString.length === 0) {
+        console.warn(`Device ${deviceID} has an empty name?`);
+        setDeviceNameError(new Error(`Device ${deviceID} has an empty name?`));
+      }
+      // dispatch(`Got device name! ('${deviceNameString}')`);
+      // dispatch(setScanningStatusString(null));
+    }).catch( (error) => {
+      // console.error(error);
+      setDeviceNameError(error);
+      debugger;
+    })
+
+  }, [device, deviceID]);
+  return {deviceNameString, deviceNameError};
+}
+
+const useBluetoothBatteryLevel = (deviceID: string | null, device: Device | null) => {
+  const dispatch = useDispatch();
+  const [deviceBatteryError, setDeviceBatteryError] = useState(null as (Error | null));
+  const [deviceBattery, setDeviceBattery] = useState(null as (number | null));
+
+  useEffect(() => {
+    if (noDevice(deviceID, device)) {
+      return;
+    }
+    readBatteryLevelFromBluetoothDevice(deviceID!).then((deviceBatteryLevel) => {
+      setDeviceBattery(deviceBatteryLevel);
+      if (deviceBatteryLevel < 20) {
+        console.warn(`Device ${deviceID} has a low battery! (${deviceBatteryLevel}%)`);
+      }
+    }).catch( (error) => {
+      // console.error(error);
+      setDeviceBatteryError(error);
+      // debugger;
+    })
+  }, [device, deviceID])
+
+  return {deviceBattery, deviceBatteryError};
+}
+
+
+
+const useAranet4BasicInformation = (deviceID: string | null, device: Device | null) => {
+
+
+}
+
 
 const useBluetoothConnectAranet = () => {
   // const [hasBluetooth, setHasBluetooth] = useState(false);
@@ -216,7 +383,10 @@ const useBluetoothConnectAranet = () => {
   const hasBluetooth = useSelector(selectHasBluetooth);
   const deviceID = useSelector(selectDeviceID);
   const dispatch = useDispatch();
-  
+
+  const {serialNumberString, serialNumberError} = useAranet4SerialNumber(deviceID, device);
+  const {deviceNameString, deviceNameError} = useBluetoothDeviceName(deviceID, device);
+  const {deviceBattery, deviceBatteryError} = useBluetoothBatteryLevel(deviceID, device);
 
 
   useEffect(() => {
@@ -230,19 +400,56 @@ const useBluetoothConnectAranet = () => {
   }, [hasBluetooth]);
 
   useEffect(() => {
-    if (device === null) {
-      return;
+    if (serialNumberError) {
+      console.error(serialNumberError);
+      dispatch(setScanningErrorStatusString(`Error loading serial number: ${String(serialNumberError)}`));
+      debugger;
     }
-    if (deviceID) {
-      dispatch(setScanningStatusString(`Beginning data read...`));
-      readDataFromAranet4(dispatch, deviceID);
+    if (serialNumberString !== null) {
+      dispatch(setDeviceSerialNumber(serialNumberString));
     }
 
-    
-  }, [device, deviceID]);
+  }, [serialNumberError, serialNumberString]);
 
-  return device;
+  useEffect(() => {
+    if (deviceNameError) {
+      console.error(deviceNameError);
+      dispatch(setScanningErrorStatusString(`Error loading device name: ${String(deviceNameError)}`));
+      debugger;
+    }
+    if (deviceNameString !== null) {
+      dispatch(setDeviceName(deviceNameString));
+    }
+  }, [deviceNameString, deviceNameError]);
+
+  useEffect(() => {
+    if (deviceBatteryError) {
+      console.error(deviceBatteryError);
+      dispatch(setScanningErrorStatusString(`Error loading device battery: ${String(deviceBatteryError)}`));
+      // debugger;
+    }
+    if (deviceBattery !== null) {
+      dispatch(setDeviceBatteryLevel(deviceBattery));
+    }
+  })
+
+  return {device};
 }
+
+async function attemptConnectScannedDevice(scannedDevice: Device, dispatch: ReturnType<typeof useDispatch>): Promise<Device | null> {
+  try {
+
+    const connectedDevice = await scannedDevice.connect();
+    return connectedDevice;
+  }
+  catch (error) {
+    dispatch(setScanningErrorStatusString(`Error connecting to aranet4! Error: ${String(error)}`))
+    debugger;
+    return null;
+  }
+
+}
+
 
 async function foundAranet4(scannedDevice: Device, dispatch: ReturnType<typeof useDispatch>, setDevice: React.Dispatch<React.SetStateAction<Device | null>>) {
   dispatch(setScanningStatusString(`Found aranet4! (${scannedDevice.id}) Connecting...`));
@@ -262,7 +469,13 @@ async function foundAranet4(scannedDevice: Device, dispatch: ReturnType<typeof u
   }
   manager.stopDeviceScan();
   // debugger;
-  const connectedDevice = await scannedDevice.connect();
+
+  const connectedDevice = await attemptConnectScannedDevice(scannedDevice, dispatch);
+
+  if (connectedDevice === null) {
+    console.error("Connection failed.")
+    return;
+  }
   dispatch(setScanningStatusString(`Connected to aranet4 ${scannedDevice.id}). Discovering services and characteristics...`));
   const deviceWithServicesAndCharacteristics = await connectedDevice.discoverAllServicesAndCharacteristics();
 
@@ -275,6 +488,9 @@ async function foundAranet4(scannedDevice: Device, dispatch: ReturnType<typeof u
   setDevice(withRSSI);
   if (withRSSI.rssi) {
     dispatch(setRssi(withRSSI.rssi));
+    if (withRSSI.rssi < -80) {
+      dispatch(setScanningErrorStatusString(`${deviceWithServicesAndCharacteristics.name} has a very weak signal! (RSSI: ${withRSSI.rssi}) You may have connection problems!`))
+    }
   }
   else {
     console.error("No rssi?");
@@ -311,8 +527,8 @@ function dumpNewScannedDeviceInfo(scannedDevice: Device | null) {
 
 */
 
-function App_() {
-  const device = useBluetoothConnectAranet();
+function Main() {
+  const {device} = useBluetoothConnectAranet();
   
 
   useEffect(() => {
@@ -360,7 +576,7 @@ export default function App() {
 
   return (
     <Provider store={store}>
-      <App_/>
+      <Main/>
     </Provider>
   )
 }

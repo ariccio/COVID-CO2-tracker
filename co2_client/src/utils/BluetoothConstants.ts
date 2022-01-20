@@ -745,7 +745,10 @@ export const GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS = new Map([
     ['569a2000-b87f-490c-92cb-11ba5ea5167c', 'TX FIFO'],
     ['569a2001-b87f-490c-92cb-11ba5ea5167c', 'RX FIFO'],
     ['569a2002-b87f-490c-92cb-11ba5ea5167c', 'Modem Out'],
-    ['569a2003-b87f-490c-92cb-11ba5ea5167c', 'Modem In']
+    ['569a2003-b87f-490c-92cb-11ba5ea5167c', 'Modem In'],
+
+    // Other...
+    ['8ec90003-f315-4f60-9fb8-838830daea50', 'Nordic Buttonless DFU']
 ])
 
 

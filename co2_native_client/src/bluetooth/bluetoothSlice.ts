@@ -49,6 +49,7 @@ export interface BluetoothState {
     device: BluetoothDeviceState;
     hasBluetooth: boolean;
     scanningStatusString: string | null;
+    scanningErrorStatus: string;
 }
 
 const initialState: BluetoothState = {
@@ -85,7 +86,8 @@ const initialState: BluetoothState = {
             txPower: null
         }
     },
-    scanningStatusString: null
+    scanningStatusString: null,
+    scanningErrorStatus: ''
 };
 
 
@@ -113,19 +115,43 @@ export const bluetoothSlice = createSlice({
         },
         setScanningStatusString: (state, action: PayloadAction<string | null>) => {
             state.scanningStatusString = action.payload;
+        },
+        setScanningErrorStatusString: (state, action: PayloadAction<string | null>) => {
+            if (action.payload === null) {
+                console.warn('Clearing scanning error status....')
+                state.scanningErrorStatus = '';
+                return;
+            }
+
+            if (state.scanningErrorStatus.length > 255) {
+                console.warn(`Scanning error status string overflowing, will clear. Old value: "${state.scanningErrorStatus}"`);
+                state.scanningErrorStatus = action.payload;
+                return;
+            }
+            if (state.scanningErrorStatus.length === 0) {
+                state.scanningErrorStatus += action.payload;
+                return;
+            }
+
+            state.scanningErrorStatus += (', ' + action.payload);
+        },
+        setDeviceBatteryLevel: (state, action: PayloadAction<number>) => {
+            state.device.gattDeviceInformation.battery = action.payload;
         }
 
     }
 })
 
-export const {setDeviceID, setDeviceName, setRssi, setHasBluetooth, setScanningStatusString, setDeviceSerialNumber} = bluetoothSlice.actions;
+export const {setDeviceID, setDeviceName, setRssi, setHasBluetooth, setScanningStatusString, setDeviceSerialNumber, setScanningErrorStatusString, setDeviceBatteryLevel} = bluetoothSlice.actions;
 
 export const selectHasBluetooth = (state: RootState) => state.bluetooth.hasBluetooth;
 export const selectDeviceID = (state: RootState) => state.bluetooth.device.gattDeviceInformation.deviceID;
 export const selectDeviceName = (state: RootState) => state.bluetooth.device.gattDeviceInformation.deviceName;
 export const selectDeviceRSSI = (state: RootState) => state.bluetooth.device.rfData.rssi;
 export const selectScanningStatusString = (state: RootState) => state.bluetooth.scanningStatusString;
+export const selectScanningErrorStatusString = (state: RootState) => state.bluetooth.scanningErrorStatus;
 export const selectDeviceSerialNumberString = (state: RootState) => state.bluetooth.device.gattDeviceInformation.deviceSerialNumber;
+export const selectDeviceBatterylevel = (state: RootState) => state.bluetooth.device.gattDeviceInformation.battery;
 
 export const bluetoothReducer = bluetoothSlice.reducer;
 
