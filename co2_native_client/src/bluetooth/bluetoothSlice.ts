@@ -16,6 +16,18 @@ interface GenericDeviceInformation {
 
 }
 
+// for f0cd3001-95da-4f4b-9ac8-aa55d312af0c, which has extra characteristics!
+export interface Aranet4_3001CO2 {
+    co2: number | null;                      //uLE16
+    temperature: number | null;              //uLE16
+    pressure: number | null;                 //uLE16
+    humidity: number | null;                 //u8
+    battery: number | null;                  //u8
+    statusColor: number | null;              //u8
+    interval: number | null;                 //uLE16
+    lastReadingTimeInSeconds: number | null; //uLE16
+}
+
 interface MeasurementData {
     co2: number | null;
     temperature: number | null;
@@ -25,11 +37,14 @@ interface MeasurementData {
 
 interface Aranet4SpecificData {
     aranet4TotalMeasurements: number | null;
-    aranet4MeasurementInterval: number | null;
-    aranet4SecondsSinceLastMeasurement: number | null;
     aranet4Color: string | null;
     aranet4Calibration: string | null;
-    aranet4MeasurementTime: string | null
+    aranet4MeasurementTime: string | null;
+    
+    //aranet4 has these in characteristic for measurement? Why?
+    aranet4MeasurementInterval: number | null;
+    aranet4SecondsSinceLastMeasurement: number | null;
+
 }
 
 export interface RFData {

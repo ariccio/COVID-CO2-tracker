@@ -2,7 +2,7 @@ import {useEffect, useState} from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, PermissionsAndroid, Button } from 'react-native';
 
-import { BleManager, Device, BleError, LogLevel, Service, Characteristic } from 'react-native-ble-plx';
+import { BleManager, Device, BleError, LogLevel, Service, Characteristic, BleErrorCode } from 'react-native-ble-plx';
 import { Provider, useDispatch, useSelector } from 'react-redux'
 
 import {Buffer} from 'buffer';
@@ -13,7 +13,7 @@ import * as Google from 'expo-auth-session/providers/google';
 import { store } from './src/app/store';
 
 import * as BLUETOOTH from '../co2_client/src/utils/BluetoothConstants';
-import { selectDeviceBatterylevel, selectDeviceID, selectDeviceName, selectDeviceRSSI, selectDeviceSerialNumberString, selectHasBluetooth, selectScanningErrorStatusString, selectScanningStatusString, setDeviceBatteryLevel, setDeviceID, setDeviceName, setDeviceSerialNumber, setHasBluetooth, setRssi, setScanningErrorStatusString, setScanningStatusString } from './src/bluetooth/bluetoothSlice';
+import { Aranet4_3001CO2, selectDeviceBatterylevel, selectDeviceID, selectDeviceName, selectDeviceRSSI, selectDeviceSerialNumberString, selectHasBluetooth, selectScanningErrorStatusString, selectScanningStatusString, setDeviceBatteryLevel, setDeviceID, setDeviceName, setDeviceSerialNumber, setHasBluetooth, setRssi, setScanningErrorStatusString, setScanningStatusString } from './src/bluetooth/bluetoothSlice';
 
 // 
 // 
@@ -278,16 +278,16 @@ async function readBatteryLevelFromBluetoothDevice(deviceID: string): Promise<nu
 }
 
 function noDevice(deviceID: string | null, device: Device | null): boolean {
-  // if (device === null) {
-  //   return true;
-  // }
+  if (device === null) {
+    return true;
+  }
   if (deviceID === null) {
     return true;
   }
   return false;
 }
 
-const useAranet4SerialNumber = (deviceID: string | null, device: Device | null) => {
+const useBluetoothSerialNumber = (deviceID: string | null, device: Device | null) => {
   const dispatch = useDispatch();
   const [serialNumberError, setError] = useState(null as (Error | null));
   const [serialNumberString, setSerialNumberString] = useState(null as (string | null));
@@ -308,7 +308,15 @@ const useAranet4SerialNumber = (deviceID: string | null, device: Device | null) 
       // dispatch(setScanningStatusString(`Got serial number! ('${serialNumberString}')`));
       // dispatch(setScanningStatusString(null));
     }).catch((error) => {
+      if (error.code === BleErrorCode.DeviceNotConnected) {
+        dispatch(setScanningStatusString(`Device ${deviceID} not connected. Serial number not available.`))
+        console.warn(`Device ${deviceID} not connected. Serial number not available.`);
+        device!.connect();
+        return;
+      }
+
       // console.error(error);
+
       setError(error);
       debugger;
     });
@@ -326,6 +334,7 @@ const useBluetoothDeviceName = (deviceID: string | null, device: Device | null) 
     if (noDevice(deviceID, device)) {
       return;
     }
+    console.table(device);
     // dispatch(setScanningStatusString(`Beginning device name read...`));
     readDeviceNameFromBluetoothDevice(deviceID!).then((deviceNameString) => {
       setDeviceNameString(deviceNameString);
@@ -336,6 +345,12 @@ const useBluetoothDeviceName = (deviceID: string | null, device: Device | null) 
       // dispatch(`Got device name! ('${deviceNameString}')`);
       // dispatch(setScanningStatusString(null));
     }).catch( (error) => {
+      if (error.code === BleErrorCode.DeviceNotConnected) {
+        dispatch(setScanningStatusString(`Device ${deviceID} not connected. Name not available.`))
+        console.warn(`Device ${deviceID} not connected. Name not available.`);
+        device!.connect();
+        return;
+      }
       // console.error(error);
       setDeviceNameError(error);
       debugger;
@@ -371,10 +386,32 @@ const useBluetoothBatteryLevel = (deviceID: string | null, device: Device | null
 
 
 
-const useAranet4BasicInformation = (deviceID: string | null, device: Device | null) => {
+const useGenericBluetoothInformation = (deviceID: string | null, device: Device | null) => {
+  const {serialNumberString, serialNumberError} = useBluetoothSerialNumber(deviceID, device);
+  const {deviceNameString, deviceNameError} = useBluetoothDeviceName(deviceID, device);
+  return {serialNumberString, serialNumberError, deviceNameString, deviceNameError};
+}
 
+const useAranet4Co2Characteristic = (deviceID: string | null, device: Device | null) => {
+  const dispatch = useDispatch();
+  const [co2Characteristic, setCo2Characteristic] = useState(null as (Aranet4_3001CO2 | null));
+  const [co2CharacteristicError, setCo2CharacteristicError] = useState(null as (Error | null));
+
+  useEffect(() => {
+    if (noDevice(deviceID, device)) {
+      return;
+    }
+  }, [device, deviceID])
+
+
+  
+}
+
+const useAranet4SpecificInformation = (deviceID: string | null, device: Device | null) => {
 
 }
+
+
 
 
 const useBluetoothConnectAranet = () => {
@@ -384,10 +421,10 @@ const useBluetoothConnectAranet = () => {
   const deviceID = useSelector(selectDeviceID);
   const dispatch = useDispatch();
 
-  const {serialNumberString, serialNumberError} = useAranet4SerialNumber(deviceID, device);
-  const {deviceNameString, deviceNameError} = useBluetoothDeviceName(deviceID, device);
-  const {deviceBattery, deviceBatteryError} = useBluetoothBatteryLevel(deviceID, device);
-
+  // const {serialNumberString, serialNumberError} = useBluetoothSerialNumber(deviceID, device);
+  // const {deviceNameString, deviceNameError} = useBluetoothDeviceName(deviceID, device);
+  // const {deviceBattery, deviceBatteryError} = useBluetoothBatteryLevel(deviceID, device);
+  const {serialNumberString, serialNumberError, deviceNameString, deviceNameError} = useGenericBluetoothInformation(deviceID, device);
 
   useEffect(() => {
     requestLocationPermission(dispatch);
@@ -422,16 +459,16 @@ const useBluetoothConnectAranet = () => {
     }
   }, [deviceNameString, deviceNameError]);
 
-  useEffect(() => {
-    if (deviceBatteryError) {
-      console.error(deviceBatteryError);
-      dispatch(setScanningErrorStatusString(`Error loading device battery: ${String(deviceBatteryError)}`));
-      // debugger;
-    }
-    if (deviceBattery !== null) {
-      dispatch(setDeviceBatteryLevel(deviceBattery));
-    }
-  })
+  // useEffect(() => {
+  //   if (deviceBatteryError) {
+  //     console.error(deviceBatteryError);
+  //     dispatch(setScanningErrorStatusString(`Error loading device battery: ${String(deviceBatteryError)}`));
+  //     // debugger;
+  //   }
+  //   if (deviceBattery !== null) {
+  //     dispatch(setDeviceBatteryLevel(deviceBattery));
+  //   }
+  // })
 
   return {device};
 }
@@ -485,6 +522,9 @@ async function foundAranet4(scannedDevice: Device, dispatch: ReturnType<typeof u
   console.table(services);
   dumpServiceDescriptions(services);
   const withRSSI = await deviceWithServicesAndCharacteristics.readRSSI();
+  if (scannedDevice != withRSSI) {
+    debugger;
+  }
   setDevice(withRSSI);
   if (withRSSI.rssi) {
     dispatch(setRssi(withRSSI.rssi));
