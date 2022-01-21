@@ -17,18 +17,16 @@ interface GenericDeviceInformation {
 }
 
 // for f0cd3001-95da-4f4b-9ac8-aa55d312af0c, which has extra characteristics!
-export interface Aranet4_3001CO2 {
-    co2: number | null;                      //uLE16
-    temperature: number | null;              //uLE16
-    pressure: number | null;                 //uLE16
-    humidity: number | null;                 //u8
-    battery: number | null;                  //u8
-    statusColor: number | null;              //u8
-    interval: number | null;                 //uLE16
-    lastReadingTimeInSeconds: number | null; //uLE16
+export interface Aranet4_1503CO2 {
+    co2: number;                      //uLE16
+    temperatureC: number;             //uLE16
+    barometricPressure: number;       //uLE16
+    humidity: number;                 //u8
+    battery: number;                  //u8
+    statusColor: number;              //u8
 }
 
-interface MeasurementData {
+export interface MeasurementData {
     co2: number | null;
     temperature: number | null;
     barometricPressure: number | null;
@@ -37,8 +35,8 @@ interface MeasurementData {
 
 interface Aranet4SpecificData {
     aranet4TotalMeasurements: number | null;
-    aranet4Color: string | null;
-    aranet4Calibration: string | null;
+    aranet4Color: number | null;
+    // aranet4Calibration: string | null;
     aranet4MeasurementTime: string | null;
     
     //aranet4 has these in characteristic for measurement? Why?
@@ -77,7 +75,7 @@ const initialState: BluetoothState = {
             temperature: null
         },
         aranet4SpecificData: {
-            aranet4Calibration: null,
+            // aranet4Calibration: null,
             aranet4Color: null,
             aranet4MeasurementInterval: null,
             aranet4MeasurementTime: null,
@@ -152,21 +150,39 @@ export const bluetoothSlice = createSlice({
         },
         setDeviceBatteryLevel: (state, action: PayloadAction<number>) => {
             state.device.gattDeviceInformation.battery = action.payload;
+        },
+        setMeasurementData: (state, action: PayloadAction<MeasurementData>) => {
+            state.device.measurementData = action.payload;
+        },
+        setAranet4Color: (state, action: PayloadAction<number>) => {
+            state.device.aranet4SpecificData.aranet4Color = action.payload;
+        },
+        setAranet4SecondsSinceLastMeasurement: (state, action: PayloadAction<number | null>) => {
+            state.device.aranet4SpecificData.aranet4SecondsSinceLastMeasurement = action.payload;
+            if (action.payload) {
+                const now = Date.now();
+                const seconds = action.payload * 1000;
+                state.device.aranet4SpecificData.aranet4MeasurementTime = (new Date(now - seconds)).toLocaleTimeString();
+            }
+        },
+        setMeasurementInterval: (state, action: PayloadAction<number | null>) => {
+            state.device.aranet4SpecificData.aranet4MeasurementInterval = action.payload;
         }
-
     }
 })
 
-export const {setDeviceID, setDeviceName, setRssi, setHasBluetooth, setScanningStatusString, setDeviceSerialNumber, setScanningErrorStatusString, setDeviceBatteryLevel} = bluetoothSlice.actions;
+export const {setDeviceID, setDeviceName, setRssi, setHasBluetooth, setScanningStatusString, setDeviceSerialNumber, setScanningErrorStatusString, setDeviceBatteryLevel, setMeasurementData, setAranet4Color, setAranet4SecondsSinceLastMeasurement, setMeasurementInterval} = bluetoothSlice.actions;
 
 export const selectHasBluetooth = (state: RootState) => state.bluetooth.hasBluetooth;
+export const selectScanningStatusString = (state: RootState) => state.bluetooth.scanningStatusString;
+export const selectDeviceRSSI = (state: RootState) => state.bluetooth.device.rfData.rssi;
+export const selectScanningErrorStatusString = (state: RootState) => state.bluetooth.scanningErrorStatus;
 export const selectDeviceID = (state: RootState) => state.bluetooth.device.gattDeviceInformation.deviceID;
 export const selectDeviceName = (state: RootState) => state.bluetooth.device.gattDeviceInformation.deviceName;
-export const selectDeviceRSSI = (state: RootState) => state.bluetooth.device.rfData.rssi;
-export const selectScanningStatusString = (state: RootState) => state.bluetooth.scanningStatusString;
-export const selectScanningErrorStatusString = (state: RootState) => state.bluetooth.scanningErrorStatus;
 export const selectDeviceSerialNumberString = (state: RootState) => state.bluetooth.device.gattDeviceInformation.deviceSerialNumber;
 export const selectDeviceBatterylevel = (state: RootState) => state.bluetooth.device.gattDeviceInformation.battery;
+export const selectMeasurementData = (state: RootState) => state.bluetooth.device.measurementData;
+export const selectAranet4SpecificData = (state: RootState) => state.bluetooth.device.aranet4SpecificData;
 
 export const bluetoothReducer = bluetoothSlice.reducer;
 
