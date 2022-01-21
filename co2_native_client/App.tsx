@@ -10,10 +10,19 @@ import {Buffer} from 'buffer';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 
+import Constants from 'expo-constants';
+
+
 import { store } from './src/app/store';
 
 import * as BLUETOOTH from '../co2_client/src/utils/BluetoothConstants';
 import { Aranet4_1503CO2, MeasurementData, selectAranet4SpecificData, selectDeviceBatterylevel, selectDeviceID, selectDeviceName, selectDeviceRSSI, selectDeviceSerialNumberString, selectHasBluetooth, selectMeasurementData, selectScanningErrorStatusString, selectScanningStatusString, setAranet4Color, setAranet4SecondsSinceLastMeasurement, setDeviceBatteryLevel, setDeviceID, setDeviceName, setDeviceSerialNumber, setHasBluetooth, setMeasurementData, setMeasurementInterval, setRssi, setScanningErrorStatusString, setScanningStatusString } from './src/bluetooth/bluetoothSlice';
+
+const {manifest} = Constants;
+
+
+//ALSO: https://stackoverflow.com/a/49198103/625687
+const BASE_EXPO_URL = `http://${manifest?.debuggerHost?.split(':').shift()}:3000`;
 
 // 
 // 
@@ -854,9 +863,30 @@ function dumpNewScannedDeviceInfo(scannedDevice: Device | null) {
 
 */
 
+const stats = BASE_EXPO_URL + '/api/v1/stats/show';
+const requestOptions = {
+  method: 'get',
+  credentials: "include" as RequestCredentials, //for httpOnly cookie
+  headers: {
+      'Content-Type': 'application/json',
+  },
+};
+
+const fartipelago = async () => {
+  console.log(`Fetching ${stats}...`);
+  const rawFetchResponse_ = fetch(stats, requestOptions);
+  return rawFetchResponse_.then(async (body) => {
+    const awaitedResponse = await rawFetchResponse_;
+    const asJson = await awaitedResponse.json();
+    console.table(asJson);
+    return asJson;
+  });
+};
+
+
 function Main() {
   const {device} = useBluetoothConnectAranet();
-  
+
 
   useEffect(() => {
     if (device === null) {
@@ -872,6 +902,11 @@ function Main() {
     console.log("Note to self (TODO): there's really nothing sensitive about the client ID, but I'd like to obfuscate it anyways.");
   }, []);
 
+  useEffect(() => {
+    fartipelago().then((result) => {
+      debugger;
+    });
+  }, [])
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     // expoClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
