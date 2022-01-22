@@ -275,7 +275,7 @@ const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null
         return;
     }
     // autocomplete.
-    console.log(`id: ${place.id}`);
+    // console.log(`id: ${place.id}`);
     console.log(`place_id: ${place.place_id}`);
     if (place.geometry?.location !== undefined) {
         console.log(`geometry.location.toString: ${place.geometry?.location.toString()}`);

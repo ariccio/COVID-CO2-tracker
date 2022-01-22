@@ -1,4 +1,4 @@
-/// <reference types="@types/googlemaps" />
+/// <reference types="@types/google.maps" />
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';

@@ -7,7 +7,7 @@
       "esnext"
     ],
     "types": [
-      "googlemaps",
+      "google.maps",
       "jest",
 
       // https://stackoverflow.com/a/61636112/625687
