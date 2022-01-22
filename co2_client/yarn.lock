@@ -2115,15 +2115,10 @@
   resolved "https://registry.yarnpkg.com/@types/minimatch/-/minimatch-3.0.4.tgz#f0ec25dbf2f0e4b18647313ac031134ca5b24b21"
   integrity sha512-1z8k4wzFnNjVK/tlxvrWuK5WMt6mydWWP7+zvH5eFep4oj+UkrfiJTRtjCeBXNpwaA/FYqqtb4/QS4ianFpIRA==
 
-"@types/node@*":
+"@types/node@*", "@types/node@^17.0.10":
   version "17.0.10"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-17.0.10.tgz#616f16e9d3a2a3d618136b1be244315d95bd7cab"
   integrity sha512-S/3xB4KzyFxYGCppyDt68yzBU9ysL88lSdIah4D6cptdcltc4NCPCAMc0+PCpg/lLIyC7IPvj2Z52OJWeIUkog==
-
-"@types/node@^16.11.9":
-  version "16.11.21"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-16.11.21.tgz#474d7589a30afcf5291f59bd49cca9ad171ffde4"
-  integrity sha512-Pf8M1XD9i1ksZEcCP8vuSNwooJ/bZapNmIzpmsMaL+jMI+8mEYU3PKvs+xDNuQcJWF/x24WzY4qxLtB0zNow9A==
 
 "@types/normalize-package-data@^2.4.0":
   version "2.4.0"
@@ -2280,10 +2275,10 @@
   resolved "https://registry.yarnpkg.com/@types/warning/-/warning-3.0.0.tgz#0d2501268ad8f9962b740d387c4654f5f8e23e52"
   integrity sha1-DSUBJorY+ZYrdA04fEZU9fjiPlI=
 
-"@types/web-bluetooth@^0.0.11":
-  version "0.0.11"
-  resolved "https://registry.yarnpkg.com/@types/web-bluetooth/-/web-bluetooth-0.0.11.tgz#2dc7ae7a809b70723e064b58245103028d5ea616"
-  integrity sha512-2CF3Kk2Rcvg/c2QzO7mXUhY7eL9CC3aKzrF+dNWNmp7Q8bmlvjmUM1nFPMSngawdJ+CcIdu8eJlQRytBgAZR9w==
+"@types/web-bluetooth@^0.0.12":
+  version "0.0.12"
+  resolved "https://registry.yarnpkg.com/@types/web-bluetooth/-/web-bluetooth-0.0.12.tgz#e3dfd5a86a1f753305b9888c320937b5734118ae"
+  integrity sha512-Q4sUrowpylCOWjUWFtNwkNBHQUnCL8y44Iq2ZLtVMAuAGIwPSXa3kqIvu2LwXoc2d1jyaaw4Bg354degHrsADw==
 
 "@types/webpack-sources@*":
   version "2.1.0"
