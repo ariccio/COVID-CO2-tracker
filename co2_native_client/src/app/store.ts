@@ -1,5 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { bluetoothReducer } from '../bluetooth/bluetoothSlice';
+import { bluetoothReducer } from '../features/bluetooth/bluetoothSlice';
 
 export const store = configureStore({
   reducer: {

@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { DeviceId, Base64, UUID, State } from 'react-native-ble-plx';
-import { RootState } from '../app/store';
+import { RootState } from '../../app/store';
 
 interface GenericDeviceInformation {
     modelNumber: string | null;
@@ -136,7 +136,7 @@ export const bluetoothSlice = createSlice({
                 return;
             }
 
-            if (state.scanningErrorStatus.length > 255) {
+            if (state.scanningErrorStatus.length > 80) {
                 console.warn(`Scanning error status string overflowing, will clear. Old value: "${state.scanningErrorStatus}"`);
                 state.scanningErrorStatus = action.payload;
                 return;
