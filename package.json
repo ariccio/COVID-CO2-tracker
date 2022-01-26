@@ -15,5 +15,6 @@
         "i18next-browser-languagedetector": "^6.1.1",
         "i18next-http-backend": "^1.2.4",
         "react-i18next": "^11.8.15"
-    }
+    },
+    "version": "0.0.0"
 }
