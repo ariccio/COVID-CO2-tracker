@@ -20,6 +20,7 @@ import {fetchJSONWithChecks} from './src/utils/NativeFetchHelpers';
 import { postRequestOptions, userRequestOptions } from '../co2_client/src/utils/DefaultRequestOptions';
 import {formatErrors, withErrors} from '../co2_client/src/utils/ErrorObject';
 import { MaybeIfValue } from './src/utils/RenderValues';
+import {API_URL} from '../co2_client/src/utils/UrlPath';
 
 // import {AppStatsResponse, queryAppStats} from '../co2_client/src/utils/QueryAppStats';
 

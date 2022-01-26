@@ -8,68 +8,17 @@ interface Score {
 */
 
 import {API_URL} from './UrlPath';
-import {SerializedSingleMeasurement, UserInfoDevice} from './QueryDeviceInfo';
 import {userRequestOptions} from './DefaultRequestOptions';
 
-import {ErrorObjectType, formatErrors} from './ErrorObject'
+import {formatErrors} from './ErrorObject';
 import { fetchJSONWithChecks } from './FetchHelpers';
+
+import { UserInfoType, userInfoToStrongType, UserDevicesInfo } from './UserInfoTypes';
 
 const SHOW_USER_URL = API_URL + '/users/show';
 const USER_DEVICES_URL = (API_URL + '/my_devices');
 
 
-interface UserInfoInternal {
-    username: string,
-    devices: Array<UserInfoDevice>,
-    measurements: {
-        data: Array<SerializedSingleMeasurement>
-    }
-}
-
-export interface UserInfoType {
-    user_info: UserInfoInternal,
-    errors?: Array<ErrorObjectType>
-}
-
-export const defaultUserInfo: UserInfoType = {
-    user_info: {
-        username: '',
-        devices: [],
-        measurements: {
-            data: []
-        }
-    }
-}
-
-export interface UserDevicesInfo {
-    devices: Array<UserInfoDevice>
-    errors?: Array<ErrorObjectType>
-}
-
-export const defaultDevicesInfo: UserDevicesInfo = {
-    devices: []
-}
-
-function userInfoToStrongType(userInfo: any): UserInfoType {
-    console.assert(userInfo !== undefined);
-    if (userInfo.errors === undefined) {
-        console.assert(userInfo.user_info !== undefined);
-        console.assert(userInfo.devices !== undefined);
-    }
-    if (userInfo.errors !== undefined) {
-        return userInfo;
-    }
-    // debugger;
-    const return_value: UserInfoType =  {
-        user_info: {
-            username: userInfo.user_info.email,
-            devices: userInfo.devices,
-            measurements: userInfo.measurements
-        },
-        errors: userInfo.errors
-    }
-    return return_value;
-}
 
 export async function queryUserInfo(): Promise<UserInfoType> {
     const fetchFailedCallback = async (awaitedResponse: Response): Promise<UserInfoType> => {

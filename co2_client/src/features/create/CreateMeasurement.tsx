@@ -14,10 +14,13 @@ import "react-datepicker/dist/react-datepicker.css";
 
 import {selectSelectedDevice, selectSelectedDeviceSerialNumber, selectSelectedModelName, setSelectedDevice, setSelectedDeviceSerialNumber, setSelectedModel, setSelectedModelName} from '../deviceModels/deviceModelsSlice';
 import {selectSelectedPlace} from '../google/googleSlice';
-import { defaultDevicesInfo, queryUserDevices, UserDevicesInfo } from '../../utils/QueryUserInfo';
+import { queryUserDevices } from '../../utils/QueryUserInfo';
+import {UserInfoDevice} from '../../utils/DeviceInfoTypes';
+import {defaultDevicesInfo, UserDevicesInfo } from '../../utils/UserInfoTypes';
+
 import { Errors, formatErrors } from '../../utils/ErrorObject';
 import {defaultPlaceInfo, SelectedPlaceDatabaseInfo, selectPlaceExistsInDatabase, selectPlacesInfoFromDatabase, SublocationMeasurements} from '../places/placesSlice';
-import {UserInfoDevice} from '../../utils/QueryDeviceInfo';
+// import {} from '../../utils/QueryDeviceInfo';
 
 
 import {postRequestOptions} from '../../utils/DefaultRequestOptions';

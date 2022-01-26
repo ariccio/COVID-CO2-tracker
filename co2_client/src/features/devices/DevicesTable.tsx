@@ -4,7 +4,7 @@ import {Link} from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 
-import {UserInfoDevice} from '../../utils/QueryDeviceInfo';
+import {UserInfoDevice} from '../../utils/DeviceInfoTypes';
 import {deviceModelsPath, devicesPath} from '../../paths/paths';
 import {deleteRequestOptions} from '../../utils/DefaultRequestOptions';
 import { API_URL } from '../../utils/UrlPath';

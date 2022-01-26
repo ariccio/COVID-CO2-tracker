@@ -8,8 +8,10 @@ import * as Sentry from "@sentry/browser"; // for manual error reporting.
 
 import { useTranslation } from 'react-i18next';
 
-import {defaultUserInfo} from '../../utils/QueryUserInfo';
-import {defaultDeviceInfoResponse, DeviceInfoResponse, queryDeviceInfo} from '../../utils/QueryDeviceInfo';
+import {defaultUserInfo} from '../../utils/UserInfoTypes';
+import {queryDeviceInfo} from '../../utils/QueryDeviceInfo';
+import {defaultDeviceInfoResponse, DeviceInfoResponse} from '../../utils/DeviceInfoTypes';
+
 // import {DevicesTable} from './DevicesTable';
 import {MeasurementsTable} from '../measurements/MeasurementsTable';
 import {CreateManufacturerOrModel} from '../manufacturers/Manufacturers';

@@ -14,7 +14,7 @@ import {API_URL} from '../../utils/UrlPath';
 import {ErrorObjectType, formatErrors} from '../../utils/ErrorObject';
 
 import {CreateDeviceModelModalDialog} from '../create/CreateDeviceModel';
-import { SerializedSingleMeasurement } from '../../utils/QueryDeviceInfo';
+import { SerializedSingleMeasurement } from '../../utils/DeviceInfoTypes';
 import { MeasurementsTable } from '../measurements/MeasurementsTable';
 
 const SHOW_DEVICE_MODEL_URL = (API_URL + '/model');

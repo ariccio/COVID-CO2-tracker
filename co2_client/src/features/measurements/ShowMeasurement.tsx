@@ -6,9 +6,13 @@ import { devicesPath } from '../../paths/paths';
 
 // import {SerializedSingleMeasurement} from '../../utils/QueryDeviceInfo';
 import { formatErrors } from '../../utils/ErrorObject';
-import { fetchSingleDeviceName, SerializedSingleDeviceSerial } from '../../utils/QueryDeviceInfo';
+import { fetchSingleDeviceName } from '../../utils/QueryDeviceInfo';
+import {SerializedSingleDeviceSerial} from '../../utils/DeviceInfoTypes';
 
-import {ShowMeasurementResponse, queryMeasurementInfo, defaultShowMeasurementResponse} from '../../utils/QueryMeasurementInfo';
+
+import {queryMeasurementInfo} from '../../utils/QueryMeasurementInfo';
+import {ShowMeasurementResponse, defaultShowMeasurementResponse} from '../../utils/MeasurementInfoTypes';
+
 import { useSelector } from 'react-redux';
 import { selectMapsAaPeEyeKey, selectMapsAaaPeeEyeKeyErrorState } from '../google/googleSlice';
 // import { PlaceDetails } from '../places/PlaceDetails';

@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
 
-import {UserInfoType, defaultUserInfo} from '../../utils/QueryUserInfo';
+import {UserInfoType, defaultUserInfo} from '../../utils/UserInfoTypes';
 
 interface UserInfoState {
     userInfo: UserInfoType;

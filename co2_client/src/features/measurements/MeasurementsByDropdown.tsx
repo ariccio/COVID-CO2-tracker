@@ -5,7 +5,8 @@ import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 
 import { formatErrors } from '../../utils/ErrorObject';
-import { fetchDeviceNamesForMeasurementsBySublocation, SerializedSingleDeviceSerial } from '../../utils/QueryDeviceInfo';
+import { fetchDeviceNamesForMeasurementsBySublocation } from '../../utils/QueryDeviceInfo';
+import {SerializedSingleDeviceSerial} from '../../utils/DeviceInfoTypes';
 import { selectSelectedPlace } from '../google/googleSlice';
 
 

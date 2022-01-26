@@ -4,7 +4,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import {selectUsername} from '../login/loginSlice';
 import {DevicesTable} from '../devices/DevicesTable';
 import {MeasurementsTable} from '../measurements/MeasurementsTable';
-import {queryUserInfo, UserInfoType, defaultUserInfo} from '../../utils/QueryUserInfo';
+import {queryUserInfo} from '../../utils/QueryUserInfo';
+import {UserInfoType, defaultUserInfo} from '../../utils/UserInfoTypes';
 
 import {formatErrors} from '../../utils/ErrorObject';
 import { selectUserInfoErrorState, selectUserInfoState, setUserInfoErrorState, setUserInfoState } from './profileSlice';

@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import {setEnteredDeviceSerialNumberText, selectEnteredDeviceSerialNumberText} from './creationSlice';
 import {selectSelectedModel, selectSelectedModelName, setSelectedDevice, setSelectedDeviceSerialNumber} from '../deviceModels/deviceModelsSlice';
 import { ErrorObjectType, formatErrors } from '../../utils/ErrorObject';
-import { API_URL } from '../../utils/UrlPath';
+import { NEW_DEVICE_URL } from '../../utils/UrlPath';
 import { postRequestOptions } from '../../utils/DefaultRequestOptions';
 import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
 import { profilePath } from '../../paths/paths';
@@ -22,7 +22,6 @@ interface NewDeviceResponse {
     errors?: Array<ErrorObjectType>
 }
 
-const NEW_DEVICE_URL = (API_URL + '/device');
 
 function newDeviceRequestInit(newDeviceSerialNumber: string, deviceModelID: number): RequestInit {
     const defaultOptions = postRequestOptions();

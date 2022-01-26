@@ -12,7 +12,7 @@ import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
 
 
 // import {queryUserInfo, UserInfoType, defaultUserInfo} from '../../utils/QueryUserInfo';
-import {SerializedSingleDeviceSerial, SerializedSingleMeasurement} from '../../utils/QueryDeviceInfo';
+import {SerializedSingleDeviceSerial, SerializedSingleMeasurement} from '../../utils/DeviceInfoTypes';
 import { API_URL } from '../../utils/UrlPath';
 import { defaultPlaceInfo, setPlacesInfoErrors, setPlacesInfoFromDatabase } from '../places/placesSlice';
 import { updateUserInfo } from '../profile/Profile';

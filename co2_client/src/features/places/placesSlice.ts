@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
 
-import {SerializedSingleMeasurement, defaultSerializedSingleMeasurementInfo} from '../../utils/QueryDeviceInfo';
+import {SerializedSingleMeasurement, defaultSerializedSingleMeasurementInfo} from '../../utils/DeviceInfoTypes';
 
 //Ok, so, the places stuff should come OUT of the googleslice and be here.
 
