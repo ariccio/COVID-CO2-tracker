@@ -1,5 +1,17 @@
+//  NOTE:
+//      It looks like the fetch implementation in React Native/Expo is different enough that it's likely worth managing separate code for it.
+//      I will also need to handle auth manually on the frontend instead of relying on httponly cookies.
+//
+//      For reference, some of the relevant interesting files for the native fetch are:
+//          co2_native_client\node_modules\react-native\Libraries\Network\NativeNetworkingAndroid.js
+//          co2_native_client\node_modules\react-native\Libraries\TurboModule\RCTExport.js
+//          co2_native_client\node_modules\react-native\Libraries\Network\RCTNetworking.android.js
+//          co2_native_client\node_modules\react-native\Libraries\Network\XMLHttpRequest.js
+//          co2_native_client\node_modules\whatwg-fetch\fetch.js
+//          co2_native_client\node_modules\react-native\Libraries\Network\fetch.js
+//          
 
-import {formatErrors} from '../co2_client/src/utils/ErrorObject';
+import {formatErrors} from '../../../co2_client/src/utils/ErrorObject';
 
 // function dumpHeaders(headers: Headers, asError: boolean): void {
 //     //forEach(callbackfn: (value: string, key: string, parent: Headers) => void, thisArg?: any): void;
@@ -222,7 +234,7 @@ export async function fetchFailed(awaitedResponseOriginal: Response, expectedSta
         if (parsedJSONResponse.error !== undefined) {
             console.error("maybe internal server error?");
             console.error(parsedJSONResponse.error);
-            alert("possible internal server error, automatically reported!");
+            // alert("possible internal server error, automatically reported!");
             // Sentry.captureMessage(`possible internal server error in response to fetch? Full response object: ${JSON.stringify(parsedJSONResponse)}`);
             // if (alertErrors) {
             // }
@@ -230,7 +242,6 @@ export async function fetchFailed(awaitedResponseOriginal: Response, expectedSta
         }
 
         if (parsedJSONResponse.errors !== undefined) {
-            // console.assert(awaitedResponseCloned.status !== 200);
             console.error(formatErrors(parsedJSONResponse.errors));
             if(alertErrors) {
                 alert(formatErrors(parsedJSONResponse.errors));

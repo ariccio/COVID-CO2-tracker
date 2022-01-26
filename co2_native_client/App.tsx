@@ -16,7 +16,7 @@ import { store } from './src/app/store';
 
 import { BluetoothData, useBluetoothConnectAranet } from './src/features/bluetooth/Bluetooth';
 
-import {fetchJSONWithChecks} from './temporaryCopyOfFetchHelpers';
+import {fetchJSONWithChecks} from './src/utils/NativeFetchHelpers';
 import { postRequestOptions, userRequestOptions } from '../co2_client/src/utils/DefaultRequestOptions';
 import {formatErrors, withErrors} from '../co2_client/src/utils/ErrorObject';
 import { MaybeIfValue } from './src/utils/RenderValues';
