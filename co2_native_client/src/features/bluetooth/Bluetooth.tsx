@@ -17,7 +17,13 @@ import { Aranet4_1503CO2, MeasurementData, selectAranet4SpecificData, selectDevi
 
 //https://github.com/thespacemanatee/Smart-Shef-IoT/blob/4782c95f383040f36e4ae7ce063166cce5c76129/smart_shef_app/src/utils/hooks/useMonitorHumidityCharacteristic.ts
 
+interface GenericBluetoothInformation {
+    serialNumberString: string | null,
+    serialNumberError: Error | null,
+    deviceNameString: string | null,
+    deviceNameError: Error | null
 
+}
 
 
 
@@ -278,81 +284,81 @@ function noDevice(deviceID: string | null, device: Device | null): boolean {
     return false;
 }
 
-const useBluetoothSerialNumber = (deviceID: string | null, device: Device | null) => {
-    const dispatch = useDispatch();
-    const [serialNumberError, setError] = useState(null as (Error | null));
-    const [serialNumberString, setSerialNumberString] = useState(null as (string | null));
+// const useBluetoothSerialNumber = (deviceID: string | null, device: Device | null) => {
+//     const dispatch = useDispatch();
+//     const [serialNumberError, setError] = useState(null as (Error | null));
+//     const [serialNumberString, setSerialNumberString] = useState(null as (string | null));
 
-    useEffect(() => {
-        if (noDevice(deviceID, device)) {
-            return;
-        }
-        // dispatch(setScanningStatusString(`Beginning serial number read...`));
+//     useEffect(() => {
+//         if (noDevice(deviceID, device)) {
+//             return;
+//         }
+//         // dispatch(setScanningStatusString(`Beginning serial number read...`));
 
-        readSerialNumberFromBluetoothDevice(deviceID!).then((serialNumberString) => {
-            console.log(`Serial number: ${serialNumberString}`);
-            // dispatch(setDeviceSerialNumber(serialNumberString));
-            setSerialNumberString(serialNumberString);
-            if (serialNumberString.length === 0) {
-                console.warn(`Device ${deviceID} has an empty serial number string?`);
-                setError(new Error(`Device ${deviceID} has an empty serial number string?`));
-            }
-            // dispatch(setScanningStatusString(`Got serial number! ('${serialNumberString}')`));
-            // dispatch(setScanningStatusString(null));
-        }).catch((error) => {
-            if (error.code === BleErrorCode.DeviceNotConnected) {
-                dispatch(setScanningStatusString(`Device ${deviceID} not connected. Serial number not available.`))
-                console.warn(`Device ${deviceID} not connected. Serial number not available.`);
-                // device!.connect();
-                return;
-            }
+//         readSerialNumberFromBluetoothDevice(deviceID!).then((serialNumberString) => {
+//             console.log(`Serial number: ${serialNumberString}`);
+//             // dispatch(setDeviceSerialNumber(serialNumberString));
+//             setSerialNumberString(serialNumberString);
+//             if (serialNumberString.length === 0) {
+//                 console.warn(`Device ${deviceID} has an empty serial number string?`);
+//                 setError(new Error(`Device ${deviceID} has an empty serial number string?`));
+//             }
+//             // dispatch(setScanningStatusString(`Got serial number! ('${serialNumberString}')`));
+//             // dispatch(setScanningStatusString(null));
+//         }).catch((error) => {
+//             if (error.code === BleErrorCode.DeviceNotConnected) {
+//                 dispatch(setScanningStatusString(`Device ${deviceID} not connected. Serial number not available.`))
+//                 console.warn(`Device ${deviceID} not connected. Serial number not available.`);
+//                 // device!.connect();
+//                 return;
+//             }
 
-            // console.error(error);
+//             // console.error(error);
 
-            debugger;
-            setError(error);
-        });
-    }, [device, deviceID]);
+//             debugger;
+//             setError(error);
+//         });
+//     }, [device, deviceID]);
 
-    return { serialNumberString, serialNumberError };
-}
+//     return { serialNumberString, serialNumberError };
+// }
 
-const useBluetoothDeviceName = (deviceID: string | null, device: Device | null) => {
-    const dispatch = useDispatch();
-    const [deviceNameError, setDeviceNameError] = useState(null as (Error | null));
-    const [deviceNameString, setDeviceNameString] = useState(null as (string | null));
+// const useBluetoothDeviceName = (deviceID: string | null, device: Device | null) => {
+//     const dispatch = useDispatch();
+//     const [deviceNameError, setDeviceNameError] = useState(null as (Error | null));
+//     const [deviceNameString, setDeviceNameString] = useState(null as (string | null));
 
-    useEffect(() => {
-        if (noDevice(deviceID, device)) {
-            console.log(`No device. ${deviceID}, ${device}}`);
-            return;
-        }
-        console.log(`Device. ${deviceID}, ${device}}`);
-        // dispatch(setScanningStatusString(`Beginning device name read...`));
-        readDeviceNameFromBluetoothDevice(deviceID!).then((deviceNameString) => {
-            console.log(`Device name: ${deviceNameString}`)
-            setDeviceNameString(deviceNameString);
-            if (deviceNameString.length === 0) {
-                console.warn(`Device ${deviceID} has an empty name?`);
-                setDeviceNameError(new Error(`Device ${deviceID} has an empty name?`));
-            }
-            // dispatch(`Got device name! ('${deviceNameString}')`);
-            // dispatch(setScanningStatusString(null));
-        }).catch((error) => {
-            if (error.code === BleErrorCode.DeviceNotConnected) {
-                dispatch(setScanningStatusString(`Device ${deviceID} not connected. Name not available.`))
-                console.warn(`Device ${deviceID} not connected. Name not available.`);
-                // device!.connect();
-                return;
-            }
-            // console.error(error);
-            debugger;
-            setDeviceNameError(error);
-        })
+//     useEffect(() => {
+//         if (noDevice(deviceID, device)) {
+//             console.log(`No device. ${deviceID}, ${device}}`);
+//             return;
+//         }
+//         console.log(`Device. ${deviceID}, ${device}}`);
+//         // dispatch(setScanningStatusString(`Beginning device name read...`));
+//         readDeviceNameFromBluetoothDevice(deviceID!).then((deviceNameString) => {
+//             console.log(`Device name: ${deviceNameString}`)
+//             setDeviceNameString(deviceNameString);
+//             if (deviceNameString.length === 0) {
+//                 console.warn(`Device ${deviceID} has an empty name?`);
+//                 setDeviceNameError(new Error(`Device ${deviceID} has an empty name?`));
+//             }
+//             // dispatch(`Got device name! ('${deviceNameString}')`);
+//             // dispatch(setScanningStatusString(null));
+//         }).catch((error) => {
+//             if (error.code === BleErrorCode.DeviceNotConnected) {
+//                 dispatch(setScanningStatusString(`Device ${deviceID} not connected. Name not available.`))
+//                 console.warn(`Device ${deviceID} not connected. Name not available.`);
+//                 // device!.connect();
+//                 return;
+//             }
+//             // console.error(error);
+//             debugger;
+//             setDeviceNameError(error);
+//         })
 
-    }, [device, deviceID]);
-    return { deviceNameString, deviceNameError };
-}
+//     }, [device, deviceID]);
+//     return { deviceNameString, deviceNameError };
+// }
 
 // const useBluetoothBatteryLevel = (deviceID: string | null, device: Device | null) => {
 //   const dispatch = useDispatch();
@@ -378,12 +384,73 @@ const useBluetoothDeviceName = (deviceID: string | null, device: Device | null) 
 //   return {deviceBattery, deviceBatteryError};
 // }
 
-const useGenericBluetoothInformation = (deviceID: string | null, device: Device | null) => {
-    const { serialNumberString, serialNumberError } = useBluetoothSerialNumber(deviceID, device);
-    const { deviceNameString, deviceNameError } = useBluetoothDeviceName(deviceID, device);
-    return { serialNumberString, serialNumberError, deviceNameString, deviceNameError };
-}
+// const useGenericBluetoothInformation = (deviceID: string | null, device: Device | null) => {
+//     const { serialNumberString, serialNumberError } = useBluetoothSerialNumber(deviceID, device);
+//     const { deviceNameString, deviceNameError } = useBluetoothDeviceName(deviceID, device);
+//     return { serialNumberString, serialNumberError, deviceNameString, deviceNameError };
+// }
 
+async function readGenericBluetoothInformation(deviceID: string, device: Device): Promise<GenericBluetoothInformation> {
+    // dispatch(setScanningStatusString(`Beginning serial number read...`));
+    let serialNumberStringError = null;
+
+    const serialNumberString = await readSerialNumberFromBluetoothDevice(deviceID!)
+    
+    console.log(`Serial number: ${serialNumberString}`);
+    // dispatch(setDeviceSerialNumber(serialNumberString));
+    // setSerialNumberString(serialNumberString);
+    if (serialNumberString.length === 0) {
+        console.warn(`Device ${deviceID} has an empty serial number string?`);
+        serialNumberStringError = new Error(`Device ${deviceID} has an empty serial number string?`);
+    }
+    // dispatch(setScanningStatusString(`Got serial number! ('${serialNumberString}')`));
+    // dispatch(setScanningStatusString(null));
+    // then((serialNumberString) => {
+    // }).catch((error) => {
+    //     if (error.code === BleErrorCode.DeviceNotConnected) {
+    //         dispatch(setScanningStatusString(`Device ${deviceID} not connected. Serial number not available.`))
+    //         console.warn(`Device ${deviceID} not connected. Serial number not available.`);
+    //         // device!.connect();
+    //         return;
+    //     }
+
+    //     // console.error(error);
+
+    //     debugger;
+    //     setError(error);
+    // });
+
+    const deviceNameString = await readDeviceNameFromBluetoothDevice(deviceID!)
+    let deviceNameStringError = null;
+    console.log(`Device name: ${deviceNameString}`)
+    // setDeviceNameString(deviceNameString);
+    if (deviceNameString.length === 0) {
+        console.warn(`Device ${deviceID} has an empty name?`);
+        deviceNameStringError = new Error(`Device ${deviceID} has an empty name?`);
+    }
+    // dispatch(`Got device name! ('${deviceNameString}')`);
+    // dispatch(setScanningStatusString(null));
+    // .then((deviceNameString) => {
+    // }).catch((error) => {
+    //     if (error.code === BleErrorCode.DeviceNotConnected) {
+    //         dispatch(setScanningStatusString(`Device ${deviceID} not connected. Name not available.`))
+    //         console.warn(`Device ${deviceID} not connected. Name not available.`);
+    //         // device!.connect();
+    //         return;
+    //     }
+    //     // console.error(error);
+    //     debugger;
+    //     setDeviceNameError(error);
+    // })
+
+    return {
+        deviceNameString: deviceNameString,
+        deviceNameError: deviceNameStringError,
+        serialNumberError: serialNumberStringError,
+        serialNumberString: serialNumberString
+    };
+
+}
 function co2MeasurementCharacteristicBufferToMeasurementState(co2CharacteristicAsBuffer: Buffer): Aranet4_1503CO2 {
     const co2 = co2CharacteristicAsBuffer.readUInt16LE(0);
     const rawTemperature = co2CharacteristicAsBuffer.readUInt16LE(2);
@@ -418,147 +485,213 @@ async function readAranet4Co2Characteristic(deviceID: string): Promise<Aranet4_1
     return measurementState;
 }
 
-const useAranet4Co2Characteristic = (deviceID: string | null, device: Device | null) => {
-    const dispatch = useDispatch();
-    const [co2CharacteristicValue, setCo2Characteristic] = useState(null as (Aranet4_1503CO2 | null));
-    const [co2CharacteristicError, setCo2CharacteristicError] = useState(null as (Error | null));
-    // const [timeoutHandle, setTimeoutHandle] = useState(null);
+// const useAranet4Co2Characteristic = (deviceID: string | null, device: Device | null) => {
+//     const dispatch = useDispatch();
+//     const [co2CharacteristicValue, setCo2Characteristic] = useState(null as (Aranet4_1503CO2 | null));
+//     const [co2CharacteristicError, setCo2CharacteristicError] = useState(null as (Error | null));
+//     // const [timeoutHandle, setTimeoutHandle] = useState(null);
 
-    // const [co2CharacteristicObject, setCo2CharacteristicObject] = useState(null as (Characteristic | null));
+//     // const [co2CharacteristicObject, setCo2CharacteristicObject] = useState(null as (Characteristic | null));
 
-    // const monitorCallback = (error: BleError | null, characteristic: Characteristic | null) => {
-    //   console.log("co2 monitor callback!");
-    // }
+//     // const monitorCallback = (error: BleError | null, characteristic: Characteristic | null) => {
+//     //   console.log("co2 monitor callback!");
+//     // }
 
-    const update = () => {
-        readAranet4Co2Characteristic(deviceID!).then((co2CharacteristicMeasurement) => {
-            console.log(`Aranet4 measurement:`);
-            console.log(`\tCO2: ${co2CharacteristicMeasurement?.co2}ppm`);
-            console.log(`\tTemperature: ${co2CharacteristicMeasurement?.temperatureC}C`);
-            console.log(`\tHumidity: ${co2CharacteristicMeasurement?.humidity}%`);
-            setCo2Characteristic(co2CharacteristicMeasurement);
-        }).catch((error) => {
-            if (error instanceof BleError) {
-                if (error.errorCode === BleErrorCode.DeviceNotConnected) {
-                    console.warn(`Device ${deviceID} not connected. co2 not available.`);
-                    setCo2CharacteristicError(error);
-                    // device!.connect();
-                    return;
-                }
-            }
+//     const update = () => {
+//         readAranet4Co2Characteristic(deviceID!).then((co2CharacteristicMeasurement) => {
+//             console.log(`Aranet4 measurement:`);
+//             console.log(`\tCO2: ${co2CharacteristicMeasurement?.co2}ppm`);
+//             console.log(`\tTemperature: ${co2CharacteristicMeasurement?.temperatureC}C`);
+//             console.log(`\tHumidity: ${co2CharacteristicMeasurement?.humidity}%`);
+//             setCo2Characteristic(co2CharacteristicMeasurement);
+//         }).catch((error) => {
+//             if (error instanceof BleError) {
+//                 if (error.errorCode === BleErrorCode.DeviceNotConnected) {
+//                     console.warn(`Device ${deviceID} not connected. co2 not available.`);
+//                     setCo2CharacteristicError(error);
+//                     // device!.connect();
+//                     return;
+//                 }
+//             }
 
-            console.log("Re-enable this debugger when done with login code.");
-            // debugger;
-            setCo2CharacteristicError(error);
-        });
-    }
-    useEffect(() => {
-        if (noDevice(deviceID, device)) {
-            return;
-        }
-        update();
+//             console.log("Re-enable this debugger when done with login code.");
+//             // debugger;
+//             setCo2CharacteristicError(error);
+//         });
+//     }
+//     useEffect(() => {
+//         if (noDevice(deviceID, device)) {
+//             return;
+//         }
+//         update();
 
-    }, [device, deviceID]);
+//     }, [device, deviceID]);
 
 
-    useEffect(() => {
-        if (noDevice(deviceID, device)) {
-            return;
-        }
-        if (co2CharacteristicValue === null) {
-            return;
-        }
-        const handle = setTimeout(() => {
-            console.log("update co2 triggered!");
-            update();
-        }, 1000 * 31);
+//     useEffect(() => {
+//         if (noDevice(deviceID, device)) {
+//             return;
+//         }
+//         if (co2CharacteristicValue === null) {
+//             return;
+//         }
+//         const handle = setTimeout(() => {
+//             console.log("update co2 triggered!");
+//             update();
+//         }, 1000 * 31);
 
-        return () => {
-            console.log("Clearing co2 timer...");
-            clearTimeout(handle);
-        }
-    }, [co2CharacteristicValue])
+//         return () => {
+//             console.log("Clearing co2 timer...");
+//             clearTimeout(handle);
+//         }
+//     }, [co2CharacteristicValue])
 
-    return { co2CharacteristicValue, co2CharacteristicError };
-}
+//     return { co2CharacteristicValue, co2CharacteristicError };
+// }
 
 async function readAranet4SecondsSinceLastMeasurementCharacteristic(deviceID: string): Promise<number> {
     return readUint16CharacteristicFromDevice(deviceID, BLUETOOTH.ARANET4_SENSOR_SERVICE_UUID, BLUETOOTH.ARANET_SECONDS_LAST_UPDATE_UUID, "BLUETOOTH.ARANET4_SENSOR_SERVICE_UUID", "BLUETOOTH.ARANET_SECONDS_LAST_UPDATE_UUID");
 }
 
-const useAranet4SecondsSinceLastMeasurement = (deviceID: string | null, device: Device | null) => {
-    const [secondsSinceLastMeasurement, setSecondsSinceLastMeasurement] = useState(null as (number | null));
-    const [secondsSinceLastMeasurementError, setSecondsSinceLastMeasurementError] = useState(null as (Error | null));
+// const useAranet4SecondsSinceLastMeasurement = (deviceID: string | null, device: Device | null) => {
+//     const [secondsSinceLastMeasurement, setSecondsSinceLastMeasurement] = useState(null as (number | null));
+//     const [secondsSinceLastMeasurementError, setSecondsSinceLastMeasurementError] = useState(null as (Error | null));
 
 
-    const update = () => {
-        readAranet4SecondsSinceLastMeasurementCharacteristic(deviceID!).then((secondsSinceLastMeasurement) => {
-            setSecondsSinceLastMeasurement(secondsSinceLastMeasurement);
-            console.log(`Seconds since last measurement: ${secondsSinceLastMeasurement}`);
-        }).catch((error) => {
-            // debugger;
-            setSecondsSinceLastMeasurementError(error);
-        })
-    }
-    useEffect(() => {
-        if (noDevice(deviceID, device)) {
-            return;
-        }
-        update();
-    }, [device, deviceID]);
+//     const update = () => {
+//         readAranet4SecondsSinceLastMeasurementCharacteristic(deviceID!).then((secondsSinceLastMeasurement) => {
+//             setSecondsSinceLastMeasurement(secondsSinceLastMeasurement);
+//             console.log(`Seconds since last measurement: ${secondsSinceLastMeasurement}`);
+//         }).catch((error) => {
+//             // debugger;
+//             setSecondsSinceLastMeasurementError(error);
+//         })
+//     }
+//     useEffect(() => {
+//         if (noDevice(deviceID, device)) {
+//             return;
+//         }
+//         update();
+//     }, [device, deviceID]);
 
-    useEffect(() => {
-        if (noDevice(deviceID, device)) {
-            return;
-        }
-        if (secondsSinceLastMeasurement === null) {
-            return;
-        }
+//     useEffect(() => {
+//         if (noDevice(deviceID, device)) {
+//             return;
+//         }
+//         if (secondsSinceLastMeasurement === null) {
+//             return;
+//         }
 
-        const handle = setTimeout(() => {
-            console.log("update lsat measuremet time triggered!");
-            update();
-        }, 1000 * 31);
+//         const handle = setTimeout(() => {
+//             console.log("update lsat measuremet time triggered!");
+//             update();
+//         }, 1000 * 31);
 
-        return () => {
-            console.log("Clearing measurement timer timer...")
-            clearTimeout(handle);
-        }
+//         return () => {
+//             console.log("Clearing measurement timer timer...")
+//             clearTimeout(handle);
+//         }
 
-    }, [secondsSinceLastMeasurement])
+//     }, [secondsSinceLastMeasurement])
 
-    return { secondsSinceLastMeasurement, secondsSinceLastMeasurementError }
-}
+//     return { secondsSinceLastMeasurement, secondsSinceLastMeasurementError }
+// }
 
 async function readAranet4MeasurementInterval(deviceID: string): Promise<number> {
     return readUint16CharacteristicFromDevice(deviceID, BLUETOOTH.ARANET4_SENSOR_SERVICE_UUID, BLUETOOTH.ARANET_MEASUREMENT_INTERVAL_UUID, "BLUETOOTH.ARANET4_SENSOR_SERVICE_UUID", "BLUETOOTH.ARANET_MEASUREMENT_INTERVAL_UUID");
 }
-const useAranet4MeasurementInterval = (deviceID: string | null, device: Device | null) => {
-    const [measurementInterval, setMeasurementInterval] = useState(null as (number | null));
-    const [measurementIntervalError, setMeasurementIntervalError] = useState(null as (Error | null));
-    useEffect(() => {
-        if (noDevice(deviceID, device)) {
-            return;
-        }
-        readAranet4MeasurementInterval(deviceID!).then((interval) => {
-            console.log(`Measurement interval: ${interval}`)
-            setMeasurementInterval(interval);
-        }).catch((error) => {
-            // debugger;
-            setMeasurementIntervalError(error);
-        })
-    }, [device, deviceID]);
+// const useAranet4MeasurementInterval = (deviceID: string | null, device: Device | null) => {
+//     const [measurementInterval, setMeasurementInterval] = useState(null as (number | null));
+//     const [measurementIntervalError, setMeasurementIntervalError] = useState(null as (Error | null));
+//     useEffect(() => {
+//         if (noDevice(deviceID, device)) {
+//             return;
+//         }
+//         readAranet4MeasurementInterval(deviceID!).then((interval) => {
+//             console.log(`Measurement interval: ${interval}`)
+//             setMeasurementInterval(interval);
+//         }).catch((error) => {
+//             // debugger;
+//             setMeasurementIntervalError(error);
+//         })
+//     }, [device, deviceID]);
 
-    return { measurementInterval, measurementIntervalError };
+//     return { measurementInterval, measurementIntervalError };
+// }
+
+interface Aranet4SpecificInformation {
+    co2CharacteristicValue: Aranet4_1503CO2 | null,
+    co2CharacteristicError: Error | null,
+    secondsSinceLastMeasurement: number | null,
+    secondsSinceLastMeasurementError: Error | null,
+    measurementInterval: number | null,
+    measurementIntervalError: Error | null
 }
 
-const useAranet4SpecificInformation = (deviceID: string | null, device: Device | null) => {
-    const { co2CharacteristicValue, co2CharacteristicError } = useAranet4Co2Characteristic(deviceID, device);
-    const { secondsSinceLastMeasurement, secondsSinceLastMeasurementError } = useAranet4SecondsSinceLastMeasurement(deviceID, device);
-    const { measurementInterval, measurementIntervalError } = useAranet4MeasurementInterval(deviceID, device);
+async function readAranet4SpecificInformation(deviceID: string | null, device: Device | null): Promise<Aranet4SpecificInformation> {
+    const co2CharacteristicMeasurement = await readAranet4Co2Characteristic(deviceID!)
+    
+    console.log(`Aranet4 measurement:`);
+    console.log(`\tCO2: ${co2CharacteristicMeasurement?.co2}ppm`);
+    console.log(`\tTemperature: ${co2CharacteristicMeasurement?.temperatureC}C`);
+    console.log(`\tHumidity: ${co2CharacteristicMeasurement?.humidity}%`);
 
-    return { co2CharacteristicValue, co2CharacteristicError, secondsSinceLastMeasurement, secondsSinceLastMeasurementError, measurementInterval, measurementIntervalError };
+    // setCo2Characteristic(co2CharacteristicMeasurement);
+    // then((co2CharacteristicMeasurement) => {
+    // }).catch((error) => {
+    //     if (error instanceof BleError) {
+    //         if (error.errorCode === BleErrorCode.DeviceNotConnected) {
+    //             console.warn(`Device ${deviceID} not connected. co2 not available.`);
+    //             setCo2CharacteristicError(error);
+    //             // device!.connect();
+    //             return;
+    //         }
+    //     }
+
+    //     console.log("Re-enable this debugger when done with login code.");
+    //     // debugger;
+    //     setCo2CharacteristicError(error);
+    // });
+
+
+    const secondsSinceLastMeasurement = await readAranet4SecondsSinceLastMeasurementCharacteristic(deviceID!)
+    
+    console.log(`Seconds since last measurement: ${secondsSinceLastMeasurement}`);
+    // setSecondsSinceLastMeasurement(secondsSinceLastMeasurement);
+    // .then((secondsSinceLastMeasurement) => {
+    // }).catch((error) => {
+    //     // debugger;
+    //     setSecondsSinceLastMeasurementError(error);
+    // })
+
+    
+    const interval = await readAranet4MeasurementInterval(deviceID!)
+    console.log(`Measurement interval: ${interval}`)
+    
+    // .then((interval) => {
+    //     setMeasurementInterval(interval);
+    // }).catch((error) => {
+    //     // debugger;
+    //     setMeasurementIntervalError(error);
+    // })
+
+    return {
+        co2CharacteristicError: null,
+        co2CharacteristicValue: co2CharacteristicMeasurement,
+        measurementInterval: interval,
+        measurementIntervalError: null,
+        secondsSinceLastMeasurement: secondsSinceLastMeasurement,
+        secondsSinceLastMeasurementError: null
+    }
 }
+
+// const useAranet4SpecificInformation = (deviceID: string | null, device: Device | null) => {
+//     const { co2CharacteristicValue, co2CharacteristicError } = useAranet4Co2Characteristic(deviceID, device);
+//     const { secondsSinceLastMeasurement, secondsSinceLastMeasurementError } = useAranet4SecondsSinceLastMeasurement(deviceID, device);
+//     const { measurementInterval, measurementIntervalError } = useAranet4MeasurementInterval(deviceID, device);
+
+//     return { co2CharacteristicValue, co2CharacteristicError, secondsSinceLastMeasurement, secondsSinceLastMeasurementError, measurementInterval, measurementIntervalError };
+// }
 
 
 const useScanConnectAranet4 = () => {
@@ -608,6 +741,22 @@ const useScanConnectAranet4 = () => {
 }
 
 
+const updateGenericDeviceInformation = async (setGenericBluetoothInformation: React.Dispatch<React.SetStateAction<GenericBluetoothInformation | null>>, deviceID: string | null, device: Device | null) => {
+    if (noDevice(deviceID, device)) {
+        return;
+    }
+    const read = await readGenericBluetoothInformation(deviceID!, device!);
+    setGenericBluetoothInformation(read);
+}
+
+const updateAranet4SpecificInformation = async (setAranet4SpecificInformation: React.Dispatch<React.SetStateAction<Aranet4SpecificInformation | null>>, deviceID: string | null, device: Device | null) => {
+    if (noDevice(deviceID, device)) {
+        return;
+    }
+    const read = await readAranet4SpecificInformation(deviceID!, device!);
+    setAranet4SpecificInformation(read);
+}
+
 export const useBluetoothConnectAranet = () => {
     // const [hasBluetooth, setHasBluetooth] = useState(false);
     // const [device, setDevice] = useState(null as (Device | null));
@@ -622,73 +771,89 @@ export const useBluetoothConnectAranet = () => {
     // const {serialNumberString, serialNumberError} = useBluetoothSerialNumber(deviceID, device);
     // const {deviceNameString, deviceNameError} = useBluetoothDeviceName(deviceID, device);
     // const {deviceBattery, deviceBatteryError} = useBluetoothBatteryLevel(deviceID, device);
-    const { serialNumberString, serialNumberError, deviceNameString, deviceNameError } = useGenericBluetoothInformation(deviceID, device);
-    const { co2CharacteristicValue, co2CharacteristicError, secondsSinceLastMeasurement, secondsSinceLastMeasurementError, measurementInterval, measurementIntervalError } = useAranet4SpecificInformation(deviceID, device);
+    // const { serialNumberString, serialNumberError, deviceNameString, deviceNameError } = useGenericBluetoothInformation(deviceID, device);
+    const [genericBluetoothInformation, setGenericBluetoothInformation] = useState(null as (null | GenericBluetoothInformation));
+    const [aranet4SpecificInformation, setAranet4SpecificInformation] = useState(null as (null | Aranet4SpecificInformation));
+
+    // const { co2CharacteristicValue, co2CharacteristicError, secondsSinceLastMeasurement, secondsSinceLastMeasurementError, measurementInterval, measurementIntervalError } = useAranet4SpecificInformation(deviceID, device);
     useEffect(() => {
         requestLocationPermission(dispatch);
     }, [])
 
+    useEffect(() => {
+        updateGenericDeviceInformation(setGenericBluetoothInformation, deviceID, device);
+        updateAranet4SpecificInformation(setAranet4SpecificInformation, deviceID, device);
+    }, [deviceID, device])
 
     useEffect(() => {
-        if (serialNumberError) {
-            console.error(serialNumberError);
-            dispatch(setScanningErrorStatusString(`Error loading serial number: ${String(serialNumberError)}`));
+        if (genericBluetoothInformation?.serialNumberError) {
+            console.error(genericBluetoothInformation?.serialNumberError);
+            dispatch(setScanningErrorStatusString(`Error loading serial number: ${String(genericBluetoothInformation?.serialNumberError)}`));
             // debugger;
         }
-        if (serialNumberString !== null) {
-            dispatch(setDeviceSerialNumber(serialNumberString));
+        if (genericBluetoothInformation && (genericBluetoothInformation?.serialNumberString !== null)) {
+            dispatch(setDeviceSerialNumber(genericBluetoothInformation?.serialNumberString));
         }
 
-    }, [serialNumberError, serialNumberString]);
-
-    useEffect(() => {
-        if (deviceNameError) {
-            console.error(deviceNameError);
-            dispatch(setScanningErrorStatusString(`Error loading device name: ${String(deviceNameError)}`));
-            // debugger;
-        }
-        if (deviceNameString !== null) {
-            dispatch(setDeviceName(deviceNameString));
-        }
-    }, [deviceNameString, deviceNameError]);
+    }, [genericBluetoothInformation?.serialNumberError, genericBluetoothInformation?.serialNumberString]);
 
     useEffect(() => {
-        if (co2CharacteristicError) {
-            dispatch(setScanningErrorStatusString(`Error loading aranet4 co2 measurement: ${String(co2CharacteristicError)}`));
+        if (genericBluetoothInformation?.deviceNameError) {
+            console.error(genericBluetoothInformation?.deviceNameError);
+            dispatch(setScanningErrorStatusString(`Error loading device name: ${String(genericBluetoothInformation?.deviceNameError)}`));
             // debugger;
         }
-        if (co2CharacteristicValue !== null) {
+        if (genericBluetoothInformation && (genericBluetoothInformation?.deviceNameString !== null)) {
+            dispatch(setDeviceName(genericBluetoothInformation?.deviceNameString));
+        }
+    }, [genericBluetoothInformation?.deviceNameString, genericBluetoothInformation?.deviceNameError]);
+
+    useEffect(() => {
+        if (aranet4SpecificInformation === null) {
+            return;
+        }
+        if (aranet4SpecificInformation.co2CharacteristicError) {
+            dispatch(setScanningErrorStatusString(`Error loading aranet4 co2 measurement: ${String(aranet4SpecificInformation.co2CharacteristicError)}`));
+            // debugger;
+        }
+        if (aranet4SpecificInformation.co2CharacteristicValue !== null) {
             const measurementData: MeasurementData = {
-                co2: co2CharacteristicValue.co2,
-                temperature: co2CharacteristicValue.temperatureC,
-                barometricPressure: co2CharacteristicValue.barometricPressure,
-                humidity: co2CharacteristicValue.humidity
+                co2: aranet4SpecificInformation.co2CharacteristicValue.co2,
+                temperature: aranet4SpecificInformation.co2CharacteristicValue.temperatureC,
+                barometricPressure: aranet4SpecificInformation.co2CharacteristicValue.barometricPressure,
+                humidity: aranet4SpecificInformation.co2CharacteristicValue.humidity
             };
             dispatch(setMeasurementData(measurementData));
-            dispatch(setDeviceBatteryLevel(co2CharacteristicValue.battery));
-            dispatch(setAranet4Color(co2CharacteristicValue.statusColor));
+            dispatch(setDeviceBatteryLevel(aranet4SpecificInformation.co2CharacteristicValue.battery));
+            dispatch(setAranet4Color(aranet4SpecificInformation.co2CharacteristicValue.statusColor));
         }
 
-    }, [co2CharacteristicValue, co2CharacteristicError]);
-
-    useEffect(() => {
-        if (secondsSinceLastMeasurement !== null) {
-            dispatch(setAranet4SecondsSinceLastMeasurement(secondsSinceLastMeasurement));
-        }
-        if (secondsSinceLastMeasurementError) {
-            dispatch(setScanningErrorStatusString(`Error loading aranet4 seconds since last measurement: ${String(secondsSinceLastMeasurementError)}`));
-        }
-    }, [secondsSinceLastMeasurement, secondsSinceLastMeasurementError])
-
+    }, [aranet4SpecificInformation?.co2CharacteristicValue, aranet4SpecificInformation?.co2CharacteristicError]);
 
     useEffect(() => {
-        if (measurementIntervalError) {
-            dispatch(setScanningErrorStatusString(`Error loading aranet4 measurement interval: ${String(measurementIntervalError)}`))
+        if (aranet4SpecificInformation === null) {
+            return;
         }
-        if (measurementInterval) {
-            dispatch(setMeasurementInterval(measurementInterval));
+        if (aranet4SpecificInformation.secondsSinceLastMeasurement !== null) {
+            dispatch(setAranet4SecondsSinceLastMeasurement(aranet4SpecificInformation.secondsSinceLastMeasurement));
         }
-    }, [measurementInterval, measurementIntervalError])
+        if (aranet4SpecificInformation.secondsSinceLastMeasurementError) {
+            dispatch(setScanningErrorStatusString(`Error loading aranet4 seconds since last measurement: ${String(aranet4SpecificInformation.secondsSinceLastMeasurementError)}`));
+        }
+    }, [aranet4SpecificInformation?.secondsSinceLastMeasurement, aranet4SpecificInformation?.secondsSinceLastMeasurementError])
+
+
+    useEffect(() => {
+        if (aranet4SpecificInformation === null) {
+            return;
+        }
+        if (aranet4SpecificInformation.measurementIntervalError) {
+            dispatch(setScanningErrorStatusString(`Error loading aranet4 measurement interval: ${String(aranet4SpecificInformation.measurementIntervalError)}`))
+        }
+        if (aranet4SpecificInformation.measurementInterval) {
+            dispatch(setMeasurementInterval(aranet4SpecificInformation.measurementInterval));
+        }
+    }, [aranet4SpecificInformation?.measurementInterval, aranet4SpecificInformation?.measurementIntervalError])
 
     return { device };
 }
