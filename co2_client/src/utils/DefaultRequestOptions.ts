@@ -24,7 +24,7 @@ export function deleteRequestOptions(): RequestInit {
 
 export function postRequestOptions(): RequestInit {
     const requestOptions = {
-        method: 'post',
+        method: 'POST',
         credentials: includeCreds, //for httpOnly cookie
         headers: {
             'Content-Type': 'application/json',

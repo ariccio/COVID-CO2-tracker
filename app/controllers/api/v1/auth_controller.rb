@@ -30,9 +30,7 @@ module Api
         )
       end
 
-      def render_successful_authentication
-        # encode token comes from ApplicationController/ApiController
-        token = encode_token(user_id: @user.id)
+      def render_successful_authentication_cookie(token)
         # for good advice on httponly: https://www.thegreatcodeadventure.com/jwt-storage-in-rails-the-right-way/
         cookies.signed[:jwt] = { value: token, httponly: true, expires: 1.hour }
         render(
@@ -41,6 +39,25 @@ module Api
           },
           status: :accepted # 202
         )
+      end
+
+      def render_successful_authentication_native(token)
+        render(
+          json: {
+            email: @user.email,
+            jwt: token
+          },
+          status: :accepted # 202
+        )
+      end
+
+      def render_successful_authentication
+        # encode token comes from ApplicationController/ApiController
+        token = encode_token(user_id: @user.id)
+        if user_login_google_params.has_key?(:needs_jwt_value_for_js)
+          return render_successful_authentication_native(token)
+        end
+        return render_successful_authentication_cookie(token)
       end
 
       def render_activerecord_notfound_error_invalid_username_or_password(exception)
@@ -181,7 +198,9 @@ module Api
       end
 
       def destroy
-        cookies.delete(:jwt)
+        # return unless cookies.key?(:jwt)
+
+        cookies.clear
         render(
           json: {},
           status: :ok
@@ -238,14 +257,14 @@ module Api
 
       def user_login_google_params
         # :sub, :email, :email_verified, :name
-        params.require(:user).permit(:id_token)
+        params.require(:user).permit(:id_token, :needs_jwt_value_for_js)
       end
 
-      def user_login_params
-        # byebug
-        # params { user: {username: 'Chandler Bing', password: 'hi' } }
-        params.require(:user).permit(:email, :password)
-      end
+      # def user_login_params
+      #   # byebug
+      #   # params { user: {username: 'Chandler Bing', password: 'hi' } }
+      #   params.require(:user).permit(:email, :password)
+      # end
     end
   end
 end

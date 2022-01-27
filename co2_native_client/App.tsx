@@ -19,8 +19,10 @@ import { BluetoothData, useBluetoothConnectAranet } from './src/features/bluetoo
 import {fetchJSONWithChecks} from './src/utils/NativeFetchHelpers';
 import { postRequestOptions, userRequestOptions } from '../co2_client/src/utils/DefaultRequestOptions';
 import {formatErrors, withErrors} from '../co2_client/src/utils/ErrorObject';
+import {UserDevicesInfo} from '../co2_client/src/utils/UserInfoTypes';
 import { MaybeIfValue } from './src/utils/RenderValues';
 import {API_URL} from '../co2_client/src/utils/UrlPath';
+import { withAuthorizationHeader } from './src/utils/NativeDefaultRequestHelpers';
 
 // import {AppStatsResponse, queryAppStats} from '../co2_client/src/utils/QueryAppStats';
 
@@ -40,7 +42,7 @@ const LOGIN_URL = BASE_EXPO_URL + '/api/v1/auth';
 const USER_DEVICES_URL = (BASE_EXPO_URL + '/api/v1/my_devices');
 
 const requestOptions = {
-  method: 'get',
+  method: 'GET',
   credentials: "include" as RequestCredentials, //for httpOnly cookie
   headers: {
       'Content-Type': 'application/json',
@@ -85,22 +87,14 @@ return statsResponse;
   // });
 };
 
-
-
-const includeCreds: RequestCredentials = "include";
-
-function loginRequestInit(id_token: string) {
+function nativeLoginRequestInit(id_token: string) {
     const def = postRequestOptions();
     const options = {
         ...def,
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        credentials: includeCreds, //for httpOnly cookie
         body: JSON.stringify({
             user: {
-                id_token
+                id_token,
+                needs_jwt_value_for_js: true
             }
         })
     };
@@ -117,18 +111,30 @@ const fetchSuccessCallback = async (awaitedResponse: Response): Promise<any> => 
     return awaitedResponse.json();
 }
 
-const get_my_devices = () => {
-  const result = fetchJSONWithChecks(USER_DEVICES_URL, userRequestOptions(), 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<UserDevicesInfo>;
+function initDeviceRequestOptions(jwt: string): RequestInit {
+  const defaultOptions = userRequestOptions();
+  const options = {
+    ...defaultOptions,
+    headers: {
+      ...withAuthorizationHeader(jwt)
+    }
+  };
+  return options;
+}
+
+const get_my_devices = (jwt: string) => {
+  const deviceRequestOptions = initDeviceRequestOptions(jwt);
+  const result = fetchJSONWithChecks(USER_DEVICES_URL, deviceRequestOptions, 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<UserDevicesInfo>;
   return result;
 
 }
 
 
-const loginWithIDToken = (id_token: string, setUsername: React.Dispatch<React.SetStateAction<string>>) => {
-    const options = loginRequestInit(id_token);
+const loginWithIDToken = (id_token: string, setUsername: React.Dispatch<React.SetStateAction<string>>, setJWT: React.Dispatch<React.SetStateAction<string | null>>) => {
+    const options = nativeLoginRequestInit(id_token);
     console.log("logging in to server!")
     // const url = (API_URL + '/google_login_token');
-    debugger;
+    // debugger;
     const result = fetchJSONWithChecks(LOGIN_URL, options, 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<any>;
     return result.then((response) => {
         // console.log(response);
@@ -136,6 +142,7 @@ const loginWithIDToken = (id_token: string, setUsername: React.Dispatch<React.Se
         // debugger;
         console.log("sucessfully logged in to server!");
         setUsername(response.email);
+        setJWT(response.jwt);
         return;
 
     }).catch((error) => {
@@ -150,6 +157,7 @@ function Main() {
   const {device} = useBluetoothConnectAranet();
   const [idToken, setIDToken] = useState(null as (string | null));
   const [userName, setUsername] = useState('');
+  const [jwt, setJWT] = useState(null as (string | null));
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     // expoClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
@@ -170,23 +178,36 @@ function Main() {
     console.log("Note to self (TODO): there's really nothing sensitive about the client ID, but I'd like to obfuscate it anyways.");
   }, []);
 
-  useEffect(() => {
-    if (userName === '') {
-      return;
-    }
-    fartipelago().then((result) => {
-      debugger;
-    });
-  }, [userName]);
+  // useEffect(() => {
+  //   if (userName === '') {
+  //     return;
+  //   }
+  //   fartipelago().then((result) => {
+  //     debugger;
+  //   });
+  // }, [userName]);
 
   useEffect(() => {
     if (userName === '') {
       return;
     }
-    get_my_devices().then((response) => {
+    if (jwt === null) {
+      return;
+    }
+    if (jwt === '') {
+      return;
+    }
+    console.log("Getting devices");
+    get_my_devices(jwt).then((response) => {
+      console.log(`User devices:`);
+      for (let i = 0; i < response.devices.length; i++) {
+        console.log(`\tDevice ${response.devices[i].device_id}: ${response.devices[i].device_manufacturer} ${response.devices[i].device_model} #${response.devices[i].serial}`);
+      }
+      debugger;
+    }).catch((error) => {
       debugger;
     })
-  }, [userName])
+  }, [userName, jwt])
 
 
   useEffect(() => {
@@ -230,7 +251,7 @@ function Main() {
       //  refreshToken
       console.log(`expiresIn: ${response.authentication.expiresIn}`);
       console.log(`refreshToken: ${response.authentication.refreshToken}`);
-      console.log(`idToken: ${response.authentication.idToken}`);
+      // console.log(`idToken: ${response.authentication.idToken}`);
       if (response.authentication.idToken === null) {
         console.error("id token null??!?");
         debugger;
@@ -255,7 +276,7 @@ function Main() {
       debugger;
       return;
     }
-    loginWithIDToken(idToken, setUsername);
+    loginWithIDToken(idToken, setUsername, setJWT);
   }, [idToken])
 
   return (

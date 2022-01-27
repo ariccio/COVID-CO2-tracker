@@ -168,7 +168,7 @@ const loadEmail = (dispatch: ReturnType<typeof useDispatch>, username: string) =
         Sentry.captureMessage("undefined email and errors");
         debugger;
       }
-      // console.log("got email: ", email.email)
+      console.log("got email: ", email.email);
       if (username === '') {
         dispatch(setUsername(`(logging in...) ${email.email}`));
         checkEmails(email.email);

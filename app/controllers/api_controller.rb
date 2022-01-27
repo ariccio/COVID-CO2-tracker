@@ -44,8 +44,20 @@ class ApiController < ActionController::API
     encode_with_jwt(payload)
   end
 
+  def auth_header
+    request.headers['Authorization']
+  end
+
+  def jwt_from_auth_header
+    auth_header.split(' ')[1]
+  end
+
   def authenticate_user
     # byebug
+    if auth_header
+      return decode_with_jwt(jwt_from_auth_header)
+    end
+
     return if (cookies.signed[:jwt].nil?)
 
     jwt = cookies.signed[:jwt]
@@ -105,7 +117,7 @@ class ApiController < ActionController::API
 
   # Might help for faster lookups in ActiveRecord
   def current_user_id
-    return unless cookie?
+    return unless cookie? || auth_header
 
     @id_from_token = user_id_from_jwt_token
 
