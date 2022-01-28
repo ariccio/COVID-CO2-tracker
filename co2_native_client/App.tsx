@@ -19,10 +19,12 @@ import { BluetoothData, useBluetoothConnectAranet } from './src/features/bluetoo
 import {fetchJSONWithChecks} from './src/utils/NativeFetchHelpers';
 import { postRequestOptions, userRequestOptions } from '../co2_client/src/utils/DefaultRequestOptions';
 import {formatErrors, withErrors} from '../co2_client/src/utils/ErrorObject';
-import {UserDevicesInfo} from '../co2_client/src/utils/UserInfoTypes';
+import {UserDevicesInfo, userDevicesInfoResponseToStrongType} from '../co2_client/src/utils/UserInfoTypes';
 import { MaybeIfValue } from './src/utils/RenderValues';
 import {API_URL} from '../co2_client/src/utils/UrlPath';
 import { withAuthorizationHeader } from './src/utils/NativeDefaultRequestHelpers';
+import { UserInfoDevice } from '../co2_client/src/utils/DeviceInfoTypes';
+import { setSupportedDevices, setUNSupportedDevices } from './src/features/userInfo/devicesSlice';
 
 // import {AppStatsResponse, queryAppStats} from '../co2_client/src/utils/QueryAppStats';
 
@@ -41,14 +43,6 @@ const STATS_URL = BASE_EXPO_URL + '/api/v1/stats/show';
 const LOGIN_URL = BASE_EXPO_URL + '/api/v1/auth';
 const USER_DEVICES_URL = (BASE_EXPO_URL + '/api/v1/my_devices');
 
-const requestOptions = {
-  method: 'GET',
-  credentials: "include" as RequestCredentials, //for httpOnly cookie
-  headers: {
-      'Content-Type': 'application/json',
-  },
-};
-
 
 interface AppStats {
   users: number,
@@ -63,29 +57,29 @@ interface AppStats {
 export type AppStatsResponse = AppStats & withErrors;
 
 
-const fartipelago = async () => {
-  console.log(`Fetching ${STATS_URL}...`);
-  const fetchFailedCallback = async (awaitedResponse: Response): Promise<never> => {
-    console.warn("querying app stats failed.");
-    throw new Error(formatErrors((await awaitedResponse.clone().json()).errors));
-}
+// const fartipelago = async () => {
+//   console.log(`Fetching ${STATS_URL}...`);
+//   const fetchFailedCallback = async (awaitedResponse: Response): Promise<never> => {
+//     console.warn("querying app stats failed.");
+//     throw new Error(formatErrors((await awaitedResponse.clone().json()).errors));
+// }
 
-const fetchSuccessCallback = async (awaitedResponse: Response): Promise<AppStatsResponse> => {
-    return (await awaitedResponse.json() as AppStatsResponse);
-}
+// const fetchSuccessCallback = async (awaitedResponse: Response): Promise<AppStatsResponse> => {
+//     return (await awaitedResponse.json() as AppStatsResponse);
+// }
 
-const statsResponse = fetchJSONWithChecks(STATS_URL, userRequestOptions(), 200, false, fetchFailedCallback, fetchSuccessCallback) as Promise<never> | Promise<AppStatsResponse>;
-return statsResponse;
+// const statsResponse = fetchJSONWithChecks(STATS_URL, userRequestOptions(), 200, false, fetchFailedCallback, fetchSuccessCallback) as Promise<never> | Promise<AppStatsResponse>;
+// return statsResponse;
 
-  return statsResponse;
-  // const rawFetchResponse_ = fetch(stats, requestOptions);
-  // return rawFetchResponse_.then(async (body) => {
-  //   const awaitedResponse = await rawFetchResponse_;
-  //   const asJson = await awaitedResponse.json();
-  //   console.table(asJson);
-  //   return asJson;
-  // });
-};
+//   return statsResponse;
+//   // const rawFetchResponse_ = fetch(stats, requestOptions);
+//   // return rawFetchResponse_.then(async (body) => {
+//   //   const awaitedResponse = await rawFetchResponse_;
+//   //   const asJson = await awaitedResponse.json();
+//   //   console.table(asJson);
+//   //   return asJson;
+//   // });
+// };
 
 function nativeLoginRequestInit(id_token: string) {
     const def = postRequestOptions();
@@ -101,14 +95,15 @@ function nativeLoginRequestInit(id_token: string) {
     return options;
 }
 
-const fetchFailedCallback = async (awaitedResponse: Response): Promise<any> => {
-    console.error("login to server with google failed");
-    debugger;
-    return awaitedResponse.json();
+const fetchLoginFailedCallback = async (awaitedResponse: Response): Promise<any> => {
+  console.error("login to server with google failed");
+  debugger;
+  return awaitedResponse.json();
 }
 
-const fetchSuccessCallback = async (awaitedResponse: Response): Promise<any> => {
-    return awaitedResponse.json();
+const genericFetchSuccessCallback = async (awaitedResponse: Response): Promise<any> => {
+  console.log("TODO: strong type.")
+  return awaitedResponse.json();
 }
 
 function initDeviceRequestOptions(jwt: string): RequestInit {
@@ -122,9 +117,20 @@ function initDeviceRequestOptions(jwt: string): RequestInit {
   return options;
 }
 
+const fetchMyDevicesFailedCallback = async (awaitedResponse: Response): Promise<UserDevicesInfo> => {
+  console.error("Fetching user devices failed.");
+  debugger;
+  return awaitedResponse.json();
+}
+
+const fetchMyDevicesSucessCallback = async (awaitedResponse: Response): Promise<UserDevicesInfo> => {
+  const response = awaitedResponse.json();
+  return response;
+}
+
 const get_my_devices = (jwt: string) => {
   const deviceRequestOptions = initDeviceRequestOptions(jwt);
-  const result = fetchJSONWithChecks(USER_DEVICES_URL, deviceRequestOptions, 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<UserDevicesInfo>;
+  const result = fetchJSONWithChecks(USER_DEVICES_URL, deviceRequestOptions, 200, true, fetchMyDevicesFailedCallback, fetchMyDevicesSucessCallback) as Promise<UserDevicesInfo>;
   return result;
 
 }
@@ -135,11 +141,8 @@ const loginWithIDToken = (id_token: string, setUsername: React.Dispatch<React.Se
     console.log("logging in to server!")
     // const url = (API_URL + '/google_login_token');
     // debugger;
-    const result = fetchJSONWithChecks(LOGIN_URL, options, 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<any>;
+    const result = fetchJSONWithChecks(LOGIN_URL, options, 200, true, fetchLoginFailedCallback, genericFetchSuccessCallback) as Promise<any>;
     return result.then((response) => {
-        // console.log(response);
-        // console.log("TODO: What the heck do I do with the response here? As long as it's correct, do I even care?");
-        // debugger;
         console.log("sucessfully logged in to server!");
         setUsername(response.email);
         setJWT(response.jwt);
@@ -152,12 +155,35 @@ const loginWithIDToken = (id_token: string, setUsername: React.Dispatch<React.Se
     })
 }
 
+function filterSupportedDevices(device: UserInfoDevice): boolean {
+  const caseInsensitive = device.device_manufacturer.toLowerCase();
+  if (caseInsensitive.includes('aranet')) {
+    return true;
+  }
+  return false;
+}
 
-function Main() {
-  const {device} = useBluetoothConnectAranet();
+function filterUnsupportedDevices(device: UserInfoDevice): boolean {
+  return !(filterSupportedDevices(device));
+}
+
+function dumpUserDevicesInfoResponse(response: UserDevicesInfo): void {
+  console.log(`User devices:`);
+  for (let i = 0; i < response.devices.length; i++) {
+    console.log(`\tDevice ${response.devices[i].device_id}: ${response.devices[i].device_manufacturer} ${response.devices[i].device_model} #${response.devices[i].serial}`);
+  }
+}
+
+function dumpDeviceInfo(devices: Array<UserInfoDevice>): void {
+  for (let i = 0; i < devices.length; i++) {
+    console.log(`\tDevice ${devices[i].device_id}: ${devices[i].device_manufacturer} ${devices[i].device_model} #${devices[i].serial}`);
+  }
+}
+
+const useGoogleAuthForCO2Tracker = () => {
   const [idToken, setIDToken] = useState(null as (string | null));
-  const [userName, setUsername] = useState('');
   const [jwt, setJWT] = useState(null as (string | null));
+  const [userName, setUsername] = useState('');
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     // expoClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
@@ -165,49 +191,6 @@ function Main() {
     androidClientId: '460477494607-vslsidjdslivkafohmt992tls0dh6cf5.apps.googleusercontent.com',
     // webClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
   });
-
-
-  useEffect(() => {
-    if (device === null) {
-      return;
-    }
-    console.log("has device! Device object:");
-  }, [device]);
-
-  useEffect(() => {
-    console.log("Note to self (TODO): there's really nothing sensitive about the client ID, but I'd like to obfuscate it anyways.");
-  }, []);
-
-  // useEffect(() => {
-  //   if (userName === '') {
-  //     return;
-  //   }
-  //   fartipelago().then((result) => {
-  //     debugger;
-  //   });
-  // }, [userName]);
-
-  useEffect(() => {
-    if (userName === '') {
-      return;
-    }
-    if (jwt === null) {
-      return;
-    }
-    if (jwt === '') {
-      return;
-    }
-    console.log("Getting devices");
-    get_my_devices(jwt).then((response) => {
-      console.log(`User devices:`);
-      for (let i = 0; i < response.devices.length; i++) {
-        console.log(`\tDevice ${response.devices[i].device_id}: ${response.devices[i].device_manufacturer} ${response.devices[i].device_model} #${response.devices[i].serial}`);
-      }
-      debugger;
-    }).catch((error) => {
-      debugger;
-    })
-  }, [userName, jwt])
 
 
   useEffect(() => {
@@ -279,12 +262,70 @@ function Main() {
     loginWithIDToken(idToken, setUsername, setJWT);
   }, [idToken])
 
+  return {jwt, userName, promptAsync} 
+}
+
+function Main() {
+  const {device} = useBluetoothConnectAranet();
+  const {jwt, userName, promptAsync} = useGoogleAuthForCO2Tracker();
+  
+  
+  const dispatch = useDispatch();
+
+
+
+
+  useEffect(() => {
+    if (device === null) {
+      return;
+    }
+    console.log("has device! Device object:");
+  }, [device]);
+
+  useEffect(() => {
+    console.log("Note to self (TODO): there's really nothing sensitive about the client ID, but I'd like to obfuscate it anyways.");
+  }, []);
+
+  useEffect(() => {
+    if (userName === '') {
+      return;
+    }
+    if (jwt === null) {
+      return;
+    }
+    if (jwt === '') {
+      return;
+    }
+    console.log("Getting devices");
+    get_my_devices(jwt).then((responseUnchecked) => {
+      const response = userDevicesInfoResponseToStrongType(responseUnchecked)
+      // dumpUserDevicesInfoResponse(response);
+      const supportedDevices = response.devices.filter(filterSupportedDevices);
+      const unSupportedDevices = response.devices.filter(filterUnsupportedDevices);
+
+      console.log('------');
+      console.log("Supported devices:");
+      dumpDeviceInfo(supportedDevices);
+      console.log('------');
+      console.log("UNsupported devices:");
+      dumpDeviceInfo(unSupportedDevices);
+      dispatch(setSupportedDevices(supportedDevices));
+      dispatch(setUNSupportedDevices(unSupportedDevices));
+      debugger;
+    }).catch((error) => {
+      debugger;
+      throw error;
+    })
+  }, [userName, jwt])
+
+
+
   return (
     
       <View style={styles.container}>
         
         <BluetoothData device={device}/>
-        <Button disabled={!request} title="Login" onPress={() => {promptAsync();}}/>
+        <Button disabled={jwt !== null} title="Login" onPress={() => {promptAsync();}}/>
         <MaybeIfValue text={"username: "} value={(userName !== '') ? userName : null}/>
         <StatusBar style="auto" />
       </View>

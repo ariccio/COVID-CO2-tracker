@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { DeviceId, Base64, UUID, State } from 'react-native-ble-plx';
-import { RootState } from '../../app/store';
+import { RootState } from '../../app/rootReducer';
 
 interface GenericDeviceInformation {
     modelNumber: string | null;
