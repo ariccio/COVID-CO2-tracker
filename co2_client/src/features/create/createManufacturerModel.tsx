@@ -145,6 +145,7 @@ function newManufacturerRequestInit(newManufacturerName: string): RequestInit {
 }
 
 function responseToNewManufacturerStrongType(response: any): NewManufacturerResponse {
+    // What?
     if (response.errors !== undefined) {
         console.assert(response.name !== undefined);
         console.assert(response.id !== undefined);

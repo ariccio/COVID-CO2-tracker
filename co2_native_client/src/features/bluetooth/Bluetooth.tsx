@@ -13,6 +13,9 @@ import { MaybeIfValue, ValueOrLoading } from '../../utils/RenderValues';
 import * as BLUETOOTH from '../../../../co2_client/src/utils/BluetoothConstants';
 
 import { Aranet4_1503CO2, MeasurementData, selectAranet4SpecificData, selectDeviceBatterylevel, selectDeviceID, selectDeviceName, selectDeviceRSSI, selectDeviceSerialNumberString, selectHasBluetooth, selectMeasurementData, selectScanningErrorStatusString, selectScanningStatusString, setAranet4Color, setAranet4SecondsSinceLastMeasurement, setDeviceBatteryLevel, setDeviceID, setDeviceName, setDeviceSerialNumber, setHasBluetooth, setMeasurementData, setMeasurementInterval, setRssi, setScanningErrorStatusString, setScanningStatusString } from './bluetoothSlice';
+import { selectSupportedDevices } from '../userInfo/devicesSlice';
+import { UserInfoDevice } from '../../../../co2_client/src/utils/DeviceInfoTypes';
+import { AppDispatch } from '../../app/store';
 
 
 //https://github.com/thespacemanatee/Smart-Shef-IoT/blob/4782c95f383040f36e4ae7ce063166cce5c76129/smart_shef_app/src/utils/hooks/useMonitorHumidityCharacteristic.ts
@@ -118,19 +121,19 @@ async function dumpServiceDescriptions(services: Service[]) {
     }
 }
 
-const scanCallback = async (error: BleError | null, scannedDevice: Device | null, setDevice: React.Dispatch<React.SetStateAction<Device | null>>, dispatch: ReturnType<typeof useDispatch>) => {
+const scanCallback = async (error: BleError | null, scannedDevice: Device | null, setDevice: React.Dispatch<React.SetStateAction<Device | null>>, dispatch: AppDispatch) => {
     if (error) {
         console.error(`error scanning: ${error}`);
         debugger;
         dispatch(setScanningErrorStatusString(`error scanning: ${error}`));
         // Handle error (scanning will be stopped automatically)
-        return
+        return;
     }
 
 
     dumpNewScannedDeviceInfo(scannedDevice);
     if (!scannedDevice) {
-        dispatch(setScanningErrorStatusString(`scannedDevice is null?: Something's wrong.`));
+        // dispatch(setScanningErrorStatusString(`scannedDevice is null?: Something's wrong.`));
         return;
     }
     if (scannedDevice.name === null) {
@@ -147,9 +150,9 @@ const scanCallback = async (error: BleError | null, scannedDevice: Device | null
         // }
 
     }
-    else {
-        dispatch(setScanningStatusString(`found non-aranet device: ${scannedDevice.name}`));
-    }
+    // else {
+    //     dispatch(setScanningStatusString(`found non-aranet device: ${scannedDevice.name}`));
+    // }
 
     // debugger;
 }
@@ -293,112 +296,6 @@ function noDevice(deviceID: string | null, device: Device | null): boolean {
     return false;
 }
 
-// const useBluetoothSerialNumber = (deviceID: string | null, device: Device | null) => {
-//     const dispatch = useDispatch();
-//     const [serialNumberError, setError] = useState(null as (Error | null));
-//     const [serialNumberString, setSerialNumberString] = useState(null as (string | null));
-
-//     useEffect(() => {
-//         if (noDevice(deviceID, device)) {
-//             return;
-//         }
-//         // dispatch(setScanningStatusString(`Beginning serial number read...`));
-
-//         readSerialNumberFromBluetoothDevice(deviceID!).then((serialNumberString) => {
-//             console.log(`Serial number: ${serialNumberString}`);
-//             // dispatch(setDeviceSerialNumber(serialNumberString));
-//             setSerialNumberString(serialNumberString);
-//             if (serialNumberString.length === 0) {
-//                 console.warn(`Device ${deviceID} has an empty serial number string?`);
-//                 setError(new Error(`Device ${deviceID} has an empty serial number string?`));
-//             }
-//             // dispatch(setScanningStatusString(`Got serial number! ('${serialNumberString}')`));
-//             // dispatch(setScanningStatusString(null));
-//         }).catch((error) => {
-//             if (error.code === BleErrorCode.DeviceNotConnected) {
-//                 dispatch(setScanningStatusString(`Device ${deviceID} not connected. Serial number not available.`))
-//                 console.warn(`Device ${deviceID} not connected. Serial number not available.`);
-//                 // device!.connect();
-//                 return;
-//             }
-
-//             // console.error(error);
-
-//             debugger;
-//             setError(error);
-//         });
-//     }, [device, deviceID]);
-
-//     return { serialNumberString, serialNumberError };
-// }
-
-// const useBluetoothDeviceName = (deviceID: string | null, device: Device | null) => {
-//     const dispatch = useDispatch();
-//     const [deviceNameError, setDeviceNameError] = useState(null as (Error | null));
-//     const [deviceNameString, setDeviceNameString] = useState(null as (string | null));
-
-//     useEffect(() => {
-//         if (noDevice(deviceID, device)) {
-//             console.log(`No device. ${deviceID}, ${device}}`);
-//             return;
-//         }
-//         console.log(`Device. ${deviceID}, ${device}}`);
-//         // dispatch(setScanningStatusString(`Beginning device name read...`));
-//         readDeviceNameFromBluetoothDevice(deviceID!).then((deviceNameString) => {
-//             console.log(`Device name: ${deviceNameString}`)
-//             setDeviceNameString(deviceNameString);
-//             if (deviceNameString.length === 0) {
-//                 console.warn(`Device ${deviceID} has an empty name?`);
-//                 setDeviceNameError(new Error(`Device ${deviceID} has an empty name?`));
-//             }
-//             // dispatch(`Got device name! ('${deviceNameString}')`);
-//             // dispatch(setScanningStatusString(null));
-//         }).catch((error) => {
-//             if (error.code === BleErrorCode.DeviceNotConnected) {
-//                 dispatch(setScanningStatusString(`Device ${deviceID} not connected. Name not available.`))
-//                 console.warn(`Device ${deviceID} not connected. Name not available.`);
-//                 // device!.connect();
-//                 return;
-//             }
-//             // console.error(error);
-//             debugger;
-//             setDeviceNameError(error);
-//         })
-
-//     }, [device, deviceID]);
-//     return { deviceNameString, deviceNameError };
-// }
-
-// const useBluetoothBatteryLevel = (deviceID: string | null, device: Device | null) => {
-//   const dispatch = useDispatch();
-//   const [deviceBatteryError, setDeviceBatteryError] = useState(null as (Error | null));
-//   const [deviceBattery, setDeviceBattery] = useState(null as (number | null));
-
-//   useEffect(() => {
-//     if (noDevice(deviceID, device)) {
-//       return;
-//     }
-//     readBatteryLevelFromBluetoothDevice(deviceID!).then((deviceBatteryLevel) => {
-//       setDeviceBattery(deviceBatteryLevel);
-//       if (deviceBatteryLevel < 20) {
-//         console.warn(`Device ${deviceID} has a low battery! (${deviceBatteryLevel}%)`);
-//       }
-//     }).catch( (error) => {
-//       // console.error(error);
-//       setDeviceBatteryError(error);
-//       // debugger;
-//     })
-//   }, [device, deviceID])
-
-//   return {deviceBattery, deviceBatteryError};
-// }
-
-// const useGenericBluetoothInformation = (deviceID: string | null, device: Device | null) => {
-//     const { serialNumberString, serialNumberError } = useBluetoothSerialNumber(deviceID, device);
-//     const { deviceNameString, deviceNameError } = useBluetoothDeviceName(deviceID, device);
-//     return { serialNumberString, serialNumberError, deviceNameString, deviceNameError };
-// }
-
 async function readGenericBluetoothInformation(deviceID: string, device: Device): Promise<GenericBluetoothInformation> {
     // dispatch(setScanningStatusString(`Beginning serial number read...`));
     let serialNumberStringError = null;
@@ -413,21 +310,6 @@ async function readGenericBluetoothInformation(deviceID: string, device: Device)
         serialNumberStringError = new Error(`Device ${deviceID} has an empty serial number string?`);
     }
     // dispatch(setScanningStatusString(`Got serial number! ('${serialNumberString}')`));
-    // dispatch(setScanningStatusString(null));
-    // then((serialNumberString) => {
-    // }).catch((error) => {
-    //     if (error.code === BleErrorCode.DeviceNotConnected) {
-    //         dispatch(setScanningStatusString(`Device ${deviceID} not connected. Serial number not available.`))
-    //         console.warn(`Device ${deviceID} not connected. Serial number not available.`);
-    //         // device!.connect();
-    //         return;
-    //     }
-
-    //     // console.error(error);
-
-    //     debugger;
-    //     setError(error);
-    // });
 
     const deviceNameString = await readDeviceNameFromBluetoothDevice(deviceID!)
     let deviceNameStringError = null;
@@ -439,18 +321,7 @@ async function readGenericBluetoothInformation(deviceID: string, device: Device)
     }
     // dispatch(`Got device name! ('${deviceNameString}')`);
     // dispatch(setScanningStatusString(null));
-    // .then((deviceNameString) => {
-    // }).catch((error) => {
-    //     if (error.code === BleErrorCode.DeviceNotConnected) {
-    //         dispatch(setScanningStatusString(`Device ${deviceID} not connected. Name not available.`))
-    //         console.warn(`Device ${deviceID} not connected. Name not available.`);
-    //         // device!.connect();
-    //         return;
-    //     }
-    //     // console.error(error);
-    //     debugger;
-    //     setDeviceNameError(error);
-    // })
+
 
     return {
         deviceNameString: deviceNameString,
@@ -755,6 +626,12 @@ const useScanConnectAranet4 = () => {
         }
     }, [device]);
 
+    useEffect(() => {
+        return () => {
+            device?.cancelConnection();
+        }
+    }, [device])
+
     return { device, needsReconnect, setNeedsReconnect };
 }
 
@@ -896,7 +773,7 @@ export const useBluetoothConnectAranet = () => {
     return { device };
 }
 
-async function attemptConnectScannedDevice(scannedDevice: Device, dispatch: ReturnType<typeof useDispatch>): Promise<Device | null> {
+async function attemptConnectScannedDevice(scannedDevice: Device, dispatch: AppDispatch): Promise<Device | null> {
     try {
 
         const connectedDevice = await scannedDevice.connect();
@@ -913,7 +790,7 @@ async function attemptConnectScannedDevice(scannedDevice: Device, dispatch: Retu
 }
 
 
-async function foundAranet4(scannedDevice: Device, dispatch: ReturnType<typeof useDispatch>, setDevice: React.Dispatch<React.SetStateAction<Device | null>>) {
+async function foundAranet4(scannedDevice: Device, dispatch: AppDispatch, setDevice: React.Dispatch<React.SetStateAction<Device | null>>) {
     dispatch(setScanningStatusString(`Found aranet4! (${scannedDevice.id}) Connecting...`));
     console.log("Connecting to aranet4...");
     if (scannedDevice.id) {
@@ -922,12 +799,14 @@ async function foundAranet4(scannedDevice: Device, dispatch: ReturnType<typeof u
     else {
         //TODO: bubble error up?
         console.error("No ID?");
+        debugger;
     }
     if (scannedDevice.name) {
         dispatch(setDeviceName(scannedDevice.name));
     }
     else {
         console.error("No name?");
+        debugger;
     }
     manager.stopDeviceScan();
     // debugger;
@@ -935,7 +814,8 @@ async function foundAranet4(scannedDevice: Device, dispatch: ReturnType<typeof u
     const connectedDevice = await attemptConnectScannedDevice(scannedDevice, dispatch);
 
     if (connectedDevice === null) {
-        console.error("Connection failed.")
+        // console.error("Connection failed.");
+        dispatch(setScanningStatusString("Connection to aranet4 failed."));
         return;
     }
     dispatch(setScanningStatusString(`Connected to aranet4 ${scannedDevice.id}). Discovering services and characteristics...`));
@@ -957,6 +837,8 @@ async function foundAranet4(scannedDevice: Device, dispatch: ReturnType<typeof u
     }
     else {
         console.error("No rssi?");
+        debugger;
+        dispatch(setScanningErrorStatusString("RSSI field missing. Huh?"));
     }
     dispatch(setScanningStatusString(null));
 }
@@ -991,6 +873,17 @@ function dumpNewScannedDeviceInfo(scannedDevice: Device | null) {
  
 */
 
+function isSupportedDevice(supportedDevices: UserInfoDevice[] | null, serialNumber: string | null): boolean | null {
+    if (!supportedDevices) {
+        return null;
+    }
+    if (!serialNumber) {
+        return false;
+    }
+
+    const isKnown = supportedDevices.find((device) => device.serial === serialNumber);
+    return false;
+}
 
 
 export const BluetoothData: React.FC<{ device: Device | null }> = ({ device }) => {
@@ -1003,7 +896,8 @@ export const BluetoothData: React.FC<{ device: Device | null }> = ({ device }) =
     const deviceBatteryLevel = useSelector(selectDeviceBatterylevel);
     const measurementData = useSelector(selectMeasurementData);
     const aranet4Data = useSelector(selectAranet4SpecificData);
-
+    const supportedDevices = useSelector(selectSupportedDevices);
+    const knownDevice = isSupportedDevice(supportedDevices, serialNumber);
 
     const next = maybeNextMeasurementIn(aranet4Data?.aranet4MeasurementInterval, aranet4Data?.aranet4SecondsSinceLastMeasurement);
 
@@ -1016,6 +910,7 @@ export const BluetoothData: React.FC<{ device: Device | null }> = ({ device }) =
             <ValueOrLoading text={"rssi: "} value={rssi} suffix={"db"} />
             <ValueOrLoading text={"Serial number: "} value={serialNumber} />
             <ValueOrLoading text={"Battery: "} value={deviceBatteryLevel} suffix={"%"} />
+            <MaybeIfValue text={"Known user device?: "} value={knownDevice} suffix={"yes"}/>
 
             <MaybeIfValue text={"localName: "} value={(device?.localName) ? device.localName : null} />
             <MaybeIfValue text={"manufacturerData: "} value={(device?.manufacturerData) ? device?.manufacturerData : null} />

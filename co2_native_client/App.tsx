@@ -1,7 +1,7 @@
 import {useEffect, useState} from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, PermissionsAndroid, Button } from 'react-native';
-
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { Provider, useDispatch, useSelector } from 'react-redux';
 
@@ -145,6 +145,7 @@ const loginWithIDToken = (id_token: string, setUsername: React.Dispatch<React.Se
     return result.then((response) => {
         console.log("sucessfully logged in to server!");
         setUsername(response.email);
+        // console.log(response);
         setJWT(response.jwt);
         return;
 
@@ -185,6 +186,9 @@ const useGoogleAuthForCO2Tracker = () => {
   const [jwt, setJWT] = useState(null as (string | null));
   const [userName, setUsername] = useState('');
 
+
+  const [promptAsyncReady, setPromptAsyncReady] = useState(false);
+
   const [request, response, promptAsync] = Google.useAuthRequest({
     // expoClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
     // iosClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
@@ -192,6 +196,13 @@ const useGoogleAuthForCO2Tracker = () => {
     // webClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
   });
 
+
+  useEffect(() => {
+    // "Be sure to disable the prompt until request is defined."
+    const requestSet = (request !== null);
+    console.log(`request ready for promptAsync: ${requestSet}`)
+    setPromptAsyncReady(requestSet);
+  }, [request])
 
   useEffect(() => {
     console.table(request);
@@ -262,25 +273,35 @@ const useGoogleAuthForCO2Tracker = () => {
     loginWithIDToken(idToken, setUsername, setJWT);
   }, [idToken])
 
-  return {jwt, userName, promptAsync} 
+  return {jwt, userName, promptAsync, promptAsyncReady};
+}
+
+function disablePromptAsyncButton(jwt: string | null, promptAsyncReady: boolean): boolean {
+  if (jwt !== null) {
+    return true;
+  }
+  if (jwt === '') {
+    console.warn("Hmm, empty JWT?");
+  }
+  if (!promptAsyncReady) {
+    return true;
+  }
+  return false;
 }
 
 function Main() {
   const {device} = useBluetoothConnectAranet();
-  const {jwt, userName, promptAsync} = useGoogleAuthForCO2Tracker();
+  const {jwt, userName, promptAsync, promptAsyncReady} = useGoogleAuthForCO2Tracker();
   
   
   const dispatch = useDispatch();
 
-
-
-
-  useEffect(() => {
-    if (device === null) {
-      return;
-    }
-    console.log("has device! Device object:");
-  }, [device]);
+  // useEffect(() => {
+  //   if (device === null) {
+  //     return;
+  //   }
+  //   console.log("has device! Device object:");
+  // }, [device]);
 
   useEffect(() => {
     console.log("Note to self (TODO): there's really nothing sensitive about the client ID, but I'd like to obfuscate it anyways.");
@@ -306,12 +327,12 @@ function Main() {
       console.log('------');
       console.log("Supported devices:");
       dumpDeviceInfo(supportedDevices);
-      console.log('------');
-      console.log("UNsupported devices:");
-      dumpDeviceInfo(unSupportedDevices);
+      // console.log('------');
+      // console.log("UNsupported devices:");
+      // dumpDeviceInfo(unSupportedDevices);
       dispatch(setSupportedDevices(supportedDevices));
       dispatch(setUNSupportedDevices(unSupportedDevices));
-      debugger;
+      // debugger;
     }).catch((error) => {
       debugger;
       throw error;
@@ -321,14 +342,12 @@ function Main() {
 
 
   return (
-    
-      <View style={styles.container}>
-        
-        <BluetoothData device={device}/>
-        <Button disabled={jwt !== null} title="Login" onPress={() => {promptAsync();}}/>
-        <MaybeIfValue text={"username: "} value={(userName !== '') ? userName : null}/>
-        <StatusBar style="auto" />
-      </View>
+    <SafeAreaProvider style={styles.container}>          
+      <BluetoothData device={device}/>
+      <Button disabled={disablePromptAsyncButton(jwt, promptAsyncReady)} title="Login" onPress={() => {promptAsync();}}/>
+      <MaybeIfValue text={"username: "} value={(userName !== '') ? userName : null}/>
+      <StatusBar style="auto" />
+    </SafeAreaProvider>
   );
 }
 
