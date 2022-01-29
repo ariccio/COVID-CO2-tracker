@@ -21,7 +21,7 @@ import { postRequestOptions, userRequestOptions } from '../co2_client/src/utils/
 import {formatErrors, withErrors} from '../co2_client/src/utils/ErrorObject';
 import {UserDevicesInfo, userDevicesInfoResponseToStrongType} from '../co2_client/src/utils/UserInfoTypes';
 import { MaybeIfValue } from './src/utils/RenderValues';
-import {API_URL} from '../co2_client/src/utils/UrlPath';
+import {API_URL, LOGIN_URL} from '../co2_client/src/utils/UrlPath';
 import { withAuthorizationHeader } from './src/utils/NativeDefaultRequestHelpers';
 import { UserInfoDevice } from '../co2_client/src/utils/DeviceInfoTypes';
 import { setSupportedDevices, setUNSupportedDevices } from './src/features/userInfo/devicesSlice';
@@ -39,9 +39,8 @@ const BASE_EXPO_URL = `http://${manifest?.debuggerHost?.split(':').shift()}:3000
 // 
 // 
 
-const STATS_URL = BASE_EXPO_URL + '/api/v1/stats/show';
-const LOGIN_URL = BASE_EXPO_URL + '/api/v1/auth';
-const USER_DEVICES_URL = (BASE_EXPO_URL + '/api/v1/my_devices');
+const LOGIN_URL_NATIVE = (BASE_EXPO_URL + LOGIN_URL);
+const USER_DEVICES_URL_NATIVE = (BASE_EXPO_URL + '/api/v1/my_devices');
 
 
 interface AppStats {
@@ -130,7 +129,7 @@ const fetchMyDevicesSucessCallback = async (awaitedResponse: Response): Promise<
 
 const get_my_devices = (jwt: string) => {
   const deviceRequestOptions = initDeviceRequestOptions(jwt);
-  const result = fetchJSONWithChecks(USER_DEVICES_URL, deviceRequestOptions, 200, true, fetchMyDevicesFailedCallback, fetchMyDevicesSucessCallback) as Promise<UserDevicesInfo>;
+  const result = fetchJSONWithChecks(USER_DEVICES_URL_NATIVE, deviceRequestOptions, 200, true, fetchMyDevicesFailedCallback, fetchMyDevicesSucessCallback) as Promise<UserDevicesInfo>;
   return result;
 
 }
@@ -141,7 +140,7 @@ const loginWithIDToken = (id_token: string, setUsername: React.Dispatch<React.Se
     console.log("logging in to server!")
     // const url = (API_URL + '/google_login_token');
     // debugger;
-    const result = fetchJSONWithChecks(LOGIN_URL, options, 200, true, fetchLoginFailedCallback, genericFetchSuccessCallback) as Promise<any>;
+    const result = fetchJSONWithChecks(LOGIN_URL_NATIVE, options, 200, true, fetchLoginFailedCallback, genericFetchSuccessCallback) as Promise<any>;
     return result.then((response) => {
         console.log("sucessfully logged in to server!");
         setUsername(response.email);

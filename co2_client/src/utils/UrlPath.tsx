@@ -12,3 +12,9 @@ export const SHOW_MEASUREMENT_URL = (API_URL + SHOW_MEASUREMENT_ACTION);
 
 const NEW_DEVICE_ACTION = '/device';
 export const NEW_DEVICE_URL = (API_URL + NEW_DEVICE_ACTION);
+
+const AUTH_ACTION = '/auth';
+export const LOGIN_URL = API_URL + AUTH_ACTION;
+
+const MY_DEVICES_SHOW_ACTION = '/my_devices';
+export const USER_DEVICES_URL = (API_URL + MY_DEVICES_SHOW_ACTION);

@@ -12,12 +12,12 @@ import { postRequestOptions } from '../../utils/DefaultRequestOptions';
 import { getGoogleLoginClientAaaPeeeEyeKey } from '../../utils/GoogleAPIKeys';
 
 // import { profilePath } from '../../paths/paths';
-import { API_URL } from '../../utils/UrlPath';
+import { API_URL, LOGIN_URL } from '../../utils/UrlPath';
 
 import { setGoogleAuthResponse, setGoogleProfile } from './loginSlice';
 import { AppDispatch } from '../../app/store';
 
-const LOGIN_URL = API_URL + '/auth';
+
 
 
 export enum LoginFormType {
