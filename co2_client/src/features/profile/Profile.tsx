@@ -9,12 +9,13 @@ import {UserInfoType, defaultUserInfo} from '../../utils/UserInfoTypes';
 
 import {formatErrors} from '../../utils/ErrorObject';
 import { selectUserInfoErrorState, selectUserInfoState, setUserInfoErrorState, setUserInfoState } from './profileSlice';
+import { AppDispatch } from '../../app/store';
 
 interface ProfileProps {
 
 }
 
-export const updateUserInfo = (dispatch: ReturnType<typeof useDispatch>) => {
+export const updateUserInfo = (dispatch: AppDispatch) => {
     //TODO: should be in redux?
     const userInfoPromise: Promise<UserInfoType> = queryUserInfo();
     userInfoPromise.then((userInfo) => {

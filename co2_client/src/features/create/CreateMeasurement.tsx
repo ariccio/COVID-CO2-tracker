@@ -32,6 +32,7 @@ import { SublocationsDropdown } from '../sublocationsDropdown/SublocationsDropdo
 import { selectSublocationSelectedLocationID, setSublocationSelectedLocationID } from '../sublocationsDropdown/sublocationSlice';
 import { Link } from 'react-router-dom';
 import { devicesPath } from '../../paths/paths';
+import { AppDispatch } from '../../app/store';
 
 enum ToggleButtonUserRadios {
     Now = 1,
@@ -79,7 +80,7 @@ function dropdownKeyToDeviceID(eventKey: string): number | null {
     return parseInt(eventKey);
 }
 
-const selectDeviceDropdownHandler = (eventKey: string | null, e: React.SyntheticEvent<unknown>, userDevices: UserDevicesInfo, dispatch: ReturnType<typeof useDispatch>) => {
+const selectDeviceDropdownHandler = (eventKey: string | null, e: React.SyntheticEvent<unknown>, userDevices: UserDevicesInfo, dispatch: AppDispatch) => {
     // debugger;
     console.assert(eventKey !== null);
     if (eventKey === null) {
@@ -337,7 +338,7 @@ const createMeasurementHandler = (selectedDevice: number, enteredCO2Text: string
     })
 }
 
-const submitHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, placeExistsInDatabase: boolean, dispatch: ReturnType<typeof useDispatch>, setErrorState: React.Dispatch<React.SetStateAction<string>>, enteredCrowding: string, enteredLocationDetails: string, selectedSubLocation: number, userTimeRadioValue: ToggleButtonUserRadios, dateTime: Date, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
+const submitHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, placeExistsInDatabase: boolean, dispatch: AppDispatch, setErrorState: React.Dispatch<React.SetStateAction<string>>, enteredCrowding: string, enteredLocationDetails: string, selectedSubLocation: number, userTimeRadioValue: ToggleButtonUserRadios, dateTime: Date, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
     setShowSubmit(false);
     setSubmitting(true);
     const placeExistsPromiseOrNull = createPlaceIfNotExist(placeExistsInDatabase, place_id);

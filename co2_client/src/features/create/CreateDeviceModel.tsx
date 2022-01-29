@@ -16,6 +16,7 @@ import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
 import {ErrorObjectType, formatErrors} from '../../utils/ErrorObject';
 
 import {API_URL} from '../../utils/UrlPath';
+import { AppDispatch } from '../../app/store';
 
 interface modelDialogProps {
     showAddModel: boolean,
@@ -90,7 +91,7 @@ async function createNewModel(name: string, manufacturer: number): Promise<NewMo
     return result;
 }
 
-const submitHandler = (enteredModelText: string, setShowAddModel: React.Dispatch<React.SetStateAction<boolean>>, navigate: ReturnType<typeof useNavigate>, selectedManufacturer: number, dispatch: ReturnType<typeof useDispatch>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
+const submitHandler = (enteredModelText: string, setShowAddModel: React.Dispatch<React.SetStateAction<boolean>>, navigate: ReturnType<typeof useNavigate>, selectedManufacturer: number, dispatch: AppDispatch, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
     setShowSubmit(false);
     setSubmitting(true);
 
@@ -115,7 +116,7 @@ const submitHandler = (enteredModelText: string, setShowAddModel: React.Dispatch
     })
 }
 
-const onSubmitEvent = (event: React.FormEvent<HTMLFormElement>, enteredModelText: string, setShowAddModel: React.Dispatch<React.SetStateAction<boolean>>, navigate: ReturnType<typeof useNavigate>, selectedManufacturer: number, dispatch: ReturnType<typeof useDispatch>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
+const onSubmitEvent = (event: React.FormEvent<HTMLFormElement>, enteredModelText: string, setShowAddModel: React.Dispatch<React.SetStateAction<boolean>>, navigate: ReturnType<typeof useNavigate>, selectedManufacturer: number, dispatch: AppDispatch, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
     event.stopPropagation();
     event.preventDefault();
     submitHandler(enteredModelText, setShowAddModel, navigate, selectedManufacturer, dispatch, setShowSubmit, setSubmitting);
@@ -130,7 +131,7 @@ const cancelHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, setShow
     navigate(-1);
 }
 
-const submit = (event: React.MouseEvent<HTMLElement, MouseEvent>, enteredModelText: string, setShowAddModel: React.Dispatch<React.SetStateAction<boolean>>, navigate: ReturnType<typeof useNavigate>, selectedManufacturer: number, dispatch: ReturnType<typeof useDispatch>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
+const submit = (event: React.MouseEvent<HTMLElement, MouseEvent>, enteredModelText: string, setShowAddModel: React.Dispatch<React.SetStateAction<boolean>>, navigate: ReturnType<typeof useNavigate>, selectedManufacturer: number, dispatch: AppDispatch, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
     event.stopPropagation();
     event.preventDefault();
     submitHandler(enteredModelText, setShowAddModel, navigate, selectedManufacturer, dispatch, setShowSubmit, setSubmitting);

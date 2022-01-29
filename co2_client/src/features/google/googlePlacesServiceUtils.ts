@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/browser"; // for manual error reporting.
 
 import { useDispatch } from "react-redux";
+import { AppDispatch } from "../../app/store";
 import { updatePlacesInfoFromBackend } from "../../utils/QueryPlacesInfo";
 import { setSublocationSelectedLocationID } from "../sublocationsDropdown/sublocationSlice";
 import { autocompleteSelectedPlaceToAction, INTERESTING_FIELDS, setPlacesServiceStatus, setSelectedPlace } from "./googleSlice";
@@ -74,7 +75,7 @@ const reportWeirdness = (result: google.maps.places.PlaceResult | null, status: 
 
 }
 
-const getDetailsCallback = (result: google.maps.places.PlaceResult | null, status: google.maps.places.PlacesServiceStatus, dispatch: ReturnType<typeof useDispatch>) => {
+const getDetailsCallback = (result: google.maps.places.PlaceResult | null, status: google.maps.places.PlacesServiceStatus, dispatch: AppDispatch) => {
     dispatch(setPlacesServiceStatus(status));
     if (status !== google.maps.places.PlacesServiceStatus.OK) {
         reportWeirdness(result, status);
@@ -104,7 +105,7 @@ const getDetailsCallback = (result: google.maps.places.PlaceResult | null, statu
 }
 
 
-export const updateOnNewPlace = (service: google.maps.places.PlacesService | null, dispatch: ReturnType<typeof useDispatch>, place_id?: string) => {
+export const updateOnNewPlace = (service: google.maps.places.PlacesService | null, dispatch: AppDispatch, place_id?: string) => {
     if (service === null) {
         // debugger;
         console.log("places service not ready yet");

@@ -15,6 +15,7 @@ import { getGoogleLoginClientAaaPeeeEyeKey } from '../../utils/GoogleAPIKeys';
 import { API_URL } from '../../utils/UrlPath';
 
 import { setGoogleAuthResponse, setGoogleProfile } from './loginSlice';
+import { AppDispatch } from '../../app/store';
 
 const LOGIN_URL = API_URL + '/auth';
 
@@ -212,7 +213,7 @@ const sendToServer = (response: GoogleLoginResponse) => {
     return loginWithIDToken(id_token);
 }
 
-const googleLoginSuccessCallback = (originalResponse: GoogleLoginResponse | GoogleLoginResponseOffline, dispatch: ReturnType<typeof useDispatch>) => {
+const googleLoginSuccessCallback = (originalResponse: GoogleLoginResponse | GoogleLoginResponseOffline, dispatch: AppDispatch) => {
     //https://developers.google.com/identity/sign-in/web/backend-auth
     // console.log(originalResponse);
     console.log("google login success!");
@@ -281,7 +282,7 @@ const googleLoginFailedCallback = (error: any, setGoogleLoginErrorState: React.D
     Sentry.captureMessage(`unhandled google login error! Error object: ${String(error.error) + ', ' + String(error.details)}. Full JSON of error object: ${googleLoginErrorStringified}`);
 }
 
-const googleLogoutSuccessCallback = (dispatch: ReturnType<typeof useDispatch>) => {
+const googleLogoutSuccessCallback = (dispatch: AppDispatch) => {
     console.log("logged out via google.");
     logout();
     console.log("TODO: some kind of memory leak here, on setUsername. It must dispatch an update here.");

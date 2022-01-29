@@ -12,6 +12,7 @@ import { NEW_DEVICE_URL } from '../../utils/UrlPath';
 import { postRequestOptions } from '../../utils/DefaultRequestOptions';
 import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
 import { profilePath } from '../../paths/paths';
+import { AppDispatch } from '../../app/store';
 
 
 interface NewDeviceResponse {
@@ -68,7 +69,7 @@ async function createNewDevice(newDeviceSerialNumber: string, deviceModelID: num
     return result;
 }
 
-const submitHandler = (enteredDeviceSerialNumberText: string, setShowAddDeviceInstance: React.Dispatch<React.SetStateAction<boolean>>, navigate: ReturnType<typeof useNavigate>, selectedModel: number, dispatch: ReturnType<typeof useDispatch>, location: ReturnType<typeof useLocation>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
+const submitHandler = (enteredDeviceSerialNumberText: string, setShowAddDeviceInstance: React.Dispatch<React.SetStateAction<boolean>>, navigate: ReturnType<typeof useNavigate>, selectedModel: number, dispatch: AppDispatch, location: ReturnType<typeof useLocation>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
     setShowSubmit(false);
     setSubmitting(true);
     const result = createNewDevice(enteredDeviceSerialNumberText, selectedModel);
@@ -97,7 +98,7 @@ const onChangeEvent = (event: React.FormEvent<HTMLFormElement>, dispatch: any) =
     dispatch(setEnteredDeviceSerialNumberText(text));
 }
 
-const onSubmitEvent = (event: React.FormEvent<HTMLFormElement>, enteredDeviceSerialNumberText: string, setShowAddDeviceInstance: React.Dispatch<React.SetStateAction<boolean>>, navigate: ReturnType<typeof useNavigate>, selectedModel: number, dispatch: ReturnType<typeof useDispatch>, location: ReturnType<typeof useLocation>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
+const onSubmitEvent = (event: React.FormEvent<HTMLFormElement>, enteredDeviceSerialNumberText: string, setShowAddDeviceInstance: React.Dispatch<React.SetStateAction<boolean>>, navigate: ReturnType<typeof useNavigate>, selectedModel: number, dispatch: AppDispatch, location: ReturnType<typeof useLocation>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
     event.stopPropagation();
     event.preventDefault();
     //submitH();
@@ -109,7 +110,7 @@ const cancelHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, setShow
     // history.goBack();
 }
 
-const submit = (event: React.MouseEvent<HTMLElement, MouseEvent>, enteredDeviceSerialNumberText: string, setShowAddDeviceInstance: React.Dispatch<React.SetStateAction<boolean>>, navigate: ReturnType<typeof useNavigate>, selectedModel: number, dispatch: ReturnType<typeof useDispatch>, location: ReturnType<typeof useLocation>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
+const submit = (event: React.MouseEvent<HTMLElement, MouseEvent>, enteredDeviceSerialNumberText: string, setShowAddDeviceInstance: React.Dispatch<React.SetStateAction<boolean>>, navigate: ReturnType<typeof useNavigate>, selectedModel: number, dispatch: AppDispatch, location: ReturnType<typeof useLocation>, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
     event.stopPropagation();
     event.preventDefault();
     submitHandler(enteredDeviceSerialNumberText, setShowAddDeviceInstance, navigate, selectedModel, dispatch, location, setShowSubmit, setSubmitting);

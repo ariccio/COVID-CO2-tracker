@@ -25,6 +25,7 @@ import {CreateMyDeviceInstance} from '../create/CreateDeviceInstance';
 import { updateUserInfo } from '../profile/Profile';
 import { selectUserInfoErrorState, selectUserInfoState } from '../profile/profileSlice';
 import { deviceModelsPath } from '../../paths/paths';
+import { AppDispatch } from '../../app/store';
 // import { selectSelectedManufacturer } from '../manufacturers/manufacturerSlice';
 
 
@@ -150,7 +151,7 @@ const UnselectModelButton = (props: {selectedModelName: string}) => {
 }
 
 
-const selectModelOrUnselectModel = (selectedModelName: string, dispatch: ReturnType<typeof useDispatch>) => {
+const selectModelOrUnselectModel = (selectedModelName: string, dispatch: AppDispatch) => {
     if (selectedModelName === '') {
         return (
             <div>

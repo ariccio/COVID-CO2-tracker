@@ -19,6 +19,7 @@ import { updateUserInfo } from '../profile/Profile';
 
 import {ShowMeasurementModal} from './ShowMeasurement';
 import { percentRebreathedFromPPM, rebreathedToString } from '../../utils/Rebreathed';
+import { AppDispatch } from '../../app/store';
 
 const DELETE_MEASUREMENT_URL = (API_URL + '/measurement');
 
@@ -55,7 +56,7 @@ interface DeleteDeviceResponse {
     errors?: Array<ErrorObjectType>
 }
 
-function deleteClickHandler(event: React.MouseEvent<HTMLElement, MouseEvent>, measurement: SerializedSingleMeasurement, dispatch: ReturnType<typeof useDispatch>) {
+function deleteClickHandler(event: React.MouseEvent<HTMLElement, MouseEvent>, measurement: SerializedSingleMeasurement, dispatch: AppDispatch) {
     event.preventDefault();
     event.stopPropagation();
     const fetchFailedCallback = async (awaitedResponse: Response): Promise<DeleteDeviceResponse> => {
@@ -86,7 +87,7 @@ function deleteClickHandler(event: React.MouseEvent<HTMLElement, MouseEvent>, me
 
 }
 
-const maybeDeleteButton = (measurement: SerializedSingleMeasurement, dispatch: ReturnType<typeof useDispatch>, withDelete?: boolean) => {
+const maybeDeleteButton = (measurement: SerializedSingleMeasurement, dispatch: AppDispatch, withDelete?: boolean) => {
     if (withDelete) {
         return (
             <td>
@@ -176,7 +177,7 @@ const RebreathedFraction = (props: {co2ppm: number}) => {
 
 
 
-const mapMeasurementsToTableBody = (measurements: Array<SerializedSingleMeasurement>, dispatch: ReturnType<typeof useDispatch>, setShowMeasurementModal: React.Dispatch<React.SetStateAction<boolean>>, setSelectedMeasurement: React.Dispatch<React.SetStateAction<string>>, withDelete?: boolean, innerLocation?: InnerLocationDetails, deviceSerials?: Array<SerializedSingleDeviceSerial>, withDevice?: boolean)/*: JSX.Element*/ => {
+const mapMeasurementsToTableBody = (measurements: Array<SerializedSingleMeasurement>, dispatch: AppDispatch, setShowMeasurementModal: React.Dispatch<React.SetStateAction<boolean>>, setSelectedMeasurement: React.Dispatch<React.SetStateAction<string>>, withDelete?: boolean, innerLocation?: InnerLocationDetails, deviceSerials?: Array<SerializedSingleDeviceSerial>, withDevice?: boolean)/*: JSX.Element*/ => {
     if (measurements === undefined) {
         throw new Error(`measurements is undefined! This is a bug in MeasurementsTable.tsx. deviceSerials: ${deviceSerials?.toString()}`);
     }
@@ -210,7 +211,7 @@ const mapMeasurementsToTableBody = (measurements: Array<SerializedSingleMeasurem
 }
 
 
-const measureTableBody = (measurements: Array<SerializedSingleMeasurement>, dispatch: ReturnType<typeof useDispatch>, setShowMeasurementModal: React.Dispatch<React.SetStateAction<boolean>>, setSelectedMeasurement: React.Dispatch<React.SetStateAction<string>>, withDelete?: boolean, innerLocation?: InnerLocationDetails, deviceSerials?: Array<SerializedSingleDeviceSerial>, withDevice?: boolean): JSX.Element =>
+const measureTableBody = (measurements: Array<SerializedSingleMeasurement>, dispatch: AppDispatch, setShowMeasurementModal: React.Dispatch<React.SetStateAction<boolean>>, setSelectedMeasurement: React.Dispatch<React.SetStateAction<string>>, withDelete?: boolean, innerLocation?: InnerLocationDetails, deviceSerials?: Array<SerializedSingleDeviceSerial>, withDevice?: boolean): JSX.Element =>
     <tbody>
         {mapMeasurementsToTableBody(measurements, dispatch, setShowMeasurementModal, setSelectedMeasurement, withDelete, innerLocation, deviceSerials, withDevice)}
     </tbody>

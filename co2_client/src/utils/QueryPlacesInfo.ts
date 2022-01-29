@@ -5,6 +5,7 @@ import {Errors, formatErrors} from './ErrorObject';
 import {SelectedPlaceDatabaseInfo, setPlacesInfoFromDatabase, setPlacesInfoErrors, setPlaceExistsInDatabase, defaultPlaceInfo, setPlaceMarkersFromDatabase, setPlaceMarkersErrors, defaultPlaceMarkers, placesFromDatabaseForMarker, setPlaceMarkersFetchInProgress, setPlaceMarkersFetchFinishMS, setPlaceMarkersFetchStartMS} from '../features/places/placesSlice';
 
 import {useDispatch} from 'react-redux';
+import { AppDispatch } from '../app/store';
 
 const PLACES_BY_GOOGLE_PLACE_ID_ROUTE: string = '/places_by_google_place_id';
 const PLACES_BY_GOOGLE_PLACE_ID_EXISTS_ROUTE: string = '/places_by_google_place_id_exists';
@@ -39,7 +40,7 @@ const queryPlacesBackendExists = (placeId: string) => {
     return result;
 }
 
-const checkIfExists = (place_id: string, dispatch: ReturnType<typeof useDispatch>): Promise<boolean> => {
+const checkIfExists = (place_id: string, dispatch: AppDispatch): Promise<boolean> => {
     const placeExistsPromise = queryPlacesBackendExists(place_id);
     return placeExistsPromise.then((existsResponse) => {
         if (existsResponse.exists === false) {
@@ -61,7 +62,7 @@ const checkIfExists = (place_id: string, dispatch: ReturnType<typeof useDispatch
 
 }
 
-export const updatePlacesInfoFromBackend = (place_id: string, dispatch: ReturnType<typeof useDispatch>) => {
+export const updatePlacesInfoFromBackend = (place_id: string, dispatch: AppDispatch) => {
     dispatch(setPlacesInfoFromDatabase(defaultPlaceInfo));
     dispatch(setPlacesInfoErrors(''));
     
@@ -161,7 +162,7 @@ function inBoundsPlaceRequestInit(northEast: google.maps.LatLng, southWest: goog
 // }
 
 // This may end up being too slow
-export const queryPlacesInBoundsFromBackend = (northEast: google.maps.LatLng, southWest: google.maps.LatLng, dispatch: ReturnType<typeof useDispatch>) => {
+export const queryPlacesInBoundsFromBackend = (northEast: google.maps.LatLng, southWest: google.maps.LatLng, dispatch: AppDispatch) => {
     const init = inBoundsPlaceRequestInit(northEast, southWest);
     const fetchFailedCallback = async (awaitedResponse: Response): Promise<nearbyPlacesResponseType> => {
         dispatch(setPlaceMarkersFetchFinishMS(performance.now()));
@@ -178,7 +179,7 @@ export const queryPlacesInBoundsFromBackend = (northEast: google.maps.LatLng, so
     return nearbyResultsFetchedCallback(result, dispatch);
 }
 
-const nearbyResultsFetchedCallback = (result: Promise<nearbyPlacesResponseType>, dispatch: ReturnType<typeof useDispatch>) => {
+const nearbyResultsFetchedCallback = (result: Promise<nearbyPlacesResponseType>, dispatch: AppDispatch) => {
     return result.then((response) => {
         dispatch(setPlaceMarkersFetchInProgress(false));
         if (response.errors !== undefined) {

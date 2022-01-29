@@ -1,6 +1,7 @@
 import React from 'react';
 import {Dropdown} from 'react-bootstrap';
 import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../../app/store';
 
 import {SublocationMeasurements} from '../places/placesSlice';
 import { setSublocationSelectedLocationID } from './sublocationSlice';
@@ -17,7 +18,7 @@ function dropdownItemRowKey(sublocation: SublocationMeasurements): string {
     return `rowkey-${sublocation.sub_location_id}-show-dropdown`;
 }
 
-const selectSubLocationDropdownHandler = (eventKey: string|null, event: React.SyntheticEvent<unknown>, dispatch: ReturnType<typeof useDispatch>) => {
+const selectSubLocationDropdownHandler = (eventKey: string|null, event: React.SyntheticEvent<unknown>, dispatch: AppDispatch) => {
     console.log(eventKey);
     // setSelectedSubLocation(dropdownKeyToSublocationID(eventKey));
     dispatch(setSublocationSelectedLocationID(dropdownKeyToSublocationID(eventKey)))

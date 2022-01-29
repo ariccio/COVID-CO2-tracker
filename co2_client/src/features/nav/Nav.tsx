@@ -25,6 +25,7 @@ import {selectGoogleProfile, selectUsername, setUsername, GoogleProfile} from '.
 
 import {get_email} from '../../utils/Authentication';
 import { GoogleLoginLogoutContainer } from '../login/Login';
+import { AppDispatch } from '../../app/store';
 
 type NavBarProps = {
 }
@@ -155,7 +156,7 @@ function checkEmails(email: string) {
   }
 }
 
-const loadEmail = (dispatch: ReturnType<typeof useDispatch>, username: string) => {
+const loadEmail = (dispatch: AppDispatch, username: string) => {
   const emailPromise = get_email();
   emailPromise.then(email => {
     if (email === null) {

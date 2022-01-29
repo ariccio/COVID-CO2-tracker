@@ -12,6 +12,7 @@ import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
 import { ErrorObjectType, formatErrors } from '../../utils/ErrorObject';
 import { updateUserInfo } from '../profile/Profile';
 import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../../app/store';
 
 const DeviceTableHeader = () => {
     const [translate] = useTranslation();
@@ -57,7 +58,7 @@ async function deleteDevice(deviceId: number): Promise<DeleteDeviceResponse> {
     return result;
 }
 
-const handleDeleteDeviceClick = (event: React.MouseEvent<HTMLElement, MouseEvent>, deviceId: number, dispatch: ReturnType<typeof useDispatch>) => {
+const handleDeleteDeviceClick = (event: React.MouseEvent<HTMLElement, MouseEvent>, deviceId: number, dispatch: AppDispatch) => {
     event.stopPropagation();
     event.preventDefault();
     const result = deleteDevice(deviceId);
@@ -72,7 +73,7 @@ const handleDeleteDeviceClick = (event: React.MouseEvent<HTMLElement, MouseEvent
 
 }
 
-const mapDevicesToTableBody = (devices: Array<UserInfoDevice>, dispatch: ReturnType<typeof useDispatch>)/*: JSX.Element*/ => {
+const mapDevicesToTableBody = (devices: Array<UserInfoDevice>, dispatch: AppDispatch)/*: JSX.Element*/ => {
     return devices.map((device, index: number) => {
         return (
             <tr key={deviceRowKey(device.device_id)}>                
@@ -87,7 +88,7 @@ const mapDevicesToTableBody = (devices: Array<UserInfoDevice>, dispatch: ReturnT
     })
 }
 
-const deviceTableBody = (devices: Array<UserInfoDevice>, dispatch: ReturnType<typeof useDispatch>): JSX.Element =>
+const deviceTableBody = (devices: Array<UserInfoDevice>, dispatch: AppDispatch): JSX.Element =>
     <tbody>
         {mapDevicesToTableBody(devices, dispatch)}
     </tbody>

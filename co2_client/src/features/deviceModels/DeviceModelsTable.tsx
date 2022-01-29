@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import {ManufacturerModelInfo} from '../manufacturers/manufacturerSlice';
 import {deviceModelsPath} from '../../paths/paths';
 import {setSelectedModel, selectSelectedModel, selectSelectedModelName, setSelectedModelName} from '../deviceModels/deviceModelsSlice';
+import { AppDispatch } from '../../app/store';
 
 const ModelsTableHeader = () => {
     const [translate] = useTranslation();
@@ -29,13 +30,13 @@ function modelRowKey(model: number): string {
     return `manufacturer-model-entry-key-${model}`;
 }
 
-const pickModel = (model_id: number, name: string, dispatch: ReturnType<typeof useDispatch>) => {
+const pickModel = (model_id: number, name: string, dispatch: AppDispatch) => {
     dispatch(setSelectedModel(model_id));
     dispatch(setSelectedModelName(name));
 }
 
 
-const mapModelsToTableBody = (models: Array<ManufacturerModelInfo>, dispatch: ReturnType<typeof useDispatch>)/* JSX.Element */ => {
+const mapModelsToTableBody = (models: Array<ManufacturerModelInfo>, dispatch: AppDispatch)/* JSX.Element */ => {
     // debugger;
     return models.map((model: ManufacturerModelInfo, index: number) => {
         return (
@@ -50,12 +51,12 @@ const mapModelsToTableBody = (models: Array<ManufacturerModelInfo>, dispatch: Re
     })
 }
 
-const deviceModelsBody = (models: Array<ManufacturerModelInfo>, dispatch: ReturnType<typeof useDispatch>): JSX.Element =>
+const deviceModelsBody = (models: Array<ManufacturerModelInfo>, dispatch: AppDispatch): JSX.Element =>
     <tbody>
         {mapModelsToTableBody(models, dispatch)}
     </tbody>
 
-const renderTable = (models: Array<ManufacturerModelInfo>, dispatch: ReturnType<typeof useDispatch>) =>
+const renderTable = (models: Array<ManufacturerModelInfo>, dispatch: AppDispatch) =>
     <Table striped bordered hover>
         <Suspense fallback="Loading translations...">
             <ModelsTableHeader/>

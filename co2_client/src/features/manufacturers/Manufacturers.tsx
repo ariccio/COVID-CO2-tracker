@@ -16,6 +16,7 @@ import {selectSelectedManufacturer} from './manufacturerSlice';
 
 import {queryManufacturerInfo, queryManufacturers, CreateManufacturerModalDialog} from '../create/createManufacturerModel';
 import { selectSelectedModel } from '../deviceModels/deviceModelsSlice';
+import { AppDispatch } from '../../app/store';
 
 
 interface CreateManufacturerOrModelProps {
@@ -101,7 +102,7 @@ const getSingleManufacturer = (selectedManufacturer: number | null, setManufactu
 
 }
 
-const selectManufacturerHandler = (eventKey: string | null, event: React.SyntheticEvent<unknown>, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, dispatch: ReturnType<typeof useDispatch>) => {
+const selectManufacturerHandler = (eventKey: string | null, event: React.SyntheticEvent<unknown>, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, dispatch: AppDispatch) => {
     if (eventKey === "-1") {
         console.log(`user selected create manufacturer`);
         setShowAddManufacturer(true);
@@ -167,7 +168,7 @@ const NewModelForManufacturer = (props: {manufacturerModels: SingleManufacturerI
 
 }
 
-const renderDropdownOrLoading = (knownManufacturers: ManufacturersArray, manufacturerModels: SingleManufacturerInfoResponse, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, location: ReturnType<typeof useLocation>, dispatch: ReturnType<typeof useDispatch>, errors: string) => {
+const renderDropdownOrLoading = (knownManufacturers: ManufacturersArray, manufacturerModels: SingleManufacturerInfoResponse, setShowAddManufacturer: React.Dispatch<React.SetStateAction<boolean>>, location: ReturnType<typeof useLocation>, dispatch: AppDispatch, errors: string) => {
     if(knownManufacturers !== defaultManufacturersArray) {
         if (knownManufacturers.manufacturers === undefined) {
             throw new Error(`knownManufacturers.manufacturers is undefined! This is a bug in Manufacturers.tsx. manufacturerModels: ${String(manufacturerModels)}, errors: ${JSON.stringify(errors)}`)

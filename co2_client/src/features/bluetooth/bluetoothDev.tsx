@@ -16,6 +16,7 @@ import {isMobileSafari} from '../../utils/Browsers';
 import * as BLUETOOTH from '../../utils/BluetoothConstants';
 
 import { selectDebugText, selectBluetoothAvailableError, setCO2, setBluetoothAvailableError, selectBluetoothAvailable, setBluetoothAvailable, setTemperature, setBarometricPressure, setHumidity, selectBattery, setBattery, setDeviceNameFromCharacteristic, setDeviceID, selectDeviceID, setDeviceName, selectDeviceName, selectDeviceNameFromCharacteristic, setAranet4MeasurementInterval, setAranet4TotalMeasurements, setModelNumber, setFirmwareRevision, setHardwareRevision, setSoftwareRevision, setManufacturerName, selectGattDeviceInformation, setAranet4SecondsSinceLastMeasurement, appendDebugText, setAranet4Color, setAranet4Calibration, selectMeasurementData, selectAranet4SpecificData, setRFData, selectRFData, RFData, setSupportsGetDevices, setSupportsBluetooth, selectSupportsBluetooth, selectSupportsGetDevices, selectDeviceServer, setDeviceServer } from "./bluetoothSlice";
+import { AppDispatch } from "../../app/store";
 
 // declare module BluetoothUUID {
 //     export function getService(name: BluetoothServiceUUID ): string;
@@ -117,7 +118,7 @@ function dumpBluetoothCharacteristicProperties(properties: BluetoothCharacterist
 
 
 
-function messages(objectOrString: string, dispatch: ReturnType<typeof useDispatch>): string {
+function messages(objectOrString: string, dispatch: AppDispatch): string {
     // let newMessagesString = messagesString + `${objectOrString}\r\n`;
     // console.log(objectOrString);
     // dispatch(setDebugText(newMessagesString))
@@ -126,7 +127,7 @@ function messages(objectOrString: string, dispatch: ReturnType<typeof useDispatc
 }
 
 
-function aranet4ParseColor(data: DataView, dispatch: ReturnType<typeof useDispatch>): void {
+function aranet4ParseColor(data: DataView, dispatch: AppDispatch): void {
     const unknownFieldMaybeColors = data.getUint8(8);
     const isRedOrYellow = (unknownFieldMaybeColors & 0b000000010);
 
@@ -149,7 +150,7 @@ function aranet4ParseColor(data: DataView, dispatch: ReturnType<typeof useDispat
     dispatch(setAranet4Color('unspecified'));
 }
 
-function parse_ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID(data: DataView, dispatch: ReturnType<typeof useDispatch>): void {
+function parse_ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID(data: DataView, dispatch: AppDispatch): void {
     const co2 = data.getUint16(0, true);
     dispatch(setCO2(co2))
     const temperature = (data.getUint16(2, true) / 20);
@@ -169,7 +170,7 @@ function parse_ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID(data: DataView, dispat
 
 }
 
-function dumpUnknownGatt(data: DataView, dispatch: ReturnType<typeof useDispatch>): void {
+function dumpUnknownGatt(data: DataView, dispatch: AppDispatch): void {
     messages(`\t\tDataView length: ${data.byteLength} bytes`, dispatch);
     const asUTF8String = parseUTF8StringDataView(data);
     messages(`\t\tTrying to parse data as UTF-8 string: '${asUTF8String}'`, dispatch);
@@ -205,7 +206,7 @@ function dumpUnknownGatt(data: DataView, dispatch: ReturnType<typeof useDispatch
     }
 }
 
-function switchOverCharacteristics(data: DataView, dispatch: ReturnType<typeof useDispatch>, characteristic: BluetoothRemoteGATTCharacteristic): void {
+function switchOverCharacteristics(data: DataView, dispatch: AppDispatch, characteristic: BluetoothRemoteGATTCharacteristic): void {
     //yes yes, I know, needs to be genericised.
     switch (characteristic.uuid) {
         case (BLUETOOTH.ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID):
@@ -330,7 +331,7 @@ function switchOverCharacteristics(data: DataView, dispatch: ReturnType<typeof u
 }
 
 
-async function bluetoothTestingStuffFunc(dispatch: ReturnType<typeof useDispatch>) {
+async function bluetoothTestingStuffFunc(dispatch: AppDispatch) {
 
 
     const device = await getADevice();
@@ -365,7 +366,7 @@ async function bluetoothTestingStuffFunc(dispatch: ReturnType<typeof useDispatch
     await loopOverServices(services, dispatch);
 }
 
-function checkServiceNames(services: BluetoothRemoteGATTService[], dispatch: ReturnType<typeof useDispatch>) {
+function checkServiceNames(services: BluetoothRemoteGATTService[], dispatch: AppDispatch) {
     for (let serviceIndex = 0; serviceIndex < services.length; serviceIndex++) {
         const uuid = services[serviceIndex].uuid;
         const short_uuid = uuid.substring(4, 8).toUpperCase();
@@ -383,7 +384,7 @@ function checkServiceNames(services: BluetoothRemoteGATTService[], dispatch: Ret
     }
 }
 
-async function loopOverServices(services: BluetoothRemoteGATTService[], dispatch: ReturnType<typeof useDispatch>) {
+async function loopOverServices(services: BluetoothRemoteGATTService[], dispatch: AppDispatch) {
     for (let serviceIndex = 0; serviceIndex < services.length; serviceIndex++) {
         const uuid = services[serviceIndex].uuid;
         messages(`services[${serviceIndex}].uuid: ${uuid}`, dispatch);
@@ -414,7 +415,7 @@ async function loopOverServices(services: BluetoothRemoteGATTService[], dispatch
     }
 }
 
-async function loopOverCharacteristics(characteristics: BluetoothRemoteGATTCharacteristic[], serviceIndex: number, dispatch: ReturnType<typeof useDispatch>) {
+async function loopOverCharacteristics(characteristics: BluetoothRemoteGATTCharacteristic[], serviceIndex: number, dispatch: AppDispatch) {
     for (let characteristicIndex = 0; characteristicIndex < characteristics.length; characteristicIndex++) {
         messages(`\tservices[${serviceIndex}], characteristics[${characteristicIndex}].uuid: ${characteristics[characteristicIndex].uuid}`, dispatch);
         checkKnownFunctionDescription(characteristics, characteristicIndex, dispatch);
@@ -428,7 +429,7 @@ async function loopOverCharacteristics(characteristics: BluetoothRemoteGATTChara
     }
 }
 
-async function readableCharacteristic(characteristics: BluetoothRemoteGATTCharacteristic[], characteristicIndex: number, dispatch: ReturnType<typeof useDispatch>) {
+async function readableCharacteristic(characteristics: BluetoothRemoteGATTCharacteristic[], characteristicIndex: number, dispatch: AppDispatch) {
     //https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/modules/bluetooth/bluetooth_error.cc;l=142?q=requestDevice%20lang:C%2B%2B&ss=chromium
     try {
         const data = await characteristics[characteristicIndex].readValue();
@@ -445,7 +446,7 @@ async function readableCharacteristic(characteristics: BluetoothRemoteGATTCharac
     }
 }
 
-function checkKnownFunctionDescription(characteristics: BluetoothRemoteGATTCharacteristic[], characteristicIndex: number, dispatch: ReturnType<typeof useDispatch>) {
+function checkKnownFunctionDescription(characteristics: BluetoothRemoteGATTCharacteristic[], characteristicIndex: number, dispatch: AppDispatch) {
     if (BLUETOOTH.aranet4KnownCharacteristicUUIDDescriptions.has(characteristics[characteristicIndex].uuid)) {
         messages(`\t\tKnown Aranet4 characteristic! '${BLUETOOTH.aranet4KnownCharacteristicUUIDDescriptions.get(characteristics[characteristicIndex].uuid)}'`, dispatch);
         return;
@@ -602,7 +603,7 @@ function parseUTF8StringDataView(data: DataView): string {
     return converted;
 }
 
-async function checkBluetooth(dispatch: ReturnType<typeof useDispatch>) {
+async function checkBluetooth(dispatch: AppDispatch) {
     console.assert(navigator.bluetooth);
     if (navigator.bluetooth === undefined) {
         dispatch(setBluetoothAvailableError('bluetooth is unavailable on your platform. (navigator.bluetooth undefined)'));
@@ -652,7 +653,7 @@ async function getADevice(): Promise<BluetoothDevice> {
 
 }
 
-async function maybeConnectDevice(dispatch: ReturnType<typeof useDispatch>, maybeConnectedDevice: (BluetoothRemoteGATTServer | null)): Promise<BluetoothRemoteGATTServer | null> {
+async function maybeConnectDevice(dispatch: AppDispatch, maybeConnectedDevice: (BluetoothRemoteGATTServer | null)): Promise<BluetoothRemoteGATTServer | null> {
     if (maybeConnectedDevice) {
         return maybeConnectedDevice;
     }
@@ -705,7 +706,7 @@ async function maybeConnectDevice(dispatch: ReturnType<typeof useDispatch>, mayb
 //     return date;
 // }
 
-async function innerGetAllAranet4DataOverBluetooth(dispatch: ReturnType<typeof useDispatch>, maybeConnectedDevice: (BluetoothRemoteGATTServer | null)) {
+async function innerGetAllAranet4DataOverBluetooth(dispatch: AppDispatch, maybeConnectedDevice: (BluetoothRemoteGATTServer | null)) {
     const deviceServer = await maybeConnectDevice(dispatch, maybeConnectedDevice);
     if (deviceServer === null) {
         debugger;
@@ -726,7 +727,7 @@ async function innerGetAllAranet4DataOverBluetooth(dispatch: ReturnType<typeof u
     //TODO: model number string
 
 }
-async function innerGetBasicAranet4DataOverBluetooth(dispatch: ReturnType<typeof useDispatch>, maybeConnectedDevice: (BluetoothRemoteGATTServer | null)) {
+async function innerGetBasicAranet4DataOverBluetooth(dispatch: AppDispatch, maybeConnectedDevice: (BluetoothRemoteGATTServer | null)) {
     const deviceServer = await maybeConnectDevice(dispatch, maybeConnectedDevice);
     if (deviceServer === null) {
         debugger;
@@ -740,7 +741,7 @@ async function innerGetBasicAranet4DataOverBluetooth(dispatch: ReturnType<typeof
 
 
 
-async function queryAranet4BasicInformation(deviceServer: BluetoothRemoteGATTServer, dispatch: ReturnType<typeof useDispatch>) {
+async function queryAranet4BasicInformation(deviceServer: BluetoothRemoteGATTServer, dispatch: AppDispatch) {
     console.log("Getting generic access service...");
     const genericAccessService = await deviceServer.getPrimaryService(BLUETOOTH.GENERIC_ACCESS_SERVICE_UUID);
 
@@ -754,7 +755,7 @@ async function queryAranet4BasicInformation(deviceServer: BluetoothRemoteGATTSer
     await queryAranet4InformationService(Aranet4Service, dispatch);
 }
 
-async function queryDeviceInformationService(deviceInformationService: BluetoothRemoteGATTService, dispatch: ReturnType<typeof useDispatch>) {
+async function queryDeviceInformationService(deviceInformationService: BluetoothRemoteGATTService, dispatch: AppDispatch) {
     const modelNumberString = await queryBluetoothModelNumberString(deviceInformationService);
     dispatch(setModelNumber(modelNumberString));
 
@@ -786,7 +787,7 @@ async function queryDeviceInformationService(deviceInformationService: Bluetooth
 
 }
 
-async function queryAranet4InformationService(Aranet4Service: BluetoothRemoteGATTService, dispatch: ReturnType<typeof useDispatch>) {
+async function queryAranet4InformationService(Aranet4Service: BluetoothRemoteGATTService, dispatch: AppDispatch) {
     console.log("Got primary sensor service!");
 
     const co2Characteristic = await Aranet4Service.getCharacteristic(BLUETOOTH.ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID);
@@ -936,7 +937,7 @@ async function queryAranet4SecondsSinceLastMeasurement(Aranet4Service: Bluetooth
     return secondsSinceLastmeasurement;
 }
 
-async function getAranet4DataOverBluetooth(dispatch: ReturnType<typeof useDispatch>, maybeConnectedDevice: (BluetoothRemoteGATTServer | null)) {
+async function getAranet4DataOverBluetooth(dispatch: AppDispatch, maybeConnectedDevice: (BluetoothRemoteGATTServer | null)) {
     //https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/modules/bluetooth/bluetooth_error.cc;l=142?q=requestDevice%20lang:C%2B%2B&ss=chromium
     try {
         innerGetAllAranet4DataOverBluetooth(dispatch, maybeConnectedDevice);
@@ -959,7 +960,7 @@ async function getAranet4DataOverBluetooth(dispatch: ReturnType<typeof useDispat
     }
 }
 
-async function getBasicAranet4DataOverBluetooth(dispatch: ReturnType<typeof useDispatch>, maybeConnectedDevice: (BluetoothRemoteGATTServer | null)) {
+async function getBasicAranet4DataOverBluetooth(dispatch: AppDispatch, maybeConnectedDevice: (BluetoothRemoteGATTServer | null)) {
     //https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/modules/bluetooth/bluetooth_error.cc;l=142?q=requestDevice%20lang:C%2B%2B&ss=chromium
     try {
         innerGetBasicAranet4DataOverBluetooth(dispatch, maybeConnectedDevice);
@@ -1053,7 +1054,7 @@ function rfDataFromEvent(event: BluetoothAdvertisingEvent) {
     return rfData;
 }
 
-const watchAdvertisementEventReceived = async (device: BluetoothDevice, event: BluetoothAdvertisingEvent, abortController: AbortController, dispatch: ReturnType<typeof useDispatch>): Promise<void> => {
+const watchAdvertisementEventReceived = async (device: BluetoothDevice, event: BluetoothAdvertisingEvent, abortController: AbortController, dispatch: AppDispatch): Promise<void> => {
     abortController.abort();
     messages(`Received advertisement from '${device.name}', id: '${device.id}...`, dispatch);
 
@@ -1203,7 +1204,7 @@ const MaybeIfValueBoolean: React.FC<{text: string, value: boolean | null}> = ({t
     );
 }
 
-function falsyNavigatorBluetooth(dispatch: ReturnType<typeof useDispatch>) {
+function falsyNavigatorBluetooth(dispatch: AppDispatch) {
     dispatch(setBluetoothAvailable(false));
     if (navigator.bluetooth === null) {
         dispatch(setBluetoothAvailableError("navigator.bluetooth === null, bluetooth is not availabe."));
@@ -1219,7 +1220,7 @@ function falsyNavigatorBluetooth(dispatch: ReturnType<typeof useDispatch>) {
 
 }
 
-function falsyGetDevices(dispatch: ReturnType<typeof useDispatch>) {
+function falsyGetDevices(dispatch: AppDispatch) {
     if ((navigator.bluetooth.getDevices as any) === undefined) {
         messages('Cannot seamlessly connect, getDevices is undefined', dispatch);
         return;
@@ -1232,7 +1233,7 @@ function falsyGetDevices(dispatch: ReturnType<typeof useDispatch>) {
     messages(`Cannot seamlessly connect, getDevices is an unexpected value: ${navigator.bluetooth.getDevices}`, dispatch);
 }
 
-function getDevicesSupported(dispatch: ReturnType<typeof useDispatch>, setBluetoothDevicesKnown: React.Dispatch<React.SetStateAction<BluetoothDevice[] | null>>): boolean {
+function getDevicesSupported(dispatch: AppDispatch, setBluetoothDevicesKnown: React.Dispatch<React.SetStateAction<BluetoothDevice[] | null>>): boolean {
     if (!(navigator.bluetooth)) {
         falsyNavigatorBluetooth(dispatch);
         setBluetoothDevicesKnown([]);
@@ -1258,7 +1259,7 @@ function getDevicesSupported(dispatch: ReturnType<typeof useDispatch>, setBlueto
 // This should also work? https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/modules/bluetooth/bluetooth_error.h
 // The full mapping code is here: https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/modules/bluetooth/bluetooth_error.cc;l=90
 
-async function tryGetDevices(dispatch: ReturnType<typeof useDispatch>, setBluetoothDevicesKnown: React.Dispatch<React.SetStateAction<BluetoothDevice[] | null>>) {
+async function tryGetDevices(dispatch: AppDispatch, setBluetoothDevicesKnown: React.Dispatch<React.SetStateAction<BluetoothDevice[] | null>>) {
     if (!getDevicesSupported(dispatch, setBluetoothDevicesKnown)) {
         return;
     }
@@ -1269,7 +1270,7 @@ async function tryGetDevices(dispatch: ReturnType<typeof useDispatch>, setBlueto
     setBluetoothDevicesKnown(knownDevices);
 }
 
-function trySeamlessConnectionOnceAvailable(dispatch: ReturnType<typeof useDispatch>, seamlesslyConnectedDeviceServer: BluetoothRemoteGATTServer | null) {
+function trySeamlessConnectionOnceAvailable(dispatch: AppDispatch, seamlesslyConnectedDeviceServer: BluetoothRemoteGATTServer | null) {
     if (seamlesslyConnectedDeviceServer === null) {
         return;
     }
@@ -1348,7 +1349,7 @@ function Compatibility(): JSX.Element {
 
 // }
 
-const polling = async (seamlesslyConnectedDeviceServer: BluetoothRemoteGATTServer | null, timerHandle: number | null, setTimerHandle: React.Dispatch<React.SetStateAction<number | null>>, dispatch: ReturnType<typeof useDispatch>, pollingInterval: number) => {
+const polling = async (seamlesslyConnectedDeviceServer: BluetoothRemoteGATTServer | null, timerHandle: number | null, setTimerHandle: React.Dispatch<React.SetStateAction<number | null>>, dispatch: AppDispatch, pollingInterval: number) => {
     // debugger;
     if (seamlesslyConnectedDeviceServer === null) {
         console.log('no device server to poll...');

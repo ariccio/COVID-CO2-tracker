@@ -157,13 +157,13 @@ const scanCallback = async (error: BleError | null, scannedDevice: Device | null
     // debugger;
 }
 
-const scanAndConnect = (setDevice: React.Dispatch<React.SetStateAction<Device | null>>, dispatch: ReturnType<typeof useDispatch>) => {
+const scanAndConnect = (setDevice: React.Dispatch<React.SetStateAction<Device | null>>, dispatch: AppDispatch) => {
     console.log("fartipelago!");
     dispatch(setScanningStatusString('Beginning device scan...'));
     manager.startDeviceScan(null, null, (error, scannedDevice) => scanCallback(error, scannedDevice, setDevice, dispatch));
 }
 
-const requestLocationPermission = async (dispatch: ReturnType<typeof useDispatch>) => {
+const requestLocationPermission = async (dispatch: AppDispatch) => {
     dispatch(setScanningStatusString('Need permission to use bluetooth first.'));
 
     //https://reactnative.dev/docs/permissionsandroid
@@ -203,7 +203,7 @@ function parseUint8Buffer(data: Buffer): number {
 }
 
 
-// async function readDataFromAranet4(dispatch: ReturnType<typeof useDispatch>, deviceID: string) {
+// async function readDataFromAranet4(dispatch: AppDispatch, deviceID: string) {
 //   const rawSerialNumberCharacteristicValue = await manager.readCharacteristicForDevice(deviceID, BLUETOOTH.DEVICE_INFORMATION_SERVICE_UUID, BLUETOOTH.GENERIC_GATT_SERIAL_NUMBER_STRING_UUID);
 //   if (rawSerialNumberCharacteristicValue.value === null) {
 //     console.error("bug");

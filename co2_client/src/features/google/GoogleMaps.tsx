@@ -28,6 +28,7 @@ import { selectUsername } from '../login/loginSlice';
 
 import { formatErrors, withErrors } from '../../utils/ErrorObject';
 import {isMobileSafari, isMobileFacebookBrowser} from '../../utils/Browsers';
+import { AppDispatch } from '../../app/store';
 
 
 //decls:
@@ -259,7 +260,7 @@ const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (pr
     );
 }
 
-const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null, dispatch: ReturnType<typeof useDispatch>, map: google.maps.Map | null, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>, setErrorState: React.Dispatch<React.SetStateAction<string>>) => {
+const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null, dispatch: AppDispatch, map: google.maps.Map | null, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>, setErrorState: React.Dispatch<React.SetStateAction<string>>) => {
     if (autocomplete === null) {
         return;
     }
@@ -332,7 +333,7 @@ const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null
 // IconMouseEvent and ApiMouseEvent are identical, except that IconMouseEvent has the placeId field.
 // The event can always be treated as an ApiMouseEvent when the placeId is not important.
 // The click event is not fired if a Marker or InfoWindow was clicked.
-const onClickMaps = (e: google.maps.MapMouseEvent, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>, dispatch: ReturnType<typeof useDispatch>, service: google.maps.places.PlacesService | null) => {
+const onClickMaps = (e: google.maps.MapMouseEvent, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>, dispatch: AppDispatch, service: google.maps.places.PlacesService | null) => {
     // console.log(`dynamic type of event: ${typeof e}?`)
 
     //ApiMouseEvent appears to just be an IconMouseEvent? Now we have the types for it, yay!
@@ -403,7 +404,7 @@ function markerKey(lat: number, lng: number, index: number): string {
     return `marker-${lat}-${lng}-${index}-key`;
 }
 
-const renderEachMarker = (place: EachPlaceFromDatabaseForMarker, index: number, clusterer: /*clusterType*/ any, dispatch: ReturnType<typeof useDispatch>, service: google.maps.places.PlacesService | null, placesSize: number) => {
+const renderEachMarker = (place: EachPlaceFromDatabaseForMarker, index: number, clusterer: /*clusterType*/ any, dispatch: AppDispatch, service: google.maps.places.PlacesService | null, placesSize: number) => {
     const pos: google.maps.LatLngLiteral = {
         lat: parseFloat(place.attributes.place_lat),
         lng: parseFloat(place.attributes.place_lng)
@@ -428,7 +429,7 @@ const renderEachMarker = (place: EachPlaceFromDatabaseForMarker, index: number, 
     )
 }
 
-const clustererCallback = (placeMarkersFromDatabase: placesFromDatabaseForMarker, dispatch: ReturnType<typeof useDispatch>, clusterer: /*Clusterer*/ any, service: google.maps.places.PlacesService | null) => {
+const clustererCallback = (placeMarkersFromDatabase: placesFromDatabaseForMarker, dispatch: AppDispatch, clusterer: /*Clusterer*/ any, service: google.maps.places.PlacesService | null) => {
     console.assert(placeMarkersFromDatabase.places !== null);
     if (placeMarkersFromDatabase.places === null) {
         return null;
@@ -441,7 +442,7 @@ const clustererCallback = (placeMarkersFromDatabase: placesFromDatabaseForMarker
 
 }
 
-const renderMarkers = (placeMarkersFromDatabase: placesFromDatabaseForMarker, placeMarkerErrors: string, dispatch: ReturnType<typeof useDispatch>, service: google.maps.places.PlacesService | null) => {
+const renderMarkers = (placeMarkersFromDatabase: placesFromDatabaseForMarker, placeMarkerErrors: string, dispatch: AppDispatch, service: google.maps.places.PlacesService | null) => {
     if (placeMarkerErrors !== '') {
         console.error("cant render markers, got errors:");
         console.error(placeMarkerErrors);
@@ -473,7 +474,7 @@ const renderMarkers = (placeMarkersFromDatabase: placesFromDatabaseForMarker, pl
 
 const mapOptions = options(defaultCenter);
 
-const updateMarkers = (map: google.maps.Map | null, dispatch: ReturnType<typeof useDispatch>) => {
+const updateMarkers = (map: google.maps.Map | null, dispatch: AppDispatch) => {
     if (!map) {
         console.log("no map to get center from for markers yet?");
         debugger;
@@ -498,7 +499,7 @@ const updateMarkers = (map: google.maps.Map | null, dispatch: ReturnType<typeof 
     queryPlacesInBoundsFromBackend(ne, sw, dispatch);
 }
 
-const onMapIdle = (map: google.maps.Map | null, mapLoaded: boolean, setMapLoaded: React.Dispatch<React.SetStateAction<boolean>>, dispatch: ReturnType<typeof useDispatch>) => {
+const onMapIdle = (map: google.maps.Map | null, mapLoaded: boolean, setMapLoaded: React.Dispatch<React.SetStateAction<boolean>>, dispatch: AppDispatch) => {
     if (map === null) {
         console.error("null map is idle?");
         debugger;
@@ -569,7 +570,7 @@ const googleMapInContainer = (
     map: google.maps.Map | null,
     
     setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>,
-    dispatch: ReturnType<typeof useDispatch>,
+    dispatch: AppDispatch,
     mapLoaded: boolean,
     setMapLoaded: React.Dispatch<React.SetStateAction<boolean>>,
     placeMarkersFromDatabase: placesFromDatabaseForMarker,
@@ -602,7 +603,7 @@ const googleMapInContainer = (
     );
 }
 
-const centerChange = (map: google.maps.Map | null, mapLoaded: boolean, center: google.maps.LatLngLiteral, dispatch: ReturnType<typeof useDispatch>) => {
+const centerChange = (map: google.maps.Map | null, mapLoaded: boolean, center: google.maps.LatLngLiteral, dispatch: AppDispatch) => {
     if (!map) {
         console.log("map falsy, not setting center");
         return;
