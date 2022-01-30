@@ -437,8 +437,24 @@ async function readAranet4MeasurementInterval(deviceID: string): Promise<number>
     return readUint16CharacteristicFromDevice(deviceID, BLUETOOTH.ARANET4_SENSOR_SERVICE_UUID, BLUETOOTH.ARANET_MEASUREMENT_INTERVAL_UUID, "BLUETOOTH.ARANET4_SENSOR_SERVICE_UUID", "BLUETOOTH.ARANET_MEASUREMENT_INTERVAL_UUID");
 }
 
+function aranet4Ready(device: Device | null): boolean {
+    if (!device) {
+        return false;
+    }
+    if (!device.serviceUUIDs) {
+        return false;
+    }
+    if (device?.serviceUUIDs?.includes(BLUETOOTH.ARANET4_SENSOR_SERVICE_UUID)) {
+        return true;
+    }
+    console.warn("Device has service UUIDs but not the one we want??");
+    return false;
+}
 
 async function readAranet4SpecificInformation(deviceID: string | null, device: Device | null, dispatch: AppDispatch): Promise<Aranet4SpecificInformation> {
+    if(!device?.serviceUUIDs?.includes(BLUETOOTH.ARANET4_SENSOR_SERVICE_UUID)) {
+        debugger;
+    }
     const co2CharacteristicMeasurement = await readAranet4Co2Characteristic(deviceID!)
     
     console.log(`Aranet4 measurement:`);
@@ -503,10 +519,6 @@ const useScanConnectAranet4 = () => {
     const [subscription, setSubscription] = useState(null as (Subscription | null));
 
     useEffect(() => {
-        requestLocationPermission(dispatch);
-    }, [])
-
-    useEffect(() => {
         if (hasBluetooth) {
             scanAndConnect(setDevice, dispatch);
         }
@@ -556,38 +568,38 @@ const useScanConnectAranet4 = () => {
             debugger;
         })
     }
-    useEffect(() => {
-        if (!device) {
-            return;
-        }
-        if (subscription !== null) {
-            return () => {
-                console.log("removing disconnection listener")
-                subscription.remove();
-            }
-        }
-        console.log("starting disconnection listener");
-        setSubscription(device.onDisconnected(disconnectionListener));
-        // return () => {
-        //     if (subscription !== null) {
-        //         console.log("removing disconnection listener")
-        //         subscription.remove();
-        //     }
-        // }
-    }, [subscription]);
+    // useEffect(() => {
+    //     if (!device) {
+    //         return;
+    //     }
+    //     if (subscription !== null) {
+    //         return () => {
+    //             console.log("removing disconnection listener")
+    //             subscription.remove();
+    //         }
+    //     }
+    //     console.log("starting disconnection listener");
+    //     setSubscription(device.onDisconnected(disconnectionListener));
+    //     // return () => {
+    //     //     if (subscription !== null) {
+    //     //         console.log("removing disconnection listener")
+    //     //         subscription.remove();
+    //     //     }
+    //     // }
+    // }, [subscription]);
 
     useEffect(() => {
         console.log("Device object changed.");
     }, [device])
 
-    useEffect(() => {
-        return () => {
-            if (device !== null) {
-                console.log("Cancelling connection.");
-                device.cancelConnection();                
-            }
-        }
-    }, [])
+    // useEffect(() => {
+    //     return () => {
+    //         if (device !== null) {
+    //             console.log("Cancelling connection.");
+    //             device.cancelConnection();                
+    //         }
+    //     }
+    // }, [])
 
     return { device, needsReconnect, setNeedsReconnect };
 }
@@ -600,6 +612,7 @@ const updateGenericDeviceInformation = async (setGenericBluetoothInformation: Re
 }
 
 const updateAranet4SpecificInformation = async (setAranet4SpecificInformation: React.Dispatch<React.SetStateAction<Aranet4SpecificInformation | null>>, deviceID: string, device: Device, dispatch: AppDispatch) => {
+    console.assert(aranet4Ready(device));
     dispatch(setDeviceStatusString('Reading aranet4 specific information...'));
     const read = await readAranet4SpecificInformation(deviceID, device, dispatch);
     setAranet4SpecificInformation(read);
@@ -620,8 +633,8 @@ function filterBleReadError(error: unknown, setNeedsReconnect: (value: React.Set
             dispatch(setDeviceStatusString('Read failed, connection lost! Will reconnect.'));
             return;
         }
-        debugger;
         dispatch(setDeviceStatusString(`Unexpected bluetooth error while reading from device: ${bleErrorToUsefulString(error)}`));
+        debugger;
         throw error;
     }
     dispatch(setDeviceStatusString(`Unexpected error while reading from device: ${String(error)}`))
@@ -630,14 +643,18 @@ function filterBleReadError(error: unknown, setNeedsReconnect: (value: React.Set
 
 }
 
-function updateCallback(setAranet4SpecificInformation: React.Dispatch<React.SetStateAction<Aranet4SpecificInformation | null>>, deviceID: string, device: Device, dispatch: AppDispatch, setNeedsReconnect: (value: React.SetStateAction<boolean>) => void): void {
+async function updateCallback(setAranet4SpecificInformation: React.Dispatch<React.SetStateAction<Aranet4SpecificInformation | null>>, deviceID: string, device: Device, dispatch: AppDispatch, setNeedsReconnect: (value: React.SetStateAction<boolean>) => void): Promise<void> {
     console.log("update co2 triggered!");
+    const isConnected = await device.isConnected();
+    if (!isConnected) {
+        console.log("NOT connected.");
+    }
     dispatch(setDeviceStatusString("Updating CO2 over bluetooth..."));
     try {
         updateAranet4SpecificInformation(setAranet4SpecificInformation, deviceID!, device!, dispatch).then(() => {
             dispatch(setDeviceStatusString(null));
         }).catch((error) => {
-            debugger;
+            // debugger;
             filterBleReadError(error, setNeedsReconnect, dispatch, deviceID);
         })
     }
@@ -660,9 +677,6 @@ export const useBluetoothConnectAranet = () => {
     const [aranet4SpecificInformation, setAranet4SpecificInformation] = useState(null as (null | Aranet4SpecificInformation));
 
     
-    useEffect(() => {
-        requestLocationPermission(dispatch);
-    }, [])
 
     useEffect(() => {
         if (needsReconnect) {
@@ -670,7 +684,8 @@ export const useBluetoothConnectAranet = () => {
         }
         if (noDevice(deviceID, device)) {
             return;
-        }    
+        }
+
         try {
             dispatch(setDeviceStatusString("Beginning first read over bluetooth..."));
             updateGenericDeviceInformation(setGenericBluetoothInformation, deviceID!, device!, dispatch).then(() => {
@@ -678,7 +693,7 @@ export const useBluetoothConnectAranet = () => {
             }).then(() => {
                 dispatch(setDeviceStatusString(null));
             }).catch((error) => {
-                debugger;
+                // debugger;
                 filterBleReadError(error, setNeedsReconnect, dispatch, deviceID);
             })
         }
@@ -742,16 +757,17 @@ export const useBluetoothConnectAranet = () => {
         if (noDevice(deviceID, device)) {
             return;
         }
-        if (aranet4SpecificInformation === null) {
-            return;
-        }
-        if (aranet4SpecificInformation.co2CharacteristicValue === null) {
-            return;
-        }
+        // if (aranet4SpecificInformation === null) {
+        //     return;
+        // }
+        // if (aranet4SpecificInformation.co2CharacteristicValue === null) {
+        //     return;
+        // }
         if (timeoutHandle !== null) {
             // console.log(`Clearing existing timeout (${timeoutHandle.current})...`);
             // clearTimeout(timeoutHandle.current);
             // timeoutHandle.current = null;
+            console.log("Timeout already set, ignoring.")
             return;
         }
         console.log("Setting update timer...");
@@ -765,9 +781,10 @@ export const useBluetoothConnectAranet = () => {
             if (timeoutHandle !== null) {
                 console.log("Clearing co2 timer...");
                 clearTimeout(timeoutHandle);
+                setTimeoutHandle(null);
             }
         }
-    }, [aranet4SpecificInformation?.co2CharacteristicValue])
+    }, [deviceID, device, timeoutHandle])
 
 
 
@@ -930,6 +947,12 @@ export const BluetoothData: React.FC<{ device: Device | null }> = ({ device }) =
     const deviceStatus = useSelector(selectDeviceStatusString);
     const [knownDevice, setKnownDevice] = useState(null as (boolean | null));
     const [nextMeasurement, setNextMeasurement] = useState(null as (number | null));
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        requestLocationPermission(dispatch);
+    }, []);
+
 
     useEffect(() => {
         setKnownDevice(isSupportedDevice(supportedDevices, serialNumber))
