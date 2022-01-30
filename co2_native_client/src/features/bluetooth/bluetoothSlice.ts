@@ -55,6 +55,7 @@ export interface BluetoothDeviceState {
     gattDeviceInformation: GenericDeviceInformation;
     aranet4SpecificData: Aranet4SpecificData;
     rfData: RFData;
+    statusString: string | null;
 }
 
 
@@ -97,7 +98,8 @@ const initialState: BluetoothState = {
         rfData: {
             rssi: null,
             txPower: null
-        }
+        },
+        statusString: null
     },
     scanningStatusString: null,
     scanningErrorStatus: ''
@@ -167,11 +169,14 @@ export const bluetoothSlice = createSlice({
         },
         setMeasurementInterval: (state, action: PayloadAction<number | null>) => {
             state.device.aranet4SpecificData.aranet4MeasurementInterval = action.payload;
+        },
+        setDeviceStatusString: (state, action: PayloadAction<string | null>) => {
+            state.device.statusString = action.payload;
         }
     }
 })
 
-export const {setDeviceID, setDeviceName, setRssi, setHasBluetooth, setScanningStatusString, setDeviceSerialNumber, setScanningErrorStatusString, setDeviceBatteryLevel, setMeasurementData, setAranet4Color, setAranet4SecondsSinceLastMeasurement, setMeasurementInterval} = bluetoothSlice.actions;
+export const {setDeviceID, setDeviceName, setRssi, setHasBluetooth, setScanningStatusString, setDeviceSerialNumber, setScanningErrorStatusString, setDeviceBatteryLevel, setMeasurementData, setAranet4Color, setAranet4SecondsSinceLastMeasurement, setMeasurementInterval, setDeviceStatusString} = bluetoothSlice.actions;
 
 export const selectHasBluetooth = (state: RootState) => state.bluetooth.hasBluetooth;
 export const selectScanningStatusString = (state: RootState) => state.bluetooth.scanningStatusString;
@@ -183,6 +188,7 @@ export const selectDeviceSerialNumberString = (state: RootState) => state.blueto
 export const selectDeviceBatterylevel = (state: RootState) => state.bluetooth.device.gattDeviceInformation.battery;
 export const selectMeasurementData = (state: RootState) => state.bluetooth.device.measurementData;
 export const selectAranet4SpecificData = (state: RootState) => state.bluetooth.device.aranet4SpecificData;
+export const selectDeviceStatusString = (state: RootState) => state.bluetooth.device.statusString;
 
 export const bluetoothReducer = bluetoothSlice.reducer;
 
