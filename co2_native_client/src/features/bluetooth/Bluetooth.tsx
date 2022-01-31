@@ -991,7 +991,9 @@ function maybeNextMeasurementInOrDefault(aranet4SpecificInformation: Aranet4Spec
     const maybeNextSeconds = (aranet4SpecificInformation.measurementInterval - aranet4SpecificInformation.secondsSinceLastMeasurement) + 1;
     const maybeNext = (maybeNextSeconds * 1000);
     if (maybeNext < 5000) {
-        debugger;
+        if (maybeNext < 100) {
+            debugger;
+        }
         console.log("Interval too short. Setting interval to 5 seconds");
         return 5000;
     }

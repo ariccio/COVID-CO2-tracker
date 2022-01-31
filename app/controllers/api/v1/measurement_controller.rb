@@ -20,11 +20,11 @@ def raise_if_invalid_parameter_combo(measurement_params)
   sub_location_id = measurement_params[:sub_location_id]
   if (location_where_inside_info && (!location_where_inside_info.empty?)) && (sub_location_id != -1)
     # byebug
-    raise InvalidComboError
+    raise(InvalidComboError)
   end
   if (sub_location_id != -1) && (location_where_inside_info && (!location_where_inside_info.empty?))
     # byebug
-    raise InvalidComboError
+    raise(InvalidComboError)
   end
 
   # byebug
@@ -142,7 +142,7 @@ module Api
 
       def find_or_create_sublocation
         if (measurement_params[:sub_location_id] != -1)
-          return ::SubLocation.find(measurement_params.fetch(:sub_location_id)) 
+          return ::SubLocation.find(measurement_params.fetch(:sub_location_id))
         end
         ::Rails.logger.info('TODO: unique index for description in scope of sublocation, maybe needs partial index? Then validates_uniqueness_of')
         @place.sub_location.find_or_create_by!(description: measurement_params.fetch(:location_where_inside_info))
