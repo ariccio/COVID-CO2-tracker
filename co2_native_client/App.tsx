@@ -205,7 +205,7 @@ const useGoogleAuthForCO2Tracker = () => {
 
   useEffect(() => {
     console.table(request);
-    console.table(response);
+    // console.table(response);
     // console.log(promptAsync);
     if (response === undefined) {
       console.log("response is undefined?");

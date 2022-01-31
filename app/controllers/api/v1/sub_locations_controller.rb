@@ -3,12 +3,13 @@
 module Api
   module V1
     class SubLocationsController < ApplicationController
-      before_action :set_sub_location, only: [:show, :update, :destroy]
-
+      # before_action :set_sub_location, only: [:show, :update, :destroy]
+      before_action :set_sub_location, only: [:show]
+      
       # GET /sub_locations/1
       def show
         # ::Rails.logger.debug('sub_locations show')
-        render json: @sub_location
+        render(json: @sub_location)
       end
 
       # POST /sub_locations
@@ -17,9 +18,9 @@ module Api
         @sub_location = SubLocation.new(sub_location_params)
 
         if @sub_location.save
-          render json: @sub_location, status: :created, location: @sub_location
+          render(json: @sub_location, status: :created, location: @sub_location)
         else
-          render json: @sub_location.errors, status: :unprocessable_entity
+          render(json: @sub_location.errors, status: :unprocessable_entity)
         end
       end
 

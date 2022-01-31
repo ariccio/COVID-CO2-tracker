@@ -54,7 +54,7 @@ module Api
       def render_successful_authentication
         # encode token comes from ApplicationController/ApiController
         token = encode_token(user_id: @user.id)
-        if user_login_google_params.has_key?(:needs_jwt_value_for_js)
+        if user_login_google_params.key?(:needs_jwt_value_for_js)
           return render_successful_authentication_native(token)
         end
         return render_successful_authentication_cookie(token)
@@ -137,14 +137,14 @@ module Api
         )
       end
 
-      def create_user_with_google(e)
+      def create_user_with_google(not_created_yet_exception)
         # byebug
-        return render_invalid_google_login_params(e, :sub) if @decoded_token['sub'].nil?
-        return render_invalid_google_login_params(e, :sub) if @decoded_token['sub'].empty?
-        return render_invalid_google_login_params(e, :email_verified) if @decoded_token['email_verified'].nil?
-        return render_email_not_yet_validated(e) unless (@decoded_token['email_verified'])
-        return render_invalid_google_login_params(e, :email) if @decoded_token['email'].nil?
-        return render_invalid_google_login_params(e, :email) if @decoded_token['email'].empty?
+        return render_invalid_google_login_params(not_created_yet_exception, :sub) if @decoded_token['sub'].nil?
+        return render_invalid_google_login_params(not_created_yet_exception, :sub) if @decoded_token['sub'].empty?
+        return render_invalid_google_login_params(not_created_yet_exception, :email_verified) if @decoded_token['email_verified'].nil?
+        return render_email_not_yet_validated(not_created_yet_exception) unless (@decoded_token['email_verified'])
+        return render_invalid_google_login_params(not_created_yet_exception, :email) if @decoded_token['email'].nil?
+        return render_invalid_google_login_params(not_created_yet_exception, :email) if @decoded_token['email'].empty?
 
         # byebug
         @user = User.create!(email: @decoded_token['email'], name: @decoded_token['name'], sub_google_uid: @decoded_token['sub'])
@@ -167,7 +167,7 @@ module Api
 
       # See: C:\Ruby30-x64\lib\ruby\gems\3.0.0\gems\googleauth-0.16.0\lib\googleauth\id_tokens\errors.rb
       rescue Google::Auth::IDTokens::SignatureError => e # (Token not verified as issued by Google):
-        Rails.logger.warn "user_login_google_params[:id_token]: #{user_login_google_params[:id_token]} invalid! This shouldn't happen."
+        Rails.logger.warn("user_login_google_params[:id_token]: #{user_login_google_params[:id_token]} invalid! This shouldn't happen.")
         render_signature_verification_failed(e)
       rescue ::ActiveRecord::RecordNotFound => e
         create_user_with_google(e)

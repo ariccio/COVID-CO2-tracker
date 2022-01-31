@@ -49,14 +49,19 @@ class ApiController < ActionController::API
   end
 
   def jwt_from_auth_header
+    # NOTE TO SELF: You're actually supposed to use the 'bearer ' format!
+    # It's in the spec!
+    # See: https://security.stackexchange.com/a/120244
+    # And: https://www.ietf.org/rfc/rfc2617.txt
+
+    # ALSO note to self: can I use built in rails methods like: https://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Token.html
+    
     auth_header.split(' ')[1]
   end
 
   def authenticate_user
-    # byebug
-    if auth_header
-      return decode_with_jwt(jwt_from_auth_header)
-    end
+    # byebug      
+    return decode_with_jwt(jwt_from_auth_header) if auth_header
 
     return if (cookies.signed[:jwt].nil?)
 
@@ -134,8 +139,8 @@ class ApiController < ActionController::API
     # https://docs.sentry.io/platforms/ruby/guides/rails/enriching-events/identify-user/
     @user = ::User.find(current_user_id)
     @user
-  rescue ::JWT::DecodeError => _e
-    Sentry.capture_exception(_e)
+  rescue ::JWT::DecodeError => e
+    Sentry.capture_exception(e)
     # Rails.logger.warn('jwt invalid!')
     render_jwt_error
     nil
