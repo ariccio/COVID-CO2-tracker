@@ -46,7 +46,7 @@ module Api
           status: :created
         )
       rescue ::ActiveRecord::RecordNotFound => e
-        Sentry.capture_exception(e)
+        ::Sentry.capture_exception(e)
         render(
           json: {
             errors: [create_activerecord_notfound_error("Couldn't find record while creating new device instance. Wrong model? Possible bug", e)]
@@ -101,7 +101,7 @@ module Api
         end
         measurement_count = @device_instance.measurement.count
         if measurement_count.positive?
-          Sentry.capture_message('Build device detection code!')
+          ::Sentry.capture_message('Build device deletion code!')
           return render(
             json: {
               errors: [create_error("I haven't built the functionality to delete devices with measurements yet. Device has #{measurement_count} measurements. Delete them first.", nil)]

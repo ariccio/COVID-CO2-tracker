@@ -55,12 +55,12 @@ class ApiController < ActionController::API
     # And: https://www.ietf.org/rfc/rfc2617.txt
 
     # ALSO note to self: can I use built in rails methods like: https://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Token.html
-    
+
     auth_header.split(' ')[1]
   end
 
   def authenticate_user
-    # byebug      
+    # byebug
     return decode_with_jwt(jwt_from_auth_header) if auth_header
 
     return if (cookies.signed[:jwt].nil?)
@@ -78,7 +78,7 @@ class ApiController < ActionController::API
   end
 
   def render_falsy_decoded_token
-    Sentry.capture_message('decoded_token is falsy?')
+    ::Sentry.capture_message('decoded_token is falsy?')
     render(
       json: {
         errors: [create_missing_auth_header('hmmm, decoded_token is falsy')]
@@ -88,7 +88,7 @@ class ApiController < ActionController::API
   end
 
   def render_jwt_error(exception)
-    Sentry.capture_exception(exception)
+    ::Sentry.capture_exception(exception)
     render(
       json: {
         errors: [create_jwt_error('something went wrong with parsing the JWT', exception)]
@@ -98,7 +98,7 @@ class ApiController < ActionController::API
   end
 
   def render_activerecord_notfound_error(exception)
-    Sentry.capture_exception(exception)
+    ::Sentry.capture_exception(exception)
     render(
       json: {
         errors: [create_activerecord_notfound_error('user_id not found while looking up from decoded_token!', exception)]
@@ -140,7 +140,7 @@ class ApiController < ActionController::API
     @user = ::User.find(current_user_id)
     @user
   rescue ::JWT::DecodeError => e
-    Sentry.capture_exception(e)
+    ::Sentry.capture_exception(e)
     # Rails.logger.warn('jwt invalid!')
     render_jwt_error
     nil

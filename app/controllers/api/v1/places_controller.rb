@@ -40,7 +40,7 @@ module Api
         refresh_latlng_from_google
         ::Rails.logger.warn("Last fetched #{time_ago_in_words(@place.last_fetch)} - Need to update to comply with google caching restrictions!") if @place.last_fetched < 30.days.ago
 
-        Sentry.capture_message("Last fetched #{time_ago_in_words(@place.last_fetch)} - Need to update to comply with google caching restrictions!") if @place.last_fetched < 30.days.ago
+        ::Sentry.capture_message("Last fetched #{time_ago_in_words(@place.last_fetch)} - Need to update to comply with google caching restrictions!") if @place.last_fetched < 30.days.ago
         render(json: @place)
       rescue ::ActiveRecord::RecordNotFound => e
         # TODO: query from the backend too to validate input is correct

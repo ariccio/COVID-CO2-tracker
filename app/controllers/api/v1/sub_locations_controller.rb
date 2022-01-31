@@ -5,7 +5,7 @@ module Api
     class SubLocationsController < ApplicationController
       # before_action :set_sub_location, only: [:show, :update, :destroy]
       before_action :set_sub_location, only: [:show]
-      
+
       # GET /sub_locations/1
       def show
         # ::Rails.logger.debug('sub_locations show')

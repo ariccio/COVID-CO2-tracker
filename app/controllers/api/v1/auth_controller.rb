@@ -18,7 +18,7 @@ module Api
       end
 
       def render_signature_verification_failed(exception)
-        Sentry.capture_exception(exception)
+        ::Sentry.capture_exception(exception)
         error_array = [create_error('signature verification failed, google id token invalid!', :not_acceptable.to_s)]
         error_array << single_error('', exception)
         render(
@@ -74,7 +74,7 @@ module Api
       end
 
       def render_invalid_google_login_params(exception, bad_param)
-        Sentry.capture_exception(exception)
+        ::Sentry.capture_exception(exception)
         error_array = [create_error("parameter #{bad_param} not valid", :not_acceptable.to_s)]
         error_array << create_activerecord_notfound_error('triggered path by not finding existing user', exception)
         render(
@@ -87,7 +87,7 @@ module Api
       end
 
       def render_email_field_missing
-        Sentry.capture_message('email field for user is nil!')
+        ::Sentry.capture_message('email field for user is nil!')
         error_array = [create_error('email field for user is nil! This is likely a bug.', :internal_server_error)]
         render(
           json: {
@@ -158,7 +158,7 @@ module Api
         @decoded_token = token_from_google
         # byebug
         @user = ::User.find_by!(sub_google_uid: @decoded_token['sub'])
-        Sentry.capture_message("stored email #{@user.email} differs from #{@decoded_token['email']}") if @user.email != @decoded_token['email']
+        ::Sentry.capture_message("stored email #{@user.email} differs from #{@decoded_token['email']}") if @user.email != @decoded_token['email']
         Rails.logger.warn("stored email #{@user.email} differs from #{@decoded_token['email']}, TODO: write code to update.") if @user.email != @decoded_token['email']
         # byebug
         render_successful_authentication
@@ -181,7 +181,7 @@ module Api
           return
         end
         if (@user.email.nil?)
-          Sentry.capture_message("Email field missing for user! User: #{@user}, current_user_id: #{current_user_id}")
+          ::Sentry.capture_message("Email field missing for user! User: #{@user}, current_user_id: #{current_user_id}")
           Rails.logger.warn("Email field missing for user! User: #{@user}, current_user_id: #{current_user_id}. How did this happen?")
           # render_email_field_missing()
           return

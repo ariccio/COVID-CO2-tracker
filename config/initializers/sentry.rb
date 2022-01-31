@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-Sentry.init do |config|
+::Sentry.init do |config|
   config.dsn = 'https://5c72ea76ca204179b35fa8a3eb847ab0@o584271.ingest.sentry.io/5737166'
   config.breadcrumbs_logger = [:active_support_logger]
 
@@ -14,6 +14,6 @@ Sentry.init do |config|
 
   # https://docs.sentry.io/platforms/ruby/guides/rails/configuration/options/
   config.async = lambda do |event, hint|
-    Sentry::SendEventJob.perform_later(event, hint)
+    ::Sentry::SendEventJob.perform_later(event, hint)
   end
 end
