@@ -168,7 +168,7 @@ module Api
           }, status: :bad_request
         )
       rescue ::ActiveRecord::RecordInvalid => e
-        Sentry.capture_exception(e)
+        ::Sentry.capture_exception(e)
         render(
           json: {
             errors: [create_activerecord_error('creation failed!', e)]
@@ -186,7 +186,7 @@ module Api
         #   found.each.map do |place|
         #     PlaceMarkerSerializer.new(place).serializable_hash
         #   end
-        pms = PlaceMarkerSerializer.new(found).serializable_hash
+        pms = ::PlaceMarkerSerializer.new(found).serializable_hash
         render(
           json: {
             places: pms[:data]

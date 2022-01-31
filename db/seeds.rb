@@ -43,4 +43,4 @@ me = ::User.find_by!(email: 'alexander@alexander')
 #   Measurement Create (1.4ms)  INSERT INTO "measurements" ("device_id", "co2ppm", "created_at", "updated_at") VALUES (?, ?, ?, ?)  [["device_id", 1], ["co2ppm", 400], ["created_at", "2021-02-16 01:09:54.353737"], ["updated_at", "2021-02-16 01:09:54.353737"]]
 #   TRANSACTION (102.4ms)  commit transaction
 # => #<Measurement id: 2, device_id: 1, co2ppm: 400, measurementtime: nil, created_at: "2021-02-16 01:09:54.353737000 +0000", updated_at: "2021-02-16 01:09:54.353737000 +0000">
-AdminUser.create!(email: 'admin@example.com', password: 'password', password_confirmation: 'password') if Rails.env.development?
+::AdminUser.create!(email: 'admin@example.com', password: 'password', password_confirmation: 'password') if Rails.env.development?

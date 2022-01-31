@@ -147,7 +147,7 @@ module Api
         return render_invalid_google_login_params(not_created_yet_exception, :email) if @decoded_token['email'].empty?
 
         # byebug
-        @user = User.create!(email: @decoded_token['email'], name: @decoded_token['name'], sub_google_uid: @decoded_token['sub'])
+        @user = ::User.create!(email: @decoded_token['email'], name: @decoded_token['name'], sub_google_uid: @decoded_token['sub'])
         render_successful_authentication
       rescue ::ActiveRecord::RecordInvalid => e
         render_creation_activerecord_error(e)

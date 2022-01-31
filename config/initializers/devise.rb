@@ -123,7 +123,7 @@
   # a value less than 10 in other environments. Note that, for bcrypt (the default
   # algorithm), the cost increases exponentially with the number of stretches (e.g.
   # a value of 20 is already extremely slow: approx. 60 seconds for 1 calculation).
-  config.stretches = Rails.env.test? ? 1 : 12
+  config.stretches = ::Rails.env.test? ? 1 : 12
 
   # Set up a pepper to generate the hashed password.
   # config.pepper = '74019cae655805cfcff45292ccdc6a35cbd7d11f7b589b571e3be59d872dfc734a12755eb0f8b5196726b26dbc31db1a9110d876a4a271421aa4691b2331737c'

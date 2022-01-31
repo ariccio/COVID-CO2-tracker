@@ -69,7 +69,7 @@ module Api
           status: :bad_request
         )
       rescue ::ActiveRecord::RecordNotFound => e
-        Sentry.capture_exception(e)
+        ::Sentry.capture_exception(e)
         render(
           json: {
             errors: [create_activerecord_notfound_error("couldn't find google_place_id: #{measurement_params.fetch(:google_place_id)} to create measurement for. Possible bug.", e)]
@@ -95,7 +95,7 @@ module Api
           }, status: :ok
         )
       rescue ::ActiveRecord::RecordNotFound => e
-        Sentry.capture_exception(e)
+        ::Sentry.capture_exception(e)
         render(
           json: {
             errors: [create_activerecord_error("couldn't find measurement #{params[:id]} for deletion.", e)]
@@ -113,7 +113,7 @@ module Api
         # TODO: lots of these lookups can fail in the future (e.g. if device gets deleted, user gets deleted, etc...)
         render(
           json: {
-            data: MeasurementSerializer.new(@measurement).serializable_hash,
+            data: ::MeasurementSerializer.new(@measurement).serializable_hash,
             place_id: @measurement.sub_location.place.google_place_id,
             taken_by: @measurement.device.user.name
           }, status: :ok
@@ -141,7 +141,7 @@ module Api
       end
 
       def find_or_create_sublocation
-        return SubLocation.find(measurement_params.fetch(:sub_location_id)) if (measurement_params[:sub_location_id] != -1)
+        return ::SubLocation.find(measurement_params.fetch(:sub_location_id)) if (measurement_params[:sub_location_id] != -1)
 
         ::Rails.logger.info('TODO: unique index for description in scope of sublocation, maybe needs partial index? Then validates_uniqueness_of')
         @place.sub_location.find_or_create_by!(description: measurement_params.fetch(:location_where_inside_info))

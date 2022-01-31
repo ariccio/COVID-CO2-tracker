@@ -36,7 +36,7 @@ class NoJWTCookieError < ::StandardError
   end
 end
 
-class ApiController < ActionController::API
+class ApiController < ::ActionController::API
   include ::ActionController::Cookies
   include ::Errors
   before_action :authorized

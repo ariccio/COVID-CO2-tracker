@@ -3,7 +3,7 @@ module Api
     class DeviceNameSerialController < ApiController
       skip_before_action :authorized, only: [:ids_to_names]
       def ids_to_names
-        found = Device.find(device_names_params.fetch(:ids))
+        found = ::Device.find(device_names_params.fetch(:ids))
         hash = ::DeviceNameSerialSerializer.new(found).serializable_hash
         # byebug
         render(
