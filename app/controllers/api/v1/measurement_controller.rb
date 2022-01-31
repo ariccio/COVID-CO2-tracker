@@ -11,7 +11,7 @@ def measurement_controller_create_response_as_json(new_measurement)
   }
 end
 
-class InvalidComboError < RuntimeError
+class InvalidComboError < ::RuntimeError
 end
 
 def raise_if_invalid_parameter_combo(measurement_params)
@@ -77,7 +77,7 @@ module Api
           status: :bad_request
         )
       rescue InvalidComboError => e
-        Sentry.capture_exception(e)
+        ::Sentry.capture_exception(e)
         render(
           json: {
             errors: [create_error('invalid parameter combination: this is a bug', e)]
@@ -141,8 +141,9 @@ module Api
       end
 
       def find_or_create_sublocation
-        return ::SubLocation.find(measurement_params.fetch(:sub_location_id)) if (measurement_params[:sub_location_id] != -1)
-
+        if (measurement_params[:sub_location_id] != -1)
+          return ::SubLocation.find(measurement_params.fetch(:sub_location_id)) 
+        end
         ::Rails.logger.info('TODO: unique index for description in scope of sublocation, maybe needs partial index? Then validates_uniqueness_of')
         @place.sub_location.find_or_create_by!(description: measurement_params.fetch(:location_where_inside_info))
       end

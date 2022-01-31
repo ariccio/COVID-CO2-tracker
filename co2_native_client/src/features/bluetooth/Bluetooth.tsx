@@ -959,8 +959,8 @@ function isSupportedDevice(supportedDevices: UserInfoDevice[] | null, serialNumb
     }
 
     const isKnown = supportedDevices.find((device) => device.serial === serialNumber);
-    debugger;
-    return false;
+    // debugger;
+    return (isKnown !== undefined);
 }
 
 function maybeNextMeasurementIn(aranet4MeasurementInterval: number | null, aranet4SecondsSinceLastMeasurement: number | null) {

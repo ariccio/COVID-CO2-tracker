@@ -137,14 +137,14 @@ module Api
         )
       end
 
-      def create_user_with_google(not_created_yet_exception)
+      def create_user_with_google(e_not_created_yet)
         # byebug
-        return render_invalid_google_login_params(not_created_yet_exception, :sub) if @decoded_token['sub'].nil?
-        return render_invalid_google_login_params(not_created_yet_exception, :sub) if @decoded_token['sub'].empty?
-        return render_invalid_google_login_params(not_created_yet_exception, :email_verified) if @decoded_token['email_verified'].nil?
-        return render_email_not_yet_validated(not_created_yet_exception) unless (@decoded_token['email_verified'])
-        return render_invalid_google_login_params(not_created_yet_exception, :email) if @decoded_token['email'].nil?
-        return render_invalid_google_login_params(not_created_yet_exception, :email) if @decoded_token['email'].empty?
+        return render_invalid_google_login_params(e_not_created_yet, :sub) if @decoded_token['sub'].nil?
+        return render_invalid_google_login_params(e_not_created_yet, :sub) if @decoded_token['sub'].empty?
+        return render_invalid_google_login_params(e_not_created_yet, :email_verified) if @decoded_token['email_verified'].nil?
+        return render_email_not_yet_validated(e_not_created_yet) unless (@decoded_token['email_verified'])
+        return render_invalid_google_login_params(e_not_created_yet, :email) if @decoded_token['email'].nil?
+        return render_invalid_google_login_params(e_not_created_yet, :email) if @decoded_token['email'].empty?
 
         # byebug
         @user = ::User.create!(email: @decoded_token['email'], name: @decoded_token['name'], sub_google_uid: @decoded_token['sub'])
@@ -158,8 +158,10 @@ module Api
         @decoded_token = token_from_google
         # byebug
         @user = ::User.find_by!(sub_google_uid: @decoded_token['sub'])
-        ::Sentry.capture_message("stored email #{@user.email} differs from #{@decoded_token['email']}") if @user.email != @decoded_token['email']
-        ::Rails.logger.warn("stored email #{@user.email} differs from #{@decoded_token['email']}, TODO: write code to update.") if @user.email != @decoded_token['email']
+        if @user.email != @decoded_token['email']
+          ::Sentry.capture_message("stored email #{@user.email} differs from #{@decoded_token['email']}")
+          ::Rails.logger.warn("stored email #{@user.email} differs from #{@decoded_token['email']}, TODO: write code to update.")
+        end
         # byebug
         render_successful_authentication
 
