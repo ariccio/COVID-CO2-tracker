@@ -159,15 +159,15 @@ module Api
         # byebug
         @user = ::User.find_by!(sub_google_uid: @decoded_token['sub'])
         ::Sentry.capture_message("stored email #{@user.email} differs from #{@decoded_token['email']}") if @user.email != @decoded_token['email']
-        Rails.logger.warn("stored email #{@user.email} differs from #{@decoded_token['email']}, TODO: write code to update.") if @user.email != @decoded_token['email']
+        ::Rails.logger.warn("stored email #{@user.email} differs from #{@decoded_token['email']}, TODO: write code to update.") if @user.email != @decoded_token['email']
         # byebug
         render_successful_authentication
 
       # deliberately do not handle ActiveRecord::SoleRecordExceeded right now. This should be an internal server error?
 
       # See: C:\Ruby30-x64\lib\ruby\gems\3.0.0\gems\googleauth-0.16.0\lib\googleauth\id_tokens\errors.rb
-      rescue Google::Auth::IDTokens::SignatureError => e # (Token not verified as issued by Google):
-        Rails.logger.warn("user_login_google_params[:id_token]: #{user_login_google_params[:id_token]} invalid! This shouldn't happen.")
+      rescue ::Google::Auth::IDTokens::SignatureError => e # (Token not verified as issued by Google):
+        ::Rails.logger.warn("user_login_google_params[:id_token]: #{user_login_google_params[:id_token]} invalid! This shouldn't happen.")
         render_signature_verification_failed(e)
       rescue ::ActiveRecord::RecordNotFound => e
         create_user_with_google(e)
@@ -182,7 +182,7 @@ module Api
         end
         if (@user.email.nil?)
           ::Sentry.capture_message("Email field missing for user! User: #{@user}, current_user_id: #{current_user_id}")
-          Rails.logger.warn("Email field missing for user! User: #{@user}, current_user_id: #{current_user_id}. How did this happen?")
+          ::Rails.logger.warn("Email field missing for user! User: #{@user}, current_user_id: #{current_user_id}. How did this happen?")
           # render_email_field_missing()
           return
         end
@@ -211,7 +211,7 @@ module Api
         # only one param
         # decoded = GoogleSignIn::Identity.new(params[:id_token])
         # byebug
-        Google::Auth::IDTokens.verify_oidc(user_login_google_params.fetch(:id_token))
+        ::Google::Auth::IDTokens.verify_oidc(user_login_google_params.fetch(:id_token))
         # byebug
         # Rails.logger.debug decoded_with_googleauth
         # byebug

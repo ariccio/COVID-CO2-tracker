@@ -45,9 +45,9 @@ module COVIDCo2Tracker
     config.middleware.use(::ActionDispatch::Cookies)
 
     # Middleware for ActiveAdmin
-    config.middleware.use Rack::MethodOverride
-    config.middleware.use ActionDispatch::Flash
-    config.middleware.use ActionDispatch::Session::CookieStore
+    config.middleware.use ::Rack::MethodOverride
+    config.middleware.use ::ActionDispatch::Flash
+    config.middleware.use ::ActionDispatch::Session::CookieStore
 
     # Fix rails g scaffold for ActiveAdmin
     # As per https://blog.heroku.com/a-rock-solid-modern-web-stack

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class DeviceSerializer
-  include JSONAPI::Serializer
+  include ::JSONAPI::Serializer
   attributes :id, :serial
 
   belongs_to :model

@@ -7,13 +7,13 @@ module Api
         # byebug
         render(
           json: {
-            users: User.count,
-            measurements: Measurement.count,
-            devices: Device.count,
-            manufacturers: Manufacturer.count,
-            models: Model.count,
-            places: Place.count,
-            sublocations: SubLocation.count
+            users: ::User.count,
+            measurements: ::Measurement.count,
+            devices: ::Device.count,
+            manufacturers: ::Manufacturer.count,
+            models: ::Model.count,
+            places: ::Place.count,
+            sublocations: ::SubLocation.count
           }
         )
       end

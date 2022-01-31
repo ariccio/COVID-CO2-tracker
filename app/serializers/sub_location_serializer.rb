@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class SubLocationSerializer
-  include JSONAPI::Serializer
+  include ::JSONAPI::Serializer
   attributes :measurement
 
   belongs_to :place

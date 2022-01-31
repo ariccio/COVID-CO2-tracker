@@ -15,7 +15,7 @@ module Api
       # POST /sub_locations
       def create
         # ::Rails.logger.debug('sub_locations create')
-        @sub_location = SubLocation.new(sub_location_params)
+        @sub_location = ::SubLocation.new(sub_location_params)
 
         if @sub_location.save
           render(json: @sub_location, status: :created, location: @sub_location)
@@ -44,7 +44,7 @@ module Api
 
       # Use callbacks to share common setup or constraints between actions.
       def set_sub_location
-        @sub_location = SubLocation.find(params[:id])
+        @sub_location = ::SubLocation.find(params[:id])
       end
 
       # Only allow a list of trusted parameters through.

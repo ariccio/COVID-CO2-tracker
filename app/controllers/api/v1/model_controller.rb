@@ -27,7 +27,7 @@ module Api
         @model = ::Model.find(params.fetch(:id))
         render(
           json: {
-            measurements: MeasurementSerializer.new(@model.measurement.order(measurementtime: :desc)).serializable_hash
+            measurements: ::MeasurementSerializer.new(@model.measurement.order(measurementtime: :desc)).serializable_hash
           }, status: :ok
         )
       rescue ::ActiveRecord::RecordNotFound => e

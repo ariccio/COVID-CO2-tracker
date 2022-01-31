@@ -22,6 +22,6 @@ class Device < ApplicationRecord
     # measurements.each.map do |measurement|
     #   ::Measurement.measurement_with_device_as_json(measurement)
     # end
-    MeasurementSerializer.new(measurement).serializable_hash
+    ::MeasurementSerializer.new(measurement).serializable_hash
   end
 end

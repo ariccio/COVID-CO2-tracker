@@ -14,7 +14,7 @@ class Place < ApplicationRecord
       #   # json = measurement.as_json
       #   ::Measurement.measurement_with_device_as_json(measurement)
       # end
-      temp = MeasurementSerializer.new(loc.measurement.includes(:device).order('measurementtime DESC')).serializable_hash
+      temp = ::MeasurementSerializer.new(loc.measurement.includes(:device).order('measurementtime DESC')).serializable_hash
       # byebug
       {
         sub_location_id: loc.id,
@@ -27,7 +27,7 @@ class Place < ApplicationRecord
 
   def self.testing_data_migration
     # say('UGLY manual data migration...')
-    Place.all.find_each do |place|
+    ::Place.all.find_each do |place|
       place.measurement.each do |measurement|
         new_sub_location = place.sub_location.find_or_create_by!(description: measurement.location_where_inside_info)
         measurement.sub_location = new_sub_location
