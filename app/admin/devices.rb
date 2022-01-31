@@ -7,7 +7,7 @@
   #
   # Uncomment all parameters which should be permitted for assignment
   #
-  permit_params :serial, :model_id, :user_id
+  permit_params(:serial, :model_id, :user_id)
   #
   # or
   #

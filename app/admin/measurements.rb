@@ -6,7 +6,7 @@
   #
   # Uncomment all parameters which should be permitted for assignment
   #
-  permit_params :device_id, :co2ppm, :measurementtime, :place_id, :location_where_inside_info, :crowding
+  permit_params(:device_id, :co2ppm, :measurementtime, :place_id, :location_where_inside_info, :crowding)
   #
   # or
   #

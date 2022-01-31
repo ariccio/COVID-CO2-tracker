@@ -6,7 +6,7 @@
   #
   # Uncomment all parameters which should be permitted for assignment
   #
-  permit_params :email, :name, :sub_google_uid
+  permit_params(:email, :name, :sub_google_uid)
   #
   # or
   #

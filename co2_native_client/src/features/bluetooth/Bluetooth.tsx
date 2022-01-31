@@ -609,7 +609,8 @@ const useScanConnectAranet4 = () => {
         dispatch(setScanningStatusString(`Connected to aranet4 ${deviceID}). Discovering services and characteristics...`));
         const deviceWithServicesAndCharacteristics = await connectedDevice.discoverAllServicesAndCharacteristics();
     
-        console.log("Services discovered!");
+        dispatch(setScanningStatusString("Connected to aranet4, services discovered!"));
+
         const services = await deviceWithServicesAndCharacteristics.services();
         // console.log("services:");
         // console.table(services);
@@ -833,7 +834,7 @@ export const useBluetoothConnectAranet = () => {
             console.log("Timeout already set, ignoring.")
             return;
         }
-        console.log(`Setting update timer (${timerTime/1000})seconds)...`);
+        console.log(`Setting update timer (${timerTime/1000} seconds)...`);
         const handle = setTimeout(() => {
             setTimeoutHandle(null);
             updateCallback(setAranet4SpecificInformation, deviceID, dispatch, beginWithDeviceConnection, finish, setGenericBluetoothInformation);
@@ -855,7 +856,7 @@ export const useBluetoothConnectAranet = () => {
 }
 
 async function attemptConnectScannedDevice(scannedDevice: DeviceId, dispatch: AppDispatch, device: Device | null): Promise<Device | null> {
-    console.log(`Attempting connection to ${scannedDevice}`);
+    // console.log(`Attempting connection to ${scannedDevice}`);
     if (device !== null) {
         const isAlreadyConnected = await device.isConnected();
         if (isAlreadyConnected) {
@@ -864,7 +865,7 @@ async function attemptConnectScannedDevice(scannedDevice: DeviceId, dispatch: Ap
         }
     }
     const connectedDevice = await manager.connectToDevice(scannedDevice);
-    console.log("Connected!");
+    // console.log("Connected!");
     return connectedDevice;
     // try {
     // }

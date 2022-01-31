@@ -6,7 +6,7 @@
   #
   # Uncomment all parameters which should be permitted for assignment
   #
-  permit_params :description, :place_id
+  permit_params(:description, :place_id)
   #
   # or
   #
