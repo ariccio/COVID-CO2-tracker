@@ -1,4 +1,3 @@
-
 Expo post announcing BLE support: https://expo.canny.io/feature-requests/p/bluetooth-1
 
 

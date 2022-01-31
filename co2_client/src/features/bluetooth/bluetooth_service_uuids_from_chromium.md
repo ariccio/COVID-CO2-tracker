@@ -87,7 +87,6 @@ I tried several variations of datastructures to make this easy...
           ['1829', "reconnection_configuration"],
 ```
 
-
 ```
           ['0x1800', "generic_access"],
           ['0x1801', "generic_attribute"],

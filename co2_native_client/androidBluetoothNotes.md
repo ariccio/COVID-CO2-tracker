@@ -1,5 +1,3 @@
-
-
 https://stackoverflow.com/a/2019563/625687
 adb shell setprop log.tag.bluetooth DEBUG
 
