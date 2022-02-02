@@ -5,6 +5,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { Provider, useDispatch, useSelector } from 'react-redux';
 
+import * as SecureStore from 'expo-secure-store';
+
 
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
@@ -12,7 +14,7 @@ import * as Google from 'expo-auth-session/providers/google';
 import Constants from 'expo-constants';
 
 
-import { store } from './src/app/store';
+import { AppDispatch, store } from './src/app/store';
 
 import { BluetoothData, useBluetoothConnectAranet } from './src/features/bluetooth/Bluetooth';
 
@@ -25,6 +27,8 @@ import {API_URL, LOGIN_URL} from '../co2_client/src/utils/UrlPath';
 import { withAuthorizationHeader } from './src/utils/NativeDefaultRequestHelpers';
 import { UserInfoDevice } from '../co2_client/src/utils/DeviceInfoTypes';
 import { setSupportedDevices, setUNSupportedDevices } from './src/features/userInfo/devicesSlice';
+import { AuthSessionResult } from 'expo-auth-session';
+import { selectUserName, setUserName } from './src/features/userInfo/userInfoSlice';
 
 // import {AppStatsResponse, queryAppStats} from '../co2_client/src/utils/QueryAppStats';
 
@@ -134,19 +138,49 @@ const get_my_devices = (jwt: string) => {
 
 }
 
+const CO2_TRACKER_JWT_KEY_NAME = 'riccio-co2-tracker-jwt';
 
-const loginWithIDToken = (id_token: string, setUsername: React.Dispatch<React.SetStateAction<string>>, setJWT: React.Dispatch<React.SetStateAction<string | null>>) => {
+async function saveJWTToAsyncStore(jwt: string, setAsyncStoreError: React.Dispatch<React.SetStateAction<string | null>>): Promise<void> {
+  console.log(`Saving JWT (${jwt}) to secure storage...`);
+  try {
+    return await SecureStore.setItemAsync(CO2_TRACKER_JWT_KEY_NAME, jwt);  
+  }
+  catch (error) {
+    console.error(error);
+    setAsyncStoreError(`Error saving login info from secure local storage: '${String(error)}' ...you will need to login again manually!`);
+    debugger;
+  }
+}
+
+const loginWithIDToken = (id_token: string, setJWT: React.Dispatch<React.SetStateAction<string | null>>, setAsyncStoreError: React.Dispatch<React.SetStateAction<string | null>>, dispatch: AppDispatch) => {
     const options = nativeLoginRequestInit(id_token);
     console.log("logging in to server!")
     // const url = (API_URL + '/google_login_token');
     // debugger;
     const result = fetchJSONWithChecks(LOGIN_URL_NATIVE, options, 200, true, fetchLoginFailedCallback, genericFetchSuccessCallback) as Promise<any>;
     return result.then((response) => {
-        console.log("sucessfully logged in to server!");
-        setUsername(response.email);
-        // console.log(response);
-        setJWT(response.jwt);
+      if (response.errors !== undefined) {
+        console.error("Login to server FAILED");
+        debugger;
+        return null;
+      }
+      console.log("sucessfully logged in to server!");
+      dispatch(setUserName(response.email));
+      // console.log(response);
+      if (response.jwt === '') {
+        console.error("JWT from server is empty?");
+        debugger;
         return;
+      }
+      if (response.jwt === null) {
+        console.error("JWT from server is null?");
+        debugger;
+        return;
+      }
+      setJWT(response.jwt);
+      console.assert(response.errors === undefined);
+
+      return saveJWTToAsyncStore(response.jwt, setAsyncStoreError);
 
     }).catch((error) => {
         console.error(error);
@@ -180,10 +214,116 @@ function dumpDeviceInfo(devices: Array<UserInfoDevice>): void {
   }
 }
 
+
+
+async function queryAsyncStoreForStoredJWT(setAsyncStoreError: React.Dispatch<React.SetStateAction<string | null>>): Promise<string | null> {
+  const available = await SecureStore.isAvailableAsync()
+  if (!available) {
+    debugger;
+    setAsyncStoreError("SecureStore NOT available! Should be available on Android AND iOS. You will need to login manually on each start of the app.");
+    return null;
+  }
+  try {
+    //Note to self, calls into getValueWithKeyAsync in SecureStoreModule.java, then getItemImpl, then readJSONEncodedItem.
+    //Can throw numerous errors, including E_SECURESTORE_JSON_ERROR, E_SECURESTORE_DECODE_ERROR, E_SECURESTORE_IO_ERROR, E_SECURESTORE_DECRYPT_ERROR
+    const maybeJWT = await SecureStore.getItemAsync(CO2_TRACKER_JWT_KEY_NAME)
+    if (maybeJWT === null) {
+      console.log("No JWT in secure storage!");
+      return null;
+    }
+    if (maybeJWT === '') {
+      console.warn("JWT in storage is empty?");
+      debugger;
+      return null;
+    } 
+    console.log("Got JWT from storage!");
+    return maybeJWT;
+  }
+  catch (error) {
+    console.error(error);
+    setAsyncStoreError(`Error loading login info from secure local storage: ${String(error)}. You will need to login manually.`);
+    debugger;
+    return null;
+  }
+}
+
+async function deleteJWTFromAsyncStore(setAsyncStoreError: React.Dispatch<React.SetStateAction<string | null>>): Promise<void> {
+  const valueInStore = await queryAsyncStoreForStoredJWT(setAsyncStoreError);
+  if (valueInStore === null) {
+    return;
+  }
+  try {
+    await SecureStore.deleteItemAsync(CO2_TRACKER_JWT_KEY_NAME);
+  }
+  catch (error) {
+    console.error(error);
+    setAsyncStoreError(`Error clearing login info from secure local storage: ${String(error)}. This is weird. Try clearing app data?`);
+    debugger;
+  }
+}
+
+function setIDTokenIfGoodResponseFromGoogle(setIDToken: React.Dispatch<React.SetStateAction<string | null>>, responseFromGoogle: AuthSessionResult | null) {
+  // console.table(response);
+  // console.log(promptAsync);
+  if (responseFromGoogle === undefined) {
+    console.log("response is undefined?");
+    debugger;
+    return;
+  }
+  if (responseFromGoogle === null) {
+    console.log("response is null. Must not have tried logging in yet.");
+    // debugger;
+    return;
+  }
+  if (responseFromGoogle.type === 'error') {
+    if (responseFromGoogle.error) {
+      console.warn(`Authentication error: ${responseFromGoogle.error}`);
+    }
+    if (responseFromGoogle.errorCode) {
+      console.assert(responseFromGoogle.errorCode.length > 0);
+      console.warn(`Authentication error code: ${responseFromGoogle.errorCode}`);
+    }
+    debugger;
+    return;
+  }
+  if (responseFromGoogle.type === 'success') {
+    if (responseFromGoogle.authentication === undefined) {
+      console.warn('authentication is undefined?');
+      debugger;
+      return;
+    }
+    if (responseFromGoogle.authentication === null) {
+      console.warn('authentication is null?');
+      debugger;
+      return;
+    }
+    //see also, fields:
+    //  expiresIn
+    //  refreshToken
+    console.log(`expiresIn: ${responseFromGoogle.authentication.expiresIn}`);
+    console.log(`refreshToken: ${responseFromGoogle.authentication.refreshToken}`);
+    // console.log(`idToken: ${response.authentication.idToken}`);
+    if (responseFromGoogle.authentication.idToken === null) {
+      console.error("id token null??!?");
+      debugger;
+      return;
+    }
+    if (responseFromGoogle.authentication.idToken === undefined) {
+      console.error("id token undefined??!?");
+      debugger;
+      return;
+    }
+    setIDToken(responseFromGoogle.authentication.idToken);
+  }
+}
+
 const useGoogleAuthForCO2Tracker = () => {
   const [idToken, setIDToken] = useState(null as (string | null));
   const [jwt, setJWT] = useState(null as (string | null));
-  const [userName, setUsername] = useState('');
+  const [asyncStoreError, setAsyncStoreError] = useState(null as (string | null));
+  // const [userName, setUsername] = useState('');
+
+  const dispatch = useDispatch();
 
 
   const [promptAsyncReady, setPromptAsyncReady] = useState(false);
@@ -195,6 +335,24 @@ const useGoogleAuthForCO2Tracker = () => {
     // webClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
   });
 
+  const logout = () => {
+    setJWT(null);
+    deleteJWTFromAsyncStore(setAsyncStoreError);
+  }
+  useEffect(() => {
+    queryAsyncStoreForStoredJWT(setAsyncStoreError).then((maybeJWT) => {
+      if (maybeJWT) {
+        setJWT(maybeJWT);
+        console.log("Set JWT from storage!");
+      }
+      else {
+        console.log("No JWT from storage?");
+        debugger;
+      }
+    })
+
+
+  }, [])
 
   useEffect(() => {
     // "Be sure to disable the prompt until request is defined."
@@ -205,58 +363,7 @@ const useGoogleAuthForCO2Tracker = () => {
 
   useEffect(() => {
     console.table(request);
-    // console.table(response);
-    // console.log(promptAsync);
-    if (response === undefined) {
-      console.log("response is undefined?");
-      debugger;
-      return;
-    }
-    if (response === null) {
-      console.log("response is null. Must not have tried logging in yet.");
-      // debugger;
-      return;
-    }
-    if (response.type === 'error') {
-      if (response.error) {
-        console.warn(`Authentication error: ${response.error}`);
-      }
-      if (response.errorCode) {
-        console.assert(response.errorCode.length > 0);
-        console.warn(`Authentication error code: ${response.errorCode}`);
-      }
-      debugger;
-      return;
-    }
-    if (response.type === 'success') {
-      if (response.authentication === undefined) {
-        console.warn('authentication is undefined?');
-        debugger;
-        return;
-      }
-      if (response.authentication === null) {
-        console.warn('authentication is null?');
-        debugger;
-        return;
-      }
-      //see also, fields:
-      //  expiresIn
-      //  refreshToken
-      console.log(`expiresIn: ${response.authentication.expiresIn}`);
-      console.log(`refreshToken: ${response.authentication.refreshToken}`);
-      // console.log(`idToken: ${response.authentication.idToken}`);
-      if (response.authentication.idToken === null) {
-        console.error("id token null??!?");
-        debugger;
-        return;
-      }
-      if (response.authentication.idToken === undefined) {
-        console.error("id token undefined??!?");
-        debugger;
-        return;
-      }
-      setIDToken(response.authentication.idToken);
-      }
+    setIDTokenIfGoodResponseFromGoogle(setIDToken, response);
   }, [response]);
 
   useEffect(() => {
@@ -269,10 +376,10 @@ const useGoogleAuthForCO2Tracker = () => {
       debugger;
       return;
     }
-    loginWithIDToken(idToken, setUsername, setJWT);
+    loginWithIDToken(idToken, setJWT, setAsyncStoreError, dispatch);
   }, [idToken])
 
-  return {jwt, userName, promptAsync, promptAsyncReady};
+  return {jwt, promptAsync, promptAsyncReady, asyncStoreError, logout};
 }
 
 function disablePromptAsyncButton(jwt: string | null, promptAsyncReady: boolean): boolean {
@@ -290,8 +397,8 @@ function disablePromptAsyncButton(jwt: string | null, promptAsyncReady: boolean)
 
 function Main() {
   const {device} = useBluetoothConnectAranet();
-  const {jwt, userName, promptAsync, promptAsyncReady} = useGoogleAuthForCO2Tracker();
-  
+  const {jwt, promptAsync, promptAsyncReady, asyncStoreError, logout} = useGoogleAuthForCO2Tracker();
+  const userName = useSelector(selectUserName);
   
   const dispatch = useDispatch();
 
@@ -344,7 +451,9 @@ function Main() {
     <SafeAreaProvider style={styles.container}>          
       <BluetoothData device={device}/>
       <Button disabled={disablePromptAsyncButton(jwt, promptAsyncReady)} title="Login" onPress={() => {promptAsync();}}/>
+      <Button disabled={!disablePromptAsyncButton(jwt, promptAsyncReady)} title="Logout" onPress={() => logout()}/>
       <MaybeIfValue text={"username: "} value={(userName !== '') ? userName : null}/>
+      <MaybeIfValue text={"Errors with automatic login! Details: "} value={asyncStoreError}/>
       <StatusBar style="auto" />
     </SafeAreaProvider>
   );

@@ -18,3 +18,6 @@ export const LOGIN_URL = API_URL + AUTH_ACTION;
 
 const MY_DEVICES_SHOW_ACTION = '/my_devices';
 export const USER_DEVICES_URL = (API_URL + MY_DEVICES_SHOW_ACTION);
+
+const EMAIL_URL_ACTION = '/email';
+export const EMAIL_URL = API_URL + EMAIL_URL_ACTION;

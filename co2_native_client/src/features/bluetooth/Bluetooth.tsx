@@ -839,7 +839,7 @@ export const useBluetoothConnectAranet = () => {
             setTimeoutHandle(null);
             updateCallback(setAranet4SpecificInformation, deviceID, dispatch, beginWithDeviceConnection, finish, setGenericBluetoothInformation);
         }, timerTime);
-        console.log(`Set update timer: ${handle}`)
+        // console.log(`Set update timer: ${handle}`)
         setTimeoutHandle(handle);
         return () => {
             if (timeoutHandle !== null) {
@@ -988,7 +988,7 @@ function maybeNextMeasurementInOrDefault(aranet4SpecificInformation: Aranet4Spec
         // debugger;
         return defaultTime;
     }
-    console.log(`measurement interval: ${aranet4SpecificInformation.measurementInterval}, seconds since last measurement: ${aranet4SpecificInformation.secondsSinceLastMeasurement}`);
+    // console.log(`measurement interval: ${aranet4SpecificInformation.measurementInterval}, seconds since last measurement: ${aranet4SpecificInformation.secondsSinceLastMeasurement}`);
     const maybeNextSeconds = (aranet4SpecificInformation.measurementInterval - aranet4SpecificInformation.secondsSinceLastMeasurement) + 1;
     const maybeNext = (maybeNextSeconds * 1000);
     if (maybeNext < 5000) {

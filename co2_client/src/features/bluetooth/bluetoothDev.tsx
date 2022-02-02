@@ -1,6 +1,6 @@
 /// <reference types="web-bluetooth" />
 // import { parse } from "path";
-import { MutableRefObject, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "react-bootstrap";
 
 import {useDispatch} from 'react-redux';
