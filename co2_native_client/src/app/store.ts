@@ -1,3 +1,4 @@
+// See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
 import { configureStore, Action } from '@reduxjs/toolkit';
 import { ThunkAction } from 'redux-thunk'
 import { rootReducer, RootState } from './rootReducer';

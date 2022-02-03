@@ -1,3 +1,6 @@
+// See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
+
+/* eslint-disable react/prop-types */
 import { Text } from 'react-native';
 
 export const MaybeIfValue: React.FC<{text: string, value: any, suffix?: string}> = ({text, value, suffix}) => {

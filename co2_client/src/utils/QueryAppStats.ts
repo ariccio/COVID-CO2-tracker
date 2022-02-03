@@ -5,13 +5,13 @@ import {userRequestOptions} from './DefaultRequestOptions';
 import {fetchJSONWithChecks} from './FetchHelpers';
 
 interface AppStats {
-    users: number,
-    measurements: number,
-    devices: number,
-    manufacturers: number,
-    models: number,
-    places: number,
-    sublocations: number
+    users: number;
+    measurements: number;
+    devices: number;
+    manufacturers: number;
+    models: number;
+    places: number;
+    sublocations: number;
 }
 
 export type AppStatsResponse = AppStats & withErrors;

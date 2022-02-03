@@ -1,3 +1,5 @@
+// See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
+
 //  NOTE:
 //      It looks like the fetch implementation in React Native/Expo is different enough that it's likely worth managing separate code for it.
 //      I will also need to handle auth manually on the frontend instead of relying on httponly cookies.

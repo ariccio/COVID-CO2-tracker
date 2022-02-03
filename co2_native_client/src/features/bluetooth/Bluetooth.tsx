@@ -1,3 +1,4 @@
+// See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
 import { useEffect, useRef, useState } from 'react';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import { PermissionsAndroid, Text } from 'react-native';
