@@ -1,23 +1,19 @@
+/* eslint-disable no-debugger */
 /* eslint-disable react/prop-types */
 // See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
-import { useEffect, useRef, useState } from 'react';
-import { Provider, useDispatch, useSelector } from 'react-redux';
-import { PermissionsAndroid, Text } from 'react-native';
-
-import { BleManager, Device, BleError, LogLevel, Service, Characteristic, BleErrorCode, Subscription, DeviceId } from 'react-native-ble-plx';
-
 import {Buffer} from 'buffer';
-
-
-import { MaybeIfValue, ValueOrLoading } from '../../utils/RenderValues';
+import { useEffect, useState } from 'react';
+import { PermissionsAndroid, Text } from 'react-native';
+import { BleManager, Device, BleError, LogLevel, Service, Characteristic, BleErrorCode, Subscription, DeviceId } from 'react-native-ble-plx';
+import { useDispatch, useSelector } from 'react-redux';
 
 
 import * as BLUETOOTH from '../../../../co2_client/src/utils/BluetoothConstants';
-
-import { Aranet4_1503CO2, incrementUpdates, MeasurementData, selectAranet4SpecificData, selectDeviceBatterylevel, selectDeviceID, selectDeviceName, selectDeviceRSSI, selectDeviceSerialNumberString, selectDeviceStatusString, selectHasBluetooth, selectMeasurementData, selectScanningErrorStatusString, selectScanningStatusString, selectUpdateCount, setAranet4Color, setAranet4SecondsSinceLastMeasurement, setDeviceBatteryLevel, setDeviceID, setDeviceName, setDeviceSerialNumber, setDeviceStatusString, setHasBluetooth, setMeasurementData, setMeasurementInterval, setRssi, setScanningErrorStatusString, setScanningStatusString } from './bluetoothSlice';
-import { selectSupportedDevices } from '../userInfo/devicesSlice';
 import { UserInfoDevice } from '../../../../co2_client/src/utils/DeviceInfoTypes';
 import { AppDispatch } from '../../app/store';
+import { MaybeIfValue, ValueOrLoading } from '../../utils/RenderValues';
+import { selectSupportedDevices } from '../userInfo/devicesSlice';
+import { Aranet4_1503CO2, incrementUpdates, MeasurementData, selectAranet4SpecificData, selectDeviceBatterylevel, selectDeviceID, selectDeviceName, selectDeviceRSSI, selectDeviceSerialNumberString, selectDeviceStatusString, selectHasBluetooth, selectMeasurementData, selectScanningErrorStatusString, selectScanningStatusString, selectUpdateCount, setAranet4Color, setAranet4SecondsSinceLastMeasurement, setDeviceBatteryLevel, setDeviceID, setDeviceName, setDeviceSerialNumber, setDeviceStatusString, setHasBluetooth, setMeasurementData, setMeasurementInterval, setRssi, setScanningErrorStatusString, setScanningStatusString } from './bluetoothSlice';
 
 
 //https://github.com/thespacemanatee/Smart-Shef-IoT/blob/4782c95f383040f36e4ae7ce063166cce5c76129/smart_shef_app/src/utils/hooks/useMonitorHumidityCharacteristic.ts
@@ -176,7 +172,7 @@ const requestLocationPermission = async (dispatch: AppDispatch) => {
 }
 
 function parseUTF8StringBuffer(data: Buffer): string {
-    let chars = new Array(data.byteLength);
+    const chars = new Array(data.byteLength);
     for (let i = 0; i < (data.byteLength); i++) {
         chars[i] = data.readUInt8(i);
     }
@@ -256,7 +252,7 @@ async function readGenericBluetoothInformation(deviceID: string): Promise<Generi
     // dispatch(setScanningStatusString(`Beginning serial number read...`));
     let serialNumberStringError = null;
 
-    const serialNumberString = await readSerialNumberFromBluetoothDevice(deviceID!)
+    const serialNumberString = await readSerialNumberFromBluetoothDevice(deviceID);
     
     console.log(`Serial number: ${serialNumberString}`);
     // dispatch(setDeviceSerialNumber(serialNumberString));
@@ -267,7 +263,7 @@ async function readGenericBluetoothInformation(deviceID: string): Promise<Generi
     }
     // dispatch(setScanningStatusString(`Got serial number! ('${serialNumberString}')`));
 
-    const deviceNameString = await readDeviceNameFromBluetoothDevice(deviceID!)
+    const deviceNameString = await readDeviceNameFromBluetoothDevice(deviceID)
     let deviceNameStringError = null;
     console.log(`Device name: ${deviceNameString}`)
     // setDeviceNameString(deviceNameString);
@@ -1018,7 +1014,7 @@ function dbOrDbAndWeakMessage(rssi: number | null): string {
 
 const RSSIOrWeakRSSI: React.FC<{rssi: number | null}> = ({rssi}) => {
     return (
-        <ValueOrLoading text={"rssi: "} value={rssi} suffix={dbOrDbAndWeakMessage(rssi)} />
+        <ValueOrLoading text="rssi: " value={rssi} suffix={dbOrDbAndWeakMessage(rssi)} />
     );
 }
 
@@ -1055,28 +1051,28 @@ export const BluetoothData: React.FC<{ device: Device | null }> = ({ device }) =
 
     return (
         <>
-            <MaybeIfValue text={"bluetooth status: "} value={bluetoothScanningStatus} />
-            <MaybeIfValue text={"bluetooth errors: "} value={(bluetoothScanningErrorStatus.length > 0) ? bluetoothScanningErrorStatus : null} />
-            <MaybeIfValue text={"Device status: "} value={deviceStatus}/>
+            <MaybeIfValue text="bluetooth status: " value={bluetoothScanningStatus} />
+            <MaybeIfValue text="bluetooth errors: " value={(bluetoothScanningErrorStatus.length > 0) ? bluetoothScanningErrorStatus : null} />
+            <MaybeIfValue text="Device status: " value={deviceStatus}/>
             <Text>Updates: {updateCount}</Text>
-            <ValueOrLoading text={"id: "} value={id} />
-            <ValueOrLoading text={"name: "} value={name} />
+            <ValueOrLoading text="id: " value={id} />
+            <ValueOrLoading text="name: " value={name} />
             
             <RSSIOrWeakRSSI rssi={rssi}/>
-            <ValueOrLoading text={"Serial number: "} value={serialNumber} />
-            <ValueOrLoading text={"Battery: "} value={deviceBatteryLevel} suffix={"%"} />
-            <MaybeIfValue text={"Known user device?: "} value={knownDevice} suffix={"yes"}/>
+            <ValueOrLoading text="Serial number: " value={serialNumber} />
+            <ValueOrLoading text="Battery: " value={deviceBatteryLevel} suffix="%" />
+            <MaybeIfValue text="Known user device?: " value={knownDevice} suffix="yes"/>
 
-            <MaybeIfValue text={"localName: "} value={(device?.localName) ? device.localName : null} />
-            <MaybeIfValue text={"manufacturerData: "} value={(device?.manufacturerData) ? device?.manufacturerData : null} />
+            <MaybeIfValue text="localName: " value={(device?.localName) ? device.localName : null} />
+            <MaybeIfValue text="manufacturerData: " value={(device?.manufacturerData) ? device?.manufacturerData : null} />
 
-            <MaybeIfValue text={"CO2: "} value={measurementData?.co2} suffix={"ppm"} />
-            <MaybeIfValue text={"Humidity: "} value={measurementData?.humidity} suffix={"%"} />
-            <MaybeIfValue text={"Temperature: "} value={measurementData?.temperature} suffix={"°C"} />
-            <MaybeIfValue text={"Pressure: "} value={measurementData?.barometricPressure} suffix={"hPa"} />
-            <MaybeIfValue text={"Measurement time: "} value={aranet4Data?.aranet4MeasurementTime} />
-            <MaybeIfValue text={"Measurement interval: "} value={aranet4Data?.aranet4MeasurementInterval} suffix={" seconds"} />
-            <MaybeIfValue text={"Next measurement: "} value={nextMeasurement} suffix={" seconds"} />
+            <MaybeIfValue text="CO2: " value={measurementData?.co2} suffix="ppm" />
+            <MaybeIfValue text="Humidity: " value={measurementData?.humidity} suffix="%" />
+            <MaybeIfValue text="Temperature: " value={measurementData?.temperature} suffix="°C" />
+            <MaybeIfValue text="Pressure: " value={measurementData?.barometricPressure} suffix="hPa" />
+            <MaybeIfValue text="Measurement time: " value={aranet4Data?.aranet4MeasurementTime} />
+            <MaybeIfValue text="Measurement interval: " value={aranet4Data?.aranet4MeasurementInterval} suffix=" seconds" />
+            <MaybeIfValue text="Next measurement: " value={nextMeasurement} suffix=" seconds" />
         </>
     );
 }

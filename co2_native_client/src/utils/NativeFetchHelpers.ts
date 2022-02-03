@@ -51,6 +51,8 @@ export async function dumpResponse(response_: Response): Promise<void> {
     }
 }
 
+// TODO: maybe this can be unknown instead of any?
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function checkJSONparsingErrors(awaitedResponseOriginal: Response): Promise<any> {
     const clonedResponseForErrorChecks = awaitedResponseOriginal.clone();
     const clonedResponseForErrorMessage = awaitedResponseOriginal.clone();
@@ -66,10 +68,12 @@ async function checkJSONparsingErrors(awaitedResponseOriginal: Response): Promis
         // debugger;
         console.error("bailed checkJSONparsingErrors")
         try {
-            
+            // eslint-disable-next-line no-debugger
+            debugger;
         }
         catch(innerError) {
             console.error("damnit!");
+            // eslint-disable-next-line no-debugger
             debugger;
         }
         if (error instanceof SyntaxError) {
@@ -106,6 +110,7 @@ export async function fetchFailed(awaitedResponseOriginal: Response, expectedSta
                 alert("possible internal server error, automatically reported!");
             }
             // Sentry.captureMessage(`possible internal server error in response to fetch? full response object: ${JSON.stringify(parsedJSONResponse)}`);
+            // eslint-disable-next-line no-debugger
             debugger;
         }
         // debugger;
@@ -135,6 +140,7 @@ export async function fetchFailed(awaitedResponseOriginal: Response, expectedSta
             // Sentry.captureMessage(`possible internal server error in response to fetch? Full response object: ${JSON.stringify(parsedJSONResponse)}`);
             // if (alertErrors) {
             // }
+            // eslint-disable-next-line no-debugger
             debugger;
         }
 
@@ -152,6 +158,7 @@ export async function fetchFailed(awaitedResponseOriginal: Response, expectedSta
     return false;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fetchFilter(error: any): never {
     console.log(`filtering error ${error}`)
     if (error.toString !== undefined) {
@@ -190,9 +197,9 @@ async function awaitRawResponse(rawFetchResponse: Promise<Response>): Promise<Re
         return awaitedResponse;
     }
     catch (error) {
-        debugger;
         console.warn(`caught awaiting raw response!`);
         console.warn(error);
+        // eslint-disable-next-line no-debugger
         debugger;
         throw error;
     }
@@ -273,6 +280,7 @@ export async function fetchJSONWithChecks(input: RequestInfo, init: RequestInit,
     }
     catch(error) {
         console.warn(`last chance bailed?`)
+        // eslint-disable-next-line no-debugger
         debugger;
         fetchFilter(error);
     }
