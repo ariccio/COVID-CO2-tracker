@@ -93,7 +93,7 @@ class ApiController < ::ActionController::API
       json: {
         errors: [create_jwt_error('something went wrong with parsing the JWT', exception)]
       },
-      status: :internal_server_error
+      status: :bad_request
     )
   end
 
@@ -139,11 +139,6 @@ class ApiController < ::ActionController::API
     # https://docs.sentry.io/platforms/ruby/guides/rails/enriching-events/identify-user/
     @user = ::User.find(current_user_id)
     @user
-  rescue ::JWT::DecodeError => e
-    ::Sentry.capture_exception(e)
-    # Rails.logger.warn('jwt invalid!')
-    render_jwt_error
-    nil
   rescue ::ActiveRecord::RecordNotFound => _e
     # TODO: is this the most specific error?
     # NOPd out because else we have double render
@@ -174,5 +169,10 @@ class ApiController < ::ActionController::API
     please_log_in
   rescue ::NoJWTCookieError => _e
     please_log_in
+  rescue ::JWT::DecodeError => e
+    ::Sentry.capture_exception(e)
+    # Rails.logger.warn('jwt invalid!')
+    render_jwt_error(e)
+    nil
   end
 end

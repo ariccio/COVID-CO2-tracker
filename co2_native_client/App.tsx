@@ -79,6 +79,47 @@ export type AppStatsResponse = AppStats & withErrors;
 //   // });
 // };
 
+interface NativeLoginResponse {
+  email: string;
+  jwt: string;
+}
+
+export type NativeLoginResponseType = NativeLoginResponse & withErrors;
+
+function rawNativeLoginResponseToStrongType(response: unknown): NativeLoginResponseType {
+  if (response === undefined) {
+    throw new Error("login response is UNDEFINED?");
+  }
+  if (response === null) {
+    throw new Error("login response is NULL?");
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const responseExists = response as any;
+  if (responseExists.errors) {
+    console.warn("Found errors in login response. No typechecking.");
+    return responseExists;
+  }
+  if (responseExists.email === null) {
+    throw new Error("Null email field");
+  }
+  if (responseExists.email === undefined) {
+    throw new Error("Email field not present!");
+  }
+  if (responseExists.email.length === 0) {
+    console.warn("Email is empty?");
+  }
+  if (responseExists.jwt === null) {
+    throw new Error("Null jwt.");
+  }
+  if (responseExists.jwt === undefined) {
+    throw new Error("jwt not present!");
+  }
+  if (responseExists.jwt.length === 0) {
+    throw new Error("jwt empty!");
+  }
+  return responseExists;
+}
+
 function nativeLoginRequestInit(id_token: string) {
   const def = postRequestOptions();
   const options = {
@@ -93,16 +134,18 @@ function nativeLoginRequestInit(id_token: string) {
   return options;
 }
 
-const fetchLoginFailedCallback = async (awaitedResponse: Response): Promise<any> => {
+const fetchLoginFailedCallback = async (awaitedResponse: Response): Promise<NativeLoginResponseType> => {
   console.error("login to server with google failed");
+  // eslint-disable-next-line no-debugger
   debugger;
-  return awaitedResponse.json();
+  const parsed = await awaitedResponse.json();
+  return rawNativeLoginResponseToStrongType(parsed);
 };
 
-const genericFetchSuccessCallback = async (awaitedResponse: Response): Promise<any> => {
-  console.log("TODO: strong type.")
-  return awaitedResponse.json();
-};
+// const genericFetchSuccessCallback = async (awaitedResponse: Response): Promise<any> => {
+//   console.log("TODO: strong type.")
+//   return awaitedResponse.json();
+// };
 
 function initDeviceRequestOptions(jwt: string): RequestInit {
   const defaultOptions = userRequestOptions();
@@ -116,10 +159,16 @@ function initDeviceRequestOptions(jwt: string): RequestInit {
 }
 
 const fetchMyDevicesFailedCallback = async (awaitedResponse: Response): Promise<UserDevicesInfo> => {
-  console.error("Fetching user devices failed.");
-  debugger;
+  console.error("Fetching user devices failed!");
+  // eslint-disable-next-line no-debugger
+  // debugger;
   return awaitedResponse.json();
 };
+
+const fetchLoginSuccessCallback = async (awaitedResponse: Response): Promise<NativeLoginResponseType> => {
+  const parsed = await awaitedResponse.json();
+  return rawNativeLoginResponseToStrongType(parsed);
+}
 
 const fetchMyDevicesSucessCallback = async (awaitedResponse: Response): Promise<UserDevicesInfo> => {
   const response = awaitedResponse.json();
@@ -142,6 +191,7 @@ async function saveJWTToAsyncStore(jwt: string, setAsyncStoreError: React.Dispat
   catch (error) {
     console.error(error);
     setAsyncStoreError(`Error saving login info from secure local storage: '${String(error)}' ...you will need to login again manually!`);
+    // eslint-disable-next-line no-debugger
     debugger;
   }
 }
@@ -151,27 +201,17 @@ const loginWithIDToken = (id_token: string, setAsyncStoreError: React.Dispatch<R
   console.log("logging in to server!")
   // const url = (API_URL + '/google_login_token');
   // debugger;
-  const result = fetchJSONWithChecks(LOGIN_URL_NATIVE, options, 200, true, fetchLoginFailedCallback, genericFetchSuccessCallback) as Promise<any>;
+  const result = fetchJSONWithChecks(LOGIN_URL_NATIVE, options, 200, true, fetchLoginFailedCallback, fetchLoginSuccessCallback) as Promise<NativeLoginResponseType>;
   return result.then((response) => {
     if (response.errors !== undefined) {
       console.error("Login to server FAILED");
       setLoginErrors(formatErrors(response.errors));
+      // eslint-disable-next-line no-debugger
       debugger;
       return null;
     }
     console.log("sucessfully logged in to server!");
     dispatch(setUserName(response.email));
-    // console.log(response);
-    if (response.jwt === '') {
-      console.error("JWT from server is empty?");
-      debugger;
-      return;
-    }
-    if (response.jwt === null) {
-      console.error("JWT from server is null?");
-      debugger;
-      return;
-    }
     dispatch(setJWT(response.jwt));
     console.assert(response.errors === undefined);
 
@@ -179,6 +219,7 @@ const loginWithIDToken = (id_token: string, setAsyncStoreError: React.Dispatch<R
 
   }).catch((error) => {
       console.error(error);
+      // eslint-disable-next-line no-debugger
       debugger;
   })
 };
@@ -224,6 +265,7 @@ async function queryAsyncStoreForStoredJWT(setAsyncStoreError: React.Dispatch<Re
     if (maybeJWT === null) {
       console.log("No JWT in secure storage!");
       return null;
+      // return 'fartipelago';
     }
     if (maybeJWT === '') {
       console.warn("JWT in storage is empty?");
@@ -341,8 +383,7 @@ const useGoogleAuthForCO2Tracker = () => {
         console.log("Set JWT from storage!");
       }
       else {
-        console.log("No JWT from storage?");
-        debugger;
+        console.log("No JWT from storage.");
       }
     });
   }, []);
@@ -388,7 +429,7 @@ function disablePromptAsyncButton(jwt: string | null, promptAsyncReady: boolean)
   return false;
 }
 
-const AuthContainer: React.FC<{}> = () => {
+function AuthContainer(): JSX.Element {
   const jwt = useSelector(selectJWT);
   const userName = useSelector(selectUserName);
   const {promptAsync, promptAsyncReady, asyncStoreError, logout, loginErrors} = useGoogleAuthForCO2Tracker();
@@ -409,6 +450,7 @@ function Main() {
   const {device} = useBluetoothConnectAranet();
   const jwt = useSelector(selectJWT);
   const userName = useSelector(selectUserName);
+  const [userDeviceErrors, setUserDeviceErrors] = useState(null as (string | null));
   
   const dispatch = useDispatch();
 
@@ -435,7 +477,11 @@ function Main() {
     }
     console.log("Getting devices");
     get_my_devices(jwt).then((responseUnchecked) => {
-      const response = userDevicesInfoResponseToStrongType(responseUnchecked)
+      const response = userDevicesInfoResponseToStrongType(responseUnchecked);
+      if (response.errors) {
+        setUserDeviceErrors(`Getting devices failed! Reasons: ${formatErrors(response.errors)}`);
+        return;
+      }
       // dumpUserDevicesInfoResponse(response);
       const supportedDevices = response.devices.filter(filterSupportedDevices);
       const unSupportedDevices = response.devices.filter(filterUnsupportedDevices);
@@ -450,6 +496,7 @@ function Main() {
       dispatch(setUNSupportedDevices(unSupportedDevices));
       // debugger;
     }).catch((error) => {
+      setUserDeviceErrors(`Getting devices failed! Probably a bad network connection. Error: ${String(error)}`);
       debugger;
       throw error;
     })
@@ -461,6 +508,7 @@ function Main() {
     <SafeAreaProvider style={styles.container}>          
       <BluetoothData device={device}/>
       <AuthContainer/>
+      <MaybeIfValue text="Device fetch errors: " value={userDeviceErrors}/>
       <StatusBar style="auto" />
     </SafeAreaProvider>
   );

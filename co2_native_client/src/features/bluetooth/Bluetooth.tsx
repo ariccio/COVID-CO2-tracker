@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 // See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
 import { useEffect, useRef, useState } from 'react';
 import { Provider, useDispatch, useSelector } from 'react-redux';
@@ -113,8 +114,10 @@ async function dumpServiceDescriptions(services: Service[]) {
 const scanCallback = async (error: BleError | null, scannedDevice: Device | null, setDevice: React.Dispatch<React.SetStateAction<Device | null>>, dispatch: AppDispatch) => {
     if (error) {
         console.error(`error scanning: ${error}`);
-        debugger;
-        dispatch(setScanningErrorStatusString(`error scanning: ${error}`));
+        //TODO: if bluetooth is off, will get BleErrorCode.BluetoothPoweredOff (102);
+        // debugger;
+        dispatch(setScanningErrorStatusString(`Cannot connect to device: ${error.message}, ${error.reason}`));
+        dispatch(setScanningStatusString("Please turn bluetooth on."));
         // Handle error (scanning will be stopped automatically)
         return;
     }
