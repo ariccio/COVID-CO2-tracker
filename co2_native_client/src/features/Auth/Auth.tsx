@@ -1,6 +1,7 @@
+/* eslint-disable react/prop-types */
 // See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
 
-import { AuthSessionResult } from 'expo-auth-session';
+import { AuthRequestPromptOptions, AuthSessionResult } from 'expo-auth-session';
 import * as Google from 'expo-auth-session/providers/google';
 import * as SecureStore from 'expo-secure-store';
 import {useEffect, useState} from 'react';
@@ -8,26 +9,58 @@ import { Button } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 
 
-import { postRequestOptions } from '../../../../co2_client/src/utils/DefaultRequestOptions';
+import { postRequestOptions, userRequestOptions } from '../../../../co2_client/src/utils/DefaultRequestOptions';
 import {formatErrors, withErrors} from '../../../../co2_client/src/utils/ErrorObject';
 // import {LOGIN_URL} from '../../../../co2_client/src/utils/UrlPath';
 import { selectJWT, setJWT } from '../../app/globalSlice';
 import { AppDispatch } from '../../app/store';
+import { withAuthorizationHeader } from '../../utils/NativeDefaultRequestHelpers';
 // import { withAuthorizationHeader } from '../../utils/NativeDefaultRequestHelpers';
 import {fetchJSONWithChecks} from '../../utils/NativeFetchHelpers';
 import { MaybeIfValue } from '../../utils/RenderValues';
-import {LOGIN_URL_NATIVE} from '../../utils/UrlPaths';
+import {LOGIN_URL_NATIVE, NATIVE_EMAIL_URL} from '../../utils/UrlPaths';
 import { selectUserName, setUserName } from '../userInfo/userInfoSlice';
 
+interface NativeEmailResponse {
+    email: string;
+}
 
+export type NativeEmailResponseType = NativeEmailResponse & withErrors;
 
 interface NativeLoginResponse {
     email: string;
     jwt: string;
-  }
+}
   
-  export type NativeLoginResponseType = NativeLoginResponse & withErrors;
+export type NativeLoginResponseType = NativeLoginResponse & withErrors;
   
+
+function rawEmailResponseToStrongType(response: unknown): NativeEmailResponseType {
+    if (response === undefined) {
+        throw new Error("email response is UNDEFINED?");
+    }
+    if (response === null) {
+        throw new Error("email response is NULL?");
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const responseExists = response as any;
+    if (responseExists.errors) {
+        console.warn("Found errors in email response, no typechecking!");
+        return responseExists;
+    }
+    if (responseExists.email === null) {
+        throw new Error("Email null!");
+    }
+    if (responseExists.email === undefined) {
+        debugger;
+        throw new Error("Email missing!");
+    }
+    if (responseExists.email.length === 0) {
+        console.warn("Email empty?");
+    }
+    return responseExists;
+}
+
   function rawNativeLoginResponseToStrongType(response: unknown): NativeLoginResponseType {
     if (response === undefined) {
       throw new Error("login response is UNDEFINED?");
@@ -77,6 +110,17 @@ function nativeLoginRequestInit(id_token: string) {
     };
     return options;
   }
+
+  function nativeEmailRequestInit(jwt: string) {
+      const def = userRequestOptions();
+      const options = {
+          ...def,
+          headers: {
+            ...withAuthorizationHeader(jwt)
+          }      
+      };
+      return options;
+  }
   
   const fetchLoginFailedCallback = async (awaitedResponse: Response): Promise<NativeLoginResponseType> => {
     console.error("login to server with google failed");
@@ -104,6 +148,20 @@ async function saveJWTToAsyncStore(jwt: string, setAsyncStoreError: React.Dispat
     // eslint-disable-next-line no-debugger
     debugger;
   }
+}
+
+const nativeGetEmail = async (jwt: string) => {
+    const options = nativeEmailRequestInit(jwt);
+    const emailFetchFailedCallback = async (awaitedResponse: Response): Promise<NativeEmailResponseType> => {
+        console.warn("Email fetch failed!");
+        return rawEmailResponseToStrongType(await awaitedResponse.json());
+    }
+    const emailFetchSuccessCallback = async (awaitedResponse: Response): Promise<NativeEmailResponseType> => {
+        return rawEmailResponseToStrongType(await awaitedResponse.json());
+    }
+
+    const result = fetchJSONWithChecks(NATIVE_EMAIL_URL, options, 200, false, emailFetchFailedCallback, emailFetchSuccessCallback) as Promise<NativeEmailResponseType>;
+    return await result;
 }
 
 
@@ -249,7 +307,24 @@ function setIDTokenIfGoodResponseFromGoogle(setIDToken: React.Dispatch<React.Set
     }
   }
   
-  const useGoogleAuthForCO2Tracker = () => {
+
+async function handleAsyncStoreResult(maybeJWT: string | null, dispatch: AppDispatch, setLoginErrors: React.Dispatch<React.SetStateAction<string | null>>) {
+    if (maybeJWT) {
+        dispatch(setJWT(maybeJWT));
+        console.log("Set JWT from storage!");
+        nativeGetEmail(maybeJWT).then((emailResponse) => {
+            console.log(emailResponse);
+            dispatch(setUserName(emailResponse.email))
+        }).catch((error) => {
+            setLoginErrors(`Failed to load up-to-date username/email: ${String(error)}`)
+        })
+    }
+    else {
+        console.log("No JWT from storage.");
+    }
+
+}
+const useGoogleAuthForCO2Tracker = () => {
     const [idToken, setIDToken] = useState(null as (string | null));
     // const [jwt, setJWT] = useState(null as (string | null));
     const [asyncStoreError, setAsyncStoreError] = useState(null as (string | null));
@@ -273,15 +348,9 @@ function setIDTokenIfGoodResponseFromGoogle(setIDToken: React.Dispatch<React.Set
       deleteJWTFromAsyncStore(setAsyncStoreError);
     };
     useEffect(() => {
-      queryAsyncStoreForStoredJWT(setAsyncStoreError).then((maybeJWT) => {
-        if (maybeJWT) {
-          dispatch(setJWT(maybeJWT));
-          console.log("Set JWT from storage!");
-        }
-        else {
-          console.log("No JWT from storage.");
-        }
-      });
+        queryAsyncStoreForStoredJWT(setAsyncStoreError).then((maybeJWT) => {
+            handleAsyncStoreResult(maybeJWT, dispatch, setLoginErrors);
+        });
     }, []);
   
     useEffect(() => {
@@ -324,8 +393,19 @@ function setIDTokenIfGoodResponseFromGoogle(setIDToken: React.Dispatch<React.Set
       return true;
     }
     return false;
-  }
-  
+}
+
+const LoginOrLogoutButton: React.FC<{jwt: string | null, promptAsyncReady: boolean, promptAsync: (options?: AuthRequestPromptOptions | undefined) => Promise<AuthSessionResult>, logout: () => void}> = ({jwt, promptAsyncReady, promptAsync, logout}) => {
+    if (!disablePromptAsyncButton(jwt, promptAsyncReady)) {
+        return (
+            <Button disabled={disablePromptAsyncButton(jwt, promptAsyncReady)} title="Login" onPress={() => {promptAsync();}}/>
+        );
+    }
+    return (
+        <Button disabled={!disablePromptAsyncButton(jwt, promptAsyncReady)} title="Logout" onPress={() => logout()}/>
+    );
+}
+
 
 export function AuthContainer(): JSX.Element {
     const jwt = useSelector(selectJWT);
@@ -335,8 +415,7 @@ export function AuthContainer(): JSX.Element {
   
     return (
       <>
-        <Button disabled={disablePromptAsyncButton(jwt, promptAsyncReady)} title="Login" onPress={() => {promptAsync();}}/>
-        <Button disabled={!disablePromptAsyncButton(jwt, promptAsyncReady)} title="Logout" onPress={() => logout()}/>
+        <LoginOrLogoutButton jwt={jwt} promptAsyncReady={promptAsyncReady} promptAsync={promptAsync} logout={logout}/>
         <MaybeIfValue text="username: " value={(userName !== '') ? userName : null}/>
         <MaybeIfValue text="Errors with automatic login! Details: " value={asyncStoreError}/>
         <MaybeIfValue text="Login errors: " value={loginErrors}/>

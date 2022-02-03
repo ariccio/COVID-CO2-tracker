@@ -323,117 +323,10 @@ async function readAranet4Co2Characteristic(deviceID: string): Promise<Aranet4_1
     return measurementState;
 }
 
-// const useAranet4Co2Characteristic = (deviceID: string | null, device: Device | null) => {
-//     const dispatch = useDispatch();
-//     const [co2CharacteristicValue, setCo2Characteristic] = useState(null as (Aranet4_1503CO2 | null));
-//     const [co2CharacteristicError, setCo2CharacteristicError] = useState(null as (Error | null));
-//     // const [timeoutHandle, setTimeoutHandle] = useState(null);
-
-//     // const [co2CharacteristicObject, setCo2CharacteristicObject] = useState(null as (Characteristic | null));
-
-//     // const monitorCallback = (error: BleError | null, characteristic: Characteristic | null) => {
-//     //   console.log("co2 monitor callback!");
-//     // }
-
-//     const update = () => {
-//         readAranet4Co2Characteristic(deviceID!).then((co2CharacteristicMeasurement) => {
-//             console.log(`Aranet4 measurement:`);
-//             console.log(`\tCO2: ${co2CharacteristicMeasurement?.co2}ppm`);
-//             console.log(`\tTemperature: ${co2CharacteristicMeasurement?.temperatureC}C`);
-//             console.log(`\tHumidity: ${co2CharacteristicMeasurement?.humidity}%`);
-//             setCo2Characteristic(co2CharacteristicMeasurement);
-//         }).catch((error) => {
-//             if (error instanceof BleError) {
-//                 if (error.errorCode === BleErrorCode.DeviceNotConnected) {
-//                     console.warn(`Device ${deviceID} not connected. co2 not available.`);
-//                     setCo2CharacteristicError(error);
-//                     // device!.connect();
-//                     return;
-//                 }
-//             }
-
-//             console.log("Re-enable this debugger when done with login code.");
-//             // debugger;
-//             setCo2CharacteristicError(error);
-//         });
-//     }
-//     useEffect(() => {
-//         if (noDevice(deviceID, device)) {
-//             return;
-//         }
-//         update();
-
-//     }, [device, deviceID]);
-
-
-//     useEffect(() => {
-//         if (noDevice(deviceID, device)) {
-//             return;
-//         }
-//         if (co2CharacteristicValue === null) {
-//             return;
-//         }
-//         const handle = setTimeout(() => {
-//             console.log("update co2 triggered!");
-//             update();
-//         }, 1000 * 31);
-
-//         return () => {
-//             console.log("Clearing co2 timer...");
-//             clearTimeout(handle);
-//         }
-//     }, [co2CharacteristicValue])
-
-//     return { co2CharacteristicValue, co2CharacteristicError };
-// }
 
 async function readAranet4SecondsSinceLastMeasurementCharacteristic(deviceID: string): Promise<number> {
     return readUint16CharacteristicFromDevice(deviceID, BLUETOOTH.ARANET4_SENSOR_SERVICE_UUID, BLUETOOTH.ARANET_SECONDS_LAST_UPDATE_UUID, "BLUETOOTH.ARANET4_SENSOR_SERVICE_UUID", "BLUETOOTH.ARANET_SECONDS_LAST_UPDATE_UUID");
 }
-
-// const useAranet4SecondsSinceLastMeasurement = (deviceID: string | null, device: Device | null) => {
-//     const [secondsSinceLastMeasurement, setSecondsSinceLastMeasurement] = useState(null as (number | null));
-//     const [secondsSinceLastMeasurementError, setSecondsSinceLastMeasurementError] = useState(null as (Error | null));
-
-
-//     const update = () => {
-//         readAranet4SecondsSinceLastMeasurementCharacteristic(deviceID!).then((secondsSinceLastMeasurement) => {
-//             setSecondsSinceLastMeasurement(secondsSinceLastMeasurement);
-//             console.log(`Seconds since last measurement: ${secondsSinceLastMeasurement}`);
-//         }).catch((error) => {
-//             // debugger;
-//             setSecondsSinceLastMeasurementError(error);
-//         })
-//     }
-//     useEffect(() => {
-//         if (noDevice(deviceID, device)) {
-//             return;
-//         }
-//         update();
-//     }, [device, deviceID]);
-
-//     useEffect(() => {
-//         if (noDevice(deviceID, device)) {
-//             return;
-//         }
-//         if (secondsSinceLastMeasurement === null) {
-//             return;
-//         }
-
-//         const handle = setTimeout(() => {
-//             console.log("update lsat measuremet time triggered!");
-//             update();
-//         }, 1000 * 31);
-
-//         return () => {
-//             console.log("Clearing measurement timer timer...")
-//             clearTimeout(handle);
-//         }
-
-//     }, [secondsSinceLastMeasurement])
-
-//     return { secondsSinceLastMeasurement, secondsSinceLastMeasurementError }
-// }
 
 async function readAranet4MeasurementInterval(deviceID: string): Promise<number> {
     return readUint16CharacteristicFromDevice(deviceID, BLUETOOTH.ARANET4_SENSOR_SERVICE_UUID, BLUETOOTH.ARANET_MEASUREMENT_INTERVAL_UUID, "BLUETOOTH.ARANET4_SENSOR_SERVICE_UUID", "BLUETOOTH.ARANET_MEASUREMENT_INTERVAL_UUID");
@@ -463,23 +356,6 @@ async function readAranet4SpecificInformation(deviceID: string | null, dispatch:
     console.log(`\tCO2: ${co2CharacteristicMeasurement?.co2}ppm`);
     console.log(`\tTemperature: ${co2CharacteristicMeasurement?.temperatureC}C`);
     console.log(`\tHumidity: ${co2CharacteristicMeasurement?.humidity}%`);
-
-    // setCo2Characteristic(co2CharacteristicMeasurement);
-    // then((co2CharacteristicMeasurement) => {
-    // }).catch((error) => {
-    //     if (error instanceof BleError) {
-    //         if (error.errorCode === BleErrorCode.DeviceNotConnected) {
-    //             console.warn(`Device ${deviceID} not connected. co2 not available.`);
-    //             setCo2CharacteristicError(error);
-    //             // device!.connect();
-    //             return;
-    //         }
-    //     }
-
-    //     console.log("Re-enable this debugger when done with login code.");
-    //     // debugger;
-    //     setCo2CharacteristicError(error);
-    // });
 
     dispatch(setDeviceStatusString('Reading aranet4 seconds since last measurement...'));
     const secondsSinceLastMeasurement = await readAranet4SecondsSinceLastMeasurementCharacteristic(deviceID!)
@@ -533,78 +409,6 @@ const useScanConnectAranet4 = () => {
         scanAndIdentify(setDevice, dispatch);
     }, [hasBluetooth, needsBluetoothTurnOn]);
 
-    // useEffect(() => {
-    //     if (needsReconnect) {
-    //         if (!device) {
-    //             console.warn("device doesn't exist, but needs reconnect??");
-    //             debugger;
-    //             return;
-    //         }
-    //         console.log("Reconnection requested, trying...");
-    //         try {
-    //             device.connect().then((reconnectedDevice) => {
-    //                 setDevice(reconnectedDevice);
-    //                 setNeedsReconnect(false);
-    //                 dispatch(setScanningStatusString(null));
-    //             }).catch((error) => {
-    //                 debugger;
-    //                 dispatch(setScanningStatusString(`Reconnection failed! ${String(error)}`));
-    //             })
-    //         }
-    //         catch (error) {
-    //             dispatch(setScanningStatusString(`Reconnection failed! ${String(error)}`));
-    //             debugger;
-    //         }
-    //     }
-    // }, [needsReconnect]);
-
-
-    // const disconnectionListener = (error: BleError | null, device: Device) => {
-    //     if (error === null) {
-    //         // debugger;
-    //         console.log("Supposedly, connection has been cancelled. What?")
-    //         // return;
-    //     }
-    //     console.log(`Connection lost! Will attempt to reconnect. Reconnectabe: ${device.isConnectable}`);
-    //     // setDevice(null);
-    //     device.connect().then((reconnectedDevice) => {
-    //         console.log("Device reconnected!")
-    //         reconnectedDevice.discoverAllServicesAndCharacteristics().then((deviceWithServices) => setDevice(deviceWithServices));
-    //         // scanAndConnect(setDevice, dispatch);
-    //         // reconnectedDevice.
-    //     }).catch((error) => {
-    //         dispatch(setScanningStatusString(`Reconnection failed! ${String(error)}`));
-    //         debugger;
-    //     })
-    // }
-    // useEffect(() => {
-    //     if (!device) {
-    //         return;
-    //     }
-    //     if (subscription !== null) {
-    //         return () => {
-    //             console.log("removing disconnection listener")
-    //             subscription.remove();
-    //         }
-    //     }
-    //     console.log("starting disconnection listener");
-    //     setSubscription(device.onDisconnected(disconnectionListener));
-    //     // return () => {
-    //     //     if (subscription !== null) {
-    //     //         console.log("removing disconnection listener")
-    //     //         subscription.remove();
-    //     //     }
-    //     // }
-    // }, [subscription]);
-    //
-    // useEffect(() => {
-    //     return () => {
-    //         if (device !== null) {
-    //             console.log("Cancelling connection.");
-    //             device.cancelConnection();                
-    //         }
-    //     }
-    // }, [])
 
     const beginWithDeviceConnection = async () => {
         if (deviceID === null) {
@@ -1046,7 +850,7 @@ function dbOrDbAndWeakMessage(rssi: number | null): string {
 
 const RSSIOrWeakRSSI: React.FC<{rssi: number | null}> = ({rssi}) => {
     return (
-        <ValueOrLoading text="rssi: " value={rssi} suffix={dbOrDbAndWeakMessage(rssi)} />
+        <MaybeIfValue text="rssi: " value={rssi} suffix={dbOrDbAndWeakMessage(rssi)} />
     );
 }
 
@@ -1107,12 +911,12 @@ export const BluetoothData: React.FC<{ device: Device | null }> = ({ device }) =
             <MaybeIfValue text="bluetooth errors: " value={(bluetoothScanningErrorStatus.length > 0) ? bluetoothScanningErrorStatus : null} />
             <MaybeIfValue text="Device status: " value={deviceStatus}/>
             <Text>Updates: {updateCount}</Text>
-            <ValueOrLoading text="id: " value={id} />
-            <ValueOrLoading text="name: " value={name} />
+            <MaybeIfValue text="id: " value={id} />
+            <MaybeIfValue text="name: " value={name} />
             
             <RSSIOrWeakRSSI rssi={rssi}/>
-            <ValueOrLoading text="Serial number: " value={serialNumber} />
-            <ValueOrLoading text="Battery: " value={deviceBatteryLevel} suffix="%" />
+            <MaybeIfValue text="Serial number: " value={serialNumber} />
+            <MaybeIfValue text="Battery: " value={deviceBatteryLevel} suffix="%" />
             <MaybeIfValue text="Known user device?: " value={knownDevice} suffix="yes"/>
 
             <MaybeIfValue text="localName: " value={(device?.localName) ? device.localName : null} />
