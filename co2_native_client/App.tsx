@@ -127,10 +127,7 @@ function dumpDeviceInfo(devices: UserInfoDevice[]): void {
 }
 
 
-
-
-
-function Main() {
+function App() {
   const {device} = useBluetoothConnectAranet();
   const jwt = useSelector(selectJWT);
   const userName = useSelector(selectUserName);
@@ -199,11 +196,11 @@ function Main() {
   );
 }
 
-export default function App() {
+export default function AppContainer() {
 
   return (
     <Provider store={store}>
-      <Main/>
+      <App/>
     </Provider>
   );
 }

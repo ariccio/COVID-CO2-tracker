@@ -66,6 +66,7 @@ export interface BluetoothState {
     scanningStatusString: string | null;
     scanningErrorStatus: string;
     updates: number;
+    needsBluetoothTurnOn: boolean;
 }
 
 const initialState: BluetoothState = {
@@ -105,7 +106,8 @@ const initialState: BluetoothState = {
     },
     scanningStatusString: null,
     scanningErrorStatus: '',
-    updates: 0
+    updates: 0,
+    needsBluetoothTurnOn: false
 };
 
 
@@ -178,11 +180,14 @@ export const bluetoothSlice = createSlice({
         },
         incrementUpdates: (state, action: PayloadAction<void>) => {
             state.updates += 1;
+        },
+        setNeedsBluetoothTurnOn: (state, action: PayloadAction<boolean>) => {
+            state.needsBluetoothTurnOn = action.payload;
         }
     }
 })
 
-export const {setDeviceID, setDeviceName, setRssi, setHasBluetooth, setScanningStatusString, setDeviceSerialNumber, setScanningErrorStatusString, setDeviceBatteryLevel, setMeasurementData, setAranet4Color, setAranet4SecondsSinceLastMeasurement, setMeasurementInterval, setDeviceStatusString, incrementUpdates} = bluetoothSlice.actions;
+export const {setDeviceID, setDeviceName, setRssi, setHasBluetooth, setScanningStatusString, setDeviceSerialNumber, setScanningErrorStatusString, setDeviceBatteryLevel, setMeasurementData, setAranet4Color, setAranet4SecondsSinceLastMeasurement, setMeasurementInterval, setDeviceStatusString, incrementUpdates, setNeedsBluetoothTurnOn} = bluetoothSlice.actions;
 
 export const selectHasBluetooth = (state: RootState) => state.bluetooth.hasBluetooth;
 export const selectScanningStatusString = (state: RootState) => state.bluetooth.scanningStatusString;
@@ -196,6 +201,7 @@ export const selectMeasurementData = (state: RootState) => state.bluetooth.devic
 export const selectAranet4SpecificData = (state: RootState) => state.bluetooth.device.aranet4SpecificData;
 export const selectDeviceStatusString = (state: RootState) => state.bluetooth.device.statusString;
 export const selectUpdateCount = (state: RootState) => state.bluetooth.updates;
+export const selectNeedsBluetoothTurnOn = (state: RootState) => state.bluetooth.needsBluetoothTurnOn;
 
 export const bluetoothReducer = bluetoothSlice.reducer;
 

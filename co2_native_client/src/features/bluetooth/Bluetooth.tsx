@@ -3,8 +3,8 @@
 // See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
 import {Buffer} from 'buffer';
 import { useEffect, useState } from 'react';
-import { PermissionsAndroid, Text } from 'react-native';
-import { BleManager, Device, BleError, LogLevel, Service, Characteristic, BleErrorCode, Subscription, DeviceId } from 'react-native-ble-plx';
+import { PermissionsAndroid, Text, Button, NativeSyntheticEvent, NativeTouchEvent } from 'react-native';
+import { BleManager, Device, BleError, LogLevel, Service, Characteristic, BleErrorCode, Subscription, DeviceId, State } from 'react-native-ble-plx';
 import { useDispatch, useSelector } from 'react-redux';
 
 
@@ -13,7 +13,7 @@ import { UserInfoDevice } from '../../../../co2_client/src/utils/DeviceInfoTypes
 import { AppDispatch } from '../../app/store';
 import { MaybeIfValue, ValueOrLoading } from '../../utils/RenderValues';
 import { selectSupportedDevices } from '../userInfo/devicesSlice';
-import { Aranet4_1503CO2, incrementUpdates, MeasurementData, selectAranet4SpecificData, selectDeviceBatterylevel, selectDeviceID, selectDeviceName, selectDeviceRSSI, selectDeviceSerialNumberString, selectDeviceStatusString, selectHasBluetooth, selectMeasurementData, selectScanningErrorStatusString, selectScanningStatusString, selectUpdateCount, setAranet4Color, setAranet4SecondsSinceLastMeasurement, setDeviceBatteryLevel, setDeviceID, setDeviceName, setDeviceSerialNumber, setDeviceStatusString, setHasBluetooth, setMeasurementData, setMeasurementInterval, setRssi, setScanningErrorStatusString, setScanningStatusString } from './bluetoothSlice';
+import { Aranet4_1503CO2, incrementUpdates, MeasurementData, selectAranet4SpecificData, selectDeviceBatterylevel, selectDeviceID, selectDeviceName, selectDeviceRSSI, selectDeviceSerialNumberString, selectDeviceStatusString, selectHasBluetooth, selectMeasurementData, selectNeedsBluetoothTurnOn, selectScanningErrorStatusString, selectScanningStatusString, selectUpdateCount, setAranet4Color, setAranet4SecondsSinceLastMeasurement, setDeviceBatteryLevel, setDeviceID, setDeviceName, setDeviceSerialNumber, setDeviceStatusString, setHasBluetooth, setMeasurementData, setMeasurementInterval, setNeedsBluetoothTurnOn, setRssi, setScanningErrorStatusString, setScanningStatusString } from './bluetoothSlice';
 
 
 //https://github.com/thespacemanatee/Smart-Shef-IoT/blob/4782c95f383040f36e4ae7ce063166cce5c76129/smart_shef_app/src/utils/hooks/useMonitorHumidityCharacteristic.ts
@@ -112,6 +112,10 @@ const scanCallback = async (error: BleError | null, scannedDevice: Device | null
         console.error(`error scanning: ${error}`);
         //TODO: if bluetooth is off, will get BleErrorCode.BluetoothPoweredOff (102);
         // debugger;
+        if (error.errorCode === BleErrorCode.BluetoothPoweredOff) {
+            dispatch(setNeedsBluetoothTurnOn(true));
+
+        }
         dispatch(setScanningErrorStatusString(`Cannot connect to device: ${error.message}, ${error.reason}`));
         dispatch(setScanningStatusString("Please turn bluetooth on."));
         // Handle error (scanning will be stopped automatically)
@@ -146,8 +150,9 @@ const scanCallback = async (error: BleError | null, scannedDevice: Device | null
 }
 
 const scanAndIdentify = (setDevice: React.Dispatch<React.SetStateAction<Device | null>>, dispatch: AppDispatch) => {
-    dispatch(setScanningStatusString('Beginning device scan...'));
-    manager.startDeviceScan(null, null, (error, scannedDevice) => scanCallback(error, scannedDevice, setDevice, dispatch));
+    const aranetService = [BLUETOOTH.ARANET4_SENSOR_SERVICE_UUID];
+    dispatch(setScanningStatusString(`Beginning scan for devices with services: ${aranetService}...`));
+    manager.startDeviceScan(aranetService, null, (error, scannedDevice) => scanCallback(error, scannedDevice, setDevice, dispatch));
 }
 
 const requestLocationPermission = async (dispatch: AppDispatch) => {
@@ -169,6 +174,7 @@ const requestLocationPermission = async (dispatch: AppDispatch) => {
         // Denied
         // Do something
     }
+
 }
 
 function parseUTF8StringBuffer(data: Buffer): string {
@@ -511,15 +517,21 @@ const useScanConnectAranet4 = () => {
     const dispatch = useDispatch();
     const hasBluetooth = useSelector(selectHasBluetooth);
     const [device, setDevice] = useState(null as (Device | null));
+    const needsBluetoothTurnOn = useSelector(selectNeedsBluetoothTurnOn);
+
     // const [needsReconnect, setNeedsReconnect] = useState(false);
     const [subscription, setSubscription] = useState(null as (Subscription | null));
     const deviceID = useSelector(selectDeviceID);
 
     useEffect(() => {
-        if (hasBluetooth) {
-            scanAndIdentify(setDevice, dispatch);
+        if (!hasBluetooth) {
+            return;
         }
-    }, [hasBluetooth]);
+        if (needsBluetoothTurnOn) {
+            return;
+        }
+        scanAndIdentify(setDevice, dispatch);
+    }, [hasBluetooth, needsBluetoothTurnOn]);
 
     // useEffect(() => {
     //     if (needsReconnect) {
@@ -696,30 +708,46 @@ function filterBleReadError(error: unknown, dispatch: AppDispatch, deviceID: str
 
 }
 
+async function forceEnableBluetooth(dispatch: AppDispatch) {
+    const bluetothState = await manager.state();
+    if (bluetothState === State.PoweredOff) {
+        dispatch(setScanningStatusString(`Bluetooth powered off, turning on...`));
+        await manager.enable();
+        dispatch(setScanningStatusString(`Bluetooth turned on!`));
+        dispatch(setScanningErrorStatusString(null));
+    }
+    else {
+        dispatch(setScanningStatusString(`Bluetooth manager status: ${bluetothState}`));
+    }
+    return;
+}
+
 async function updateCallback(setAranet4SpecificInformation: React.Dispatch<React.SetStateAction<Aranet4SpecificInformation | null>>, deviceID: string, dispatch: AppDispatch, beginWithDeviceConnection: () => Promise<Device | null>, finish: () => Promise<void>, setGenericBluetoothInformation: React.Dispatch<React.SetStateAction<GenericBluetoothInformation | null>>): Promise<void> {
     console.log("update co2 triggered!");
     dispatch(setDeviceStatusString("Updating CO2 over bluetooth..."));
     
     try {
-        beginWithDeviceConnection().then((deviceOrNull) => {
-            // if (deviceOrNull === null) {
-            //     throw 
-            // }
-            return updateGenericDeviceInformation(setGenericBluetoothInformation, deviceID!, dispatch)
-        }).then(() => {
-            return updateAranet4SpecificInformation(setAranet4SpecificInformation, deviceID!, dispatch);
-        })
-        .then(() => {
-            return dispatch(setDeviceStatusString(null));
-        }).then(() => {
-            dispatch(incrementUpdates());
-            return finish();
-        }).then(() => {
-            return true;
-        }).catch((error) => {
-            filterBleReadError(error, dispatch, deviceID);
-            // debugger;
-        })
+        await forceEnableBluetooth(dispatch);
+        const deviceOrNull = await beginWithDeviceConnection();
+        await updateGenericDeviceInformation(setGenericBluetoothInformation, deviceID!, dispatch);
+        await updateAranet4SpecificInformation(setAranet4SpecificInformation, deviceID!, dispatch);
+        dispatch(setDeviceStatusString(null));
+        dispatch(incrementUpdates());
+        await finish();
+        // .then(() => {
+        //     return 
+        // })
+        // .then(() => {
+        //     return 
+        // }).then(() => {
+            
+        //     return 
+        // }).then(() => {
+        //     return true;
+        // }).catch((error) => {
+        //     filterBleReadError(error, dispatch, deviceID);
+        //     // debugger;
+        // })
     }
     catch(error) {
         filterBleReadError(error, dispatch, deviceID);
@@ -746,14 +774,18 @@ export const useBluetoothConnectAranet = () => {
         if (deviceID === null) {
             return;
         }
-    
-        try {
+        if (!hasBluetooth) {
+            dispatch(setDeviceStatusString("User has NOT granted bluetooth permissions. Beginning first read over bluetooth anyways..."));
+        }
+        else {
             dispatch(setDeviceStatusString("Beginning first read over bluetooth..."));
+        }
+        try {
             // console.assert(aranet4Ready(device));
             beginWithDeviceConnection().then(() => {
-                return updateGenericDeviceInformation(setGenericBluetoothInformation, deviceID!, dispatch)
+                return updateGenericDeviceInformation(setGenericBluetoothInformation, deviceID, dispatch)
             }).then(() => {
-                return updateAranet4SpecificInformation(setAranet4SpecificInformation, deviceID!, dispatch);
+                return updateAranet4SpecificInformation(setAranet4SpecificInformation, deviceID, dispatch);
             }).then(() => {
                 return finish();
             }).then(() => {
@@ -1018,6 +1050,26 @@ const RSSIOrWeakRSSI: React.FC<{rssi: number | null}> = ({rssi}) => {
     );
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
+const BluetoothMaybeNeedsTurnOn:React.FC<{}> = () => {
+    const dispatch = useDispatch();
+    const needsBluetoothTurnOn = useSelector(selectNeedsBluetoothTurnOn);
+
+    const turnOn = (ev: NativeSyntheticEvent<NativeTouchEvent>) => {
+        console.log(String(ev));
+        manager.enable().then(() => {
+            dispatch(setNeedsBluetoothTurnOn(false));
+        })
+    }
+    if (needsBluetoothTurnOn) {
+        return (
+            <Button title="Turn Bluetooth on" onPress={(ev) => {turnOn(ev)}}/>
+        );
+    }
+
+    return null;
+}
+
 export const BluetoothData: React.FC<{ device: Device | null }> = ({ device }) => {
     const id = useSelector(selectDeviceID);
     const name = useSelector(selectDeviceName);
@@ -1073,6 +1125,7 @@ export const BluetoothData: React.FC<{ device: Device | null }> = ({ device }) =
             <MaybeIfValue text="Measurement time: " value={aranet4Data?.aranet4MeasurementTime} />
             <MaybeIfValue text="Measurement interval: " value={aranet4Data?.aranet4MeasurementInterval} suffix=" seconds" />
             <MaybeIfValue text="Next measurement: " value={nextMeasurement} suffix=" seconds" />
+            <BluetoothMaybeNeedsTurnOn/>
         </>
     );
 }
