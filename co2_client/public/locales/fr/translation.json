@@ -100,5 +100,7 @@
     "creating-manufacturer": "Création fabricant...",
     "more-info": "Suite",
     "locality-selected-warning": "Êtes-vous sûr de vouloir sélectionner une ville ou une ville comme lieu ? Essayez de rechercher des établissements par leur nom !",
-    "aranet4-serial-info": "Le numéro de série Aranet4 est un numéro à 12 chiffres derrière les piles AA, dans le compartiment à piles. Vous pouvez également le trouver dans l'application Aranet4 après avoir couplé votre appareil, en cliquant sur l'icône d'engrenage."
+    "aranet4-serial-info": "Le numéro de série Aranet4 est un numéro à 12 chiffres derrière les piles AA, dans le compartiment à piles. Vous pouvez également le trouver dans l'application Aranet4 après avoir couplé votre appareil, en cliquant sur l'icône d'engrenage.",
+    "set-as-default-place-for-realtime-upload-client": "Choisissez l'endroit pour le téléchargement en temps réel",
+    "select-sublocation-to-set-as-default-for-realtime-upload": "Choisissez d'abord un sous-emplacement pour le téléchargement en temps réel !"
 }

@@ -138,7 +138,7 @@ export const bluetoothSlice = createSlice({
         },
         setScanningErrorStatusString: (state, action: PayloadAction<string | null>) => {
             if (action.payload === null) {
-                console.warn('Clearing scanning error status....')
+                console.log('Clearing scanning error status....')
                 state.scanningErrorStatus = '';
                 return;
             }

@@ -395,14 +395,18 @@ const useGoogleAuthForCO2Tracker = () => {
     return false;
 }
 
-const LoginOrLogoutButton: React.FC<{jwt: string | null, promptAsyncReady: boolean, promptAsync: (options?: AuthRequestPromptOptions | undefined) => Promise<AuthSessionResult>, logout: () => void}> = ({jwt, promptAsyncReady, promptAsync, logout}) => {
-    if (!disablePromptAsyncButton(jwt, promptAsyncReady)) {
+const LoginOrLogoutButton: React.FC<{jwt: string | null, promptAsyncReady: boolean, promptAsync: (options?: AuthRequestPromptOptions | undefined) => Promise<AuthSessionResult>, logout: () => void, userName: string | null}> = ({jwt, promptAsyncReady, promptAsync, logout, userName}) => {
+    const buttonDisable = disablePromptAsyncButton(jwt, promptAsyncReady);
+    if (!buttonDisable) {
         return (
-            <Button disabled={disablePromptAsyncButton(jwt, promptAsyncReady)} title="Login" onPress={() => {promptAsync();}}/>
+            <>
+                <MaybeIfValue text="username: " value={(userName !== '') ? userName : null} suffix=" (this shouldn't show up)"/>
+                <Button disabled={buttonDisable} title="Login" onPress={() => {promptAsync();}}/>
+            </>
         );
     }
     return (
-        <Button disabled={!disablePromptAsyncButton(jwt, promptAsyncReady)} title="Logout" onPress={() => logout()}/>
+        <Button disabled={!buttonDisable} title={`Log out of ${userName}`} onPress={() => logout()}/>
     );
 }
 
@@ -415,8 +419,8 @@ export function AuthContainer(): JSX.Element {
   
     return (
       <>
-        <LoginOrLogoutButton jwt={jwt} promptAsyncReady={promptAsyncReady} promptAsync={promptAsync} logout={logout}/>
-        <MaybeIfValue text="username: " value={(userName !== '') ? userName : null}/>
+        <LoginOrLogoutButton jwt={jwt} promptAsyncReady={promptAsyncReady} promptAsync={promptAsync} logout={logout} userName={userName}/>
+        
         <MaybeIfValue text="Errors with automatic login! Details: " value={asyncStoreError}/>
         <MaybeIfValue text="Login errors: " value={loginErrors}/>
       </>

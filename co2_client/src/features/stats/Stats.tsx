@@ -6,7 +6,7 @@ import { formatErrors } from '../../utils/ErrorObject';
 import { AppStatsResponse, defaultAppStatsResponse, queryAppStats } from '../../utils/QueryAppStats';
 
 
-const AppStats = (props: {appStatsResponse: AppStatsResponse, errorState: string}) => {
+const AppStats: React.FC<{appStatsResponse: AppStatsResponse, errorState: string}> = (props) => {
     const [translate] = useTranslation();
 
     if (props.errorState !== '') {

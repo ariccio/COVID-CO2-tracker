@@ -394,9 +394,10 @@ const useScanConnectAranet4 = () => {
     const hasBluetooth = useSelector(selectHasBluetooth);
     const [device, setDevice] = useState(null as (Device | null));
     const needsBluetoothTurnOn = useSelector(selectNeedsBluetoothTurnOn);
+    // const supportedDevices = useSelector(selectSupportedDevices);
 
     // const [needsReconnect, setNeedsReconnect] = useState(false);
-    const [subscription, setSubscription] = useState(null as (Subscription | null));
+    // const [subscription, setSubscription] = useState(null as (Subscription | null));
     const deviceID = useSelector(selectDeviceID);
 
     useEffect(() => {
@@ -436,9 +437,6 @@ const useScanConnectAranet4 = () => {
         setDevice(withRSSI);
         if (withRSSI.rssi) {
             dispatch(setRssi(withRSSI.rssi));
-            // if (withRSSI.rssi < -80) {
-            //     dispatch(setScanningErrorStatusString(`${deviceWithServicesAndCharacteristics.name} has a very weak signal! (RSSI: ${withRSSI.rssi}) You may have connection problems!`))
-            // }
         }
         else {
             console.error("No rssi?");
@@ -538,20 +536,6 @@ async function updateCallback(setAranet4SpecificInformation: React.Dispatch<Reac
         dispatch(setDeviceStatusString(null));
         dispatch(incrementUpdates());
         await finish();
-        // .then(() => {
-        //     return 
-        // })
-        // .then(() => {
-        //     return 
-        // }).then(() => {
-            
-        //     return 
-        // }).then(() => {
-        //     return true;
-        // }).catch((error) => {
-        //     filterBleReadError(error, dispatch, deviceID);
-        //     // debugger;
-        // })
     }
     catch(error) {
         filterBleReadError(error, dispatch, deviceID);
@@ -565,7 +549,9 @@ export const useBluetoothConnectAranet = () => {
     const hasBluetooth = useSelector(selectHasBluetooth);
     const deviceID = useSelector(selectDeviceID);
     const dispatch = useDispatch();
+    
     const { device, beginWithDeviceConnection, finish } = useScanConnectAranet4();
+
 
     const [timeoutHandle, setTimeoutHandle] = useState(null as (null | NodeJS.Timeout));
 
@@ -842,7 +828,7 @@ function dbOrDbAndWeakMessage(rssi: number | null): string {
     if (rssi === null) {
         return "db";
     }
-    if (rssi > -80) {
+    if (rssi > -88) {
         return "db";
     }
     return `db - weak signal. You may have connection problems!`;
@@ -863,6 +849,7 @@ const BluetoothMaybeNeedsTurnOn:React.FC<{}> = () => {
         console.log(String(ev));
         manager.enable().then(() => {
             dispatch(setNeedsBluetoothTurnOn(false));
+            dispatch(setScanningErrorStatusString(null))
         })
     }
     if (needsBluetoothTurnOn) {
@@ -873,6 +860,7 @@ const BluetoothMaybeNeedsTurnOn:React.FC<{}> = () => {
 
     return null;
 }
+
 
 export const BluetoothData: React.FC<{ device: Device | null }> = ({ device }) => {
     const id = useSelector(selectDeviceID);

@@ -13,16 +13,16 @@ const clickHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, setShowC
 }
 
 
-export const NewMeasurementButton = (props: {currentPlace: google.maps.places.PlaceResult, location: ReturnType<typeof useLocation>, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, showCreateNewMeasurement: boolean}) => {
+export const NewMeasurementButton = (props: {currentPlace_place_id: string | undefined, location: ReturnType<typeof useLocation>, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, showCreateNewMeasurement: boolean, currentPlace_name: string | undefined}) => {
     const [translate] = useTranslation();
-    if (!props.currentPlace.place_id) {
+    if (!props.currentPlace_place_id) {
         console.log('not rendering button to add measurement.');
         return null;
     }
     return (
         <>
             <Button variant="primary" onClick={(event) => clickHandler(event, props.setShowCreateNewMeasurement, props.showCreateNewMeasurement)}>
-                <b>{translate('upload-new-measurement')} <i>{props.currentPlace.name}</i></b>
+                <b>{translate('upload-new-measurement')} <i>{props.currentPlace_name}</i></b>
             </Button>
             {/* <Link to={{pathname:`/places/???/createmeasurement`, state: {background: location}}} className="btn btn-primary">
                 

@@ -3,7 +3,7 @@
 import { StatusBar } from 'expo-status-bar';
 import * as WebBrowser from 'expo-web-browser';
 import {useEffect, useState} from 'react';
-import { StyleSheet, Button } from 'react-native';
+import { StyleSheet, Button, Linking, Text } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 
@@ -13,10 +13,10 @@ import { UserInfoDevice } from '../co2_client/src/utils/DeviceInfoTypes';
 import {formatErrors, withErrors} from '../co2_client/src/utils/ErrorObject';
 import {UserDevicesInfo, userDevicesInfoResponseToStrongType} from '../co2_client/src/utils/UserInfoTypes';
 import { selectJWT } from './src/app/globalSlice';
-import { store } from './src/app/store';
+import { AppDispatch, store } from './src/app/store';
 import {AuthContainer} from './src/features/Auth/Auth';
 import { BluetoothData, useBluetoothConnectAranet } from './src/features/bluetooth/Bluetooth';
-import { setSupportedDevices, setUNSupportedDevices } from './src/features/userInfo/devicesSlice';
+import { selectSupportedDevices, setSupportedDevices, setUNSupportedDevices } from './src/features/userInfo/devicesSlice';
 import { selectUserName } from './src/features/userInfo/userInfoSlice';
 import { withAuthorizationHeader } from './src/utils/NativeDefaultRequestHelpers';
 import {fetchJSONWithChecks} from './src/utils/NativeFetchHelpers';
@@ -84,16 +84,29 @@ const fetchMyDevicesFailedCallback = async (awaitedResponse: Response): Promise<
   console.error("Fetching user devices failed!");
   // eslint-disable-next-line no-debugger
   // debugger;
-  return awaitedResponse.json();
+  return userDevicesInfoResponseToStrongType(await awaitedResponse.json());
 };
 
 
 const fetchMyDevicesSucessCallback = async (awaitedResponse: Response): Promise<UserDevicesInfo> => {
   const response = awaitedResponse.json();
-  return response;
+  return userDevicesInfoResponseToStrongType(await response);
 };
 
-const get_my_devices = (jwt: string) => {
+const get_my_devices = (jwt: string | null, userName: string | null) => {
+  if (userName === null) {
+    return;
+  }
+  if (userName === '') {
+    return;
+  }
+  if (jwt === null) {
+    return;
+  }
+  if (jwt === '') {
+    return;
+  }
+  console.log("Getting devices");
   const deviceRequestOptions = initDeviceRequestOptions(jwt);
   const result = fetchJSONWithChecks(USER_DEVICES_URL_NATIVE, deviceRequestOptions, 200, true, fetchMyDevicesFailedCallback, fetchMyDevicesSucessCallback) as Promise<UserDevicesInfo>;
   return result;
@@ -122,10 +135,53 @@ function dumpUserDevicesInfoResponse(response: UserDevicesInfo): void {
 
 function dumpDeviceInfo(devices: UserInfoDevice[]): void {
   for (let i = 0; i < devices.length; i++) {
-    console.log(`\tDevice ${devices[i].device_id}: ${devices[i].device_manufacturer} ${devices[i].device_model} #${devices[i].serial}`);
+    console.log(`\tSupported device, ID: ${devices[i].device_id}: Model: ${devices[i].device_model} S# '${devices[i].serial}'`);
   }
 }
 
+function handleDevicesResponse(devicesResponse: UserDevicesInfo, setUserDeviceErrors: React.Dispatch<React.SetStateAction<string | null>>, dispatch: AppDispatch) {
+  if (devicesResponse.errors) {
+    setUserDeviceErrors(`Getting devices failed! Reasons: ${formatErrors(devicesResponse.errors)}`);
+    return;
+  }
+  // dumpUserDevicesInfoResponse(response);
+  const supportedDevices = devicesResponse.devices.filter(filterSupportedDevices);
+  const unSupportedDevices = devicesResponse.devices.filter(filterUnsupportedDevices);
+
+  console.log('------');
+  console.log("Supported devices:");
+  dumpDeviceInfo(supportedDevices);
+  // console.log('------');
+  // console.log("UNsupported devices:");
+  // dumpDeviceInfo(unSupportedDevices);
+  dispatch(setSupportedDevices(supportedDevices));
+  dispatch(setUNSupportedDevices(unSupportedDevices));
+  // debugger;
+
+}
+
+const COVID_CO2_TRACKER_DEVICES_URL = "https://covid-co2-tracker.herokuapp.com/devices";
+
+function openCO2TrackerDevicesPage() {
+  Linking.openURL(COVID_CO2_TRACKER_DEVICES_URL);
+}
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+const MaybeNoSupportedBluetoothDevices: React.FC<{}> = () => {
+  const supportedDevices = useSelector(selectSupportedDevices);
+  if (supportedDevices === null) {
+    return null;
+  }
+  if (supportedDevices.length === 0) {
+    return (
+      <>
+        <Text>You do not have any devices entered into the database. To upload data, please create a device in the web console.</Text>
+        <Button title="Open web console" onPress={() => openCO2TrackerDevicesPage()}/>
+      </>
+    )
+  }
+  return null;
+}
 
 function App() {
   const {device} = useBluetoothConnectAranet();
@@ -147,35 +203,9 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (userName === '') {
-      return;
-    }
-    if (jwt === null) {
-      return;
-    }
-    if (jwt === '') {
-      return;
-    }
-    console.log("Getting devices");
-    get_my_devices(jwt).then((responseUnchecked) => {
-      const response = userDevicesInfoResponseToStrongType(responseUnchecked);
-      if (response.errors) {
-        setUserDeviceErrors(`Getting devices failed! Reasons: ${formatErrors(response.errors)}`);
-        return;
-      }
-      // dumpUserDevicesInfoResponse(response);
-      const supportedDevices = response.devices.filter(filterSupportedDevices);
-      const unSupportedDevices = response.devices.filter(filterUnsupportedDevices);
+    get_my_devices(jwt, userName)?.then((devicesResponse) => {
+      handleDevicesResponse(devicesResponse, setUserDeviceErrors, dispatch);
 
-      console.log('------');
-      console.log("Supported devices:");
-      dumpDeviceInfo(supportedDevices);
-      // console.log('------');
-      // console.log("UNsupported devices:");
-      // dumpDeviceInfo(unSupportedDevices);
-      dispatch(setSupportedDevices(supportedDevices));
-      dispatch(setUNSupportedDevices(unSupportedDevices));
-      // debugger;
     }).catch((error) => {
       setUserDeviceErrors(`Getting devices failed! Probably a bad network connection. Error: ${String(error)}`);
       // eslint-disable-next-line no-debugger
@@ -189,6 +219,7 @@ function App() {
   return (
     <SafeAreaProvider style={styles.container}>          
       <BluetoothData device={device}/>
+      <MaybeNoSupportedBluetoothDevices/>
       <AuthContainer/>
       <MaybeIfValue text="Device fetch errors: " value={userDeviceErrors}/>
       <StatusBar style="auto" />

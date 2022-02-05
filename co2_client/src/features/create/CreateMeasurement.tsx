@@ -524,7 +524,7 @@ const NotLoggedIn = (props: {showCreateNewMeasurement: boolean, setShowCreateNew
 }
 
 
-const NothingSelectedItem = () => {
+const NothingSelectedItem: React.FC<{}> = () => {
     const [translate] = useTranslation();
     return (
         <div>
