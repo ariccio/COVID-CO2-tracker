@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_03_28_021616) do
+ActiveRecord::Schema.define(version: 2022_02_06_043029) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -40,14 +40,6 @@ ActiveRecord::Schema.define(version: 2021_03_28_021616) do
     t.index ["email"], name: "index_admin_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_admin_users_on_reset_password_token", unique: true
   end
-
-  # create_table "device_models", force: :cascade do |t|
-  #   t.string "name"
-  #   t.integer "manufacturer_id", null: false
-  #   t.datetime "created_at", precision: 6, null: false
-  #   t.datetime "updated_at", precision: 6, null: false
-  #   t.index ["manufacturer_id"], name: "index_device_models_on_manufacturer_id"
-  # end
 
   create_table "devices", force: :cascade do |t|
     t.string "serial", null: false
@@ -107,6 +99,15 @@ ActiveRecord::Schema.define(version: 2021_03_28_021616) do
     t.index ["place_id"], name: "index_sub_locations_on_place_id"
   end
 
+  create_table "user_settings", force: :cascade do |t|
+    t.bigint "realtime_upload_place_id", null: false
+    t.bigint "realtime_upload_sub_location_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["realtime_upload_place_id"], name: "index_user_settings_on_realtime_upload_place_id"
+    t.index ["realtime_upload_sub_location_id"], name: "index_user_settings_on_realtime_upload_sub_location_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email"
     t.datetime "created_at", precision: 6, null: false
@@ -117,11 +118,12 @@ ActiveRecord::Schema.define(version: 2021_03_28_021616) do
     t.index ["sub_google_uid"], name: "index_users_on_sub_google_uid", unique: true
   end
 
-  # add_foreign_key "device_models", "manufacturers"
   add_foreign_key "devices", "models"
   add_foreign_key "devices", "users"
   add_foreign_key "measurements", "devices"
   add_foreign_key "measurements", "sub_locations"
   add_foreign_key "models", "manufacturers"
   add_foreign_key "sub_locations", "places"
+  add_foreign_key "user_settings", "places", column: "realtime_upload_place_id"
+  add_foreign_key "user_settings", "sub_locations", column: "realtime_upload_sub_location_id"
 end
