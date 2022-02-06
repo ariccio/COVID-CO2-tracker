@@ -1,0 +1,9 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  realtime_upload_place: one
+  realtime_upload_sub_location: one
+
+two:
+  realtime_upload_place: two
+  realtime_upload_sub_location: two
