@@ -24,3 +24,7 @@ export const EMAIL_URL = API_URL + EMAIL_URL_ACTION;
 
 const USER_SETTINGS_ACTION = '/user_settings';
 export const USER_SETTINGS_URL = API_URL + USER_SETTINGS_ACTION;
+
+
+const PLACES_ACTION = `/places`;
+export const CREATE_PLACE_PATH = (API_URL + PLACES_ACTION);

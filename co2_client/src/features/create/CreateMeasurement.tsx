@@ -25,7 +25,7 @@ import {defaultPlaceInfo, SelectedPlaceDatabaseInfo, selectPlaceExistsInDatabase
 
 import {postRequestOptions} from '../../utils/DefaultRequestOptions';
 import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
-import { API_URL } from '../../utils/UrlPath';
+import { API_URL, CREATE_PLACE_PATH } from '../../utils/UrlPath';
 import { updatePlacesInfoFromBackend } from '../../utils/QueryPlacesInfo';
 import { selectUsername } from '../login/loginSlice';
 import { SublocationsDropdown } from '../sublocationsDropdown/SublocationsDropdown';
@@ -279,9 +279,6 @@ interface PlaceCreateResponseType {
     place_id: number,
     errors?: Errors
 }
-
-const CREATE_PLACE_PATH = (API_URL + `/places`);
-
 
 const createPlaceIfNotExist = (placeExistsInDatabase: boolean, place_id: string): Promise<PlaceCreateResponseType> | null => {
     if (placeExistsInDatabase) {

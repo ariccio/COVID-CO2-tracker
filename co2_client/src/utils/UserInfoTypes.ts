@@ -1,12 +1,19 @@
 import {SerializedSingleMeasurement, UserInfoDevice} from './DeviceInfoTypes';
 import {ErrorObjectType} from './ErrorObject';
 
+interface UserSettings {
+    realtime_upload_place_id: string | null;
+    realtime_upload_sub_location_id: string | null;
+}
+
 interface UserInfoInternal {
     username: string,
     devices: Array<UserInfoDevice>,
     measurements: {
         data: Array<SerializedSingleMeasurement>
-    }
+    },
+    settings: UserSettings | null
+
 }
 
 export interface UserInfoType {
@@ -20,7 +27,8 @@ export const defaultUserInfo: UserInfoType = {
         devices: [],
         measurements: {
             data: []
-        }
+        },
+        settings: null
     }
 }
 
@@ -69,6 +77,7 @@ export function userInfoToStrongType(userInfo: any): UserInfoType {
     console.assert(userInfo.user_info !== undefined);
     console.assert(userInfo.devices !== undefined);
     console.assert(userInfo.devices.length !== undefined);
+    console.assert(userInfo.settings !== undefined);
     for (let i = 0; i < userInfo.devices.length; ++i) {
         const device = userInfo.devices[i];
         checkUserInfoDevice(device);
@@ -79,7 +88,8 @@ export function userInfoToStrongType(userInfo: any): UserInfoType {
         user_info: {
             username: userInfo.user_info.email,
             devices: userInfo.devices,
-            measurements: userInfo.measurements
+            measurements: userInfo.measurements,
+            settings: userInfo.settings
         },
         errors: userInfo.errors
     }

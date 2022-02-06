@@ -54,12 +54,13 @@ module Api
           return
         end
         device_ids = @user.my_devices
-        # byebug
+        byebug
         render(
           json: {
             user_info: @user.email,
             devices: device_ids,
-            measurements: @user.my_measurements
+            measurements: @user.my_measurements,
+            settings: @user.user_setting
           },
           status: :ok
         )

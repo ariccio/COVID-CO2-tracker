@@ -51,4 +51,9 @@ module Errors
     errors = []
     multiple_errors(message, errors)
   end
+
+  def create_place_differs_sublocation_place(place, sublocation)
+    errorStr = "Bug? Trying to create user settings with sublocation (#{sublocation.id}, #{sublocation.place.id}) in a different place #{place.id}? This has been reported automatically."
+    single_error(errorStr, nil)
+  end
 end

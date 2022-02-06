@@ -1,4 +1,5 @@
 import React, {useEffect} from 'react';
+import { Link } from 'react-router-dom';
 
 import { useDispatch, useSelector } from 'react-redux';
 import {selectUsername} from '../login/loginSlice';
@@ -10,6 +11,7 @@ import {UserInfoType, defaultUserInfo} from '../../utils/UserInfoTypes';
 import {formatErrors} from '../../utils/ErrorObject';
 import { selectUserInfoErrorState, selectUserInfoState, setUserInfoErrorState, setUserInfoState } from './profileSlice';
 import { AppDispatch } from '../../app/store';
+import { placesPath } from '../../paths/paths';
 
 interface ProfileProps {
 
@@ -48,6 +50,42 @@ const maybeRenderMeasurements = (userInfo: UserInfoType) => {
         <div>
             <MeasurementsTable measurements={userInfo.user_info.measurements.data} withDelete withDevice/>
         </div>
+    )
+}
+
+const Settings: React.FC<{userInfo: UserInfoType}> = ({userInfo}) => {
+    // if (userInfo === defaultUserInfo) {
+    //     console.log("user info loading...");
+    //     return null;
+    // }
+    if (userInfo.user_info.settings === null) {
+        console.log("No user settings?");
+        return (
+            <span>User has not created settings yet.</span>
+        );
+    }
+    if (userInfo.user_info.settings.realtime_upload_place_id === null) {
+        return (
+            <span>You have not set a default place for realtime upload.</span>
+        );
+    }
+    if (userInfo.user_info.settings.realtime_upload_sub_location_id === null) {
+        return (
+            <span>You have not set a default sublocation for upload.</span>
+        );
+    }
+    if (userInfo.user_info.settings.realtime_upload_place_id === '') {
+        return (
+            <span>The place you have specified for realtime upload is empty. Please try again.</span>
+        );
+    }
+    if (userInfo.user_info.settings.realtime_upload_sub_location_id === '') {
+        return (
+            <span>The sublocation you have specified for realtime upload is empty. Please try again.</span>
+        );
+    }
+    return (
+        <span>You're currently uploading to this place: <Link to={`${placesPath}/${userInfo.user_info.settings.realtime_upload_place_id}`}>{userInfo.user_info.settings.realtime_upload_place_id}</Link></span>
     )
 }
 
@@ -103,6 +141,7 @@ export const Profile: React.FC<ProfileProps> = () => {
                 {username}'s profile
                 
             </h1>
+            <Settings userInfo={userInfo}/><br/>
             Devices:
             <DevicesTable devices={userInfo.user_info.devices}/>
             Measurements:
