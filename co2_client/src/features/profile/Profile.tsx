@@ -100,7 +100,7 @@ export const Profile: React.FC<ProfileProps> = () => {
     return (
         <div>
             <h1>
-                {username}'s profile'
+                {username}'s profile
                 
             </h1>
             Devices:

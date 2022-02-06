@@ -2,18 +2,22 @@
 
 module Api
   module V1
-    class SubLocationsController < ApplicationController
+    class SubLocationsController < ApiController
+      skip_before_action :authorized, only: [:show]
+
       # before_action :set_sub_location, only: [:show, :update, :destroy]
       before_action :set_sub_location, only: [:show]
 
       # GET /sub_locations/1
       def show
+        # byebug
         # ::Rails.logger.debug('sub_locations show')
         render(json: @sub_location)
       end
 
       # POST /sub_locations
       def create
+        # byebug
         # ::Rails.logger.debug('sub_locations create')
         @sub_location = ::SubLocation.new(sub_location_params)
 

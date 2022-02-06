@@ -5,6 +5,7 @@ class User < ApplicationRecord
   # app/models/user.rb:6:3: C: Rails/HasManyOrHasOneDependent: Specify a :dependent option.
   has_many :devices, dependent: :restrict_with_exception
   has_many :measurement, -> { distinct }, through: :devices
+  has_one :user_setting
   # app/models/user.rb:7:3: C: Rails/UniqueValidationWithoutIndex: Uniqueness validation should be with a unique index.
   validates :email, presence: true, uniqueness: true
   # validates :password_digest, presence: true

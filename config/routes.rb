@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 ::Rails.application.routes.draw do
-  resources :user_settings
   devise_for :admin_users, ::ActiveAdmin::Devise.config
   ::ActiveAdmin.routes(self)
   # get 'auth/create'
@@ -10,6 +9,7 @@
 
   namespace :api do
     namespace :v1 do
+      # resources :user_settings, only: [:create, :show, :update]
       resources :users, only: [:create, :show]
       resources :auth, only: [:create]
       resources :device, only: [:create, :show, :destroy]
@@ -19,7 +19,7 @@
       resources :measurement, only: [:create, :destroy, :show]
 
       # Hmm, not used yet.
-      resources :sub_locations
+      # resources :sub_locations
 
       get 'stats/show'
       get '/all_manufacturers', to: 'manufacturers#all_manufacturers'
@@ -36,6 +36,7 @@
       post '/device_name_serial/device_ids_to_names', to: 'device_name_serial#ids_to_names'
 
       get '/model/:id/measurements', to: 'model#measurements'
+      get '/user_settings', to: 'user_settings#show'
     end
   end
   # get '/', to: 'application#fallback_index_html'

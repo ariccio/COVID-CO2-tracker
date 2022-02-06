@@ -494,6 +494,11 @@ function filterBleReadError(error: unknown, dispatch: AppDispatch, deviceID: str
             dispatch(setDeviceStatusString('Read failed, connection lost! Will try again..'));
             return true;
         }
+        if (error.errorCode === BleErrorCode.DeviceAlreadyConnected) {
+            console.log(`Device ${deviceID} already connected!`);
+            dispatch(setDeviceStatusString(null));
+            return true;
+        }
         //0x85 === GATT_ERROR (a generic error)
         if (error.androidErrorCode === 0x85) {
             console.log("Stupid-ass generic android error: https://cs.android.com/android/platform/superproject/+/master:packages/modules/Bluetooth/system/stack/include/gatt_api.h;l=65?q=%20%22GATT_ERROR%22&start=1");
@@ -659,6 +664,9 @@ export const useBluetoothConnectAranet = () => {
         console.log(`Setting update timer (${timerTime/1000} seconds)...`);
         const handle = setTimeout(() => {
             setTimeoutHandle(null);
+            if (deviceID === '?') {
+                debugger;
+            }
             updateCallback(setAranet4SpecificInformation, deviceID, dispatch, beginWithDeviceConnection, finish, setGenericBluetoothInformation);
         }, timerTime);
         // console.log(`Set update timer: ${handle}`)
@@ -715,6 +723,9 @@ async function foundAranet4(scannedDevice: Device, dispatch: AppDispatch, setDev
     dispatch(setScanningStatusString(`Found aranet4! (${scannedDevice.id}) Connecting...`));
     console.log("Connecting to aranet4...");
     if (scannedDevice.id) {
+        if (scannedDevice.id === '?') {
+            debugger;
+        }
         dispatch(setDeviceID(scannedDevice.id));
     }
     else {

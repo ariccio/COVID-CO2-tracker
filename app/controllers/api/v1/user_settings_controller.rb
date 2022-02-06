@@ -2,7 +2,13 @@
 
 module Api
     module V1
-        class UserSettingsController < ApplicationController
+        class UserSettingsController < ApiController
+            def show
+                # byebug
+                render json: {
+                    
+                }
+            end
         end    
     end
 end

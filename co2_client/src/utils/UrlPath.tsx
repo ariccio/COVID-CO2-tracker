@@ -21,3 +21,6 @@ export const USER_DEVICES_URL = (API_URL + MY_DEVICES_SHOW_ACTION);
 
 const EMAIL_URL_ACTION = '/email';
 export const EMAIL_URL = API_URL + EMAIL_URL_ACTION;
+
+const USER_SETTINGS_ACTION = '/user_settings';
+export const USER_SETTINGS_URL = API_URL + USER_SETTINGS_ACTION;

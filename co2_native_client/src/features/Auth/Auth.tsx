@@ -18,7 +18,7 @@ import { withAuthorizationHeader } from '../../utils/NativeDefaultRequestHelpers
 // import { withAuthorizationHeader } from '../../utils/NativeDefaultRequestHelpers';
 import {fetchJSONWithChecks} from '../../utils/NativeFetchHelpers';
 import { MaybeIfValue } from '../../utils/RenderValues';
-import {LOGIN_URL_NATIVE, NATIVE_EMAIL_URL} from '../../utils/UrlPaths';
+import {LOGIN_URL_NATIVE, EMAIL_URL_NATIVE} from '../../utils/UrlPaths';
 import { selectUserName, setUserName } from '../userInfo/userInfoSlice';
 
 interface NativeEmailResponse {
@@ -157,10 +157,12 @@ const nativeGetEmail = async (jwt: string) => {
         return rawEmailResponseToStrongType(await awaitedResponse.json());
     }
     const emailFetchSuccessCallback = async (awaitedResponse: Response): Promise<NativeEmailResponseType> => {
+        console.log("Email fetch success!");
         return rawEmailResponseToStrongType(await awaitedResponse.json());
     }
-
-    const result = fetchJSONWithChecks(NATIVE_EMAIL_URL, options, 200, false, emailFetchFailedCallback, emailFetchSuccessCallback) as Promise<NativeEmailResponseType>;
+    console.log(EMAIL_URL_NATIVE);
+    // debugger;
+    const result = fetchJSONWithChecks(EMAIL_URL_NATIVE, options, 200, false, emailFetchFailedCallback, emailFetchSuccessCallback) as Promise<NativeEmailResponseType>;
     return await result;
 }
 
@@ -216,7 +218,7 @@ async function queryAsyncStoreForStoredJWT(setAsyncStoreError: React.Dispatch<Re
         console.warn("JWT in storage is empty?");
         return null;
       } 
-      console.log("Got JWT from storage!");
+      console.log(`Got JWT from storage! ${maybeJWT}`);
       return maybeJWT;
     }
     catch (error) {
@@ -311,11 +313,13 @@ function setIDTokenIfGoodResponseFromGoogle(setIDToken: React.Dispatch<React.Set
 async function handleAsyncStoreResult(maybeJWT: string | null, dispatch: AppDispatch, setLoginErrors: React.Dispatch<React.SetStateAction<string | null>>) {
     if (maybeJWT) {
         dispatch(setJWT(maybeJWT));
-        console.log("Set JWT from storage!");
+        console.log("Set JWT from storage! Will try and get email/username from server...");
         nativeGetEmail(maybeJWT).then((emailResponse) => {
-            console.log(emailResponse);
+            console.log(`Server responds with email response: ${emailResponse}`);
+            // debugger;
             dispatch(setUserName(emailResponse.email))
         }).catch((error) => {
+            debugger;
             setLoginErrors(`Failed to load up-to-date username/email: ${String(error)}`)
         })
     }

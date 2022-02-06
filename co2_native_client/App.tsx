@@ -21,7 +21,8 @@ import { selectUserName } from './src/features/userInfo/userInfoSlice';
 import { withAuthorizationHeader } from './src/utils/NativeDefaultRequestHelpers';
 import {fetchJSONWithChecks} from './src/utils/NativeFetchHelpers';
 import { MaybeIfValue } from './src/utils/RenderValues';
-import { USER_DEVICES_URL_NATIVE } from './src/utils/UrlPaths';
+import { USER_DEVICES_URL_NATIVE, USER_SETTINGS_URL_NATIVE } from './src/utils/UrlPaths';
+import { isLoggedIn, isNullString } from './src/utils/isLoggedIn';
 
 
 // import {AppStatsResponse, queryAppStats} from '../co2_client/src/utils/QueryAppStats';
@@ -69,6 +70,17 @@ export type AppStatsResponse = AppStats & withErrors;
 //   return awaitedResponse.json();
 // };
 
+function defaultNativeUserRequestOptions(jwt: string): RequestInit {
+  const defaultOptions = userRequestOptions();
+  const options = {
+    ...defaultOptions,
+    headers: {
+      ...withAuthorizationHeader(jwt)
+    }
+  };
+  return options;
+}
+
 function initDeviceRequestOptions(jwt: string): RequestInit {
   const defaultOptions = userRequestOptions();
   const options = {
@@ -94,24 +106,44 @@ const fetchMyDevicesSucessCallback = async (awaitedResponse: Response): Promise<
 };
 
 const get_my_devices = (jwt: string | null, userName: string | null) => {
-  if (userName === null) {
+  const eitherNull = isNullString(jwt) || isNullString(userName);
+  if (eitherNull) {
     return;
   }
-  if (userName === '') {
+  const loggedIn = isLoggedIn(jwt, userName);
+  if (!loggedIn) {
     return;
   }
-  if (jwt === null) {
-    return;
-  }
-  if (jwt === '') {
-    return;
-  }
-  console.log("Getting devices");
+  console.log("Getting devices...");
   const deviceRequestOptions = initDeviceRequestOptions(jwt);
   const result = fetchJSONWithChecks(USER_DEVICES_URL_NATIVE, deviceRequestOptions, 200, true, fetchMyDevicesFailedCallback, fetchMyDevicesSucessCallback) as Promise<UserDevicesInfo>;
   return result;
 };
 
+const fetchSettingsSuccessCallback = async (awaitedResponse: Response): Promise<unknown> => {
+  const response = awaitedResponse.json();
+  return response;
+}
+
+const fetchSettingsFailureCallback = async (awaitedResponse: Response): Promise<unknown> => {
+  const response = awaitedResponse.json();
+  return response;
+}
+
+const getSettings = (jwt: string | null, userName: string | null) => {
+  const eitherNull = isNullString(jwt) || isNullString(userName);
+  if (eitherNull) {
+    return;
+  }
+  const loggedIn = isLoggedIn(jwt, userName);
+  if (!loggedIn) {
+    return;
+  }
+  console.log("Getting user settings...");
+  const settingsRequestOptions = defaultNativeUserRequestOptions(jwt);
+  const result = fetchJSONWithChecks(USER_SETTINGS_URL_NATIVE, settingsRequestOptions, 200, true, fetchSettingsFailureCallback, fetchSettingsSuccessCallback);
+  return result;
+}
 
 
 function filterSupportedDevices(device: UserInfoDevice): boolean {
@@ -199,6 +231,7 @@ function App() {
   // }, [device]);
 
   useEffect(() => {
+    console.log("NOTE TO SELF: if no fetch requests are going through to local machine in dev, make sure running rails as 'rails s -b 0.0.0.0 to allow all through!");
     console.log("Note to self (TODO): there's really nothing sensitive about the client ID, but I'd like to obfuscate it anyways.");
   }, []);
 
@@ -211,6 +244,14 @@ function App() {
       // eslint-disable-next-line no-debugger
       debugger;
       throw error;
+    })
+  }, [userName, jwt])
+
+  useEffect(() => {
+    getSettings(jwt, userName)?.then((response) => {
+      console.log(`Got user settings response: ${JSON.stringify(response)}`);
+    }).catch((error) => {
+      debugger;
     })
   }, [userName, jwt])
 
