@@ -25,15 +25,15 @@ class Measurement < ApplicationRecord
   EARLIEST_TIME = ::Time.parse('2020-01-01')
 
   # GODDAMNIT I NEED TO WRITE A SERIALIZER
-  def self.measurement_with_device_as_json(measurement)
-    # byebug
-    {
-      measurement_id: measurement.id,
-      co2ppm: measurement.co2ppm,
-      measurementtime: measurement.measurementtime,
-      crowding: measurement.crowding,
-      device_id: measurement.device.id
-      # device_name: measurement.device.model.name,
-    }
-  end
+  # def self.measurement_with_device_as_json(measurement)
+  #   # byebug
+  #   {
+  #     measurement_id: measurement.id,
+  #     co2ppm: measurement.co2ppm,
+  #     measurementtime: measurement.measurementtime,
+  #     crowding: measurement.crowding,
+  #     device_id: measurement.device.id
+  #     # device_name: measurement.device.model.name,
+  #   }
+  # end
 end
