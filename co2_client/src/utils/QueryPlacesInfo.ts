@@ -1,4 +1,4 @@
-import {API_URL} from './UrlPath';
+import {API_URL, PLACES_BY_GOOGLE_PLACE_ID_EXISTS_ROUTE, PLACES_IN_BOUNDS, SHOW_PLACES_BY_GOOGLE_PLACE_ID_PATH} from './UrlPath';
 import {fetchJSONWithChecks} from './FetchHelpers';
 import {postRequestOptions, userRequestOptions} from './DefaultRequestOptions';
 import {Errors, formatErrors} from './ErrorObject';
@@ -7,16 +7,14 @@ import {SelectedPlaceDatabaseInfo, setPlacesInfoFromDatabase, setPlacesInfoError
 import {useDispatch} from 'react-redux';
 import { AppDispatch } from '../app/store';
 
-const PLACES_BY_GOOGLE_PLACE_ID_ROUTE: string = '/places_by_google_place_id';
-const PLACES_BY_GOOGLE_PLACE_ID_EXISTS_ROUTE: string = '/places_by_google_place_id_exists';
-const PLACES_IN_BOUNDS: string = (API_URL + '/places_in_bounds');
+
 
 type responseType = SelectedPlaceDatabaseInfo & {
     errors?: Errors
 };
 
 const queryPlacesBackend = (placeId: string) => {
-    const SHOW_PLACES_BY_GOOGLE_PLACE_ID_PATH = (API_URL + PLACES_BY_GOOGLE_PLACE_ID_ROUTE);
+    
     const thisPlace = (SHOW_PLACES_BY_GOOGLE_PLACE_ID_PATH + `/${placeId}`);
     const fetchCallback = async (awaitedResponse: Response) => {
         //TODO: strong type?

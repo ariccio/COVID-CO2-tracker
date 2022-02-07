@@ -54,13 +54,18 @@ module Api
           return
         end
         device_ids = @user.my_devices
-        byebug
+        realtime_upload_place = @user.user_setting.google_place_id
+        # byebug
+
         render(
           json: {
             user_info: @user.email,
             devices: device_ids,
             measurements: @user.my_measurements,
-            settings: @user.user_setting
+            settings: @user.user_setting,
+            
+            # SHOULD BE SERIALIZER?
+            setting_place_google_place_id: realtime_upload_place
           },
           status: :ok
         )

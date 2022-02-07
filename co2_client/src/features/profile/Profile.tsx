@@ -85,7 +85,7 @@ const Settings: React.FC<{userInfo: UserInfoType}> = ({userInfo}) => {
         );
     }
     return (
-        <span>You're currently uploading to this place: <Link to={`${placesPath}/${userInfo.user_info.settings.realtime_upload_place_id}`}>{userInfo.user_info.settings.realtime_upload_place_id}</Link></span>
+        <span>You're currently uploading to this place: <Link to={`${placesPath}/${userInfo.user_info.settings.setting_place_google_place_id}`}>{userInfo.user_info.settings.setting_place_google_place_id}</Link></span>
     )
 }
 

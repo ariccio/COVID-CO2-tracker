@@ -27,5 +27,6 @@ export const profileSlice = createSlice({
 })
 export const {setUserInfoState, setUserInfoErrorState} = profileSlice.actions;
 export const selectUserInfoState = (state: RootState) => state.profile.userInfo;
+export const selectUserSettingsState = (state: RootState) => state.profile.userInfo.user_info.settings;
 export const selectUserInfoErrorState = (state: RootState) => state.profile.userInfoErrorState;
 export const profileReducer = profileSlice.reducer;

@@ -26,7 +26,11 @@ module Api
             }, status: :bad_request
           )
         end
-        settings = UserSetting.find_or_create_by!(user_id: @user.id, realtime_upload_place_id: place.id, realtime_upload_sub_location_id: sublocation.place.id)
+        # , realtime_upload_place_id: place.id, realtime_upload_sub_location_id: sublocation.place.id
+        settings = UserSetting.find_or_create_by!(user_id: @user.id)
+        settings.realtime_upload_place = place
+        settings.realtime_upload_sub_location = sublocation
+        settings.save!
         # byebug
         render(
             json: {},

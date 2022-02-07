@@ -28,3 +28,13 @@ export const USER_SETTINGS_URL = API_URL + USER_SETTINGS_ACTION;
 
 const PLACES_ACTION = `/places`;
 export const CREATE_PLACE_PATH = (API_URL + PLACES_ACTION);
+
+export const PLACES_BY_GOOGLE_PLACE_ID_ROUTE: string = '/places_by_google_place_id';
+
+export const SHOW_PLACES_BY_GOOGLE_PLACE_ID_PATH = (API_URL + PLACES_BY_GOOGLE_PLACE_ID_ROUTE);
+
+export const PLACES_BY_GOOGLE_PLACE_ID_EXISTS_ROUTE: string = '/places_by_google_place_id_exists';
+
+
+export const PLACES_IN_BOUNDS: string = (API_URL + '/places_in_bounds');
+
