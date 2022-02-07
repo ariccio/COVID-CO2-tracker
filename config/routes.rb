@@ -9,7 +9,7 @@
 
   namespace :api do
     namespace :v1 do
-      resources :user_settings, only: [:destroy, :create]
+      resources :user_settings, only: [:create]
       resources :users, only: [:create, :show]
       resources :auth, only: [:create]
       resources :device, only: [:create, :show, :destroy]
@@ -37,6 +37,7 @@
 
       get '/model/:id/measurements', to: 'model#measurements'
       get '/user_settings', to: 'user_settings#show'
+      delete '/user_settings', to: 'user_settings#destroy'
 
     end
   end

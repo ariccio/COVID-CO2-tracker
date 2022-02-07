@@ -34,11 +34,12 @@ function newUserSettingsRequestInit(selectedSubLocation: number, place_id: strin
         throw new Error("invariant, bug");
     }
     const defaultRequestOptions = postRequestOptions();
+    // debugger;
     const newOptions = {
         ...defaultRequestOptions,
         body: JSON.stringify({
             user_settings: {
-                realtime_upload_place_id: place_id,
+                realtime_upload_google_place_id: place_id,
                 realtime_upload_sub_location_id: selectedSubLocation
             }
         })
@@ -57,7 +58,7 @@ async function createSettings(selectedSubLocation: number, place_id: string): Pr
         return awaitedResponse.json();
     }
 
-    const result = fetchJSONWithChecks(USER_SETTINGS_URL, init, 200, true, settingsFetchFailedCallback, settingsFetchSuceededCallback) as Promise<NewOptionsResponseType>;
+    const result = fetchJSONWithChecks(USER_SETTINGS_URL, init, 201, true, settingsFetchFailedCallback, settingsFetchSuceededCallback) as Promise<NewOptionsResponseType>;
     return result;
 }
 
@@ -68,11 +69,11 @@ function sameSublocation(selectedSubLocation: number, realtime_upload_sub_locati
     return false;
 }
 
-const RealtimeUploadButtonIfSelectedPlace: React.FC<{selectedSubLocation: number, userInfoSettings: UserSettings | null}> = ({selectedSubLocation, userInfoSettings}) => {
+const RealtimeUploadButtonIfSelectedPlace: React.FC<{selectedSubLocation: number, userInfoSettings?: UserSettings | null}> = ({selectedSubLocation, userInfoSettings}) => {
     const [translate] = useTranslation();
     // debugger;
-    if (userInfoSettings !== null) {
-        if (userInfoSettings.realtime_upload_sub_location_id !== null) {
+    if ((userInfoSettings !== null) && (userInfoSettings !== undefined)) {
+        if ((userInfoSettings.realtime_upload_sub_location_id !== null) && (userInfoSettings.realtime_upload_sub_location_id !== undefined)) {
             console.log(`userInfoSettings.realtime_upload_sub_location_id: '${userInfoSettings.realtime_upload_sub_location_id}', selectedSubLocation: '${selectedSubLocation}'`);
             // console.log(`userInfoSettings.realtime_upload_place_id: ${userInfoSettings.realtime_upload_place_id}`)
             if (sameSublocation(selectedSubLocation, userInfoSettings.realtime_upload_sub_location_id)) {
@@ -98,7 +99,7 @@ const handleButtonClick = (event: React.MouseEvent<HTMLButtonElement, MouseEvent
     event.stopPropagation();
     event.preventDefault();
     setLoading(true);
-    debugger;
+    // debugger;
     createSettings(selectedSubLocation, place_id).then((result) => {
         // debugger;
         setLoading(false);
@@ -148,7 +149,7 @@ function shouldDisableButton(selectedSubLocation: number, loading: boolean, plac
     return false;
 }
 
-const SpinnerOrSet: React.FC<{selectedSubLocation: number, loading: boolean, userInfoSettings: UserSettings | null}> = ({selectedSubLocation, loading, userInfoSettings}) => {
+const SpinnerOrSet: React.FC<{selectedSubLocation: number, loading: boolean, userInfoSettings?: UserSettings | null}> = ({selectedSubLocation, loading, userInfoSettings}) => {
     const [translate] = useTranslation();
     if (loading) {
         return (
@@ -171,7 +172,7 @@ const MaybeUserInfoErrors: React.FC<{userInfoErrors: string}> = ({userInfoErrors
     return null;
 }
 
-const ChoosePlaceWithUserInfo: React.FC<{place_id: string, userInfoSettings: UserSettings | null}> = ({place_id, userInfoSettings}) => {
+const ChoosePlaceWithUserInfo: React.FC<{place_id: string, userInfoSettings?: UserSettings | null}> = ({place_id, userInfoSettings}) => {
     const selectedSubLocation = useSelector(selectSublocationSelectedLocationID);
     const dispatch = useDispatch();
     const [createErrors, setCreateErrors] = useState(null as (string | null));

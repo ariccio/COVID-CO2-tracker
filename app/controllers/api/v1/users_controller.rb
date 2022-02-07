@@ -54,7 +54,7 @@ module Api
           return
         end
         device_ids = @user.my_devices
-        realtime_upload_place = @user.user_setting.google_place_id
+        realtime_upload_place = @user.user_setting&.google_place_id
         # byebug
 
         render(
@@ -63,7 +63,7 @@ module Api
             devices: device_ids,
             measurements: @user.my_measurements,
             settings: @user.user_setting,
-            
+
             # SHOULD BE SERIALIZER?
             setting_place_google_place_id: realtime_upload_place
           },

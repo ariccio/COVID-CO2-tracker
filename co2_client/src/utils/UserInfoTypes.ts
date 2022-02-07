@@ -2,9 +2,9 @@ import {SerializedSingleMeasurement, UserInfoDevice} from './DeviceInfoTypes';
 import {ErrorObjectType} from './ErrorObject';
 
 export interface UserSettings {
-    realtime_upload_place_id: number | null;
-    realtime_upload_sub_location_id: number | null;
-    setting_place_google_place_id: number | null
+    realtime_upload_place_id?: number | null;
+    realtime_upload_sub_location_id?: number | null;
+    setting_place_google_place_id?: number | null
 }
 
 interface UserInfoInternal {
@@ -13,7 +13,7 @@ interface UserInfoInternal {
     measurements: {
         data: Array<SerializedSingleMeasurement>
     },
-    settings: UserSettings | null,
+    settings?: UserSettings | null,
     
 
 }

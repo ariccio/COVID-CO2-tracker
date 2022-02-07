@@ -1,5 +1,6 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import { Link } from 'react-router-dom';
+import {Button} from 'react-bootstrap';
 
 import { useDispatch, useSelector } from 'react-redux';
 import {selectUsername} from '../login/loginSlice';
@@ -8,10 +9,13 @@ import {MeasurementsTable} from '../measurements/MeasurementsTable';
 import {queryUserInfo} from '../../utils/QueryUserInfo';
 import {UserInfoType, defaultUserInfo} from '../../utils/UserInfoTypes';
 
-import {formatErrors} from '../../utils/ErrorObject';
+import {Errors, formatErrors} from '../../utils/ErrorObject';
 import { selectUserInfoErrorState, selectUserInfoState, setUserInfoErrorState, setUserInfoState } from './profileSlice';
 import { AppDispatch } from '../../app/store';
 import { placesPath } from '../../paths/paths';
+import { deleteRequestOptions } from '../../utils/DefaultRequestOptions';
+import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
+import { USER_SETTINGS_URL } from '../../utils/UrlPath';
 
 interface ProfileProps {
 
@@ -53,7 +57,68 @@ const maybeRenderMeasurements = (userInfo: UserInfoType) => {
     )
 }
 
+function deleteSettingsRequestInit(): RequestInit {
+    const defaultRequestOptions = deleteRequestOptions();
+    // const newOptions = {
+    //     ...defaultRequestOptions
+    // }
+    return defaultRequestOptions;
+}
+
+interface DeleteSettingsResponseType {
+    errors?: Errors
+}
+
+const deleteSettings = () => {
+    const init = deleteSettingsRequestInit();
+    const deleteSettingsFailedCallback = async (awaitedResponse: Response): Promise<DeleteSettingsResponseType> => {
+        console.error(`Failed to delete settings!`);
+        return awaitedResponse.json();
+    }
+    const deleteSettingsSuccessCallback = async (awaitedResponse: Response): Promise<DeleteSettingsResponseType> => {
+        console.error(`Sucessfully deleted settings!`);
+        return awaitedResponse.json();
+    }
+    const result = fetchJSONWithChecks(USER_SETTINGS_URL, init, 200, true, deleteSettingsFailedCallback, deleteSettingsSuccessCallback) as Promise<DeleteSettingsResponseType>;
+    return result;
+}
+
+const handleClearSettings = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, setLoading: React.Dispatch<React.SetStateAction<boolean>>, setDeleteErrors: React.Dispatch<React.SetStateAction<string | null>>, dispatch: AppDispatch) => {
+    event.stopPropagation();
+    event.preventDefault();
+    setLoading(true);
+    setDeleteErrors(null);
+    deleteSettings().then((response) => {
+        setLoading(false);
+        if (response.errors) {
+            setDeleteErrors(formatErrors(response.errors));
+            debugger;
+            return;
+        }
+        updateUserInfo(dispatch);
+    }).catch((error) => {
+        setLoading(false);
+        setDeleteErrors(String(error));
+    })
+}
+
+const maybeDeleteErrors = (deleteErrors: string | null) => {
+    if (deleteErrors === null) {
+        return null;
+    }
+    if (deleteErrors === '') {
+        return null;
+    }
+    return (
+        <span>Errors deleting settings: {deleteErrors}</span>
+    );
+}
+
 const Settings: React.FC<{userInfo: UserInfoType}> = ({userInfo}) => {
+    const [deleteErrors, setDeleteErrors] = useState(null as (string | null));
+    const [loading, setLoading] = useState(false);
+    const dispatch = useDispatch();
+
     // if (userInfo === defaultUserInfo) {
     //     console.log("user info loading...");
     //     return null;
@@ -64,7 +129,21 @@ const Settings: React.FC<{userInfo: UserInfoType}> = ({userInfo}) => {
             <span>User has not created settings yet.</span>
         );
     }
+    if (userInfo.user_info.settings === undefined) {
+        debugger;
+        console.log("No user settings?");
+        return (
+            <span>User has not created settings yet.</span>
+        );
+    }
+
     if (userInfo.user_info.settings.realtime_upload_place_id === null) {
+        return (
+            <span>You have not set a default place for realtime upload.</span>
+        );
+    }
+    if (userInfo.user_info.settings.realtime_upload_place_id === undefined) {
+        // debugger;
         return (
             <span>You have not set a default place for realtime upload.</span>
         );
@@ -74,6 +153,17 @@ const Settings: React.FC<{userInfo: UserInfoType}> = ({userInfo}) => {
             <span>You have not set a default sublocation for upload.</span>
         );
     }
+    if (userInfo.user_info.settings.realtime_upload_sub_location_id === undefined) {
+        debugger;
+        return (
+            <span>You have not set a default sublocation for upload.</span>
+        );
+    }
+
+    if (userInfo.user_info.settings.setting_place_google_place_id === null) {
+        debugger;
+    }
+    // debugger;
     // if (userInfo.user_info.settings.realtime_upload_place_id === '') {
     //     return (
     //         <span>The place you have specified for realtime upload is empty. Please try again.</span>
@@ -85,7 +175,13 @@ const Settings: React.FC<{userInfo: UserInfoType}> = ({userInfo}) => {
     //     );
     // }
     return (
-        <span>You're currently uploading to this place: <Link to={`${placesPath}/${userInfo.user_info.settings.setting_place_google_place_id}`}>{userInfo.user_info.settings.setting_place_google_place_id}</Link></span>
+        <>
+            <span>You're currently uploading to this place: <Link to={`${placesPath}/${userInfo.user_info.settings.setting_place_google_place_id}`}>{userInfo.user_info.settings.setting_place_google_place_id}</Link></span><br/>
+            <Button variant="secondary" onClick={(event) => handleClearSettings(event, setLoading, setDeleteErrors, dispatch)}>
+                Clear upload settings
+            </Button><br/>
+            {maybeDeleteErrors(deleteErrors)}
+        </>
     )
 }
 
