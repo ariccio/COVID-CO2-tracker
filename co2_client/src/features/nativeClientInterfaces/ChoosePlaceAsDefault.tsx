@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {Button, Spinner} from 'react-bootstrap';
 
 import { useTranslation } from 'react-i18next';
@@ -8,7 +8,7 @@ import { postRequestOptions } from '../../utils/DefaultRequestOptions';
 import { Errors, formatErrors } from '../../utils/ErrorObject';
 import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
 import { USER_SETTINGS_URL } from '../../utils/UrlPath';
-import { UserSettings } from '../../utils/UserInfoTypes';
+import { defaultUserInfo, UserSettings } from '../../utils/UserInfoTypes';
 import { selectSelectedPlace } from '../google/googleSlice';
 import { selectUsername } from '../login/loginSlice';
 import { updateUserInfo } from '../profile/Profile';
@@ -61,19 +61,26 @@ async function createSettings(selectedSubLocation: number, place_id: string): Pr
     return result;
 }
 
+function sameSublocation(selectedSubLocation: number, realtime_upload_sub_location_id: number): boolean {
+    if (realtime_upload_sub_location_id === selectedSubLocation) {
+        return true;
+    }
+    return false;
+}
+
 const RealtimeUploadButtonIfSelectedPlace: React.FC<{selectedSubLocation: number, userInfoSettings: UserSettings | null}> = ({selectedSubLocation, userInfoSettings}) => {
     const [translate] = useTranslation();
     // debugger;
     if (userInfoSettings !== null) {
         if (userInfoSettings.realtime_upload_sub_location_id !== null) {
-            console.log(`userInfoSettings.realtime_upload_sub_location_id: ${userInfoSettings.realtime_upload_sub_location_id}, selectedSubLocation: ${selectedSubLocation}`);
+            console.log(`userInfoSettings.realtime_upload_sub_location_id: '${userInfoSettings.realtime_upload_sub_location_id}', selectedSubLocation: '${selectedSubLocation}'`);
             // console.log(`userInfoSettings.realtime_upload_place_id: ${userInfoSettings.realtime_upload_place_id}`)
-            if (userInfoSettings.realtime_upload_sub_location_id === String(selectedSubLocation)) {
+            if (sameSublocation(selectedSubLocation, userInfoSettings.realtime_upload_sub_location_id)) {
                 return (
                     <i>Already selected for realtime upload.</i>
                 );
+                debugger;
             }
-            debugger;
         }
     }
     if (sublocationSelected(selectedSubLocation)) {
@@ -108,6 +115,8 @@ const handleButtonClick = (event: React.MouseEvent<HTMLButtonElement, MouseEvent
         setCreateErrors(String(error));
     }).then(() => {
         return updateUserInfo(dispatch);
+    }).catch((error) => {
+        setCreateErrors(String(error));
     })
 }
 
@@ -124,9 +133,14 @@ const MaybeCreateErrors: React.FC<{createErrors: string | null}> = ({createError
     )
 }
 
-function shouldDisableButton(selectedSubLocation: number, loading: boolean, place_id: string): boolean {
+function shouldDisableButton(selectedSubLocation: number, loading: boolean, place_id: string, realtime_upload_sub_location_id?: number| null ): boolean {
     if (!sublocationSelected(selectedSubLocation)) {
         return true;
+    }
+    if (realtime_upload_sub_location_id) {
+        if (sameSublocation(selectedSubLocation, realtime_upload_sub_location_id)) {
+            return true;
+        }
     }
     if (loading) {
         return true;
@@ -157,20 +171,40 @@ const MaybeUserInfoErrors: React.FC<{userInfoErrors: string}> = ({userInfoErrors
     return null;
 }
 
-// const ChoosePlaceWithUserInfo: React.FC<{place_id?: string | undefined}> = ({place_id}) => {
+const ChoosePlaceWithUserInfo: React.FC<{place_id: string, userInfoSettings: UserSettings | null}> = ({place_id, userInfoSettings}) => {
+    const selectedSubLocation = useSelector(selectSublocationSelectedLocationID);
+    const dispatch = useDispatch();
+    const [createErrors, setCreateErrors] = useState(null as (string | null));
+    const [loading, setLoading] = useState(false);
 
-// }
+
+    return (
+        <>
+            <Button variant="primary" disabled={shouldDisableButton(selectedSubLocation, loading, place_id, userInfoSettings?.realtime_upload_sub_location_id)} onClick={(event) => handleButtonClick(event, selectedSubLocation, place_id, setCreateErrors, setLoading, dispatch)}>
+                <SpinnerOrSet selectedSubLocation={selectedSubLocation} loading={loading} userInfoSettings={userInfoSettings}/>
+                {/* <RealtimeUploadButtonIfSelectedPlace selectedSubLocation={selectedSubLocation} /> */}
+            </Button>
+            <br/>
+            <MaybeCreateErrors createErrors={createErrors}/><br/>
+        </>
+    );
+}
 
 export const ChoosePlaceAsDefault: React.FC<{place_id?: string | undefined}> = ({place_id}) => {
-    const selectedSubLocation = useSelector(selectSublocationSelectedLocationID);
-    const userInfoSettings = useSelector(selectUserSettingsState);
+    // const userInfoSettings = useSelector(selectUserSettingsState);
+    const userInfo = useSelector(selectUserInfoState);
     const userInfoErrors = useSelector(selectUserInfoErrorState);
     const userName = useSelector(selectUsername);
     // const currentPlace = useSelector(selectSelectedPlace);
-    const [createErrors, setCreateErrors] = useState(null as (string | null));
-    const [loading, setLoading] = useState(false);
     const dispatch = useDispatch();
     
+    useEffect(() => {
+        if (userInfo === defaultUserInfo) {
+            updateUserInfo(dispatch);
+        }
+    }, [userInfo]);
+
+
     if (place_id === undefined) {
         return null;
     }
@@ -187,15 +221,16 @@ export const ChoosePlaceAsDefault: React.FC<{place_id?: string | undefined}> = (
     }
     // debugger;
 
+    if (userInfo === defaultUserInfo) {
+        return (
+            <span>Loading user info...</span>
+        );
+    }
+
     return (
         <>
             <MaybeUserInfoErrors userInfoErrors={userInfoErrors}/><br/>
-            <Button variant="primary" disabled={shouldDisableButton(selectedSubLocation, loading, place_id)} onClick={(event) => handleButtonClick(event, selectedSubLocation, place_id, setCreateErrors, setLoading, dispatch)}>
-                <SpinnerOrSet selectedSubLocation={selectedSubLocation} loading={loading} userInfoSettings={userInfoSettings}/>
-                {/* <RealtimeUploadButtonIfSelectedPlace selectedSubLocation={selectedSubLocation} /> */}
-            </Button>
-            <br/>
-            <MaybeCreateErrors createErrors={createErrors}/><br/>
+            <ChoosePlaceWithUserInfo place_id={place_id} userInfoSettings={userInfo.user_info.settings}/>
         </>
     )
 

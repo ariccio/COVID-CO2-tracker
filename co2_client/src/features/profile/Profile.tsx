@@ -74,16 +74,16 @@ const Settings: React.FC<{userInfo: UserInfoType}> = ({userInfo}) => {
             <span>You have not set a default sublocation for upload.</span>
         );
     }
-    if (userInfo.user_info.settings.realtime_upload_place_id === '') {
-        return (
-            <span>The place you have specified for realtime upload is empty. Please try again.</span>
-        );
-    }
-    if (userInfo.user_info.settings.realtime_upload_sub_location_id === '') {
-        return (
-            <span>The sublocation you have specified for realtime upload is empty. Please try again.</span>
-        );
-    }
+    // if (userInfo.user_info.settings.realtime_upload_place_id === '') {
+    //     return (
+    //         <span>The place you have specified for realtime upload is empty. Please try again.</span>
+    //     );
+    // }
+    // if (userInfo.user_info.settings.realtime_upload_sub_location_id === '') {
+    //     return (
+    //         <span>The sublocation you have specified for realtime upload is empty. Please try again.</span>
+    //     );
+    // }
     return (
         <span>You're currently uploading to this place: <Link to={`${placesPath}/${userInfo.user_info.settings.setting_place_google_place_id}`}>{userInfo.user_info.settings.setting_place_google_place_id}</Link></span>
     )
