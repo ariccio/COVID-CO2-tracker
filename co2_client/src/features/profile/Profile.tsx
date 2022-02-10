@@ -10,12 +10,14 @@ import {queryUserInfo} from '../../utils/QueryUserInfo';
 import {UserInfoType, defaultUserInfo} from '../../utils/UserInfoTypes';
 
 import {Errors, formatErrors} from '../../utils/ErrorObject';
-import { selectUserInfoErrorState, selectUserInfoState, setUserInfoErrorState, setUserInfoState } from './profileSlice';
+import { selectUserInfoErrorState, selectUserInfoState, selectUserSettings, selectUserSettingsErrors, setUserInfoErrorState, setUserInfoState, setUserSettings, setUserSettingsErrorState } from './profileSlice';
 import { AppDispatch } from '../../app/store';
 import { placesPath } from '../../paths/paths';
 import { deleteRequestOptions } from '../../utils/DefaultRequestOptions';
 import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
 import { USER_SETTINGS_URL } from '../../utils/UrlPath';
+import { queryUserSettings } from '../../utils/QuerySettings';
+import { UserSettings } from '../../utils/UserSettings';
 
 interface ProfileProps {
 
@@ -36,8 +38,29 @@ export const updateUserInfo = (dispatch: AppDispatch) => {
         debugger;
         dispatch(setUserInfoErrorState(error.message));
     })
-
 }
+
+export const updateUserSettings = (dispatch: AppDispatch) => {
+    //TODO: should be in redux?
+    const userInfoPromise: Promise<UserInfoType> = queryUserInfo();
+
+    const userSettingsPromise: Promise<UserSettings> = queryUserSettings();
+
+    return userSettingsPromise.then((userSettings) => {
+        // if (userSettings.errors !== undefined) {
+        //     dispatch(setUserSettingsErrorState(formatErrors(userSettings.errors)));
+        //     return;
+        // }
+        // console.log(userInfo);
+        // debugger;
+        dispatch(setUserSettings(userSettings));
+        console.log("Updated user settings!");
+    }).catch((error) => {
+        debugger;
+        dispatch(setUserSettingsErrorState(error.message));
+    })
+}
+
 
 const maybeRenderMeasurements = (userInfo: UserInfoType) => {
     if (userInfo.user_info.measurements.data === undefined) {
@@ -102,7 +125,7 @@ const handleClearSettings = (event: React.MouseEvent<HTMLButtonElement, MouseEve
     })
 }
 
-const maybeDeleteErrors = (deleteErrors: string | null) => {
+const MaybeDeleteErrors: React.FC<{deleteErrors: string | null}> = ({deleteErrors}) => {
     if (deleteErrors === null) {
         return null;
     }
@@ -114,7 +137,18 @@ const maybeDeleteErrors = (deleteErrors: string | null) => {
     );
 }
 
-const Settings: React.FC<{userInfo: UserInfoType}> = ({userInfo}) => {
+const MaybeSettingsFetchErrors: React.FC<{errors: string | null}> = ({errors}) => {
+    if (errors) {
+        return (
+            <div>
+                errors fetching settings: {errors}
+            </div>
+        )
+    }
+    return null;
+}
+
+const Settings: React.FC<{userSettings: UserSettings | null, errors: string | null}> = ({userSettings, errors}) => {
     const [deleteErrors, setDeleteErrors] = useState(null as (string | null));
     const [loading, setLoading] = useState(false);
     const dispatch = useDispatch();
@@ -123,44 +157,44 @@ const Settings: React.FC<{userInfo: UserInfoType}> = ({userInfo}) => {
     //     console.log("user info loading...");
     //     return null;
     // }
-    if (userInfo.user_info.settings === null) {
+    if (userSettings === null) {
         console.log("No user settings?");
         return (
             <span>User has not created settings yet.</span>
         );
     }
-    if (userInfo.user_info.settings === undefined) {
-        debugger;
-        console.log("No user settings?");
-        return (
-            <span>User has not created settings yet.</span>
-        );
-    }
+    // if (userInfo.user_info.settings === undefined) {
+    //     debugger;
+    //     console.log("No user settings?");
+    //     return (
+    //         <span>User has not created settings yet.</span>
+    //     );
+    // }
 
-    if (userInfo.user_info.settings.realtime_upload_place_id === null) {
+    if (userSettings.realtime_upload_place_id === null) {
         return (
             <span>You have not set a default place for realtime upload.</span>
         );
     }
-    if (userInfo.user_info.settings.realtime_upload_place_id === undefined) {
+    if (userSettings.realtime_upload_place_id === undefined) {
         // debugger;
         return (
             <span>You have not set a default place for realtime upload.</span>
         );
     }
-    if (userInfo.user_info.settings.realtime_upload_sub_location_id === null) {
+    if (userSettings.realtime_upload_sub_location_id === null) {
         return (
             <span>You have not set a default sublocation for upload.</span>
         );
     }
-    if (userInfo.user_info.settings.realtime_upload_sub_location_id === undefined) {
+    if (userSettings.realtime_upload_sub_location_id === undefined) {
         debugger;
         return (
             <span>You have not set a default sublocation for upload.</span>
         );
     }
 
-    if (userInfo.user_info.settings.setting_place_google_place_id === null) {
+    if (userSettings.setting_place_google_place_id === null) {
         debugger;
     }
     // debugger;
@@ -176,11 +210,12 @@ const Settings: React.FC<{userInfo: UserInfoType}> = ({userInfo}) => {
     // }
     return (
         <>
-            <span>You're currently uploading to this place: <Link to={`${placesPath}/${userInfo.user_info.settings.setting_place_google_place_id}`}>{userInfo.user_info.settings.setting_place_google_place_id}</Link></span><br/>
+            <MaybeSettingsFetchErrors errors={errors}/>
+            <span>You're currently uploading to this place: <Link to={`${placesPath}/${userSettings.setting_place_google_place_id}`}>{userSettings.setting_place_google_place_id}</Link> - {userSettings.sublocation_description}</span><br/>
             <Button variant="secondary" onClick={(event) => handleClearSettings(event, setLoading, setDeleteErrors, dispatch)}>
                 Clear upload settings
             </Button><br/>
-            {maybeDeleteErrors(deleteErrors)}
+            <MaybeDeleteErrors deleteErrors={deleteErrors} />
         </>
     )
 }
@@ -192,11 +227,14 @@ export const Profile: React.FC<ProfileProps> = () => {
     // const [userInfo, setUserInfo] = useState(defaultUserInfo);
     const userInfo = useSelector(selectUserInfoState);
     const errorState = useSelector(selectUserInfoErrorState);
+    const settings = useSelector(selectUserSettings);
+    const settingsErrors = useSelector(selectUserSettingsErrors);
     const dispatch = useDispatch();
 
     // const [errorState, setErrorState] = useState('');
     useEffect(() => {
         updateUserInfo(dispatch);
+        updateUserSettings(dispatch);
     }, [dispatch])
 
     //TODO: if userInfo.errors?
@@ -217,7 +255,6 @@ export const Profile: React.FC<ProfileProps> = () => {
                     {errorState}
                 </p>
             </div>
-            
         )
     }
     // Something is undefined in prod. What is it?
@@ -237,7 +274,7 @@ export const Profile: React.FC<ProfileProps> = () => {
                 {username}'s profile
                 
             </h1>
-            <Settings userInfo={userInfo}/><br/>
+            <Settings userSettings={settings} errors={settingsErrors}/><br/>
             Devices:
             <DevicesTable devices={userInfo.user_info.devices}/>
             Measurements:

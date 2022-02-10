@@ -5,7 +5,7 @@ import { Text } from 'react-native';
 
 export const MaybeIfValue: React.FC<{text: string, value: any, suffix?: string}> = ({text, value, suffix}) => {
     if (value === undefined) {
-      console.error("value missing?");
+      // console.error("value missing?");
       return null;
     }
     if (value === null) {
@@ -21,7 +21,7 @@ export const MaybeIfValue: React.FC<{text: string, value: any, suffix?: string}>
   
 export const ValueOrLoading: React.FC<{text: string, value: any, suffix?: string}> = ({text, value, suffix}) => {
     if (value === undefined) {
-      console.error("value missing?");
+      // console.error("value missing?");
       return null;
     }
     if (value === null) {

@@ -55,3 +55,4 @@ export async function queryUserDevices(): Promise<UserDevicesInfo> {
     const result = fetchJSONWithChecks(USER_DEVICES_URL, userRequestOptions(), 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<UserDevicesInfo>;
     return result;
 }
+

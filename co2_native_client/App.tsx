@@ -1,3 +1,4 @@
+/* eslint-disable no-debugger */
 // See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
 
 import { StatusBar } from 'expo-status-bar';
@@ -17,12 +18,15 @@ import { AppDispatch, store } from './src/app/store';
 import {AuthContainer} from './src/features/Auth/Auth';
 import { BluetoothData, useBluetoothConnectAranet } from './src/features/bluetooth/Bluetooth';
 import { selectSupportedDevices, setSupportedDevices, setUNSupportedDevices } from './src/features/userInfo/devicesSlice';
-import { selectUserName } from './src/features/userInfo/userInfoSlice';
+import { selectUserName, setUserSettings, setUserSettingsErrors } from './src/features/userInfo/userInfoSlice';
+import {UserSettings} from '../co2_client/src/utils/UserSettings';
+import {UserSettingsResponseData, userSettingsResponseDataAsPlainSettings, userSettingsResponseToStrongType} from '../co2_client/src/utils/QuerySettingsTypes';
 import { withAuthorizationHeader } from './src/utils/NativeDefaultRequestHelpers';
 import {fetchJSONWithChecks} from './src/utils/NativeFetchHelpers';
 import { MaybeIfValue } from './src/utils/RenderValues';
 import { USER_DEVICES_URL_NATIVE, USER_SETTINGS_URL_NATIVE } from './src/utils/UrlPaths';
 import { isLoggedIn, isNullString } from './src/utils/isLoggedIn';
+import { UserSettingsMaybeDisplay } from './src/features/UserSettings/UserSettingsDisplay';
 
 
 // import {AppStatsResponse, queryAppStats} from '../co2_client/src/utils/QueryAppStats';
@@ -156,111 +160,10 @@ const get_my_devices = (jwt: string | null, userName: string | null) => {
   return result;
 };
 
-function userSettingsResponseToStrongType(responseMaybeUserSettings: any): Promise<UserSettingsResponseData> {
-  if (responseMaybeUserSettings === null) {
-    debugger;
-    throw new Error("Missing responseMaybeUserSettings!");
-  }
-  if (responseMaybeUserSettings === undefined) {
-    debugger;
-    throw new Error("Missing responseMaybeUserSettings!");
-  }
-  if (responseMaybeUserSettings.data === null) {
-    debugger;
-    throw new Error("Missing responseMaybeUserSettings.data!");
-  }
-  if (responseMaybeUserSettings.data === undefined) {
-    debugger;
-    throw new Error("Missing responseMaybeUserSettings.data!");
-  }
-  if (responseMaybeUserSettings.data.id === null) {
-    debugger;
-    throw new Error("Missing responseMaybeUserSettings.data.id!");
-  }
-  if (responseMaybeUserSettings.data.id === undefined) {
-    debugger;
-    throw new Error("Missing responseMaybeUserSettings.data.id!");
-  }
 
-  if (responseMaybeUserSettings.data.attributes === null) {
-    debugger;
-    throw new Error("Missing responseMaybeUserSettings.data.attributes!");
-  }
 
-  if (responseMaybeUserSettings.data.attributes === undefined) {
-    debugger;
-    throw new Error("Missing responseMaybeUserSettings.data.attributes!");
-  }
 
-  if (responseMaybeUserSettings.data.attributes.realtime_upload_place === null) {
-    debugger;
-    throw new Error("Missing responseMaybeUserSettings.data.attributes.realtime_upload_place!");
-  }
-  if (responseMaybeUserSettings.data.attributes.realtime_upload_place === undefined) {
-    debugger;
-    throw new Error("Missing responseMaybeUserSettings.data.attributes.realtime_upload_place!");
-  }
-  if (responseMaybeUserSettings.data.attributes.realtime_upload_place.google_place_id === null) {
-    debugger;
-    throw new Error("Missing responseMaybeUserSettings.data.attributes.realtime_upload_place.google_place_id!");
-  }
-  if (responseMaybeUserSettings.data.attributes.realtime_upload_place.google_place_id === undefined) {
-    debugger;
-    throw new Error("Missing responseMaybeUserSettings.data.attributes.realtime_upload_place.google_place_id!");
-  }
-  if (responseMaybeUserSettings.data.attributes.realtime_upload_sub_location === null) {
-    debugger;
-    throw new Error("Missing responseMaybeUserSettings.data.attributes.realtime_upload_sub_location!");
-  }
-  if (responseMaybeUserSettings.data.attributes.realtime_upload_sub_location === undefined) {
-    debugger;
-    throw new Error("Missing responseMaybeUserSettings.data.attributes.realtime_upload_sub_location!");
-  }
-  if (responseMaybeUserSettings.data.attributes.realtime_upload_sub_location.id === null) {
-    debugger;
-    throw new Error("Missing responseMaybeUserSettings.data.attributes.id!");
-  }
-  if (responseMaybeUserSettings.data.attributes.realtime_upload_sub_location.id === undefined) {
-    debugger;
-    throw new Error("Missing responseMaybeUserSettings.data.attributes.id!");
-  }
-  if (responseMaybeUserSettings.data.attributes.realtime_upload_sub_location.description === null) {
-    debugger;
-    throw new Error("Missing responseMaybeUserSettings.data.attributes.id!");
-  }
-  if (responseMaybeUserSettings.data.attributes.realtime_upload_sub_location.description === undefined) {
-    debugger;
-    throw new Error("Missing responseMaybeUserSettings.data.attributes.id!");
-  }
-  return responseMaybeUserSettings;
- }
 
-export interface UserSettingsResponseData {
-  data: {
-    id: number,
-    // type: string,
-    attributes: {
-      realtime_upload_place: {
-        google_place_id: string,
-        id: number
-        // ...
-        created_at: unknown,
-        last_fetched: unknown,
-        updated_at: unknown,
-        place_lat: number,
-        place_lng: number
-      },
-      realtime_upload_sub_location: {
-        id: number,
-        description: string,
-        // ...
-        place_id: number,
-        created_at: unknown,
-        updated_at: unknown
-      }
-    }
-  }
-};
 
 
 
@@ -268,53 +171,11 @@ export interface UserSettingsResponseData {
 
 
 
-const fetchSettingsSuccessCallback = async (awaitedResponse: Response): Promise<unknown> => {
+const fetchSettingsSuccessCallback = async (awaitedResponse: Response): Promise<UserSettings> => {
   const response = await awaitedResponse.json();
 
-  /*
-{:data=>
-  {:id=>"6",
-   :type=>:user_setting,
-   :attributes=>
-    {:realtime_upload_place=>
-      #<Place:0x000000000dc7a828
-       id: 22,
-       google_place_id: "ChIJAbAvU8dYwokRwAvBDqWmDMo",
-       last_fetched: Tue, 25 Jan 2022 22:25:15.667697000 UTC +00:00,
-       created_at: Thu, 11 Mar 2021 02:41:38.899104000 UTC +00:00,
-       updated_at: Tue, 25 Jan 2022 22:25:15.669135000 UTC +00:00,
-       place_lat: 0.40770339e2,
-       place_lng: -0.73953588e2>,
-     :realtime_upload_sub_location=>
-      #<SubLocation:0x000000000f6a5f40
-       id: 18,
-       description: "None",
-       place_id: 22,
-       created_at: Sun, 28 Mar 2021 00:41:23.623733000 UTC +00:00,
-       updated_at: Sun, 28 Mar 2021 02:14:01.550823000 UTC +00:00>}}}
-
-
-data:
-  attributes:
-    realtime_upload_place:
-      created_at: "2021-03-11T02:41:38.899Z"
-      google_place_id: "ChIJAbAvU8dYwokRwAvBDqWmDMo"
-      id: 22
-      last_fetched: "2022-01-25T22:25:15.667Z"
-      place_lat: "40.770339"
-      place_lng: "-73.953588"
-      updated_at: "2022-01-25T22:25:15.669Z"
-    realtime_upload_sub_location:
-      created_at: "2021-03-28T00:41:23.623Z"
-      description: "None"
-      id: 18
-      place_id: 22
-      updated_at: "2021-03-28T02:14:01.550Z"
-  id: "6"
-  type: "user_setting"
-
-  */
-  return userSettingsResponseToStrongType(response);
+  const plainSettings = userSettingsResponseDataAsPlainSettings(await userSettingsResponseToStrongType(response));
+  return plainSettings;
 }
 
 const fetchSettingsFailureCallback = async (awaitedResponse: Response): Promise<unknown> => {
@@ -322,7 +183,7 @@ const fetchSettingsFailureCallback = async (awaitedResponse: Response): Promise<
   return response;
 }
 
-const getSettings = (jwt: string | null, userName: string | null) => {
+const getSettings = (jwt: string | null, userName: string | null):  Promise<UserSettings> | undefined => {
   const eitherNull = isNullString(jwt) || isNullString(userName);
   if (eitherNull) {
     return;
@@ -333,7 +194,7 @@ const getSettings = (jwt: string | null, userName: string | null) => {
   }
   console.log("Getting user settings...");
   const settingsRequestOptions = defaultNativeUserRequestOptions(jwt);
-  const result = fetchJSONWithChecks(USER_SETTINGS_URL_NATIVE, settingsRequestOptions, 200, true, fetchSettingsFailureCallback, fetchSettingsSuccessCallback);
+  const result = fetchJSONWithChecks(USER_SETTINGS_URL_NATIVE, settingsRequestOptions, 200, true, fetchSettingsFailureCallback, fetchSettingsSuccessCallback) as Promise<UserSettings>;
   return result;
 }
 
@@ -415,13 +276,6 @@ function App() {
   
   const dispatch = useDispatch();
 
-  // useEffect(() => {
-  //   if (device === null) {
-  //     return;
-  //   }
-  //   console.log("has device! Device object:");
-  // }, [device]);
-
   useEffect(() => {
     console.log("NOTE TO SELF: if no fetch requests are going through to local machine in dev, make sure running rails as 'rails s -b 0.0.0.0 to allow all through!");
     console.log("Note to self (TODO): there's really nothing sensitive about the client ID, but I'd like to obfuscate it anyways.");
@@ -442,8 +296,10 @@ function App() {
   useEffect(() => {
     getSettings(jwt, userName)?.then((response) => {
       console.log(`Got user settings response: ${JSON.stringify(response)}`);
-      debugger;
+      dispatch(setUserSettings(response));
+      // debugger;
     }).catch((error) => {
+      dispatch(setUserSettingsErrors(String(error)))
       debugger;
     })
   }, [userName, jwt])
@@ -456,6 +312,7 @@ function App() {
       <MaybeNoSupportedBluetoothDevices/>
       <AuthContainer/>
       <MaybeIfValue text="Device fetch errors: " value={userDeviceErrors}/>
+      <UserSettingsMaybeDisplay/>
       <StatusBar style="auto" />
     </SafeAreaProvider>
   );

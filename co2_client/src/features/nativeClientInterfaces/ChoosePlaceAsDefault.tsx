@@ -8,11 +8,12 @@ import { postRequestOptions } from '../../utils/DefaultRequestOptions';
 import { Errors, formatErrors } from '../../utils/ErrorObject';
 import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
 import { USER_SETTINGS_URL } from '../../utils/UrlPath';
-import { defaultUserInfo, UserSettings } from '../../utils/UserInfoTypes';
+import { defaultUserInfo } from '../../utils/UserInfoTypes';
+import { UserSettings } from '../../utils/UserSettings';
 import { selectSelectedPlace } from '../google/googleSlice';
 import { selectUsername } from '../login/loginSlice';
-import { updateUserInfo } from '../profile/Profile';
-import { selectUserInfoErrorState, selectUserInfoState, selectUserSettingsState } from '../profile/profileSlice';
+import { updateUserInfo, updateUserSettings } from '../profile/Profile';
+import { selectUserInfoErrorState, selectUserInfoState, selectUserSettings, selectUserSettingsErrors } from '../profile/profileSlice';
 import { selectSublocationSelectedLocationID } from '../sublocationsDropdown/sublocationSlice';
 
 function sublocationSelected(sublocationID: number): boolean {
@@ -94,11 +95,12 @@ const RealtimeUploadButtonIfSelectedPlace: React.FC<{selectedSubLocation: number
     )
 }
 
-const handleButtonClick = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, selectedSubLocation: number, place_id: string, setCreateErrors: React.Dispatch<React.SetStateAction<string | null>>, setLoading: React.Dispatch<React.SetStateAction<boolean>>, dispatch: AppDispatch) => {
+const handleButtonClick = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, selectedSubLocation: number, place_id: string, setCreateErrors: React.Dispatch<React.SetStateAction<string | null>>, setLoading: React.Dispatch<React.SetStateAction<boolean>>, dispatch: AppDispatch, setWaitingForRefresh: React.Dispatch<React.SetStateAction<boolean>>) => {
     // debugger;
     event.stopPropagation();
     event.preventDefault();
     setLoading(true);
+    setWaitingForRefresh(true);
     // debugger;
     createSettings(selectedSubLocation, place_id).then((result) => {
         // debugger;
@@ -114,9 +116,15 @@ const handleButtonClick = (event: React.MouseEvent<HTMLButtonElement, MouseEvent
         debugger;
         setLoading(false);
         setCreateErrors(String(error));
+        setWaitingForRefresh(false);
     }).then(() => {
-        return updateUserInfo(dispatch);
-    }).catch((error) => {
+        // return updateUserInfo(dispatch);
+        return updateUserSettings(dispatch);
+    }).then(() => {
+        console.log("No longer waiting for refresh...")
+        setWaitingForRefresh(false);
+    })
+    .catch((error) => {
         setCreateErrors(String(error));
     })
 }
@@ -134,7 +142,7 @@ const MaybeCreateErrors: React.FC<{createErrors: string | null}> = ({createError
     )
 }
 
-function shouldDisableButton(selectedSubLocation: number, loading: boolean, place_id: string, realtime_upload_sub_location_id?: number| null ): boolean {
+function shouldDisableButton(selectedSubLocation: number, loading: boolean, place_id: string, waitingForRefresh: boolean, realtime_upload_sub_location_id?: number| null ): boolean {
     if (!sublocationSelected(selectedSubLocation)) {
         return true;
     }
@@ -142,6 +150,10 @@ function shouldDisableButton(selectedSubLocation: number, loading: boolean, plac
         if (sameSublocation(selectedSubLocation, realtime_upload_sub_location_id)) {
             return true;
         }
+    }
+    if (waitingForRefresh) {
+        // debugger;
+        return true;
     }
     if (loading) {
         return true;
@@ -165,7 +177,10 @@ const SpinnerOrSet: React.FC<{selectedSubLocation: number, loading: boolean, use
     )
 }
 
-const MaybeUserInfoErrors: React.FC<{userInfoErrors: string}> = ({userInfoErrors}) => {
+const MaybeUserInfoErrors: React.FC<{userInfoErrors: string | null}> = ({userInfoErrors}) => {
+    if (userInfoErrors === null) {
+        return null;
+    }
     if (userInfoErrors !== '') {
         <span>Realtime upload settings <i>might</i> not be available. Errors: {userInfoErrors}</span>
     }
@@ -177,11 +192,12 @@ const ChoosePlaceWithUserInfo: React.FC<{place_id: string, userInfoSettings?: Us
     const dispatch = useDispatch();
     const [createErrors, setCreateErrors] = useState(null as (string | null));
     const [loading, setLoading] = useState(false);
+    const [waitingForRefresh, setWaitingForRefresh] = useState(false);
 
 
     return (
         <>
-            <Button variant="primary" disabled={shouldDisableButton(selectedSubLocation, loading, place_id, userInfoSettings?.realtime_upload_sub_location_id)} onClick={(event) => handleButtonClick(event, selectedSubLocation, place_id, setCreateErrors, setLoading, dispatch)}>
+            <Button variant="primary" disabled={shouldDisableButton(selectedSubLocation, loading, place_id, waitingForRefresh, userInfoSettings?.realtime_upload_sub_location_id)} onClick={(event) => handleButtonClick(event, selectedSubLocation, place_id, setCreateErrors, setLoading, dispatch, setWaitingForRefresh)}>
                 <SpinnerOrSet selectedSubLocation={selectedSubLocation} loading={loading} userInfoSettings={userInfoSettings}/>
                 {/* <RealtimeUploadButtonIfSelectedPlace selectedSubLocation={selectedSubLocation} /> */}
             </Button>
@@ -193,18 +209,22 @@ const ChoosePlaceWithUserInfo: React.FC<{place_id: string, userInfoSettings?: Us
 
 export const ChoosePlaceAsDefault: React.FC<{place_id?: string | undefined}> = ({place_id}) => {
     // const userInfoSettings = useSelector(selectUserSettingsState);
-    const userInfo = useSelector(selectUserInfoState);
-    const userInfoErrors = useSelector(selectUserInfoErrorState);
+    // const userInfo = useSelector(selectUserInfoState);
+    // const userInfoErrors = useSelector(selectUserInfoErrorState);
     const userName = useSelector(selectUsername);
+    const settings = useSelector(selectUserSettings);
+    const settingsErrors = useSelector(selectUserSettingsErrors);
+
     // const currentPlace = useSelector(selectSelectedPlace);
     const dispatch = useDispatch();
     
     useEffect(() => {
-        if (userInfo === defaultUserInfo) {
-            console.log("(in ChoosePlaceAsDefault) userInfo === defaultUserInfo.");
-            updateUserInfo(dispatch);
+        if (settings === null) {
+            console.log("(in ChoosePlaceAsDefault) settings === null.");
+            // updateUserInfo(dispatch);
+            updateUserSettings(dispatch);
         }
-    }, [userInfo]);
+    }, [settings]);
 
 
     if (place_id === undefined) {
@@ -223,10 +243,10 @@ export const ChoosePlaceAsDefault: React.FC<{place_id?: string | undefined}> = (
     }
     // debugger;
 
-    if (userInfo === defaultUserInfo) {
+    if (settings === null) {
         return (
             <>
-                <MaybeUserInfoErrors userInfoErrors={userInfoErrors}/><br/>
+                <MaybeUserInfoErrors userInfoErrors={settingsErrors}/><br/>
                 <span>Loading user info...</span>
             </>
         );
@@ -234,8 +254,8 @@ export const ChoosePlaceAsDefault: React.FC<{place_id?: string | undefined}> = (
 
     return (
         <>
-            <MaybeUserInfoErrors userInfoErrors={userInfoErrors}/><br/>
-            <ChoosePlaceWithUserInfo place_id={place_id} userInfoSettings={userInfo.user_info.settings}/>
+            <MaybeUserInfoErrors userInfoErrors={settingsErrors}/><br/>
+            <ChoosePlaceWithUserInfo place_id={place_id} userInfoSettings={settings}/>
         </>
     )
 

@@ -1,11 +1,7 @@
 import {SerializedSingleMeasurement, UserInfoDevice} from './DeviceInfoTypes';
 import {ErrorObjectType} from './ErrorObject';
+import { UserSettings } from './UserSettings';
 
-export interface UserSettings {
-    realtime_upload_place_id?: number | null;
-    realtime_upload_sub_location_id?: number | null;
-    setting_place_google_place_id?: number | null
-}
 
 interface UserInfoInternal {
     username: string,
@@ -13,7 +9,7 @@ interface UserInfoInternal {
     measurements: {
         data: Array<SerializedSingleMeasurement>
     },
-    settings?: UserSettings | null,
+    // settings?: UserSettings | null,
     //TODO: FIXME: should not fetch with all user info, may slow a lot of things down.
     
 
@@ -30,8 +26,8 @@ export const defaultUserInfo: UserInfoType = {
         devices: [],
         measurements: {
             data: []
-        },
-        settings: null,
+        }
+        // settings: null,
         
     }
 }
@@ -81,7 +77,7 @@ export function userInfoToStrongType(userInfo: any): UserInfoType {
     console.assert(userInfo.user_info !== undefined);
     console.assert(userInfo.devices !== undefined);
     console.assert(userInfo.devices.length !== undefined);
-    console.assert(userInfo.settings !== undefined);
+    // console.assert(userInfo.settings !== undefined);
     // console.assert(userInfo.)
     for (let i = 0; i < userInfo.devices.length; ++i) {
         const device = userInfo.devices[i];
@@ -93,12 +89,12 @@ export function userInfoToStrongType(userInfo: any): UserInfoType {
         user_info: {
             username: userInfo.user_info.email,
             devices: userInfo.devices,
-            measurements: userInfo.measurements,
-            settings: {
-                ...(userInfo.settings),
-                // Disgusting hack because I'm not using a serializer :)
-                setting_place_google_place_id: userInfo.setting_place_google_place_id
-                }
+            measurements: userInfo.measurements
+            // settings: {
+            //     ...(userInfo.settings),
+            //     // Disgusting hack because I'm not using a serializer :)
+            //     setting_place_google_place_id: userInfo.setting_place_google_place_id
+            //     }
         },
         errors: userInfo.errors
     }
