@@ -14,6 +14,7 @@ interface UserInfoInternal {
         data: Array<SerializedSingleMeasurement>
     },
     settings?: UserSettings | null,
+    //TODO: FIXME: should not fetch with all user info, may slow a lot of things down.
     
 
 }

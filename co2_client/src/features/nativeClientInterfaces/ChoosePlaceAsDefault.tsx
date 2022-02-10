@@ -201,6 +201,7 @@ export const ChoosePlaceAsDefault: React.FC<{place_id?: string | undefined}> = (
     
     useEffect(() => {
         if (userInfo === defaultUserInfo) {
+            console.log("(in ChoosePlaceAsDefault) userInfo === defaultUserInfo.");
             updateUserInfo(dispatch);
         }
     }, [userInfo]);
@@ -224,7 +225,10 @@ export const ChoosePlaceAsDefault: React.FC<{place_id?: string | undefined}> = (
 
     if (userInfo === defaultUserInfo) {
         return (
-            <span>Loading user info...</span>
+            <>
+                <MaybeUserInfoErrors userInfoErrors={userInfoErrors}/><br/>
+                <span>Loading user info...</span>
+            </>
         );
     }
 

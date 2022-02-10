@@ -1,16 +1,18 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
 
-import {UserInfoType, defaultUserInfo} from '../../utils/UserInfoTypes';
+import {UserInfoType, defaultUserInfo, UserSettings} from '../../utils/UserInfoTypes';
 
 interface UserInfoState {
     userInfo: UserInfoType;
     userInfoErrorState: string;
+    settings_?: UserSettings | null,
 }
 
 const initialState: UserInfoState = {
     userInfo: defaultUserInfo,
-    userInfoErrorState: ''
+    userInfoErrorState: '',
+    settings_: null
 };
 
 export const profileSlice = createSlice({

@@ -10,8 +10,8 @@ import { Provider, useDispatch, useSelector } from 'react-redux';
 
 import { userRequestOptions } from '../co2_client/src/utils/DefaultRequestOptions';
 import { UserInfoDevice } from '../co2_client/src/utils/DeviceInfoTypes';
-import {formatErrors, withErrors} from '../co2_client/src/utils/ErrorObject';
-import {UserDevicesInfo, userDevicesInfoResponseToStrongType} from '../co2_client/src/utils/UserInfoTypes';
+import {ErrorObjectType, formatErrors, withErrors} from '../co2_client/src/utils/ErrorObject';
+// import {} from '../co2_client/src/utils/UserInfoTypes';
 import { selectJWT } from './src/app/globalSlice';
 import { AppDispatch, store } from './src/app/store';
 import {AuthContainer} from './src/features/Auth/Auth';
@@ -26,6 +26,40 @@ import { isLoggedIn, isNullString } from './src/utils/isLoggedIn';
 
 
 // import {AppStatsResponse, queryAppStats} from '../co2_client/src/utils/QueryAppStats';
+
+function checkUserInfoDevice(device: UserInfoDevice): void {
+  console.assert(device.device_id);
+  console.assert(device.serial);
+  console.assert(device.device_model);
+  console.assert(device.device_model_id);
+  console.assert(device.device_manufacturer);
+  console.assert(device.device_manufacturer_id);
+}
+
+
+export function userDevicesInfoResponseToStrongType(responseMaybeUserDevicesInfo: any): UserDevicesInfo {
+  console.assert(responseMaybeUserDevicesInfo !== undefined);
+  if (responseMaybeUserDevicesInfo.errors !== undefined) {
+      console.warn("Found errors, not checking any type correctness.");
+      return responseMaybeUserDevicesInfo;
+  }
+  console.assert(responseMaybeUserDevicesInfo.devices !== undefined);
+  console.assert(responseMaybeUserDevicesInfo.devices.length !== undefined);
+  if (responseMaybeUserDevicesInfo.devices.length > 0) {
+      for (let i = 0; i < responseMaybeUserDevicesInfo.devices.length; ++i) {
+          const device = responseMaybeUserDevicesInfo.devices[i];
+          checkUserInfoDevice(device);
+      }   
+  }
+  return responseMaybeUserDevicesInfo;
+}
+
+
+export interface UserDevicesInfo {
+  devices: Array<UserInfoDevice>
+  errors?: Array<ErrorObjectType>
+}
+
 
 
 WebBrowser.maybeCompleteAuthSession();
@@ -250,6 +284,7 @@ function App() {
   useEffect(() => {
     getSettings(jwt, userName)?.then((response) => {
       console.log(`Got user settings response: ${JSON.stringify(response)}`);
+      debugger;
     }).catch((error) => {
       debugger;
     })

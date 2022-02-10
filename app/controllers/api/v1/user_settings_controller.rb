@@ -5,8 +5,9 @@ module Api
     class UserSettingsController < ApiController
       def show
         # byebug
+        # TODO: should be serializer?
         render json: {
-            
+            @user.user_setting
         }
       end
 

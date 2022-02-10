@@ -138,6 +138,6 @@ export const updateOnNewPlace = (service: google.maps.places.PlacesService | nul
                 (a: google.maps.places.PlaceResult|null,
                  b: google.maps.places.PlacesServiceStatus) => void): void;
      */
-    
+    console.log(`Requesting update from google for place '${place_id}'...`)
     service.getDetails(request, detailsCallbackThunk);
 }
