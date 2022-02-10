@@ -4,11 +4,15 @@ module Api
   module V1
     class UserSettingsController < ApiController
       def show
+        us = @user.user_setting
+        # byebug
+        uss = ::UserSettingSerializer.new(us).serializable_hash
         # byebug
         # TODO: should be serializer?
-        render json: {
-            @user.user_setting
-        }
+        render(
+          json: uss,
+          status: :ok
+        ) 
       end
 
       def destroy
