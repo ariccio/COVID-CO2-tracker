@@ -13,20 +13,20 @@ import { userRequestOptions } from '../co2_client/src/utils/DefaultRequestOption
 import { UserInfoDevice } from '../co2_client/src/utils/DeviceInfoTypes';
 import {ErrorObjectType, formatErrors, withErrors} from '../co2_client/src/utils/ErrorObject';
 // import {} from '../co2_client/src/utils/UserInfoTypes';
+import { userSettingsResponseDataAsPlainSettings, userSettingsResponseToStrongType} from '../co2_client/src/utils/QuerySettingsTypes';
+import {UserSettings} from '../co2_client/src/utils/UserSettings';
 import { selectJWT } from './src/app/globalSlice';
 import { AppDispatch, store } from './src/app/store';
 import {AuthContainer} from './src/features/Auth/Auth';
+import { UserSettingsMaybeDisplay } from './src/features/UserSettings/UserSettingsDisplay';
 import { BluetoothData, useBluetoothConnectAranet } from './src/features/bluetooth/Bluetooth';
 import { selectSupportedDevices, setSupportedDevices, setUNSupportedDevices } from './src/features/userInfo/devicesSlice';
 import { selectUserName, setUserSettings, setUserSettingsErrors } from './src/features/userInfo/userInfoSlice';
-import {UserSettings} from '../co2_client/src/utils/UserSettings';
-import {UserSettingsResponseData, userSettingsResponseDataAsPlainSettings, userSettingsResponseToStrongType} from '../co2_client/src/utils/QuerySettingsTypes';
 import { withAuthorizationHeader } from './src/utils/NativeDefaultRequestHelpers';
 import {fetchJSONWithChecks} from './src/utils/NativeFetchHelpers';
 import { MaybeIfValue } from './src/utils/RenderValues';
 import { USER_DEVICES_URL_NATIVE, USER_SETTINGS_URL_NATIVE } from './src/utils/UrlPaths';
 import { isLoggedIn, isNullString } from './src/utils/isLoggedIn';
-import { UserSettingsMaybeDisplay } from './src/features/UserSettings/UserSettingsDisplay';
 
 
 // import {AppStatsResponse, queryAppStats} from '../co2_client/src/utils/QueryAppStats';
@@ -277,6 +277,7 @@ function App() {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    console.log("Fartipelago")
     console.log("NOTE TO SELF: if no fetch requests are going through to local machine in dev, make sure running rails as 'rails s -b 0.0.0.0 to allow all through!");
     console.log("Note to self (TODO): there's really nothing sensitive about the client ID, but I'd like to obfuscate it anyways.");
   }, []);

@@ -52,7 +52,8 @@ export const PlaceDetails: React.FC<PlaceDetailsProps> = (props) => {
         if (service === null) {
             return;
         }
-
+        console.log("Place details component: updating for new place...");
+        // debugger;
         updateOnNewPlace(service, dispatch, props.placeId);    
         
     }, [dispatch, props.placeId, service])

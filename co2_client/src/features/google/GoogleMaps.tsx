@@ -36,7 +36,7 @@ type Libraries = ("drawing" | "geometry" | "localContext" | "places" | "visualiz
 export const GOOGLE_LIBRARIES: Libraries = ["places"];
 
 
-interface ShhhProps {
+interface MapsProps {
     definitely_not_an_apeeeye_key: string
 }
 
@@ -366,6 +366,11 @@ const onClickMaps = (e: google.maps.MapMouseEvent, setCenter: React.Dispatch<Rea
     }
     setCenter(latlng);
     // debugger;
+    if (service === null) {
+        console.error("Maps clicked, but service not ready yet.");
+        return;
+    }
+    console.log("Maps clicked, updating for new place?");
     updateOnNewPlace(service, dispatch, (e as any).placeId);
 }
 
@@ -412,6 +417,11 @@ const renderEachMarker = (place: EachPlaceFromDatabaseForMarker, index: number, 
     const clickHandler = (e: google.maps.MapMouseEvent) => {
         // debugger;
         // dispatch(setSelectedPlaceIdString(place.attributes.google_place_id));
+        if (service === null) {
+            console.error("Marker clicked, but places service not ready yet.");
+            return;
+        }
+        console.log("Marker click handler: updating on new place?");
         updateOnNewPlace(service, dispatch, place.attributes.google_place_id);
     }
     // debugger;
@@ -737,7 +747,7 @@ function placeSelectedWithCoords(selectedPlace: placeResultWithTranslatedType): 
     return latlng;
 }
 
-export const GoogleMapsContainer: React.FunctionComponent<ShhhProps> = (props) => {
+export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) => {
 
     //TODO: streetview service?
     // https://developers.google.com/maps/documentation/javascript/streetview
@@ -833,17 +843,15 @@ export const GoogleMapsContainer: React.FunctionComponent<ShhhProps> = (props) =
     //     // console.log(_zoomLevel);
     // }, [_zoomLevel])
 
-
-
     useEffect(() => {
-        // console.log(`service: "${service}"`);
-        // console.log(`selectedPlaceIdString: "${selectedPlaceIdString}"`);
-        // console.log(`selectedPlaceInfoFromDatabaseErrors: "${selectedPlaceInfoFromDatabaseErrors}"`);
-        // console.log(`selectedPlaceExistsInDatabase: "${selectedPlaceExistsInDatabase}"`);
-        console.log(`selectedPlace.place_id: "${selectedPlace.place_id}"`);
+        if (service?.getDetails === undefined) {
+            console.log("service null, nothing to update...");
+            return;
+        }
+        // console.log(`useEffect, updating on new place: selectedPlace.place_id: "${selectedPlace.place_id}"`);
         // debugger;
-        updateOnNewPlace(service, dispatch, selectedPlace.place_id);
-    }, [service, dispatch, selectedPlaceInfoFromDatabaseErrors, selectedPlace.place_id])
+        // updateOnNewPlace(service, dispatch, selectedPlace.place_id);
+    }, [service, dispatch, selectedPlace.place_id])
 
     useEffect(legalNoticeNote, []);
     

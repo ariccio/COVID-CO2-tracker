@@ -8,12 +8,10 @@ import { postRequestOptions } from '../../utils/DefaultRequestOptions';
 import { Errors, formatErrors } from '../../utils/ErrorObject';
 import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
 import { USER_SETTINGS_URL } from '../../utils/UrlPath';
-import { defaultUserInfo } from '../../utils/UserInfoTypes';
 import { UserSettings } from '../../utils/UserSettings';
-import { selectSelectedPlace } from '../google/googleSlice';
 import { selectUsername } from '../login/loginSlice';
-import { updateUserInfo, updateUserSettings } from '../profile/Profile';
-import { selectUserInfoErrorState, selectUserInfoState, selectUserSettings, selectUserSettingsErrors } from '../profile/profileSlice';
+import { updateUserSettings } from '../profile/Profile';
+import { selectUserSettings, selectUserSettingsErrors } from '../profile/profileSlice';
 import { selectSublocationSelectedLocationID } from '../sublocationsDropdown/sublocationSlice';
 
 function sublocationSelected(sublocationID: number): boolean {
@@ -81,7 +79,6 @@ const RealtimeUploadButtonIfSelectedPlace: React.FC<{selectedSubLocation: number
                 return (
                     <i>Already selected for realtime upload.</i>
                 );
-                debugger;
             }
         }
     }

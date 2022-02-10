@@ -57,7 +57,8 @@ const reportWeirdness = (result: google.maps.places.PlaceResult | null, status: 
     }
     if (status === google.maps.places.PlacesServiceStatus.INVALID_REQUEST) {
         Sentry.captureMessage("Something wrong with places request (INVALID_REQUEST).");
-        alert("Hmm, I messed up something in the code that looks up google place information. This issue has been automatically reported.");
+        alert("Hmm, You've navigated to an invalid Place, or I may have messed up something in the code that looks up google place information. This issue has been automatically reported.");
+        debugger;
         return;
     }
     if (status === google.maps.places.PlacesServiceStatus.REQUEST_DENIED) {
@@ -138,6 +139,6 @@ export const updateOnNewPlace = (service: google.maps.places.PlacesService | nul
                 (a: google.maps.places.PlaceResult|null,
                  b: google.maps.places.PlacesServiceStatus) => void): void;
      */
-    console.log(`Requesting update from google for place '${place_id}'...`)
+    console.log(`Requesting update from google for place '${place_id}'...`);
     service.getDetails(request, detailsCallbackThunk);
 }

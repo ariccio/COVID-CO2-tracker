@@ -484,6 +484,7 @@ function bleErrorToUsefulString(error: BleError): string {
 
 function filterBleReadError(error: unknown, dispatch: AppDispatch, deviceID: string | null): void | boolean {
     if (error instanceof BleError) {
+        // 0x89 === GATT_AUTH_FAIL
         if (error.errorCode === BleErrorCode.DeviceNotConnected) {
             console.log(`Device ${deviceID} not connected. Data not available. Will try again.`);
             dispatch(setDeviceStatusString('Read failed, connection lost! Will try again..'));
@@ -499,10 +500,20 @@ function filterBleReadError(error: unknown, dispatch: AppDispatch, deviceID: str
             dispatch(setDeviceStatusString(null));
             return true;
         }
+        if (error.errorCode === BleErrorCode.OperationTimedOut) {
+            console.log(`Bluetooth operation timed out.`);
+            dispatch(setDeviceStatusString('Read failed, OS reports operation timed out! Will try again..'));
+            return true;
+        }
         //0x85 === GATT_ERROR (a generic error)
         if (error.androidErrorCode === 0x85) {
             console.log("Stupid-ass generic android error: https://cs.android.com/android/platform/superproject/+/master:packages/modules/Bluetooth/system/stack/include/gatt_api.h;l=65?q=%20%22GATT_ERROR%22&start=1");
             dispatch(setDeviceStatusString('Read failed, android gives no specific reason... Will try again..'));
+            return true;
+        }
+        if (error.androidErrorCode === 0x89) {
+            console.log("Authentication failed.");
+            dispatch(setDeviceStatusString('Read failed, authentication failed or you cancelled it... Will try again..'));
             return true;
         }
         dispatch(setDeviceStatusString(`Unexpected bluetooth error while reading from device: ${bleErrorToUsefulString(error)}`));
@@ -543,8 +554,9 @@ async function updateCallback(setAranet4SpecificInformation: React.Dispatch<Reac
         await finish();
     }
     catch(error) {
-        filterBleReadError(error, dispatch, deviceID);
-        debugger;
+        if (!filterBleReadError(error, dispatch, deviceID)) {
+            debugger;
+        }
     }
 }
 
@@ -589,14 +601,16 @@ export const useBluetoothConnectAranet = () => {
             })
             .catch((error) => {
                 //handle?
-                debugger;
-                filterBleReadError(error, dispatch, deviceID);
+                if (!filterBleReadError(error, dispatch, deviceID)) {
+                    debugger;
+                }
             })
         }
         catch (error) {
-            debugger;
             //handle?
-            filterBleReadError(error, dispatch, deviceID);
+            if (!filterBleReadError(error, dispatch, deviceID)) {
+                debugger;
+            }
         }
     }, [deviceID])
 
