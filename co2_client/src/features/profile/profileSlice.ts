@@ -7,14 +7,14 @@ import { UserSettings } from '../../utils/UserSettings';
 interface UserInfoState {
     userInfo: UserInfoType;
     userInfoErrorState: string;
-    settings_: UserSettings | null,
+    settings: UserSettings | null,
     settingsErrorState: string | null
 }
 
 const initialState: UserInfoState = {
     userInfo: defaultUserInfo,
     userInfoErrorState: '',
-    settings_: null,
+    settings: null,
     settingsErrorState: null
 };
 
@@ -29,7 +29,7 @@ export const profileSlice = createSlice({
             state.userInfoErrorState = action.payload;
         },
         setUserSettings: (state, action: PayloadAction<UserSettings | null>) => {
-            state.settings_ = action.payload;
+            state.settings = action.payload;
         },
         setUserSettingsErrorState: (state, action: PayloadAction<string | null>) => {
             state.settingsErrorState = action.payload;
@@ -38,7 +38,7 @@ export const profileSlice = createSlice({
 })
 export const {setUserInfoState, setUserInfoErrorState, setUserSettings, setUserSettingsErrorState} = profileSlice.actions;
 export const selectUserInfoState = (state: RootState) => state.profile.userInfo;
-export const selectUserSettings = (state: RootState) => state.profile.settings_;
+export const selectUserSettings = (state: RootState) => state.profile.settings;
 export const selectUserSettingsErrors = (state: RootState) => state.profile.settingsErrorState;
 export const selectUserInfoErrorState = (state: RootState) => state.profile.userInfoErrorState;
 
