@@ -9,6 +9,7 @@ class Place < ApplicationRecord
   def place_measurementtime_desc
     # temp = SubLocationSerializer.new(sub_location).serializable_hash
     # byebug
+    # TODO: This SUCKS
     sub_location.includes(:measurement, measurement: :device).find_each.map do |loc|
       # each_measurement = loc.measurement.includes(:device, device: :model).order('measurementtime DESC').each.map do |measurement|
       #   # json = measurement.as_json

@@ -74,6 +74,7 @@ module Api
         refresh_latlng_from_google
 
         # TODO: place_measurementtime_desc discards the fetched info
+        # TODO: use an ACTUAL place serializer, serializing sublocations and measurements
         measurements = @place.place_measurementtime_desc
         render(
           json: {
