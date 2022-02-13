@@ -40,11 +40,9 @@ module Api
         # TODO: handle ActionController::ParameterMissing: https://apidock.com/rails/ActionController/ParameterMissing
         @place = ::Place.find_by!(google_place_id: measurement_params.fetch(:google_place_id))
         raise_if_invalid_parameter_combo(measurement_params)
-        # Rails.logger.warn('needs to do something more robust than text comparisons!')
         # byebug
         sub_location = find_or_create_sublocation
         time = custom_time_or_now
-        # places_backend_api_key
         # byebug
         # https://discuss.rubyonrails.org/t/time-now-vs-time-current-vs-datetime-now/75183/15
         # ALSO, TODO: check to see if I should disable timezone conversion on backend?
