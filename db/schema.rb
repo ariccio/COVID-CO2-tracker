@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_02_06_050217) do
+ActiveRecord::Schema.define(version: 2022_02_13_001715) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -49,6 +49,14 @@ ActiveRecord::Schema.define(version: 2022_02_06_050217) do
     t.datetime "updated_at", precision: 6, null: false
     t.index ["model_id"], name: "index_devices_on_model_id"
     t.index ["user_id"], name: "index_devices_on_user_id"
+  end
+
+  create_table "extra_measurement_infos", force: :cascade do |t|
+    t.boolean "realtime"
+    t.bigint "measurement_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["measurement_id"], name: "index_extra_measurement_infos_on_measurement_id"
   end
 
   create_table "manufacturers", force: :cascade do |t|
@@ -122,6 +130,7 @@ ActiveRecord::Schema.define(version: 2022_02_06_050217) do
 
   add_foreign_key "devices", "models"
   add_foreign_key "devices", "users"
+  add_foreign_key "extra_measurement_infos", "measurements"
   add_foreign_key "measurements", "devices"
   add_foreign_key "measurements", "sub_locations"
   add_foreign_key "models", "manufacturers"

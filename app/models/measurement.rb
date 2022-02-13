@@ -3,6 +3,7 @@
 class Measurement < ApplicationRecord
   belongs_to :device
   belongs_to :sub_location
+  has_one :extra_measurement_info, required: false
 
   # needs validation of positivity
   validates :co2ppm, numericality: { greater_than_or_equal_to: 0 }
