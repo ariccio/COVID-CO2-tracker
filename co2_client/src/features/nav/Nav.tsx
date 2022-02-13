@@ -183,7 +183,7 @@ const loadEmail = (dispatch: AppDispatch, username: string) => {
     }
     else {
       console.error('failed to get email!');
-      console.error(formatErrors(email.errors))
+      console.error(`Email errors: ${formatErrors(email.errors)}`)
     }
   }).catch((error) => {
     console.error(`Failed to get email from server! fetch itself failed with error ${error}`);

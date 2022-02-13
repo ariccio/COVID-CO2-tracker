@@ -14,6 +14,7 @@ export async function get_email(): Promise<LoginResponse | null> {
             console.warn("no cookie, user not logged in!");
             return null
         }
+        console.log("Email fetch failed.");
         return loginResponseStrongType(await (awaitedResponse.json()));
     }
     const fetchSuccessCallback = async (awaitedResponse: Response): Promise<LoginResponse | null> => {

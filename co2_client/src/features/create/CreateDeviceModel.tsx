@@ -100,7 +100,7 @@ const submitHandler = (enteredModelText: string, setShowAddModel: React.Dispatch
         setShowSubmit(true);
         setSubmitting(false);
         if (response.errors !== undefined) {
-            alert(formatErrors(response.errors));
+            alert(`Create model errors: ${formatErrors(response.errors)}`);
         }
         else {
             setShowAddModel(false);

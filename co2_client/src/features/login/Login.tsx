@@ -16,6 +16,7 @@ import { API_URL, LOGIN_URL } from '../../utils/UrlPath';
 
 import { setGoogleAuthResponse, setGoogleProfile } from './loginSlice';
 import { AppDispatch } from '../../app/store';
+import { formatErrors } from '../../utils/ErrorObject';
 
 
 
@@ -197,7 +198,12 @@ const loginWithIDToken = (id_token: string) => {
         // console.log(response);
         // console.log("TODO: What the heck do I do with the response here? As long as it's correct, do I even care?");
         // debugger;
-        console.log("sucessfully logged in to server!");
+        if (response.errors !== undefined) {
+            console.log(`Logging into server failed: ${formatErrors(response.errors)}`);
+        }
+        else {
+            console.log("sucessfully logged in to server!");
+        }
         return;
 
     }).catch((error) => {

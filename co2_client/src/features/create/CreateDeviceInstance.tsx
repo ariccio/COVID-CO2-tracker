@@ -77,7 +77,7 @@ const submitHandler = (enteredDeviceSerialNumberText: string, setShowAddDeviceIn
         setShowSubmit(true);
         setSubmitting(false);
         if (response.errors !== undefined) {
-            alert(formatErrors(response.errors));
+            alert(`Create device errors: ${formatErrors(response.errors)}`);
             return;
         }
 

@@ -196,7 +196,7 @@ const submitHandler = (enteredManufacturerText: string, setShowAddManufacturer: 
         setShowSubmit(true);
         setSubmitting(false);
         if (response.errors !== undefined) {
-            alert(formatErrors(response.errors));
+            alert(`Create manufacturer: ${formatErrors(response.errors)}`);
             Sentry.captureMessage("Hmm, I need to finish this code.");
             console.error("TODO")
             //Still having trouble.

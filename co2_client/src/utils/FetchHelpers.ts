@@ -196,7 +196,7 @@ export async function fetchFailed(awaitedResponseOriginal: Response, expectedSta
             console.error("maybe internal server error?");
             console.error(parsedJSONResponse.error);
             if (alertErrors) {
-                alert("possible internal server error, automatically reported!");
+                alert(`possible internal server error ('${String(parsedJSONResponse.error)}'), automatically reported!`);
             }
             Sentry.captureMessage(`possible internal server error in response to fetch? full response object: ${JSON.stringify(parsedJSONResponse)}`);
             debugger;
@@ -233,7 +233,7 @@ export async function fetchFailed(awaitedResponseOriginal: Response, expectedSta
 
         if (parsedJSONResponse.errors !== undefined) {
             // console.assert(awaitedResponseCloned.status !== 200);
-            console.error(formatErrors(parsedJSONResponse.errors));
+            console.error(`Errors found in fetchFailed preprocessor: ${formatErrors(parsedJSONResponse.errors)}`);
             if(alertErrors) {
                 alert(formatErrors(parsedJSONResponse.errors));
             }

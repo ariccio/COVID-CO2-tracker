@@ -707,7 +707,7 @@ const loadAndPanToLastMeasurement = (map: google.maps.Map) => {
 
     result.then((response) => {
         if (response.errors !== undefined) {
-            console.warn(formatErrors(response.errors));
+            console.warn(`Error loading last measurement for pan: ${formatErrors(response.errors)}`);
             return;
         }
         const loc = responseToLatLngLiteral(response);

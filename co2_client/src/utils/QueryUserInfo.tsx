@@ -27,7 +27,7 @@ export async function queryUserInfo(): Promise<UserInfoType> {
             console.warn("user not logged in!");
             const parsedJSONResponse = await copyForErrors.json();
             if (parsedJSONResponse.errors !== undefined) {
-                console.error(formatErrors(parsedJSONResponse.errors));
+                console.error(`queryUserInfo error: ${formatErrors(parsedJSONResponse.errors)}`);
                 // return null;   
             }
         }

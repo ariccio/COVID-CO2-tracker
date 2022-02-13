@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_02_13_001715) do
+ActiveRecord::Schema.define(version: 2022_02_13_041813) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -72,7 +72,7 @@ ActiveRecord::Schema.define(version: 2022_02_13_001715) do
     t.datetime "measurementtime", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.integer "crowding", null: false
+    t.integer "crowding"
     t.bigint "sub_location_id"
     t.index ["device_id"], name: "index_measurements_on_device_id"
     t.index ["measurementtime"], name: "index_measurements_on_measurementtime"

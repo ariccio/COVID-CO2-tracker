@@ -625,7 +625,7 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
         const userDeviceInfoPromise: Promise<UserDevicesInfo> = queryUserDevices();
         userDeviceInfoPromise.then((userDeviceInfo) => {
             if (userDeviceInfo.errors !== undefined) {
-                console.warn(formatErrors(userDeviceInfo.errors));
+                console.warn(`userDevice info (in create new measurement) errors: ${formatErrors(userDeviceInfo.errors)}`);
                 setErrorState(formatErrors(userDeviceInfo.errors));
                 const formatted = formatErrors(userDeviceInfo.errors);
 

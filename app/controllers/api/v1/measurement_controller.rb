@@ -33,6 +33,7 @@ end
 module Api
   module V1
     class MeasurementController < ApiController
+      # Maybe I should refactor-out skip_before_action? https://vaidehijoshi.github.io/blog/2015/10/13/stop-worrying-and-start-being-concerned-activesupport-concerns/
       skip_before_action :authorized, only: [:show]
       def create
         # byebug

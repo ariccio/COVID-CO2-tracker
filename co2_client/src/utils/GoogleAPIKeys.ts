@@ -27,8 +27,9 @@ export async function getGoogleMapsJavascriptAaaaPeeEyeKey(): Promise<string> {
     console.error("couldn't get google maps key!");
     debugger;
     const jsonResponse = (await awaitedResponse.clone().json());
-    console.log(jsonResponse.clone());
-    throw new Error(formatErrors(jsonResponse.errors));
+    console.error(`API key fetch failed. Response: ${JSON.stringify(jsonResponse.clone())}`);
+    console.warn("TODO: Throwing here is the WRONG action.");
+    throw new Error(`API key fetch failed: ${formatErrors(jsonResponse.errors)}`);
   }
   const fetchSuccessCallback = async (awaitedResponse: Response): Promise<string> => {
     return (await awaitedResponse.json()).key;
@@ -45,7 +46,8 @@ export async function getGoogleLoginClientAaaPeeeEyeKey(): Promise<string> {
     console.error("failed to get the key needed for google auth!");
     debugger;
     const jsonResponse = (await awaitedResponse.clone().json());
-    throw new Error(formatErrors(jsonResponse.errors));
+    console.warn("TODO: Throwing here is the WRONG action.");
+    throw new Error(`Login client key fetch failed: ${formatErrors(jsonResponse.errors)}`);
   }
 
   const fetchSuccessCallback = async (awaitedResponse: Response): Promise<string> => {

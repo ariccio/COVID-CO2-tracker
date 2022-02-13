@@ -64,7 +64,8 @@ const handleDeleteDeviceClick = (event: React.MouseEvent<HTMLElement, MouseEvent
     const result = deleteDevice(deviceId);
     result.then((response) => {
         if (response.errors !== undefined) {
-            alert(formatErrors(response.errors));
+            alert(`Error deleting device: ${formatErrors(response.errors)}`);
+            console.warn(`Error deleting device: ${formatErrors(response.errors)}`);
             return;
         }
         console.table(response);
