@@ -17,6 +17,7 @@
       resources :model, only: [:create, :show]
       resources :places, only: [:show, :create]
       resources :measurement, only: [:create, :destroy, :show]
+      resources :realtime_measurement, only: [:create]
 
       # Hmm, not used yet.
       # resources :sub_locations
