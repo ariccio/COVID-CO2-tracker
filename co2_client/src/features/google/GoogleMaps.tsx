@@ -660,13 +660,12 @@ const AutocompleteElement: React.FC<AutocompleteElementProps> = (props) => {
     );
 }
 
-interface LastMeasurementLocationAlsoLastMeasurementDevice {
+interface LastMeasurementLocation {
     place_lat: string,
-    place_lng: string,
-    last_device_id: number
+    place_lng: string
 }
 
-function responseToLatLngLiteral(response: LastMeasurementLocationAlsoLastMeasurementDevice): google.maps.LatLngLiteral | null {
+function responseToLatLngLiteral(response: LastMeasurementLocation): google.maps.LatLngLiteral | null {
     if (response.place_lat === undefined) {
         return null;
     }
@@ -686,7 +685,7 @@ function responseToLatLngLiteral(response: LastMeasurementLocationAlsoLastMeasur
     return latlng;
 }
 
-type lastMeasurementLocationResponseType = (LastMeasurementLocationAlsoLastMeasurementDevice & withErrors);
+type lastMeasurementLocationResponseType = (LastMeasurementLocation & withErrors);
 
 const fetchLastMeasurementCallback = async (awaitedResponse: Response): Promise<lastMeasurementLocationResponseType> => {
     console.log("TODO: strong type");
@@ -702,7 +701,7 @@ const loadLastMeasurement = () => {
     return fetchJSONWithChecks(LAST_MEASUREMENT_URL, userRequestOptions(), 200, true, fetchLastMeasurementCallbackFailed, fetchLastMeasurementCallback) as Promise<lastMeasurementLocationResponseType>;
 }
 
-const loadAndPanToLastMeasurement = (map: google.maps.Map, dispatch: AppDispatch) => {
+const loadAndPanToLastMeasurement = (map: google.maps.Map) => {
     
     // debugger;
     const result = loadLastMeasurement();
@@ -720,13 +719,13 @@ const loadAndPanToLastMeasurement = (map: google.maps.Map, dispatch: AppDispatch
         else {
             console.warn("undefined loc, can't pan map");
         }
-        debugger;
-        if (response.last_device_id !== null) {
-            dispatch(setSelectedDevice(response.last_device_id));
-        }
-        else {
-            console.warn("Last used device missing.");
-        }
+        // debugger;
+        // if (response.last_device_id !== null) {
+        //     dispatch(setSelectedDevice(response.last_device_id));
+        // }
+        // else {
+        //     console.warn("Last used device missing.");
+        // }
     }).catch((reason) => {
         console.error("Failed to get last location for some reason. Failure in promise itself.")
     })
@@ -824,7 +823,7 @@ export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) =
         }
         if (map) {
             console.log("loading and panning to last measurement.")
-            loadAndPanToLastMeasurement(map, dispatch);
+            loadAndPanToLastMeasurement(map);
             return;
         }
         console.log("No map to pan.")

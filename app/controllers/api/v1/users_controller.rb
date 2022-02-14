@@ -30,6 +30,14 @@ module Api
       #   render_user_not_found(e)
       # end
 
+      def last_measurement_device
+        user_last_measurement = @user.last_measurement
+        return nil if user_last_measurement.nil?
+        last_device = user_last_measurement.device
+        return nil if last_device.nil?
+        return last_device.id
+      end
+
       def my_devices
         # @user = current_user
         if (@user.nil?)
@@ -37,9 +45,11 @@ module Api
           return
         end
         devices = @user.my_devices
+        last_device = last_measurement_device
         render(
           json: {
-            devices: devices
+            devices: devices,
+            last_device_id: last_device
           },
           status: :ok
         )
@@ -85,11 +95,6 @@ module Api
           render_empty
           return
         end
-        last_device = last.device
-        if (last_device.nil?)
-          render_empty
-          return
-        end
 
         last_subloc = last.sub_location
         if (last_subloc.nil?)
@@ -105,8 +110,7 @@ module Api
         render(
           json: {
             place_lat: recent_place.place_lat,
-            place_lng: recent_place.place_lng,
-            last_device_id: last_device.id
+            place_lng: recent_place.place_lng
           }, status: :ok
         )
       end

@@ -647,6 +647,23 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
             }
             console.table(userDeviceInfo.devices);
             setUserDevices(userDeviceInfo);
+            if (userDeviceInfo.last_device_id === null) {
+                console.warn("No known last used device?");
+                return;
+            }
+            // debugger;
+            const found = userDeviceInfo.devices.find((device) => device.device_id === userDeviceInfo.last_device_id);
+            if (found) {
+                dispatch(setSelectedDevice(found.device_id));
+                dispatch(setSelectedDeviceSerialNumber(found.serial));
+                dispatch(setSelectedModelName(found.device_model));
+                dispatch(setSelectedModel(found.device_model_id));
+                // debugger;
+            }
+            else {
+                console.warn("Last device not found in known user devices!");
+                debugger;
+            }
         }).catch((error) => {
             console.warn(error);
             console.warn(error.message);

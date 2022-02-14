@@ -33,12 +33,14 @@ export const defaultUserInfo: UserInfoType = {
 }
 
 export interface UserDevicesInfo {
-    devices: Array<UserInfoDevice>
+    devices: Array<UserInfoDevice>,
+    last_device_id: number | null,
     errors?: Array<ErrorObjectType>
 }
 
 export const defaultDevicesInfo: UserDevicesInfo = {
-    devices: []
+    devices: [],
+    last_device_id: null
 }
 
 //could be boolean?
@@ -63,8 +65,9 @@ export function userDevicesInfoResponseToStrongType(responseMaybeUserDevicesInfo
         for (let i = 0; i < responseMaybeUserDevicesInfo.devices.length; ++i) {
             const device = responseMaybeUserDevicesInfo.devices[i];
             checkUserInfoDevice(device);
-        }   
+        }
     }
+    console.assert(responseMaybeUserDevicesInfo.last_device_id !== undefined);
     return responseMaybeUserDevicesInfo;
 }
 
