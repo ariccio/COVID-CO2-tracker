@@ -160,7 +160,7 @@ const nativeGetEmail = async (jwt: string) => {
         console.log("Email fetch success!");
         return rawEmailResponseToStrongType(await awaitedResponse.json());
     }
-    console.log(EMAIL_URL_NATIVE);
+    console.log(`Fetching email from: ${EMAIL_URL_NATIVE}`);
     // debugger;
     const result = fetchJSONWithChecks(EMAIL_URL_NATIVE, options, 200, false, emailFetchFailedCallback, emailFetchSuccessCallback) as Promise<NativeEmailResponseType>;
     return await result;
@@ -181,7 +181,7 @@ const loginWithIDToken = (id_token: string, setAsyncStoreError: React.Dispatch<R
         debugger;
         return null;
       }
-      console.log("sucessfully logged in to server!");
+      console.log(`sucessfully logged in to server! Username ${response.email}`);
       dispatch(setUserName(response.email));
       dispatch(setJWT(response.jwt));
       console.assert(response.errors === undefined);
@@ -315,7 +315,7 @@ async function handleAsyncStoreResult(maybeJWT: string | null, dispatch: AppDisp
         dispatch(setJWT(maybeJWT));
         console.log("Set JWT from storage! Will try and get email/username from server...");
         nativeGetEmail(maybeJWT).then((emailResponse) => {
-            console.log(`Server responds with email response: ${emailResponse}`);
+            console.log(`Server responds with email response: ${JSON.stringify(emailResponse)}`);
             // debugger;
             dispatch(setUserName(emailResponse.email))
         }).catch((error) => {
@@ -408,6 +408,12 @@ const LoginOrLogoutButton: React.FC<{jwt: string | null, promptAsyncReady: boole
                 <Button disabled={buttonDisable} title="Login" onPress={() => {promptAsync();}}/>
             </>
         );
+    }
+    if (userName === null) {
+      return (
+        <Button disabled={!buttonDisable} title="Log out" onPress={() => logout()}/>
+    );
+
     }
     return (
         <Button disabled={!buttonDisable} title={`Log out of ${userName}`} onPress={() => logout()}/>

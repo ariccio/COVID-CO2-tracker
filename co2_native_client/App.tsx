@@ -141,6 +141,7 @@ const fetchMyDevicesFailedCallback = async (awaitedResponse: Response): Promise<
 
 
 const fetchMyDevicesSucessCallback = async (awaitedResponse: Response): Promise<UserDevicesInfo> => {
+  console.log("Fetching devices suceeded!");
   const response = awaitedResponse.json();
   return userDevicesInfoResponseToStrongType(await response);
 };
@@ -148,10 +149,12 @@ const fetchMyDevicesSucessCallback = async (awaitedResponse: Response): Promise<
 const get_my_devices = (jwt: string | null, userName: string | null) => {
   const eitherNull = isNullString(jwt) || isNullString(userName);
   if (eitherNull) {
+    console.log("No JWT or username, not getting devices?");
     return;
   }
   const loggedIn = isLoggedIn(jwt, userName);
   if (!loggedIn) {
+    console.log("Not logged in, not getting devices?");
     return;
   }
   console.log("Getting devices...");
@@ -283,6 +286,7 @@ function App() {
   }, []);
 
   useEffect(() => {
+    // console.log("Getting devices...");
     get_my_devices(jwt, userName)?.then((devicesResponse) => {
       handleDevicesResponse(devicesResponse, setUserDeviceErrors, dispatch);
 
