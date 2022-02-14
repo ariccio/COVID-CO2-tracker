@@ -85,6 +85,12 @@ module Api
           render_empty
           return
         end
+        last_device = last.device
+        if (last_device.nil?)
+          render_empty
+          return
+        end
+
         last_subloc = last.sub_location
         if (last_subloc.nil?)
           render_empty
@@ -95,10 +101,12 @@ module Api
           render_empty
           return
         end
+        # byebug
         render(
           json: {
             place_lat: recent_place.place_lat,
-            place_lng: recent_place.place_lng
+            place_lng: recent_place.place_lng,
+            last_device_id: last_device.id
           }, status: :ok
         )
       end
