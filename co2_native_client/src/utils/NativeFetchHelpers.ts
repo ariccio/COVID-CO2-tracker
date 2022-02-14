@@ -160,7 +160,9 @@ export async function fetchFailed(awaitedResponseOriginal: Response, expectedSta
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fetchFilter(error: any): never {
-    console.log(`filtering error ${error}`)
+    console.log(`filtering error ${error}`);
+    console.log(`Error details (as string: '${String(error)}'), (as json stringified: '${JSON.stringify(error)}')`);
+    console.log(`Typeof error: ${typeof error}`);
     if (error.toString !== undefined) {
         console.error(`error.toString !== undefined, error.toString(): ${error.toString()}`)
     }
@@ -169,6 +171,8 @@ export function fetchFilter(error: any): never {
 
     }
     else if (error instanceof TypeError) {
+        console.log(`TypeError message: ${error.message}`);
+        console.log(`TypeError name: ${error.name}`);
         if (error.message === 'cancelled') {
             console.error("fetch itself failed, response was 'cancelled'! Probably an iOS device?");
             alert("fetch reported 'cancelled'... did you hit the 'x' to stop loading? Did you lose connection? Either way, you need to reload the whole page to continue. It's not my fault :)")
@@ -183,11 +187,9 @@ export function fetchFilter(error: any): never {
             alert("fetch itself failed, are you connected? is the server running? Did you manually interrupt it with a refresh?");
         }
     }
-
-    // The fuck did I forget brackets for?
-    // Now I have to manually test this shit.
-    else if (error instanceof DOMException)
-    console.error(`fetch iself failed! Error: ${error}`);
+    else if (error instanceof DOMException) {
+        console.error(`fetch iself failed! Error: ${error}`);
+    }
     throw error;
 }
 

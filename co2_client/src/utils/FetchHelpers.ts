@@ -247,7 +247,9 @@ export async function fetchFailed(awaitedResponseOriginal: Response, expectedSta
 }
 
 export function fetchFilter(error: any): never {
-    console.log(`filtering error ${error}`)
+    console.log(`filtering error ${error}`);
+    console.log(`Error details (as string: '${String(error)}'), (as json stringified: '${JSON.stringify(error)}')`);
+    console.log(`Typeof error: ${typeof error}`);
     if (error.toString !== undefined) {
         console.error(`error.toString !== undefined, error.toString(): ${error.toString()}`)
     }
@@ -256,25 +258,28 @@ export function fetchFilter(error: any): never {
 
     }
     else if (error instanceof TypeError) {
+        console.log(`TypeError message: ${error.message}`);
+        console.log(`TypeError name: ${error.name}`);
         if (error.message === 'cancelled') {
             console.error("fetch itself failed, response was 'cancelled'! Probably an iOS device?");
             alert("fetch reported 'cancelled'... did you hit the 'x' to stop loading? Did you lose connection? Either way, you need to reload the whole page to continue. It's not my fault :)")
+        }
+        else if (error.message === 'Failed to fetch') {
+            console.error("fetch itself failed, likely a network issue.");
         }
         else {
             console.error("fetch itself failed, likely a network issue.");
     
             // FetchManager::Loader::Failed:
             // https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/fetch/fetch_manager.cc;l=261;bpv=1;bpt=1?q=%22failed%20to%20fetch%22
-    
+            Sentry.captureMessage(`Unseen fetch failure message: '${error.message}'`);
             console.error(`type error message: ${error.message}`);
             alert("fetch itself failed, are you connected? is the server running? Did you manually interrupt it with a refresh?");
         }
     }
-
-    // The fuck did I forget brackets for?
-    // Now I have to manually test this shit.
-    else if (error instanceof DOMException)
-    console.error(`fetch iself failed! Error: ${error}`);
+    else if (error instanceof DOMException) {
+        console.error(`fetch iself failed! Error: ${error}`);
+    }
     throw error;
 }
 

@@ -18,7 +18,7 @@ import { queryUserDevices } from '../../utils/QueryUserInfo';
 import {UserInfoDevice} from '../../utils/DeviceInfoTypes';
 import {defaultDevicesInfo, UserDevicesInfo } from '../../utils/UserInfoTypes';
 
-import { Errors, formatErrors } from '../../utils/ErrorObject';
+import { Errors, ExtraErrorInformationActiveModelErrorInfo, formatErrors } from '../../utils/ErrorObject';
 import {defaultPlaceInfo, SelectedPlaceDatabaseInfo, selectPlaceExistsInDatabase, selectPlacesInfoFromDatabase, SublocationMeasurements} from '../places/placesSlice';
 // import {} from '../../utils/QueryDeviceInfo';
 
@@ -302,7 +302,7 @@ const createPlaceIfNotExist = (placeExistsInDatabase: boolean, place_id: string)
     return result;
 }
 
-const createMeasurementHandler = (selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, enteredCrowding: string, enteredLocationDetails: string, selectedSubLocation: number, userTimeRadioValue: ToggleButtonUserRadios, dateTime: Date, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
+const createMeasurementHandler = (selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, enteredCrowding: string, enteredLocationDetails: string, selectedSubLocation: number, userTimeRadioValue: ToggleButtonUserRadios, dateTime: Date, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>, setInvalidField: React.Dispatch<React.SetStateAction<string[]>>) => {
     // debugger;
     const init = newMeasurementRequestInit(selectedDevice, enteredCO2Text, place_id, enteredCrowding, enteredLocationDetails, selectedSubLocation, userTimeRadioValue, dateTime);
     
@@ -325,23 +325,32 @@ const createMeasurementHandler = (selectedDevice: number, enteredCO2Text: string
             console.log("to use it, please remove this message.");
             console.log("here it is anyways:");
             console.log(result);
+            return;
         }
-        else {
-            console.log("TODO: set form invalid.");
-            setShowSubmit(true);
-            setSubmitting(false);
-            debugger;
+        if (result.errors.length > 0) {
+            if (result.errors[0].other_information !== undefined) {
+                const oi = result.errors[0].other_information as any;
+                if (oi.active_model_error_info !== undefined) {
+                    const ame = oi.active_model_error_info as ExtraErrorInformationActiveModelErrorInfo;
+                    setInvalidField([ame.attribute]);
+                    debugger;
+                }
+            }
         }
+        // console.log("TODO: set form invalid.");
+        setShowSubmit(true);
+        setSubmitting(false);
+        // debugger;
     })
 }
 
-const submitHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, placeExistsInDatabase: boolean, dispatch: AppDispatch, setErrorState: React.Dispatch<React.SetStateAction<string>>, enteredCrowding: string, enteredLocationDetails: string, selectedSubLocation: number, userTimeRadioValue: ToggleButtonUserRadios, dateTime: Date, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>) => {
+const submitHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, placeExistsInDatabase: boolean, dispatch: AppDispatch, setErrorState: React.Dispatch<React.SetStateAction<string>>, enteredCrowding: string, enteredLocationDetails: string, selectedSubLocation: number, userTimeRadioValue: ToggleButtonUserRadios, dateTime: Date, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>, setInvalidField: React.Dispatch<React.SetStateAction<string[]>>) => {
     setShowSubmit(false);
     setSubmitting(true);
     const placeExistsPromiseOrNull = createPlaceIfNotExist(placeExistsInDatabase, place_id);
     if (placeExistsPromiseOrNull === null) {
         // debugger;
-        createMeasurementHandler(selectedDevice, enteredCO2Text, place_id, setShowCreateNewMeasurement, enteredCrowding, enteredLocationDetails, selectedSubLocation, userTimeRadioValue, dateTime, setShowSubmit, setSubmitting);
+        createMeasurementHandler(selectedDevice, enteredCO2Text, place_id, setShowCreateNewMeasurement, enteredCrowding, enteredLocationDetails, selectedSubLocation, userTimeRadioValue, dateTime, setShowSubmit, setSubmitting, setInvalidField);
         updatePlacesInfoFromBackend(place_id, dispatch);
         return;
     }
@@ -352,7 +361,7 @@ const submitHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, selecte
             setErrorState(formatErrors(existsPromise.errors));
             return;
         }
-        createMeasurementHandler(selectedDevice, enteredCO2Text, place_id, setShowCreateNewMeasurement, enteredCrowding, enteredLocationDetails, selectedSubLocation, userTimeRadioValue, dateTime, setShowSubmit, setSubmitting);
+        createMeasurementHandler(selectedDevice, enteredCO2Text, place_id, setShowCreateNewMeasurement, enteredCrowding, enteredLocationDetails, selectedSubLocation, userTimeRadioValue, dateTime, setShowSubmit, setSubmitting,  setInvalidField);
         updatePlacesInfoFromBackend(place_id, dispatch);
     }).catch((errors) => {
         setErrorState(errors.message);
@@ -455,7 +464,7 @@ const maybeRenderTimeInput = (userTimeRadioValue: ToggleButtonUserRadios, dateTi
     )
 }
 
-const RenderFormIfReady = (props: {selectedDevice: number, setEnteredCO2Text: React.Dispatch<React.SetStateAction<string>>, place_id: string, setEnteredCrowding: React.Dispatch<React.SetStateAction<string>>, placeName: string, setEnteredLocationDetails: React.Dispatch<React.SetStateAction<string>>, placesInfoFromDatabase: SelectedPlaceDatabaseInfo, selected: SublocationMeasurements | null, enteredCO2Text: string, userTimeRadioValue: ToggleButtonUserRadios, setUserTimeRadioValue: React.Dispatch<React.SetStateAction<ToggleButtonUserRadios>>, dateTime: Date, setDateTime: React.Dispatch<React.SetStateAction<Date>>, datePickerError: string | null, setDatePickerError: React.Dispatch<React.SetStateAction<string | null>>}) => {
+const RenderFormIfReady = (props: {selectedDevice: number, setEnteredCO2Text: React.Dispatch<React.SetStateAction<string>>, place_id: string, setEnteredCrowding: React.Dispatch<React.SetStateAction<string>>, placeName: string, setEnteredLocationDetails: React.Dispatch<React.SetStateAction<string>>, placesInfoFromDatabase: SelectedPlaceDatabaseInfo, selected: SublocationMeasurements | null, enteredCO2Text: string, userTimeRadioValue: ToggleButtonUserRadios, setUserTimeRadioValue: React.Dispatch<React.SetStateAction<ToggleButtonUserRadios>>, dateTime: Date, setDateTime: React.Dispatch<React.SetStateAction<Date>>, datePickerError: string | null, setDatePickerError: React.Dispatch<React.SetStateAction<string | null>>, invalidField: string[]}) => {
     const [translate] = useTranslation();
     if (props.selectedDevice === -1) {
         return null;
@@ -489,7 +498,7 @@ const RenderFormIfReady = (props: {selectedDevice: number, setEnteredCO2Text: Re
                         {translate("crowding-level")}
                     </span>
                 </Form.Label>
-                <Form.Control type="number" min={1} max={5} name={"crowding"}/>
+                <Form.Control type="number" min={1} max={5} name={"crowding"} isInvalid={props.invalidField.includes('crowding')}/>
             </Form>
             <SublocationsDropdown selected={props.selected} measurements_by_sublocation={measurementsOrEmptyArray} nothingSelectedText={"New inner location"} nothingSelectedItem={
                 <Suspense fallback="Loading translations...">
@@ -601,7 +610,7 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
 
     const [userDevices, setUserDevices] = useState(defaultDevicesInfo);
     const [errorState, setErrorState] = useState('');
-
+    const [invalidField, setInvalidField] = useState([] as (string[]));
     const [enteredCO2Text, setEnteredCO2Text] = useState('');
     const [enteredCrowding, setEnteredCrowding] = useState('');
     const [enteredLocationDetails, setEnteredLocationDetails] = useState('');
@@ -714,7 +723,7 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
                         <SelectDeviceDropdown userDevices={userDevices} selectedDevice={selectedDevice} selectedModelName={selectedModelName} selectedDeviceSerialNumber={selectedDeviceSerialNumber}/>
                     </Suspense>
                     <Suspense fallback="Loading translations...">
-                        <RenderFormIfReady selectedDevice={selectedDevice} setEnteredCO2Text={setEnteredCO2Text} place_id={place_id} setEnteredCrowding={setEnteredCrowding} placeName={placeName} setEnteredLocationDetails={setEnteredLocationDetails} placesInfoFromDatabase={placesInfoFromDatabase} selected={selected} enteredCO2Text={enteredCO2Text} userTimeRadioValue={userTimeRadioValue} setUserTimeRadioValue={setUserTimeRadioValue} dateTime={dateTime} setDateTime={setDateTime} datePickerError={datePickerError} setDatePickerError={setDatePickerError} />
+                        <RenderFormIfReady selectedDevice={selectedDevice} setEnteredCO2Text={setEnteredCO2Text} place_id={place_id} setEnteredCrowding={setEnteredCrowding} placeName={placeName} setEnteredLocationDetails={setEnteredLocationDetails} placesInfoFromDatabase={placesInfoFromDatabase} selected={selected} enteredCO2Text={enteredCO2Text} userTimeRadioValue={userTimeRadioValue} setUserTimeRadioValue={setUserTimeRadioValue} dateTime={dateTime} setDateTime={setDateTime} datePickerError={datePickerError} setDatePickerError={setDatePickerError} invalidField={invalidField} />
                     </Suspense>
                 </Modal.Body>
                 <Modal.Footer>
@@ -725,7 +734,7 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
                     </Button>
                     <Button variant="primary" disabled={!showSubmit} onClick={(event) => {
                             // setShowSubmit(!showSubmit);
-                            submitHandler(event, selectedDevice, enteredCO2Text, place_id, props.setShowCreateNewMeasurement, placeExistsInDatabase, dispatch, setErrorState, enteredCrowding, enteredLocationDetails, selectedSubLocation, userTimeRadioValue, dateTime, setShowSubmit, setSubmitting);
+                            submitHandler(event, selectedDevice, enteredCO2Text, place_id, props.setShowCreateNewMeasurement, placeExistsInDatabase, dispatch, setErrorState, enteredCrowding, enteredLocationDetails, selectedSubLocation, userTimeRadioValue, dateTime, setShowSubmit, setSubmitting, setInvalidField);
                         }}>
                         {submitOrSpinning(submitting, translate)}
                     </Button>

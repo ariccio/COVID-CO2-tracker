@@ -1,7 +1,12 @@
+export interface ExtraErrorInformationActiveModelErrorInfo {
+    attribute: string
+}
+
 
 export interface ErrorObjectType {
     message: Array<string>,
-    error: Array<string> // Can be weird b/c activerecord
+    error: Array<string>, // Can be weird b/c activerecord
+    other_information?: unknown
 }
 
 export interface withErrors {

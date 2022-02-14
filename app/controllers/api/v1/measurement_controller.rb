@@ -61,9 +61,18 @@ module Api
           status: :created
         )
       rescue ::ActiveRecord::RecordInvalid => e
+        # (byebug) pp e.record.errors.errors
+        # [#<ActiveModel::Error attribute=crowding, type=not_a_number, options={:value=>""}>,
+        #  #<ActiveModel::Error attribute=crowding, type=not_a_number, options={:value=>""}>,
+        #  #<ActiveModel::Error attribute=crowding, type=blank, options={}>,
+        #  #<ActiveModel::Error attribute=device, type=invalid, options={:value=>#<Device id: 10, serial: "2123", model_id: 7, user_id: 3, created_at: "2021-03-21 05:27:16.309051000 +0000", updated_at: "2021-03-21 05:27:16.309051000 +0000">}>,
+        #  #<ActiveModel::Error attribute=sub_location, type=invalid, options={:value=>#<SubLocation id: 57, description: "farts", place_id: 52, created_at: "2021-08-06 19:43:17.617688000 +0000", updated_at: "2021-08-06 19:43:17.617688000 +0000">}>]
+
+
+        byebug
         render(
           json: {
-            errors: [create_activerecord_error('measurement creation failed!', e)]
+            errors: [create_activerecord_recordinvalid_error('measurement creation failed!', e)]
           },
           status: :bad_request
         )
