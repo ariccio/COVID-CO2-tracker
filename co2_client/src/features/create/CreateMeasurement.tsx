@@ -479,7 +479,7 @@ const RenderFormIfReady = (props: {selectedDevice: number, setEnteredCO2Text: Re
                         {translate("co2-level")}
                     </span>
                 </Form.Label>
-                <Form.Control type="number" placeholder="400" min={0} max={80000} name={"co2ppm"}/> <Suspense fallback="Loading translations..."><MaybeMeasurementNote enteredCO2Text={props.enteredCO2Text} /></Suspense>
+                <Form.Control type="number" placeholder="400" min={0} max={80000} name={"co2ppm"} isInvalid={props.invalidField.includes('co2ppm')}/> <Suspense fallback="Loading translations..."><MaybeMeasurementNote enteredCO2Text={props.enteredCO2Text} /></Suspense>
             </Form>
             <label className="form-label">
                 <span>

@@ -37,24 +37,9 @@ module Api
       skip_before_action :authorized, only: [:show]
       def create
         # byebug
+        create_measurement_internal
 
-        # TODO: handle ActionController::ParameterMissing: https://apidock.com/rails/ActionController/ParameterMissing
-        @place = ::Place.find_by!(google_place_id: measurement_params.fetch(:google_place_id))
-        raise_if_invalid_parameter_combo(measurement_params)
-        # byebug
-        sub_location = find_or_create_sublocation
-        time = custom_time_or_now
-        # byebug
-        # https://discuss.rubyonrails.org/t/time-now-vs-time-current-vs-datetime-now/75183/15
-        # ALSO, TODO: check to see if I should disable timezone conversion on backend?
-        # https://discuss.rubyonrails.org/t/time-now-vs-time-current-vs-datetime-now/75183/15
-        @new_measurement = ::Measurement.create!(
-          device_id: measurement_params.fetch(:device_id),
-          co2ppm: measurement_params.fetch(:co2ppm),
-          measurementtime: time,
-          sub_location: sub_location,
-          crowding: measurement_params.fetch(:crowding)
-        )
+        @new_measurement.save!
         # byebug
         render(
           json: measurement_controller_create_response_as_json(@new_measurement),
@@ -67,9 +52,6 @@ module Api
         #  #<ActiveModel::Error attribute=crowding, type=blank, options={}>,
         #  #<ActiveModel::Error attribute=device, type=invalid, options={:value=>#<Device id: 10, serial: "2123", model_id: 7, user_id: 3, created_at: "2021-03-21 05:27:16.309051000 +0000", updated_at: "2021-03-21 05:27:16.309051000 +0000">}>,
         #  #<ActiveModel::Error attribute=sub_location, type=invalid, options={:value=>#<SubLocation id: 57, description: "farts", place_id: 52, created_at: "2021-08-06 19:43:17.617688000 +0000", updated_at: "2021-08-06 19:43:17.617688000 +0000">}>]
-
-
-        byebug
         render(
           json: {
             errors: [create_activerecord_recordinvalid_error('measurement creation failed!', e)]
@@ -139,7 +121,30 @@ module Api
       private
 
       def measurement_params
-        params.require(:measurement).permit(:id, :device_id, :co2ppm, :measurementtime, :google_place_id, :crowding, :location_where_inside_info, :sub_location_id)
+        params.require(:measurement).permit(:id, :device_id, :co2ppm, :measurementtime, :google_place_id, :crowding, :location_where_inside_info, :sub_location_id, :realtime)
+      end
+
+      def create_measurement_internal
+        # TODO: handle ActionController::ParameterMissing: https://apidock.com/rails/ActionController/ParameterMissing
+        @place = ::Place.find_by!(google_place_id: measurement_params.fetch(:google_place_id))
+        raise_if_invalid_parameter_combo(measurement_params)
+        # byebug
+        sub_location = find_or_create_sublocation
+        time = custom_time_or_now
+        crowding = nil
+        crowding = measurement_params.fetch(:crowding) if measurement_params[:realtime].blank?
+        # byebug
+        # https://discuss.rubyonrails.org/t/time-now-vs-time-current-vs-datetime-now/75183/15
+        # ALSO, TODO: check to see if I should disable timezone conversion on backend?
+        # https://discuss.rubyonrails.org/t/time-now-vs-time-current-vs-datetime-now/75183/15
+        @new_measurement = ::Measurement.new(
+          device_id: measurement_params.fetch(:device_id),
+          co2ppm: measurement_params.fetch(:co2ppm),
+          measurementtime: time,
+          sub_location: sub_location,
+          crowding: crowding
+        )
+        return @new_measurement
       end
 
       def custom_time_or_now

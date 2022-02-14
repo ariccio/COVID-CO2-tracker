@@ -17,6 +17,14 @@ export interface withErrors {
 export type Errors = Array<ErrorObjectType>;
 
 
+function restOfObject(errors: string[]): string {
+    let errorString = 'Other errors:';
+    for (let i = 0; i < errors.length; i++) {
+        errorString += `\n${errors[i]}`;
+    }
+    return errorString;
+}
+
 function errorObjectErrorStringIfPresent(errorObject: ErrorObjectType): string {
     if (errorObject.error.length === 0) {
         return '';
@@ -29,7 +37,7 @@ function errorObjectErrorStringIfPresent(errorObject: ErrorObjectType): string {
         return '';
     }
     if (errorObject.error.length > 1) {
-        return `error string (first error is likely the cause): '${errorObject.error}'`;
+        return `First error, likely the cause: ${errorObject.error[0]}\n${restOfObject(errorObject.error.slice(1))}`;
     }
 
     return `error string: '${errorObject.error}'`;
