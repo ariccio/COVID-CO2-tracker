@@ -38,3 +38,5 @@ export const PLACES_BY_GOOGLE_PLACE_ID_EXISTS_ROUTE: string = '/places_by_google
 
 export const PLACES_IN_BOUNDS: string = (API_URL + '/places_in_bounds');
 
+const USERS_SHOW_ACTION = '/users/show'
+export const SHOW_USER_URL = (API_URL + USERS_SHOW_ACTION);

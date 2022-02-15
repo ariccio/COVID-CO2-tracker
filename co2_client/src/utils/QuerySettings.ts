@@ -19,6 +19,6 @@ const fetchFailedCallback = async (awaitedResponse: Response): Promise<UserSetti
 }
 
 export async function queryUserSettings(): Promise<UserSettings | null> {
-    const result = fetchJSONWithChecks(USER_SETTINGS_URL, userRequestOptions(), 200, true, fetchFailedCallback, fetchSettingsSuccessCallback) as Promise<UserSettings | null>;
+    const result = fetchJSONWithChecks(USER_SETTINGS_URL, userRequestOptions(), 200, false, fetchFailedCallback, fetchSettingsSuccessCallback) as Promise<UserSettings | null>;
     return result;
 }

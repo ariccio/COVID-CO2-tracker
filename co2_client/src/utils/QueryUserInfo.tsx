@@ -7,7 +7,7 @@ interface Score {
 }
 */
 
-import {API_URL, USER_DEVICES_URL} from './UrlPath';
+import {SHOW_USER_URL, USER_DEVICES_URL} from './UrlPath';
 import {userRequestOptions} from './DefaultRequestOptions';
 
 import {formatErrors} from './ErrorObject';
@@ -15,7 +15,7 @@ import { fetchJSONWithChecks } from './FetchHelpers';
 
 import { UserInfoType, userInfoToStrongType, UserDevicesInfo } from './UserInfoTypes';
 
-const SHOW_USER_URL = API_URL + '/users/show';
+
 
 
 
