@@ -72,7 +72,7 @@ export interface UserSettingsResponseData {
     }
   };
 
-export function userSettingsResponseToStrongType(responseMaybeUserSettings: any): Promise<UserSettingsResponseData> {
+export function userSettingsResponseToStrongType(responseMaybeUserSettings: any): null | UserSettingsResponseData {
     if (responseMaybeUserSettings === null) {
       debugger;
       throw new Error("Missing responseMaybeUserSettings!");
@@ -82,8 +82,10 @@ export function userSettingsResponseToStrongType(responseMaybeUserSettings: any)
       throw new Error("Missing responseMaybeUserSettings!");
     }
     if (responseMaybeUserSettings.data === null) {
-      debugger;
-      throw new Error("Missing responseMaybeUserSettings.data!");
+      // debugger;
+      // throw new Error("Missing responseMaybeUserSettings.data!");
+      console.log("User has no settings.");
+      return (null);
     }
     if (responseMaybeUserSettings.data === undefined) {
       debugger;
@@ -151,12 +153,16 @@ export function userSettingsResponseToStrongType(responseMaybeUserSettings: any)
     return responseMaybeUserSettings;
 }
 
-export function userSettingsResponseDataAsPlainSettings(response: UserSettingsResponseData): UserSettings {
-    const plainSettings: UserSettings = {
-        realtime_upload_place_id: response.data.attributes.realtime_upload_place.id,
-        realtime_upload_sub_location_id: response.data.attributes.realtime_upload_sub_location.id,
-        setting_place_google_place_id: response.data.attributes.realtime_upload_place.google_place_id,
-        sublocation_description: response.data.attributes.realtime_upload_sub_location.description
-    }
-    return plainSettings;
+export function userSettingsResponseDataAsPlainSettings(response: UserSettingsResponseData | null): UserSettings | null {
+  if (response === null) {
+    return null;
+  }
+  const plainSettings: UserSettings = {
+      realtime_upload_place_id: response.data.attributes.realtime_upload_place.id,
+      realtime_upload_sub_location_id: response.data.attributes.realtime_upload_sub_location.id,
+      setting_place_google_place_id: response.data.attributes.realtime_upload_place.google_place_id,
+      sublocation_description: response.data.attributes.realtime_upload_sub_location.description
+  }
+  // debugger;
+  return plainSettings;
 }

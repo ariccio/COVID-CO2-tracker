@@ -13,14 +13,14 @@ import { RootState } from '../../app/rootReducer';
 
 
 interface NativeUserInfo {
-    userName: string | null;
-    settings: UserSettings | null;
+    userName?: string | null;
+    settings?: UserSettings | null;
     settingsErrors: string | null;
 };
 
 const initialState: NativeUserInfo = {
-    userName: null,
-    settings: null,
+    userName: undefined,
+    settings: undefined,
     settingsErrors: null
 };
 

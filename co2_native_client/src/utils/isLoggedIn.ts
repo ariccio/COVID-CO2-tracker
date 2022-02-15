@@ -3,8 +3,12 @@ export function isNonNull(value: string | null): value is string {
     return value !== null;
 }
 
-export function isNullString(value: string | null): value is null {
+export function isNullString(value: string | null | undefined): value is null {
     return value === null;
+}
+
+export function isUndefinedString(value?: string): value is undefined {
+  return value === undefined;
 }
 
 export function isLoggedIn(jwt: string, userName: string): boolean {

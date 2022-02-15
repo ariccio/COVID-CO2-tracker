@@ -26,7 +26,7 @@ import { withAuthorizationHeader } from './src/utils/NativeDefaultRequestHelpers
 import {fetchJSONWithChecks} from './src/utils/NativeFetchHelpers';
 import { MaybeIfValue } from './src/utils/RenderValues';
 import { USER_DEVICES_URL_NATIVE, USER_SETTINGS_URL_NATIVE } from './src/utils/UrlPaths';
-import { isLoggedIn, isNullString } from './src/utils/isLoggedIn';
+import { isLoggedIn, isNullString, isUndefinedString } from './src/utils/isLoggedIn';
 
 
 // import {AppStatsResponse, queryAppStats} from '../co2_client/src/utils/QueryAppStats';
@@ -146,10 +146,14 @@ const fetchMyDevicesSucessCallback = async (awaitedResponse: Response): Promise<
   return userDevicesInfoResponseToStrongType(await response);
 };
 
-const get_my_devices = (jwt: string | null, userName: string | null) => {
+const get_my_devices = (jwt: string | null, userName?: string | null) => {
   const eitherNull = isNullString(jwt) || isNullString(userName);
   if (eitherNull) {
     console.log("No JWT or username, not getting devices?");
+    return;
+  }
+  if (isUndefinedString(userName)) {
+    console.log("Loading userName...");
     return;
   }
   const loggedIn = isLoggedIn(jwt, userName);
@@ -174,10 +178,11 @@ const get_my_devices = (jwt: string | null, userName: string | null) => {
 
 
 
-const fetchSettingsSuccessCallback = async (awaitedResponse: Response): Promise<UserSettings> => {
+const fetchSettingsSuccessCallback = async (awaitedResponse: Response): Promise<UserSettings | null> => {
   const response = await awaitedResponse.json();
 
-  const plainSettings = userSettingsResponseDataAsPlainSettings(await userSettingsResponseToStrongType(response));
+  const rawUserSettings = userSettingsResponseToStrongType(response);
+  const plainSettings = userSettingsResponseDataAsPlainSettings(rawUserSettings);
   return plainSettings;
 }
 
@@ -186,9 +191,13 @@ const fetchSettingsFailureCallback = async (awaitedResponse: Response): Promise<
   return response;
 }
 
-const getSettings = (jwt: string | null, userName: string | null):  Promise<UserSettings> | undefined => {
+const getSettings = (jwt: string | null, userName?: string | null):  Promise<UserSettings | null> | undefined => {
   const eitherNull = isNullString(jwt) || isNullString(userName);
   if (eitherNull) {
+    return;
+  }
+  if (isUndefinedString(userName)) {
+    console.log("Loading userName...");
     return;
   }
   const loggedIn = isLoggedIn(jwt, userName);
@@ -197,7 +206,7 @@ const getSettings = (jwt: string | null, userName: string | null):  Promise<User
   }
   console.log("Getting user settings...");
   const settingsRequestOptions = defaultNativeUserRequestOptions(jwt);
-  const result = fetchJSONWithChecks(USER_SETTINGS_URL_NATIVE, settingsRequestOptions, 200, true, fetchSettingsFailureCallback, fetchSettingsSuccessCallback) as Promise<UserSettings>;
+  const result = fetchJSONWithChecks(USER_SETTINGS_URL_NATIVE, settingsRequestOptions, 200, true, fetchSettingsFailureCallback, fetchSettingsSuccessCallback) as Promise<UserSettings | null>;
   return result;
 }
 
@@ -300,6 +309,11 @@ function App() {
 
   useEffect(() => {
     getSettings(jwt, userName)?.then((response) => {
+      if (response === null) {
+        console.log("user has no settings.");
+        dispatch(setUserSettingsErrors('User has not created settings.'));
+        return;
+      }
       console.log(`Got user settings response: ${JSON.stringify(response)}`);
       dispatch(setUserSettings(response));
       // debugger;

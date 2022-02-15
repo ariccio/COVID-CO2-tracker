@@ -34,6 +34,7 @@ export const updateUserInfo = (dispatch: AppDispatch) => {
         // console.log(userInfo);
         // debugger;
         dispatch(setUserInfoState(userInfo));
+        dispatch(setUserInfoErrorState(''));
     }).catch((error) => {
         debugger;
         dispatch(setUserInfoErrorState(error.message));
@@ -42,9 +43,9 @@ export const updateUserInfo = (dispatch: AppDispatch) => {
 
 export const updateUserSettings = (dispatch: AppDispatch) => {
     //TODO: should be in redux?
-    const userInfoPromise: Promise<UserInfoType> = queryUserInfo();
+    // const userInfoPromise: Promise<UserInfoType> = queryUserInfo();
 
-    const userSettingsPromise: Promise<UserSettings> = queryUserSettings();
+    const userSettingsPromise: Promise<UserSettings | null> = queryUserSettings();
 
     return userSettingsPromise.then((userSettings) => {
         // if (userSettings.errors !== undefined) {
@@ -53,7 +54,14 @@ export const updateUserSettings = (dispatch: AppDispatch) => {
         // }
         // console.log(userInfo);
         // debugger;
+        if (userSettings === null) {
+            console.warn("User settings is null?!");
+            dispatch(setUserSettingsErrorState('User has no settings.'));
+            dispatch(setUserSettings(null));
+            return;
+        }
         dispatch(setUserSettings(userSettings));
+        dispatch(setUserSettingsErrorState(null));
         console.log("Updated user settings!");
     }).catch((error) => {
         debugger;
@@ -118,10 +126,14 @@ const handleClearSettings = (event: React.MouseEvent<HTMLButtonElement, MouseEve
             debugger;
             return;
         }
-        updateUserInfo(dispatch);
+        console.log("Ok, deleted user settings. Updating info...");
+        setDeleteErrors(null);
+        debugger;
+        updateUserSettings(dispatch);
     }).catch((error) => {
         setLoading(false);
         setDeleteErrors(String(error));
+        debugger;
     })
 }
 
@@ -148,7 +160,7 @@ const MaybeSettingsFetchErrors: React.FC<{errors: string | null}> = ({errors}) =
     return null;
 }
 
-const Settings: React.FC<{userSettings: UserSettings | null, errors: string | null}> = ({userSettings, errors}) => {
+const Settings: React.FC<{userSettings?: UserSettings | null, errors: string | null}> = ({userSettings, errors}) => {
     const [deleteErrors, setDeleteErrors] = useState(null as (string | null));
     const [loading, setLoading] = useState(false);
     const dispatch = useDispatch();
@@ -157,6 +169,12 @@ const Settings: React.FC<{userSettings: UserSettings | null, errors: string | nu
     //     console.log("user info loading...");
     //     return null;
     // }
+    if (userSettings === undefined) {
+        // console.log("No user settings?");
+        return (
+            <span>Loading user settings...</span>
+        );
+    }
     if (userSettings === null) {
         console.log("No user settings?");
         return (
@@ -177,7 +195,7 @@ const Settings: React.FC<{userSettings: UserSettings | null, errors: string | nu
         );
     }
     if (userSettings.realtime_upload_place_id === undefined) {
-        // debugger;
+        debugger;
         return (
             <span>You have not set a default place for realtime upload.</span>
         );
@@ -208,10 +226,11 @@ const Settings: React.FC<{userSettings: UserSettings | null, errors: string | nu
     //         <span>The sublocation you have specified for realtime upload is empty. Please try again.</span>
     //     );
     // }
+    const userSettingsPlaceLink = `${placesPath}/${userSettings.setting_place_google_place_id}`;
     return (
         <>
             <MaybeSettingsFetchErrors errors={errors}/>
-            <span>You're currently uploading to this place: <Link to={`${placesPath}/${userSettings.setting_place_google_place_id}`}>{userSettings.setting_place_google_place_id}</Link> - {userSettings.sublocation_description}</span><br/>
+            <span>You're currently uploading to this place: <Link to={userSettingsPlaceLink}>{userSettings.setting_place_google_place_id}</Link> - {userSettings.sublocation_description}</span><br/>
             <Button variant="secondary" onClick={(event) => handleClearSettings(event, setLoading, setDeleteErrors, dispatch)}>
                 Clear upload settings
             </Button><br/>

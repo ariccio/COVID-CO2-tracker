@@ -17,11 +17,12 @@ module Api
 
       def destroy
         # byebug
-        @user.user_setting.destroy!
-        render(
-          json: {},
-          status: :ok
-        )
+        us = @user.user_setting
+        if (us === nil)
+          return render_empty
+        end
+        us.destroy!
+        render_empty
       rescue ::ActiveRecord::RecordNotFound => e
         ::Sentry.capture_exception(e)
         render(

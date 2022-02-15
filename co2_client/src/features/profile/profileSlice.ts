@@ -7,14 +7,14 @@ import { UserSettings } from '../../utils/UserSettings';
 interface UserInfoState {
     userInfo: UserInfoType;
     userInfoErrorState: string;
-    settings: UserSettings | null,
+    settings?: UserSettings | null,
     settingsErrorState: string | null
 }
 
 const initialState: UserInfoState = {
     userInfo: defaultUserInfo,
     userInfoErrorState: '',
-    settings: null,
+    settings: undefined,
     settingsErrorState: null
 };
 

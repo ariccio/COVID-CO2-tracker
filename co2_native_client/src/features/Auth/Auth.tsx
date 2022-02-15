@@ -17,7 +17,7 @@ import { AppDispatch } from '../../app/store';
 import { withAuthorizationHeader } from '../../utils/NativeDefaultRequestHelpers';
 // import { withAuthorizationHeader } from '../../utils/NativeDefaultRequestHelpers';
 import {fetchJSONWithChecks} from '../../utils/NativeFetchHelpers';
-import { MaybeIfValue } from '../../utils/RenderValues';
+import { MaybeIfValue, ValueOrLoading } from '../../utils/RenderValues';
 import {LOGIN_URL_NATIVE, EMAIL_URL_NATIVE} from '../../utils/UrlPaths';
 import { selectUserName, setUserName } from '../userInfo/userInfoSlice';
 
@@ -399,21 +399,40 @@ const useGoogleAuthForCO2Tracker = () => {
     return false;
 }
 
-const LoginOrLogoutButton: React.FC<{jwt: string | null, promptAsyncReady: boolean, promptAsync: (options?: AuthRequestPromptOptions | undefined) => Promise<AuthSessionResult>, logout: () => void, userName: string | null}> = ({jwt, promptAsyncReady, promptAsync, logout, userName}) => {
+function userNameValueOrLoading(userName?: string | null) {
+  if (userName === undefined) {
+    return null;
+  }
+  if (userName === null) {
+    console.error("No username?");
+    return "No userName!?";
+  }
+  if (userName === '') {
+    console.warn("Username empty?");
+    return "Username empty?";
+  }
+  return userName;
+}
+
+const LoginOrLogoutButton: React.FC<{jwt: string | null, promptAsyncReady: boolean, promptAsync: (options?: AuthRequestPromptOptions | undefined) => Promise<AuthSessionResult>, logout: () => void, userName?: string | null}> = ({jwt, promptAsyncReady, promptAsync, logout, userName}) => {
     const buttonDisable = disablePromptAsyncButton(jwt, promptAsyncReady);
     if (!buttonDisable) {
-        return (
-            <>
-                <MaybeIfValue text="username: " value={(userName !== '') ? userName : null} suffix=" (this shouldn't show up)"/>
-                <Button disabled={buttonDisable} title="Login" onPress={() => {promptAsync();}}/>
-            </>
-        );
+      return (
+          <>
+              <ValueOrLoading text="username: " value={userNameValueOrLoading(userName)} suffix=" (this shouldn't show up)"/>
+              <Button disabled={buttonDisable} title="Login" onPress={() => {promptAsync();}}/>
+          </>
+      );
     }
     if (userName === null) {
       return (
         <Button disabled={!buttonDisable} title="Log out" onPress={() => logout()}/>
-    );
-
+      );
+    }
+    if (userName === undefined) {
+      return (
+        <Button disabled={!buttonDisable} title="Log out of (username loading...)" onPress={() => logout()}/>
+    );      
     }
     return (
         <Button disabled={!buttonDisable} title={`Log out of ${userName}`} onPress={() => logout()}/>

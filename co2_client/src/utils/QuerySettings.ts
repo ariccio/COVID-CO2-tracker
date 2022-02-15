@@ -5,10 +5,11 @@ import { USER_SETTINGS_URL } from "./UrlPath";
 import { UserSettings } from "./UserSettings";
 
 
-const fetchSettingsSuccessCallback = async (awaitedResponse: Response): Promise<UserSettings> => {
+const fetchSettingsSuccessCallback = async (awaitedResponse: Response): Promise<UserSettings | null> => {
     const response = await awaitedResponse.json();
   
-    const plainSettings = userSettingsResponseDataAsPlainSettings(await userSettingsResponseToStrongType(response));
+    const rawUserSettings = userSettingsResponseToStrongType(response);
+    const plainSettings = userSettingsResponseDataAsPlainSettings(rawUserSettings);
     return plainSettings;
   }
   
@@ -17,7 +18,7 @@ const fetchFailedCallback = async (awaitedResponse: Response): Promise<UserSetti
     return awaitedResponse.json();
 }
 
-export async function queryUserSettings(): Promise<UserSettings> {
-    const result = fetchJSONWithChecks(USER_SETTINGS_URL, userRequestOptions(), 200, true, fetchFailedCallback, fetchSettingsSuccessCallback) as Promise<UserSettings>;
+export async function queryUserSettings(): Promise<UserSettings | null> {
+    const result = fetchJSONWithChecks(USER_SETTINGS_URL, userRequestOptions(), 200, true, fetchFailedCallback, fetchSettingsSuccessCallback) as Promise<UserSettings | null>;
     return result;
 }

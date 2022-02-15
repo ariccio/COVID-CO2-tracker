@@ -108,21 +108,16 @@ const handleButtonClick = (event: React.MouseEvent<HTMLButtonElement, MouseEvent
         }
         else {
             console.log("sucesfully set upload settings?");
+            setCreateErrors(null);
+            updateUserSettings(dispatch);
+            console.log("No longer waiting for refresh...")
+            setWaitingForRefresh(false);    
         }
     }).catch((error) => {
         debugger;
         setLoading(false);
         setCreateErrors(String(error));
         setWaitingForRefresh(false);
-    }).then(() => {
-        // return updateUserInfo(dispatch);
-        return updateUserSettings(dispatch);
-    }).then(() => {
-        console.log("No longer waiting for refresh...")
-        setWaitingForRefresh(false);
-    })
-    .catch((error) => {
-        setCreateErrors(String(error));
     })
 }
 
@@ -174,12 +169,28 @@ const SpinnerOrSet: React.FC<{selectedSubLocation: number, loading: boolean, use
     )
 }
 
-const MaybeUserInfoErrors: React.FC<{userInfoErrors: string | null}> = ({userInfoErrors}) => {
-    if (userInfoErrors === null) {
+const MaybeUserInfoErrors: React.FC<{settingsErrors: string | null}> = ({settingsErrors}) => {
+    if (settingsErrors === null) {
         return null;
     }
-    if (userInfoErrors !== '') {
-        <span>Realtime upload settings <i>might</i> not be available. Errors: {userInfoErrors}</span>
+    if (settingsErrors !== '') {
+        <span>Realtime upload settings <i>might</i> not be available. Errors: {settingsErrors}</span>
+    }
+    return null;
+}
+
+const MaybeHasNoSettings: React.FC<{userInfoSettings?: UserSettings | null}> = ({userInfoSettings}) => {
+    if (userInfoSettings === null) {
+        return (
+            <>
+                <span>User has no settings.</span><br/>
+            </>
+        );
+    }
+    if (userInfoSettings === undefined) {
+        return (
+            <span>Loading user settings...</span>
+        );
     }
     return null;
 }
@@ -200,6 +211,7 @@ const ChoosePlaceWithUserInfo: React.FC<{place_id: string, userInfoSettings?: Us
             </Button>
             <br/>
             <MaybeCreateErrors createErrors={createErrors}/><br/>
+            <MaybeHasNoSettings userInfoSettings={userInfoSettings}/>
         </>
     );
 }
@@ -216,7 +228,7 @@ export const ChoosePlaceAsDefault: React.FC<{place_id?: string | undefined}> = (
     const dispatch = useDispatch();
     
     useEffect(() => {
-        if (settings === null) {
+        if (settings === undefined) {
             console.log("(in ChoosePlaceAsDefault) settings === null.");
             // updateUserInfo(dispatch);
             updateUserSettings(dispatch);
@@ -240,18 +252,19 @@ export const ChoosePlaceAsDefault: React.FC<{place_id?: string | undefined}> = (
     }
     // debugger;
 
-    if (settings === null) {
+    if (settings === undefined) {
+        debugger;
         return (
             <>
-                <MaybeUserInfoErrors userInfoErrors={settingsErrors}/><br/>
-                <span>Loading user info...</span>
+                <MaybeUserInfoErrors settingsErrors={settingsErrors}/><br/>
+                <span>Loading user settings...</span>
             </>
         );
     }
 
     return (
         <>
-            <MaybeUserInfoErrors userInfoErrors={settingsErrors}/><br/>
+            <MaybeUserInfoErrors settingsErrors={settingsErrors}/><br/>
             <ChoosePlaceWithUserInfo place_id={place_id} userInfoSettings={settings}/>
         </>
     )

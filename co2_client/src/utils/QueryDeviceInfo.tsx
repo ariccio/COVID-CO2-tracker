@@ -22,6 +22,7 @@ export async function queryDeviceInfo(device_id: number): Promise<DeviceInfoResp
     // Is throw the right response? Maybe.
     const fetchFailedCallback = async (awaitedResponse: Response): Promise<never> => {
         debugger;
+        console.warn("TODO: Throwing here is the WRONG action.");
         throw new Error(formatErrors((await awaitedResponse.clone().json()).errors));
     }
 
