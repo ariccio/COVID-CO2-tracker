@@ -1,3 +1,4 @@
+import { Text } from 'react-native';
 import { useSelector } from "react-redux";
 // import { defaultUserSettings } from "../../../../co2_client/src/utils/UserSettings";
 import { MaybeIfValue } from "../../utils/RenderValues";
@@ -12,7 +13,7 @@ export const UserSettingsMaybeDisplay: React.FC<{}> = () => {
     if (userSettings === undefined) {
         return (
             <>
-                Loading user settings...
+                <Text>Loading user settings...</Text>
                 <MaybeIfValue text="User settings errors: " value={userSettingsErrors}/>            
             </>
         )
@@ -20,7 +21,7 @@ export const UserSettingsMaybeDisplay: React.FC<{}> = () => {
     if (userSettings === null) {
         return (
             <>
-                User has not created settings.
+                <Text>User has not created settings.</Text>
                 <MaybeIfValue text="User settings errors: " value={userSettingsErrors}/>            
             </>
         )

@@ -27,6 +27,7 @@ import {fetchJSONWithChecks} from './src/utils/NativeFetchHelpers';
 import { MaybeIfValue } from './src/utils/RenderValues';
 import { USER_DEVICES_URL_NATIVE, USER_SETTINGS_URL_NATIVE } from './src/utils/UrlPaths';
 import { isLoggedIn, isNullString, isUndefinedString } from './src/utils/isLoggedIn';
+import { selectUploadStatus } from './src/features/Uploading/uploadSlice';
 
 
 // import {AppStatsResponse, queryAppStats} from '../co2_client/src/utils/QueryAppStats';
@@ -285,7 +286,7 @@ function App() {
   const jwt = useSelector(selectJWT);
   const userName = useSelector(selectUserName);
   const [userDeviceErrors, setUserDeviceErrors] = useState(null as (string | null));
-  
+  const uploadErrors = useSelector(selectUploadStatus);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -331,6 +332,7 @@ function App() {
       <MaybeNoSupportedBluetoothDevices/>
       <AuthContainer/>
       <MaybeIfValue text="Device fetch errors: " value={userDeviceErrors}/>
+      <MaybeIfValue text="Realtime upload errors: " value={uploadErrors}/>
       <UserSettingsMaybeDisplay/>
       <StatusBar style="auto" />
     </SafeAreaProvider>
