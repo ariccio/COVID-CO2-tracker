@@ -9,7 +9,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 
 
-import { userRequestOptions } from '../co2_client/src/utils/DefaultRequestOptions';
+import { userRequestOptions, postRequestOptions } from '../co2_client/src/utils/DefaultRequestOptions';
 import { UserInfoDevice } from '../co2_client/src/utils/DeviceInfoTypes';
 import {ErrorObjectType, formatErrors, withErrors} from '../co2_client/src/utils/ErrorObject';
 // import {} from '../co2_client/src/utils/UserInfoTypes';
@@ -21,13 +21,14 @@ import {AuthContainer} from './src/features/Auth/Auth';
 import { UserSettingsMaybeDisplay } from './src/features/UserSettings/UserSettingsDisplay';
 import { BluetoothData, useBluetoothConnectAranet } from './src/features/bluetooth/Bluetooth';
 import { selectSupportedDevices, setSupportedDevices, setUNSupportedDevices } from './src/features/userInfo/devicesSlice';
-import { selectUserName, setUserSettings, setUserSettingsErrors } from './src/features/userInfo/userInfoSlice';
+import { selectUserName, selectUserSettings, setUserSettings, setUserSettingsErrors } from './src/features/userInfo/userInfoSlice';
 import { withAuthorizationHeader } from './src/utils/NativeDefaultRequestHelpers';
 import {fetchJSONWithChecks} from './src/utils/NativeFetchHelpers';
 import { MaybeIfValue } from './src/utils/RenderValues';
-import { USER_DEVICES_URL_NATIVE, USER_SETTINGS_URL_NATIVE } from './src/utils/UrlPaths';
+import { REAL_TIME_UPLOAD_URL_NATIVE, USER_DEVICES_URL_NATIVE, USER_SETTINGS_URL_NATIVE } from './src/utils/UrlPaths';
 import { isLoggedIn, isNullString, isUndefinedString } from './src/utils/isLoggedIn';
-import { selectUploadStatus } from './src/features/Uploading/uploadSlice';
+import { selectUploadStatus, setUploadStatus } from './src/features/Uploading/uploadSlice';
+import { MeasurementDataForUpload } from './src/features/Measurement/MeasurementTypes';
 
 
 // import {AppStatsResponse, queryAppStats} from '../co2_client/src/utils/QueryAppStats';
@@ -170,11 +171,6 @@ const get_my_devices = (jwt: string | null, userName?: string | null) => {
 
 
 
-
-
-
-
-
 // type UserSettingsResponseType = UserSettingsResponseData & with
 
 
@@ -281,16 +277,49 @@ const MaybeNoSupportedBluetoothDevices: React.FC<{}> = () => {
   return null;
 }
 
+
+function initRealtimeMeasurement(jwt: string, measurement: MeasurementDataForUpload, userSettings: UserSettings): RequestInit {
+  const defaultOptions = postRequestOptions();
+  const options = {
+    ...defaultOptions,
+    headers: {
+      ...withAuthorizationHeader(jwt)
+    },
+    body: JSON.stringify({
+      measurement: {
+        device_id: measurement.device_id,
+        co2ppm: measurement.co2ppm,
+        google_place_id: userSettings.setting_place_google_place_id,
+        sub_location_id: userSettings.realtime_upload_sub_location_id,
+        measurementtime: measurement.measurementtime,
+        realtime: true
+      }
+    })
+  }
+  return options;
+}
+
+async function realtimeUpload(jwt: string, measurement: MeasurementDataForUpload, userSettings: UserSettings): Promise<withErrors> {
+  const options = initRealtimeMeasurement(jwt, measurement, userSettings);
+
+  const uploadCallback = async (awaitedResponse: Response): Promise<unknown> => {
+    const response = awaitedResponse.json();
+    return response;
+  }
+  const result = fetchJSONWithChecks(REAL_TIME_UPLOAD_URL_NATIVE, options, 203, true, uploadCallback, uploadCallback) as Promise<withErrors>;
+  return result;
+}
+
 function App() {
-  const {device} = useBluetoothConnectAranet();
+  const {device, measurement} = useBluetoothConnectAranet();
   const jwt = useSelector(selectJWT);
   const userName = useSelector(selectUserName);
   const [userDeviceErrors, setUserDeviceErrors] = useState(null as (string | null));
-  const uploadErrors = useSelector(selectUploadStatus);
+  const uploadStatus = useSelector(selectUploadStatus);
   const dispatch = useDispatch();
+  const userSettings = useSelector(selectUserSettings);
 
   useEffect(() => {
-    console.log("Fartipelago")
     console.log("NOTE TO SELF: if no fetch requests are going through to local machine in dev, make sure running rails as 'rails s -b 0.0.0.0 to allow all through!");
     console.log("Note to self (TODO): there's really nothing sensitive about the client ID, but I'd like to obfuscate it anyways.");
   }, []);
@@ -325,6 +354,46 @@ function App() {
   }, [userName, jwt])
 
 
+  useEffect(() => {
+    console.log(`Measurement changed! ${JSON.stringify(measurement)}`);
+
+    // dispatch(addMeasurement())
+    if (!userSettings) {
+      console.log("No user settings, nothing to upload.");
+      return;
+    }
+    if (!(userSettings.setting_place_google_place_id)) {
+      console.log("No place to upload to.");
+      return;
+    }
+
+    if (!(userSettings.realtime_upload_sub_location_id)) {
+      console.log("No sublocation to upload to.");
+      return;
+    }
+
+    if (jwt === null) {
+      console.log("cannot upload, not logged in.");
+      return;
+    }
+    if (measurement === null) {
+      console.log("measurement is null?");
+      return;
+    }
+    dispatch(setUploadStatus(`Uploading new measurement (${measurement.co2ppm})...`));
+    debugger;
+    realtimeUpload(jwt, measurement, userSettings).then((response) => {
+      if (response.errors) {
+        dispatch(setUploadStatus(`Error uploading measurement: ${formatErrors(response.errors)}`));
+        return;
+      }
+      dispatch(setUploadStatus(`Sucessful at ${(new Date(Date.now())).toLocaleTimeString()}`));
+    }).catch((error) => {
+      dispatch(setUploadStatus(`Error uploading measurement: ${String(error)}`));
+    });
+
+  }, [measurement])
+
 
   return (
     <SafeAreaProvider style={styles.container}>          
@@ -332,7 +401,7 @@ function App() {
       <MaybeNoSupportedBluetoothDevices/>
       <AuthContainer/>
       <MaybeIfValue text="Device fetch errors: " value={userDeviceErrors}/>
-      <MaybeIfValue text="Realtime upload errors: " value={uploadErrors}/>
+      <MaybeIfValue text="Realtime upload errors: " value={uploadStatus}/>
       <UserSettingsMaybeDisplay/>
       <StatusBar style="auto" />
     </SafeAreaProvider>

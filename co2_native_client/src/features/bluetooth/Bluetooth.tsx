@@ -12,6 +12,7 @@ import * as BLUETOOTH from '../../../../co2_client/src/utils/BluetoothConstants'
 import { UserInfoDevice } from '../../../../co2_client/src/utils/DeviceInfoTypes';
 import { AppDispatch } from '../../app/store';
 import { MaybeIfValue } from '../../utils/RenderValues';
+import { addMeasurement } from '../Measurement/MeasurementSlice';
 import { MeasurementDataForUpload } from '../Measurement/MeasurementTypes';
 import { setUploadStatus } from '../Uploading/uploadSlice';
 import { selectSupportedDevices } from '../userInfo/devicesSlice';
@@ -624,7 +625,7 @@ async function pollAranet4(setTimeoutHandle: React.Dispatch<React.SetStateAction
         debugger;
     }
     if (!knownDevice) {
-        debugger;
+        // debugger;
     }
     const updated = await updateCallback(deviceID, dispatch, beginWithDeviceConnection, finish);
     if (updated === undefined) {
@@ -789,10 +790,6 @@ export const useBluetoothConnectAranet = () => {
     }, [aranet4SpecificInformation?.measurementInterval])
 
     useEffect(() => {
-        console.log(`Measurement changed! ${JSON.stringify(measurement)}`)
-    }, [measurement])
-
-    useEffect(() => {
 
         const timerTime = maybeNextMeasurementInOrDefault(aranet4SpecificInformation);
         if (deviceID === null) {
@@ -818,7 +815,7 @@ export const useBluetoothConnectAranet = () => {
 
 
 
-    return { device };
+    return { device, measurement };
 }
 
 async function firstBluetoothUpdate(beginWithDeviceConnection: () => Promise<Device | null>, deviceID: string, dispatch: AppDispatch, finish: () => Promise<void>): Promise<Aranet4GenericAndSpecificInformation | undefined>  {

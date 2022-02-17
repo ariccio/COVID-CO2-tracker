@@ -40,3 +40,7 @@ export const PLACES_IN_BOUNDS: string = (API_URL + '/places_in_bounds');
 
 const USERS_SHOW_ACTION = '/users/show'
 export const SHOW_USER_URL = (API_URL + USERS_SHOW_ACTION);
+
+const REAL_TIME_MEASUREMENT_ACTION = '/realtime_measurement';
+export const REAL_TIME_MEASUREMENT_URL = (API_URL + REAL_TIME_MEASUREMENT_ACTION);
+
