@@ -184,7 +184,7 @@ export function fetchFilter(error: any): never {
             // https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/fetch/fetch_manager.cc;l=261;bpv=1;bpt=1?q=%22failed%20to%20fetch%22
     
             console.error(`type error message: ${error.message}`);
-            alert("fetch itself failed, are you connected? is the server running? Did you manually interrupt it with a refresh?");
+            alert("fetch itself failed, are you connected? is the server running?");
         }
     }
     else if (error instanceof DOMException) {

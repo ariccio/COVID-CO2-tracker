@@ -1,5 +1,6 @@
 class Api::V1::RealtimeMeasurementController < MeasurementController
 
-    def show
+    def create
+        byebug
     end
 end

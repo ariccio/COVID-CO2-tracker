@@ -1,8 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { RootState } from '../../app/rootReducer';
-
-
 import {MeasurementDataForUpload} from './MeasurementTypes';
 
 interface MeasurementState {
