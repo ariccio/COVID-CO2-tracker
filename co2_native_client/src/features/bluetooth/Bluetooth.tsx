@@ -301,14 +301,14 @@ async function readGenericBluetoothInformation(deviceID: string): Promise<Generi
 
 }
 function co2MeasurementCharacteristicBufferToMeasurementState(co2CharacteristicAsBuffer: Buffer): Aranet4_1503CO2 {
-    const co2 = co2CharacteristicAsBuffer.readUInt16LE(0);
-    const rawTemperature = co2CharacteristicAsBuffer.readUInt16LE(2);
+    const co2 = co2CharacteristicAsBuffer.readUInt16LE(BLUETOOTH.ARANET4_1503_CO2_SENSOR_CHARACTERISTIC_OFFSETS.get('CO2'));
+    const rawTemperature = co2CharacteristicAsBuffer.readUInt16LE(BLUETOOTH.ARANET4_1503_CO2_SENSOR_CHARACTERISTIC_OFFSETS.get('TEMPERATURE'));
     const temperature = rawTemperature / 20;
-    const rawPressure = co2CharacteristicAsBuffer.readUInt16LE(4);
+    const rawPressure = co2CharacteristicAsBuffer.readUInt16LE(BLUETOOTH.ARANET4_1503_CO2_SENSOR_CHARACTERISTIC_OFFSETS.get('PRESSURE'));
     const pressure = rawPressure / 10;
-    const humidity = co2CharacteristicAsBuffer.readUInt8(5);
-    const battery = co2CharacteristicAsBuffer.readUInt8(6);
-    const statusColor = co2CharacteristicAsBuffer.readUInt8(7);
+    const humidity = co2CharacteristicAsBuffer.readUInt8(BLUETOOTH.ARANET4_1503_CO2_SENSOR_CHARACTERISTIC_OFFSETS.get('HUMIDITY'));
+    const battery = co2CharacteristicAsBuffer.readUInt8(BLUETOOTH.ARANET4_1503_CO2_SENSOR_CHARACTERISTIC_OFFSETS.get('BATTERY'));
+    const statusColor = co2CharacteristicAsBuffer.readUInt8(BLUETOOTH.ARANET4_1503_CO2_SENSOR_CHARACTERISTIC_OFFSETS.get('STATUS_COLOR'));
     const measurementState: Aranet4_1503CO2 = {
         co2,
         temperatureC: temperature,

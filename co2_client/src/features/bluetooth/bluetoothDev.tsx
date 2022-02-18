@@ -151,15 +151,15 @@ function aranet4ParseColor(data: DataView, dispatch: AppDispatch): void {
 }
 
 function parse_ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID(data: DataView, dispatch: AppDispatch): void {
-    const co2 = data.getUint16(0, true);
+    const co2 = data.getUint16(BLUETOOTH.ARANET4_1503_CO2_SENSOR_CHARACTERISTIC_OFFSETS.get(BLUETOOTH.ARANET4_1503_CO2_SENSOR_CHARACTERISTIC_OFFSET_KEY_CO2), true);
     dispatch(setCO2(co2))
-    const temperature = (data.getUint16(2, true) / 20);
+    const temperature = (data.getUint16(BLUETOOTH.ARANET4_1503_CO2_SENSOR_CHARACTERISTIC_OFFSETS.get('TEMPERATURE'), true) / 20);
     dispatch(setTemperature(temperature));
-    const barometricPressure = (data.getUint16(4, true) / 10);
+    const barometricPressure = (data.getUint16(BLUETOOTH.ARANET4_1503_CO2_SENSOR_CHARACTERISTIC_OFFSETS.get('PRESSURE'), true) / 10);
     dispatch(setBarometricPressure(barometricPressure))
-    const humidity = data.getUint8(6);
+    const humidity = data.getUint8(BLUETOOTH.ARANET4_1503_CO2_SENSOR_CHARACTERISTIC_OFFSETS.get('HUMIDITY'));
     dispatch(setHumidity(humidity));
-    const battery = data.getUint8(7);
+    const battery = data.getUint8(BLUETOOTH.ARANET4_1503_CO2_SENSOR_CHARACTERISTIC_OFFSETS.get('BATTERY'));
     dispatch(setBattery(battery));
     // const unknownField = data.getUint8(8);
     // dispatch(setAranet4UnknownField(unknownField));

@@ -795,3 +795,11 @@ export const ARANET4_MINIMUM_FACTORY_CALIBRATION_VALUE = BigInt(0x10000000000000
 export const UNIX_MONDAY_JANUARY_1_2018 = BigInt(1514764800);
 export const ARANET_4_BAD_CALIBRATION_STRING = "Calibration unstable, bad, or otherwise not at factory in unspecified ways.";
 
+export const ARANET4_1503_CO2_SENSOR_CHARACTERISTIC_OFFSETS = new Map([
+    ['CO2', 0],
+    ['TEMPERATURE', 2],
+    ['PRESSURE', 4],
+    ['HUMIDITY', 6],
+    ['BATTERY', 7],
+    ['STATUS_COLOR', 8]
+]);
