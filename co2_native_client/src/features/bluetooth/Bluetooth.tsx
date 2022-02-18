@@ -301,13 +301,34 @@ async function readGenericBluetoothInformation(deviceID: string): Promise<Generi
 
 }
 function co2MeasurementCharacteristicBufferToMeasurementState(co2CharacteristicAsBuffer: Buffer): Aranet4_1503CO2 {
-    const co2 = co2CharacteristicAsBuffer.readUInt16LE(BLUETOOTH.ARANET4_1503_CO2_SENSOR_CHARACTERISTIC_OFFSETS.get('CO2'));
-    const rawTemperature = co2CharacteristicAsBuffer.readUInt16LE(BLUETOOTH.ARANET4_1503_CO2_SENSOR_CHARACTERISTIC_OFFSETS.get('TEMPERATURE'));
+    const co2Offset = BLUETOOTH.ARANET4_1503_CO2_SENSOR_CHARACTERISTIC_OFFSETS.get('CO2');
+    const temperatureOffset = BLUETOOTH.ARANET4_1503_CO2_SENSOR_CHARACTERISTIC_OFFSETS.get('TEMPERATURE');
+    const pressureOffset = BLUETOOTH.ARANET4_1503_CO2_SENSOR_CHARACTERISTIC_OFFSETS.get('PRESSURE');
+    const humidityOffset = BLUETOOTH.ARANET4_1503_CO2_SENSOR_CHARACTERISTIC_OFFSETS.get('HUMIDITY');
+    const batteryOffset = BLUETOOTH.ARANET4_1503_CO2_SENSOR_CHARACTERISTIC_OFFSETS.get('BATTERY');
+    if (co2Offset === undefined) {
+        throw new Error("Compile time bug: co2 offset not in map!");
+    }
+    if (temperatureOffset === undefined) {
+        throw new Error("Compile time bug: temperature offset not in map!");
+    }
+    if (pressureOffset === undefined) {
+        throw new Error("Compile time bug: pressure offset not in map!");
+    }
+    if (humidityOffset === undefined) {
+        throw new Error("Compile time bug: humidity offset not in map!");
+    }
+    if (batteryOffset === undefined) {
+        throw new Error("Compile time bug: battery offset not in map!");
+    }
+
+    const co2 = co2CharacteristicAsBuffer.readUInt16LE(co2Offset);
+    const rawTemperature = co2CharacteristicAsBuffer.readUInt16LE(temperatureOffset);
     const temperature = rawTemperature / 20;
-    const rawPressure = co2CharacteristicAsBuffer.readUInt16LE(BLUETOOTH.ARANET4_1503_CO2_SENSOR_CHARACTERISTIC_OFFSETS.get('PRESSURE'));
+    const rawPressure = co2CharacteristicAsBuffer.readUInt16LE(pressureOffset);
     const pressure = rawPressure / 10;
-    const humidity = co2CharacteristicAsBuffer.readUInt8(BLUETOOTH.ARANET4_1503_CO2_SENSOR_CHARACTERISTIC_OFFSETS.get('HUMIDITY'));
-    const battery = co2CharacteristicAsBuffer.readUInt8(BLUETOOTH.ARANET4_1503_CO2_SENSOR_CHARACTERISTIC_OFFSETS.get('BATTERY'));
+    const humidity = co2CharacteristicAsBuffer.readUInt8(humidityOffset);
+    const battery = co2CharacteristicAsBuffer.readUInt8(batteryOffset);
     const statusColor = co2CharacteristicAsBuffer.readUInt8(BLUETOOTH.ARANET4_1503_CO2_SENSOR_CHARACTERISTIC_OFFSETS.get('STATUS_COLOR'));
     const measurementState: Aranet4_1503CO2 = {
         co2,
