@@ -1,7 +1,8 @@
 // See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
 import { combineReducers } from '@reduxjs/toolkit';
 
-import { measurementReducer } from '../features/Measurement/MeasurementSlice';
+// import { measurementReducer } from '../features/Measurement/MeasurementSlice';
+import { measurementReducer } from '../features/Measurement/measurementSlice';
 import { uploadReducer } from '../features/Uploading/uploadSlice';
 import { bluetoothReducer } from '../features/bluetooth/bluetoothSlice';
 import { userDevicesReducer } from '../features/userInfo/devicesSlice';
