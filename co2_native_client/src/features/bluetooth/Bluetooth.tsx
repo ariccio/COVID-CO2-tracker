@@ -306,6 +306,7 @@ function co2MeasurementCharacteristicBufferToMeasurementState(co2CharacteristicA
     const pressureOffset = BLUETOOTH.ARANET4_1503_CO2_SENSOR_CHARACTERISTIC_OFFSETS.get('PRESSURE');
     const humidityOffset = BLUETOOTH.ARANET4_1503_CO2_SENSOR_CHARACTERISTIC_OFFSETS.get('HUMIDITY');
     const batteryOffset = BLUETOOTH.ARANET4_1503_CO2_SENSOR_CHARACTERISTIC_OFFSETS.get('BATTERY');
+    const statusColorOffset = BLUETOOTH.ARANET4_1503_CO2_SENSOR_CHARACTERISTIC_OFFSETS.get('STATUS_COLOR');
     if (co2Offset === undefined) {
         throw new Error("Compile time bug: co2 offset not in map!");
     }
@@ -320,6 +321,9 @@ function co2MeasurementCharacteristicBufferToMeasurementState(co2CharacteristicA
     }
     if (batteryOffset === undefined) {
         throw new Error("Compile time bug: battery offset not in map!");
+    }
+    if (statusColorOffset === undefined) {
+        throw new Error("Compile time bug: statusColor offset not in map!");
     }
 
     const co2 = co2CharacteristicAsBuffer.readUInt16LE(co2Offset);

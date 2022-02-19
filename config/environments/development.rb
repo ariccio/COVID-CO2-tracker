@@ -74,4 +74,13 @@ require 'active_support/core_ext/integer/time'
 
   # Uncomment if you wish to allow Action Cable access from any origin.
   # config.action_cable.disable_request_forgery_protection = true
+
+
+
+
+  config.log_level = :debug
+  ActiveRecord::Base.logger.level = Logger::DEBUG
+
+  # ActiveRecord::Base.logger = Logger.new(STDOUT)
+
 end

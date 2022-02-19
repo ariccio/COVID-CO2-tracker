@@ -34,7 +34,7 @@ class User < ApplicationRecord
     # byebug
     return [] if (measurement.blank?)
 
-    ordered = measurement.includes(:device, :sub_location, device: :model).order('measurementtime DESC')
+    ordered = measurement.includes(:extra_measurement_info).order('measurementtime DESC')
 
     # measurements = ordered.each.map do |measurement|
     #   ::Measurement.measurement_with_device_as_json(measurement)
@@ -45,7 +45,7 @@ class User < ApplicationRecord
 
   def last_measurement
     return nil if (measurement.blank?)
-
+    
     measurement.order('measurementtime DESC').first
   end
 end

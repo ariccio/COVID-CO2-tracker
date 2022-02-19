@@ -64,7 +64,24 @@ import {ErrorObjectType} from './ErrorObject';
         }
     }
 }
+
+extra_measurement_info:
+    created_at: "2022-02-19T00:54:28.061Z"
+    id: 1
+    measurement_id: 150
+    realtime: true
+    updated_at: "2022-02-19T00:54:28.061Z"
+
 */
+
+export interface ExtraMeasurementInfo {
+    id: number,
+    measurement_id: number,
+    realtime: boolean,
+    updated_at: string,
+    created_at: string
+}
+
 export interface SerializedSingleMeasurement {
     //TODO: string
     id: string,
@@ -72,9 +89,10 @@ export interface SerializedSingleMeasurement {
     attributes: {
         co2ppm: number,
         measurementtime: string,
-        crowding: number,
+        crowding: number | null,
         updated_at: string,
-        created_at: string
+        created_at: string,
+        extra_measurement_info: ExtraMeasurementInfo | null
     },
     relationships: {
         device: {
@@ -100,7 +118,8 @@ export const defaultSerializedSingleMeasurementInfo: SerializedSingleMeasurement
         measurementtime: '',
         crowding: -1,
         created_at: '',
-        updated_at: ''
+        updated_at: '',
+        extra_measurement_info: null
     },
     relationships: {
         device: {

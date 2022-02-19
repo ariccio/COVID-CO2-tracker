@@ -35,6 +35,7 @@ export async function queryUserInfo(): Promise<UserInfoType> {
     }
 
     const fetchSuccessCallback = async (awaitedResponse: Response): Promise<UserInfoType> => {
+        // debugger;
         return userInfoToStrongType(await awaitedResponse.json());
     }
     const result = fetchJSONWithChecks(SHOW_USER_URL, userRequestOptions(), 200, false, fetchFailedCallback, fetchSuccessCallback) as Promise<UserInfoType>;

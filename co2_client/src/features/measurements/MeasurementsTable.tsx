@@ -2,6 +2,7 @@ import React, { useState, Suspense } from 'react';
 import {Table, Button} from 'react-bootstrap';
 import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
+import * as Sentry from "@sentry/react";
 
 import { useTranslation } from 'react-i18next';
 
@@ -147,6 +148,35 @@ const RiskRow = (props: {measurement: SerializedSingleMeasurement}) => {
     return (<td><p style={{color:"red"}}><b><u><i>{translate('Immediate death or invalid measurement')}</i></u></b></p></td>);
 }
 
+const CrowdingOrRealtime = (props: {measurement: SerializedSingleMeasurement}) => {
+    if (props.measurement.attributes.crowding !== null) {
+        if (props.measurement.attributes.extra_measurement_info !== null) {
+            throw new Error(`Bad combination of crowding and realtime! ${JSON.stringify(props.measurement)}`);
+        }
+        return (
+            <td>{props.measurement.attributes.crowding}</td>
+        )
+    }
+    if (props.measurement.attributes.extra_measurement_info !== null) {
+        if (props.measurement.attributes.crowding !== null) {
+            throw new Error(`Bad combination of realtime and crowding! ${JSON.stringify(props.measurement)}`);
+        }
+        if (props.measurement.attributes.extra_measurement_info.realtime !== null) {
+            if (!(props.measurement.attributes.extra_measurement_info.realtime)) {
+                Sentry.captureMessage(`Strange combination of information for measurement ${props.measurement.id}. Full object: ${JSON.stringify(props.measurement)}`)
+                return (
+                    <td>Not realtime?</td>
+                )
+            }
+            return (
+                <td><p style={{color:"red"}}>Realtime measurement!</p></td>
+            )
+        }
+        throw new Error("Missing realtime?");
+    }
+    throw new Error("Bad combination, no crowding, no realtime.");
+}
+
 const deviceIDOrSerialWithLink = (id: string, deviceSerials?: Array<SerializedSingleDeviceSerial>) => {
     // debugger;
     if (deviceSerials && (deviceSerials.length > 0)) {
@@ -197,7 +227,8 @@ const mapMeasurementsToTableBody = (measurements: Array<SerializedSingleMeasurem
                 <td>{measurement.attributes.co2ppm}</td>
                 {/* Displays the measurement as if it were taken in the timezone where the user currently is. It's painful to adjust the timezone according to the google places time offset, so this works for now. */}
                 <td>{new Date(measurement.attributes.measurementtime).toString()}</td>
-                <td>{measurement.attributes.crowding}</td>
+                <CrowdingOrRealtime measurement={measurement}/>
+                
                 <Suspense fallback="loading translations...">
                     <RiskRow measurement={measurement}/>
                 </Suspense>
