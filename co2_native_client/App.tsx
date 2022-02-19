@@ -15,9 +15,11 @@ import {ErrorObjectType, formatErrors, withErrors} from '../co2_client/src/utils
 // import {} from '../co2_client/src/utils/UserInfoTypes';
 import { userSettingsResponseDataAsPlainSettings, userSettingsResponseToStrongType} from '../co2_client/src/utils/QuerySettingsTypes';
 import {UserSettings} from '../co2_client/src/utils/UserSettings';
-import { selectJWT } from './src/app/globalSlice';
+import { incrementSucessfulUploads, selectJWT, selectSucessfulUploads } from './src/app/globalSlice';
 import { AppDispatch, store } from './src/app/store';
 import {AuthContainer} from './src/features/Auth/Auth';
+import { MeasurementDataForUpload } from './src/features/Measurement/MeasurementTypes';
+import { selectUploadStatus, setUploadStatus } from './src/features/Uploading/uploadSlice';
 import { UserSettingsMaybeDisplay } from './src/features/UserSettings/UserSettingsDisplay';
 import { BluetoothData, useBluetoothConnectAranet } from './src/features/bluetooth/Bluetooth';
 import { selectSupportedDevices, setSupportedDevices, setUNSupportedDevices } from './src/features/userInfo/devicesSlice';
@@ -27,8 +29,6 @@ import {fetchJSONWithChecks} from './src/utils/NativeFetchHelpers';
 import { MaybeIfValue } from './src/utils/RenderValues';
 import { REAL_TIME_UPLOAD_URL_NATIVE, USER_DEVICES_URL_NATIVE, USER_SETTINGS_URL_NATIVE } from './src/utils/UrlPaths';
 import { isLoggedIn, isNullString, isUndefinedString } from './src/utils/isLoggedIn';
-import { selectUploadStatus, setUploadStatus } from './src/features/Uploading/uploadSlice';
-import { MeasurementDataForUpload } from './src/features/Measurement/MeasurementTypes';
 
 
 // import {AppStatsResponse, queryAppStats} from '../co2_client/src/utils/QueryAppStats';
@@ -346,6 +346,7 @@ function measurementChange(measurement: MeasurementDataForUpload | null, userSet
       return;
     }
     dispatch(setUploadStatus(`Sucessful at ${(new Date(Date.now())).toLocaleTimeString()}`));
+    dispatch(incrementSucessfulUploads());
   }).catch((error) => {
     dispatch(setUploadStatus(`Error uploading measurement: ${String(error)}`));
     debugger;
@@ -390,6 +391,7 @@ function App() {
   const uploadStatus = useSelector(selectUploadStatus);
   const dispatch = useDispatch();
   const userSettings = useSelector(selectUserSettings);
+  const sucessfulUploads = useSelector(selectSucessfulUploads);
 
   useEffect(() => {
     console.log("NOTE TO SELF: if no fetch requests are going through to local machine in dev, make sure running rails as 'rails s -b 0.0.0.0 to allow all through!");
@@ -418,6 +420,7 @@ function App() {
       <AuthContainer/>
       <MaybeIfValue text="Device fetch errors: " value={userDeviceErrors}/>
       <MaybeIfValue text="Realtime upload status/errors: " value={uploadStatus}/>
+      <MaybeIfValue text="Measurments uploaded: " value={sucessfulUploads} />
       <UserSettingsMaybeDisplay/>
       <StatusBar style="auto" />
     </SafeAreaProvider>

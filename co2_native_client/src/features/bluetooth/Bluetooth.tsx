@@ -1113,7 +1113,7 @@ export const BluetoothData: React.FC<{ device: Device | null }> = ({ device }) =
             <MaybeIfValue text="bluetooth status: " value={bluetoothScanningStatus} />
             <MaybeIfValue text="bluetooth errors: " value={(bluetoothScanningErrorStatus.length > 0) ? bluetoothScanningErrorStatus : null} />
             <MaybeIfValue text="Device status: " value={deviceStatus}/>
-            <Text>Updates: {updateCount}</Text>
+            <Text>Updates from device this session: {updateCount}</Text>
             <MaybeIfValue text="id: " value={id} />
             <MaybeIfValue text="name: " value={name} />
             
