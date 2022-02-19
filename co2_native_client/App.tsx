@@ -283,7 +283,8 @@ function initRealtimeMeasurement(jwt: string, measurement: MeasurementDataForUpl
   const options = {
     ...defaultOptions,
     headers: {
-      ...withAuthorizationHeader(jwt)
+      ...withAuthorizationHeader(jwt),
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify({
       measurement: {
