@@ -1,3 +1,3 @@
 class ExtraMeasurementInfo < ApplicationRecord
-  belongs_to :measurement, optional: true, inverse_of: :extra_measurement_info
+  has_one :measurement, required: false, inverse_of: :extra_measurement_info
 end

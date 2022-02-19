@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_02_19_190634) do
+ActiveRecord::Schema.define(version: 2022_02_19_192953) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -72,7 +72,9 @@ ActiveRecord::Schema.define(version: 2022_02_19_190634) do
     t.datetime "updated_at", precision: 6, null: false
     t.integer "crowding"
     t.bigint "sub_location_id"
+    t.bigint "extra_measurement_info_id"
     t.index ["device_id"], name: "index_measurements_on_device_id"
+    t.index ["extra_measurement_info_id"], name: "index_measurements_on_extra_measurement_info_id"
     t.index ["measurementtime"], name: "index_measurements_on_measurementtime"
     t.index ["sub_location_id"], name: "index_measurements_on_sub_location_id"
   end
@@ -129,6 +131,7 @@ ActiveRecord::Schema.define(version: 2022_02_19_190634) do
   add_foreign_key "devices", "models"
   add_foreign_key "devices", "users"
   add_foreign_key "measurements", "devices"
+  add_foreign_key "measurements", "extra_measurement_infos"
   add_foreign_key "measurements", "sub_locations"
   add_foreign_key "models", "manufacturers"
   add_foreign_key "sub_locations", "places"

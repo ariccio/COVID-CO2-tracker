@@ -10,13 +10,13 @@ class Place < ApplicationRecord
     # temp = SubLocationSerializer.new(sub_location).serializable_hash
     # byebug
     # TODO: This SUCKS
-    sub_location.includes(:measurement, measurement: :device).find_each.map do |loc|
+    sub_location.includes(:measurement).find_each.map do |loc|
       # each_measurement = loc.measurement.includes(:device, device: :model).order('measurementtime DESC').each.map do |measurement|
       #   # json = measurement.as_json
       #   ::Measurement.measurement_with_device_as_json(measurement)
       # end
-      temp = ::MeasurementSerializer.new(loc.measurement.includes(:device).order('measurementtime DESC')).serializable_hash
       # byebug
+      temp = ::MeasurementSerializer.new(loc.measurement.order('measurementtime DESC')).serializable_hash
       {
         sub_location_id: loc.id,
         description: loc.description,
