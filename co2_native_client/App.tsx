@@ -15,7 +15,7 @@ import {ErrorObjectType, formatErrors, withErrors} from '../co2_client/src/utils
 // import {} from '../co2_client/src/utils/UserInfoTypes';
 import { userSettingsResponseDataAsPlainSettings, userSettingsResponseToStrongType} from '../co2_client/src/utils/QuerySettingsTypes';
 import {UserSettings} from '../co2_client/src/utils/UserSettings';
-import { incrementSucessfulUploads, selectJWT, selectSucessfulUploads } from './src/app/globalSlice';
+import { incrementSuccessfulUploads, selectJWT, selectSuccessfulUploads } from './src/app/globalSlice';
 import { AppDispatch, store } from './src/app/store';
 import {AuthContainer} from './src/features/Auth/Auth';
 import { MeasurementDataForUpload } from './src/features/Measurement/MeasurementTypes';
@@ -345,8 +345,8 @@ function measurementChange(measurement: MeasurementDataForUpload | null, userSet
       dispatch(setUploadStatus(`Error uploading measurement: ${formatErrors(response.errors)}`));
       return;
     }
-    dispatch(setUploadStatus(`Sucessful at ${(new Date(Date.now())).toLocaleTimeString()}`));
-    dispatch(incrementSucessfulUploads());
+    dispatch(setUploadStatus(`Successful at ${(new Date(Date.now())).toLocaleTimeString()}`));
+    dispatch(incrementSuccessfulUploads());
   }).catch((error) => {
     dispatch(setUploadStatus(`Error uploading measurement: ${String(error)}`));
     debugger;
@@ -391,7 +391,7 @@ function App() {
   const uploadStatus = useSelector(selectUploadStatus);
   const dispatch = useDispatch();
   const userSettings = useSelector(selectUserSettings);
-  const sucessfulUploads = useSelector(selectSucessfulUploads);
+  const sucessfulUploads = useSelector(selectSuccessfulUploads);
 
   useEffect(() => {
     console.log("NOTE TO SELF: if no fetch requests are going through to local machine in dev, make sure running rails as 'rails s -b 0.0.0.0 to allow all through!");

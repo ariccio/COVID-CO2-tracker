@@ -5,12 +5,12 @@ import { RootState } from './rootReducer';
 
 interface Globals {
     jwt: string | null;
-    sucessfulUploads: number;
+    successfulUploads: number;
 }
 
 const initialState: Globals = {
     jwt: null,
-    sucessfulUploads: 0
+    successfulUploads: 0
 };
 
 export const globalSlice = createSlice({
@@ -20,15 +20,15 @@ export const globalSlice = createSlice({
         setJWT: (state, action: PayloadAction<string | null>) => {
             state.jwt = action.payload;
         },
-        incrementSucessfulUploads: (state, action: PayloadAction<void>) => {
-            state.sucessfulUploads += 1;
+        incrementSuccessfulUploads: (state, action: PayloadAction<void>) => {
+            state.successfulUploads += 1;
         }
     }
 });
 
-export const {setJWT, incrementSucessfulUploads} = globalSlice.actions;
+export const {setJWT, incrementSuccessfulUploads} = globalSlice.actions;
 
 export const selectJWT = (state: RootState) => state.globals.jwt;
-export const selectSucessfulUploads = (state: RootState) => state.globals.sucessfulUploads;
+export const selectSuccessfulUploads = (state: RootState) => state.globals.successfulUploads;
 
 export const globalsReducer = globalSlice.reducer;

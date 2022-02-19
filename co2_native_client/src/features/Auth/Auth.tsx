@@ -189,7 +189,7 @@ const loginWithIDToken = (id_token: string, setAsyncStoreError: React.Dispatch<R
         debugger;
         return null;
       }
-      console.log(`sucessfully logged in to server! Username ${response.email}`);
+      console.log(`successfully logged in to server! Username ${response.email}`);
       dispatch(setUserName(response.email));
       dispatch(setJWT(response.jwt));
       console.assert(response.errors === undefined);

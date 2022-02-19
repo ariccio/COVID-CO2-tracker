@@ -288,7 +288,7 @@ async function readGenericBluetoothInformation(deviceID: string): Promise<Generi
     // dispatch(setScanningStatusString(null));
 
     const battery = await readBatteryLevelFromBluetoothDevice(deviceID);
-    console.log(`Battery: ${battery}`);
+    // console.log(`Battery: ${battery}`);
     
 
     return {
@@ -388,10 +388,10 @@ async function readAranet4SpecificInformation(deviceID: string, dispatch: AppDis
     // }
     const co2CharacteristicMeasurement = await readAranet4Co2Characteristic(deviceID!)
     
-    console.log(`Aranet4 measurement:`);
+    // console.log(`Aranet4 measurement:`);
     console.log(`\tCO2: ${co2CharacteristicMeasurement?.co2}ppm`);
-    console.log(`\tTemperature: ${co2CharacteristicMeasurement?.temperatureC}C`);
-    console.log(`\tHumidity: ${co2CharacteristicMeasurement?.humidity}%`);
+    // console.log(`\tTemperature: ${co2CharacteristicMeasurement?.temperatureC}C`);
+    // console.log(`\tHumidity: ${co2CharacteristicMeasurement?.humidity}%`);
 
     dispatch(setDeviceStatusString('Reading aranet4 seconds since last measurement...'));
     const secondsSinceLastMeasurement = await readAranet4SecondsSinceLastMeasurementCharacteristic(deviceID!)
@@ -412,7 +412,7 @@ async function readAranet4SpecificInformation(deviceID: string, dispatch: AppDis
     const now = Date.now();
     const seconds = secondsSinceLastMeasurement * 1000;
     const lastMeasurementTime = (new Date(now - seconds));
-    console.log(`Last measurement taken: ${lastMeasurementTime.toUTCString()} (UTC)`);
+    console.log(`Last measurement taken: ${lastMeasurementTime.toLocaleTimeString()}/${lastMeasurementTime.toUTCString()} (UTC)`);
 
 
     dispatch(setDeviceStatusString('Reading aranet4 measurement interval...'));
@@ -503,7 +503,7 @@ const useScanConnectAranet4 = () => {
         }
         const closed = await manager.cancelDeviceConnection(deviceID);
         setDevice(closed);
-        console.log("Device connection closed.");
+        // console.log("Device connection closed.");
     }
 
     return { device, beginWithDeviceConnection, finish };
@@ -624,7 +624,7 @@ async function updateCallback(deviceID: string, dispatch: AppDispatch, beginWith
         //     measurementtime: aranet4Info.lastMeasurementTimeAsUTCString,
         //     google_place_id
         // };
-        console.log("Will upload to server...");
+        // console.log("Will upload to server...");
         // debugger;
         return {
             specificInfo: aranet4Info,
