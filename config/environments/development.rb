@@ -79,7 +79,7 @@ require 'active_support/core_ext/integer/time'
 
 
   config.log_level = :debug
-  ActiveRecord::Base.logger.level = Logger::DEBUG
+  # ActiveRecord::Base.logger.level = Logger::DEBUG
 
   # ActiveRecord::Base.logger = Logger.new(STDOUT)
 

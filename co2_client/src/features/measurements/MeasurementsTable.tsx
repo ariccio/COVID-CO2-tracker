@@ -157,6 +157,9 @@ const CrowdingOrRealtime = (props: {measurement: SerializedSingleMeasurement}) =
             <td>{props.measurement.attributes.crowding}</td>
         )
     }
+    if (props.measurement.attributes.extra_measurement_info === undefined) {
+        debugger;
+    }
     if (props.measurement.attributes.extra_measurement_info !== null) {
         if (props.measurement.attributes.crowding !== null) {
             throw new Error(`Bad combination of realtime and crowding! ${JSON.stringify(props.measurement)}`);
