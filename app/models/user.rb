@@ -31,7 +31,7 @@ class User < ApplicationRecord
   def my_measurements
     # @user = current_user
     # measurements = []
-    # byebug
+    byebug
     return [] if (measurement.blank?)
     
     Rails.logger.warn("I really need to redo the extra measurement info/realtime info serialization... I will have to serialize separately, or do as a relationship instead of an attribute!")

@@ -70,15 +70,22 @@ export const updateUserSettings = (dispatch: AppDispatch) => {
 }
 
 
+const noMeasurements = () => {
+    return (
+        <div>
+            <br/>
+            <span>No measurements by this user. Yet.</span>
+        </div>
+    );
+}
+
 const maybeRenderMeasurements = (userInfo: UserInfoType) => {
+    if (userInfo.user_info.measurements === null) {
+        return noMeasurements();
+    }
     if (userInfo.user_info.measurements.data === undefined) {
-        console.log("measurements array is null, this is a bug, and this is an ugly hack to work around it. (Profile.tsx)");
-        return (
-            <div>
-                <br/>
-                <span>No measurements by this user. Yet.</span>
-            </div>
-        )
+        console.log("measurements array is undefined, this is a bug, and this is an ugly hack to work around it. (Profile.tsx)");
+        return noMeasurements();
     }
 
     return (
