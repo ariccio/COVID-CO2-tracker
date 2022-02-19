@@ -33,14 +33,17 @@ class User < ApplicationRecord
     # measurements = []
     # byebug
     return [] if (measurement.blank?)
-
+    
+    Rails.logger.warn("I really need to redo the extra measurement info/realtime info serialization... I will have to serialize separately, or do as a relationship instead of an attribute!")
+    
+    
     ordered = measurement.includes(:extra_measurement_info).order('measurementtime DESC')
 
     # measurements = ordered.each.map do |measurement|
     #   ::Measurement.measurement_with_device_as_json(measurement)
     # end
 
-    byebug
+    # byebug
     ::MeasurementSerializer.new(ordered).serializable_hash
     # ::MeasurementSerializer.new(ordered, include: [:extra_measurement_info]).serializable_hash
   end

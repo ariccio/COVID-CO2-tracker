@@ -73,6 +73,7 @@ export function userDevicesInfoResponseToStrongType(responseMaybeUserDevicesInfo
 
 export function userInfoToStrongType(userInfo: any): UserInfoType {
     debugger;
+    console.warn("I really need to redo the realtime measurements serialization....");
     console.assert(userInfo !== undefined);
     if (userInfo.errors !== undefined) {
         console.warn("Found errors, not checking any type correctness.");
