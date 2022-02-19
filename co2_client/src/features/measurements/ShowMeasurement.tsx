@@ -22,17 +22,31 @@ import { percentRebreathedFromPPM, rebreathedToString } from '../../utils/Rebrea
 interface ShowMeasurementModalProps {
     showMeasurementModal: boolean,
     setShowMeasurementModal: React.Dispatch<React.SetStateAction<boolean>>,
-    selectedMeasurement: string,
-    setSelectedMeasurement: React.Dispatch<React.SetStateAction<string>>,
+    selectedMeasurement: number | null,
+    setSelectedMeasurement: React.Dispatch<React.SetStateAction<number | null>>,
 }
-const ModalHeader = (props: {measurementID: string}) =>
-    <Modal.Header closeButton>
-        <Modal.Title>Measurement #{props.measurementID}</Modal.Title>
-    </Modal.Header>
+const ModalHeader = (props: {measurementID: number | null}) => {
+    if (props.measurementID === null) {
+        console.warn("Rendering null measureement modal header?");
+        return (
+            <Modal.Header closeButton>
+                <Modal.Title>Measurement (null?)</Modal.Title>
+            </Modal.Header>
+        );
+    }
+    return (
+        <Modal.Header closeButton>
+            <Modal.Title>Measurement #{props.measurementID}</Modal.Title>
+        </Modal.Header>
+    );
+}
 
 const DeviceIDOrSerial = (props: {measurementInfo: ShowMeasurementResponse, deviceSerials: Array<SerializedSingleDeviceSerial>, deviceSerialsErrorState: string}) => {
     const [translate] = useTranslation();
     const id = props.measurementInfo.data.data.relationships.device.data.id;
+    if (id === null) {
+        throw new Error("rendering empty device??");
+    }
     if (props.deviceSerialsErrorState !== '') {
         return (
             <div>
@@ -169,7 +183,7 @@ export const ShowMeasurementModal: React.FC<ShowMeasurementModalProps> = (props:
     const elementRef = useRef(null as HTMLDivElement | null);
 
     useEffect(() => {
-        if (props.selectedMeasurement === '') {
+        if (props.selectedMeasurement === null) {
             return;
         }
         const result = queryMeasurementInfo(props.selectedMeasurement);
@@ -194,6 +208,9 @@ export const ShowMeasurementModal: React.FC<ShowMeasurementModalProps> = (props:
     useEffect(() => {
         if (measurementInfo === defaultShowMeasurementResponse) {
             return;
+        }
+        if (measurementInfo.data.data.relationships.device.data.id === null) {
+            throw new Error("showing measurement with a null device ID? Shouldn't happen, should not get to this point with a default response.");
         }
         const result = fetchSingleDeviceName(measurementInfo.data.data.relationships.device.data.id);
         result.then((promiseResult) => {

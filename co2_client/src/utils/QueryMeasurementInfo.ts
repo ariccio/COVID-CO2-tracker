@@ -10,7 +10,7 @@ import {ShowMeasurementResponse} from './MeasurementInfoTypes';
 
 
 
-export async function queryMeasurementInfo(measurement_id: string): Promise<ShowMeasurementResponse> {
+export async function queryMeasurementInfo(measurement_id: number): Promise<ShowMeasurementResponse> {
     const fetchFailedCallback = async (awaitedResponse: Response): Promise<ShowMeasurementResponse> => {
         console.error("something broke! Fetch failed! TODO: error handle here");
         return awaitedResponse.json();

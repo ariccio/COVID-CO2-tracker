@@ -60,12 +60,25 @@ export const deviceIDsFromSubLocation = (value: SublocationMeasurements) => {
     if (value.measurements.data === undefined) {
         throw new Error(`value.measurements.data is undefined. This is a bug probably in deviceNamesRequestInit in QueryDeviceInfo? value.sub_location_id: ${value.sub_location_id}, value.description: ${value.description}`);
     }
-    return value.measurements.data.map((measurement: SerializedSingleMeasurement) => {
+    const all_IDs = value.measurements.data.map((measurement: SerializedSingleMeasurement) => {
         return measurement.relationships.device.data.id;
+    });
+    const all_IDs_noNulls = all_IDs.filter((id) => {
+        if (id === null) {
+            console.log(`Filtering corrupted device id...`);
+        }
+        return id !== null;
     })
+    return all_IDs as number[];
+    // const IDsSet = new Set<number>();
+    // for (let i = 0; i < value.measurements.data.length; i++) {
+    //     IDsSet.add(value.measurements.data[i].relationships.device.data.id);
+    // }
+    // debugger;
+    // return IDsSet;
 }
 
-const singleDeviceNameRequestInit = (deviceID: string) => {
+const singleDeviceNameRequestInit = (deviceID: number) => {
     const defaultOptions = postRequestOptions();
     const ids = [deviceID];
     const options = {
@@ -79,7 +92,7 @@ const singleDeviceNameRequestInit = (deviceID: string) => {
     return options;
 }
 
-export const fetchSingleDeviceName = (deviceID: string) => {
+export const fetchSingleDeviceName = (deviceID: number) => {
     const requestInit = singleDeviceNameRequestInit(deviceID);
     const fetchFailedCallback = async (awaitedResponse: Response): Promise<DeviceIDNamesSerialsResponse> => {
         console.error("failed to get device names from ids!");
@@ -113,9 +126,14 @@ const deviceNamesRequestInit = (measurements_by_sublocation: Array<SublocationMe
     }
 
     const ids_unsorted = measurements_by_sublocation.flatMap((value: SublocationMeasurements) => {
-        return deviceIDsFromSubLocation(value);
+        const ids_from_sublocation = deviceIDsFromSubLocation(value);
+        // debugger;
+        return ids_from_sublocation;
     });
-    const ids = ids_unsorted.sort();
+    // debugger;
+    const idsSet = new Set<number>(ids_unsorted);
+    const ids = Array.from(idsSet);
+    // debugger;
 
     const options = {
         ...defaultOptions,

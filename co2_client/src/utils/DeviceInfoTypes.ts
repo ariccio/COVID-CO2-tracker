@@ -84,7 +84,7 @@ export interface ExtraMeasurementInfo {
 
 export interface SerializedSingleMeasurement {
     //TODO: string
-    id: string,
+    id: number | null,
     type: string,
     attributes: {
         co2ppm: number,
@@ -97,7 +97,7 @@ export interface SerializedSingleMeasurement {
     relationships: {
         device: {
             data: {
-                id: string,
+                id: number | null,
                 type: string
             }
         },
@@ -111,7 +111,7 @@ export interface SerializedSingleMeasurement {
 }
 
 export const defaultSerializedSingleMeasurementInfo: SerializedSingleMeasurement = {
-    id: '',
+    id: null,
     type: '',
     attributes: {
         co2ppm: -1,
@@ -124,7 +124,7 @@ export const defaultSerializedSingleMeasurementInfo: SerializedSingleMeasurement
     relationships: {
         device: {
             data: {
-                id: '',
+                id: null,
                 type: ''
             }
         },
@@ -138,7 +138,7 @@ export const defaultSerializedSingleMeasurementInfo: SerializedSingleMeasurement
 }
 
 export interface SerializedSingleDeviceSerial {
-    id: string,
+    id: number,
     type: string,
     attributes: {
         serial: string
@@ -146,7 +146,7 @@ export interface SerializedSingleDeviceSerial {
 }
 
 export const defaultSerializedSingleDeviceSerial: SerializedSingleDeviceSerial = {
-    id: '',
+    id: -1,
     type: '',
     attributes: {
         serial: ''

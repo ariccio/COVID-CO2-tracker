@@ -74,28 +74,36 @@ function rawEmailResponseToStrongType(response: unknown): NativeEmailResponseTyp
       console.warn("Found errors in login response. No typechecking.");
       return responseExists;
     }
-    if (responseExists.email === null) {
-      throw new Error("Null email field");
-    }
-    if (responseExists.email === undefined) {
-      throw new Error("Email field not present!");
-    }
-    if (responseExists.email.length === 0) {
-      console.warn("Email is empty?");
-    }
-    if (responseExists.jwt === null) {
-      throw new Error("Null jwt.");
-    }
-    if (responseExists.jwt === undefined) {
-      throw new Error("jwt not present!");
-    }
-    if (responseExists.jwt.length === 0) {
-      throw new Error("jwt empty!");
-    }
+    checkEmail(responseExists);
+    checkJWT(responseExists);
     return responseExists;
   }
   
 
+
+function checkEmail(responseExists: any) {
+  if (responseExists.email === null) {
+    throw new Error("Null email field");
+  }
+  if (responseExists.email === undefined) {
+    throw new Error("Email field not present!");
+  }
+  if (responseExists.email.length === 0) {
+    console.warn("Email is empty?");
+  }
+}
+
+function checkJWT(responseExists: any) {
+  if (responseExists.jwt === null) {
+    throw new Error("Null jwt.");
+  }
+  if (responseExists.jwt === undefined) {
+    throw new Error("jwt not present!");
+  }
+  if (responseExists.jwt.length === 0) {
+    throw new Error("jwt empty!");
+  }
+}
 
 function nativeLoginRequestInit(id_token: string) {
     const def = postRequestOptions();
@@ -248,67 +256,72 @@ async function queryAsyncStoreForStoredJWT(setAsyncStoreError: React.Dispatch<Re
   
   
 
-function setIDTokenIfGoodResponseFromGoogle(setIDToken: React.Dispatch<React.SetStateAction<string | null>>, responseFromGoogle: AuthSessionResult | null) {
-    // console.table(response);
-    // console.log(promptAsync);
-    if (responseFromGoogle === undefined) {
-      console.log("response is undefined?");
-      // eslint-disable-next-line no-debugger
-      debugger;
-      return;
-    }
-    if (responseFromGoogle === null) {
-      console.log("response is null. Must not have tried logging in yet.");
-      // debugger;
-      return;
-    }
-    if (responseFromGoogle.type === 'error') {
-      if (responseFromGoogle.error) {
-        console.warn(`Authentication error: ${responseFromGoogle.error}`);
-      }
-      if (responseFromGoogle.errorCode) {
-        console.assert(responseFromGoogle.errorCode.length > 0);
-        console.warn(`Authentication error code: ${responseFromGoogle.errorCode}`);
-      }
-      // eslint-disable-next-line no-debugger
-      debugger;
-      return;
-    }
-    if (responseFromGoogle.type === 'success') {
-      if (responseFromGoogle.authentication === undefined) {
-        console.warn('authentication is undefined?');
-        // eslint-disable-next-line no-debugger
-        debugger;
-        return;
-      }
-      if (responseFromGoogle.authentication === null) {
-        console.warn('authentication is null?');
-        // eslint-disable-next-line no-debugger
-        debugger;
-        return;
-      }
-      //see also, fields:
-      //  expiresIn
-      //  refreshToken
-      console.log(`expiresIn: ${responseFromGoogle.authentication.expiresIn}`);
-      console.log(`refreshToken: ${responseFromGoogle.authentication.refreshToken}`);
-      // console.log(`idToken: ${response.authentication.idToken}`);
-      if (responseFromGoogle.authentication.idToken === null) {
-        console.error("id token null??!?");
-        // eslint-disable-next-line no-debugger
-        debugger;
-        return;
-      }
-      if (responseFromGoogle.authentication.idToken === undefined) {
-        console.error("id token undefined??!?");
-        // eslint-disable-next-line no-debugger
-        debugger;
-        return;
-      }
-      setIDToken(responseFromGoogle.authentication.idToken);
-    }
+function setIDTokenIfGoodResponseFromGoogle(setIDToken: React.Dispatch<React.SetStateAction<string | null>>, responseFromGoogle: AuthSessionResult | null, setLoginErrors: React.Dispatch<React.SetStateAction<string | null>>) {
+  if (responseFromGoogle === undefined) {
+    throw new Error("Response from google (auth) is undefined?");
   }
-  
+  if (responseFromGoogle === null) {
+    console.log("response is null. Must not have tried logging in yet.");
+    return;
+  }
+  if (responseFromGoogle.type === 'error') {
+    handleGoogleAuthErrorResponse(responseFromGoogle, setLoginErrors);
+    return;
+  }
+  if (responseFromGoogle.type === 'success') {
+    handleGoogleAuthSuccessResponse(responseFromGoogle, setLoginErrors, setIDToken);
+  }
+  throw new Error(`Unexpected respnseFromGoogle type: "${responseFromGoogle.type}". Full object: ${JSON.stringify(responseFromGoogle)} `);
+}
+
+function handleGoogleAuthSuccessResponse(responseFromGoogle: AuthSessionResult, setLoginErrors: React.Dispatch<React.SetStateAction<string | null>>, setIDToken: React.Dispatch<React.SetStateAction<string | null>>) {
+  if (responseFromGoogle.type !== "success") {
+    throw new Error("compile time bug. Wrong type passed to handleGoogleAuthSuccessResponse, I'm not good enough at typescript to do correctly.");
+  }
+  if (responseFromGoogle.authentication === undefined) {
+    throw new Error('responseFromGoogle.authentication is undefined?');
+  }
+  if (responseFromGoogle.authentication === null) {
+    console.warn('authentication is null?');
+    // eslint-disable-next-line no-debugger
+    debugger;
+    return;
+  }
+  //see also, fields:
+  //  expiresIn
+  //  refreshToken
+  console.log(`expiresIn: ${responseFromGoogle.authentication.expiresIn}`);
+  console.log(`refreshToken: ${responseFromGoogle.authentication.refreshToken}`);
+  if (responseFromGoogle.authentication.idToken === null) {
+    setLoginErrors('ID token missing from google response. May be a bug?');
+    throw new Error("responseFromGoogle.authentication.idToken null??!?");
+  }
+  if (responseFromGoogle.authentication.idToken === undefined) {
+    throw new Error("responseFromGoogle.authentication.idToken undefined??!?");
+  }
+  setIDToken(responseFromGoogle.authentication.idToken);
+  setLoginErrors(null);
+
+}
+
+function handleGoogleAuthErrorResponse(responseFromGoogle: AuthSessionResult, setLoginErrors: React.Dispatch<React.SetStateAction<string | null>>) {
+  let googleAuthError = `Error logging in with google!`;
+  console.warn("TODO: report to sentry!");
+  if (responseFromGoogle.type !== "error") {
+    throw new Error("compile time bug. Wrong type passed to handleGoogleAuthErrorResponse, I'm not good enough at typescript to do correctly.");
+  }
+  if (responseFromGoogle.error) {
+    console.warn(`Authentication error: ${responseFromGoogle.error}`);
+    googleAuthError += ` Google authentication error: ${responseFromGoogle.error}.`;
+  }
+  if (responseFromGoogle.errorCode) {
+    console.assert(responseFromGoogle.errorCode.length > 0);
+    console.warn(`Authentication error code: ${responseFromGoogle.errorCode}`);
+    googleAuthError += ` Google authentication error code: ${responseFromGoogle.errorCode}.`;
+  }
+  googleAuthError += ` ...full object: ${JSON.stringify(responseFromGoogle)}`;
+  setLoginErrors(googleAuthError);
+}
 
 async function handleAsyncStoreResult(maybeJWT: string | null, dispatch: AppDispatch, setLoginErrors: React.Dispatch<React.SetStateAction<string | null>>) {
     if (maybeJWT) {
@@ -366,7 +379,7 @@ const useGoogleAuthForCO2Tracker = () => {
   
     useEffect(() => {
       console.table(request);
-      setIDTokenIfGoodResponseFromGoogle(setIDToken, response);
+      setIDTokenIfGoodResponseFromGoogle(setIDToken, response, setLoginErrors);
     }, [response]);
   
     useEffect(() => {
@@ -415,28 +428,28 @@ function userNameValueOrLoading(userName?: string | null) {
 }
 
 const LoginOrLogoutButton: React.FC<{jwt: string | null, promptAsyncReady: boolean, promptAsync: (options?: AuthRequestPromptOptions | undefined) => Promise<AuthSessionResult>, logout: () => void, userName?: string | null}> = ({jwt, promptAsyncReady, promptAsync, logout, userName}) => {
-    const buttonDisable = disablePromptAsyncButton(jwt, promptAsyncReady);
-    if (!buttonDisable) {
-      return (
-          <>
-              <ValueOrLoading text="username: " value={userNameValueOrLoading(userName)} suffix=" (this shouldn't show up)"/>
-              <Button disabled={buttonDisable} title="Login" onPress={() => {promptAsync();}}/>
-          </>
-      );
-    }
-    if (userName === null) {
-      return (
-        <Button disabled={!buttonDisable} title="Log out" onPress={() => logout()}/>
-      );
-    }
-    if (userName === undefined) {
-      return (
-        <Button disabled={!buttonDisable} title="Log out of (username loading...)" onPress={() => logout()}/>
-    );      
-    }
+  const buttonDisable = disablePromptAsyncButton(jwt, promptAsyncReady);
+  if (!buttonDisable) {
     return (
-        <Button disabled={!buttonDisable} title={`Log out of ${userName}`} onPress={() => logout()}/>
+      <>
+          <ValueOrLoading text="username: " value={userNameValueOrLoading(userName)} suffix=" (this shouldn't show up)"/>
+          <Button disabled={buttonDisable} title="Login" onPress={() => {promptAsync();}}/>
+      </>
     );
+  }
+  if (userName === null) {
+    return (
+      <Button disabled={!buttonDisable} title="Log out" onPress={() => logout()}/>
+    );
+  }
+  if (userName === undefined) {
+    return (
+      <Button disabled={!buttonDisable} title="Log out of (username loading...)" onPress={() => logout()}/>
+    );      
+  }
+  return (
+      <Button disabled={!buttonDisable} title={`Log out of ${userName}`} onPress={() => logout()}/>
+  );
 }
 
 

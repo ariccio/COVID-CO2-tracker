@@ -49,7 +49,7 @@ const MeasurementTableHeader = (props: {withDelete?: boolean, innerLocation?: In
 }
 
 
-function measurementRowKey(measurement_id: string): string {
+function measurementRowKey(measurement_id: number): string {
     return `profile-measurement-entry-key-${measurement_id}`;
 }
     
@@ -69,6 +69,9 @@ function deleteClickHandler(event: React.MouseEvent<HTMLElement, MouseEvent>, me
         return awaitedResponse.json();
     }
     const defaultDeleteOptions = deleteRequestOptions();
+    if (measurement.id === null) {
+        throw new Error("tried to delete measurement with NULL id.");
+    }
     const thisDeleteMeasurements = (DELETE_MEASUREMENT_URL + '/' + measurement.id);
     const result = fetchJSONWithChecks(thisDeleteMeasurements, defaultDeleteOptions, 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<DeleteDeviceResponse>;
     result.then((response) => {
@@ -180,8 +183,11 @@ const CrowdingOrRealtime = (props: {measurement: SerializedSingleMeasurement}) =
     throw new Error("Bad combination, no crowding, no realtime.");
 }
 
-const deviceIDOrSerialWithLink = (id: string, deviceSerials?: Array<SerializedSingleDeviceSerial>) => {
+const deviceIDOrSerialWithLink = (id: number | null, deviceSerials?: Array<SerializedSingleDeviceSerial>) => {
     // debugger;
+    if (id === null) {
+        throw new Error("Rendering empty device?");
+    }
     if (deviceSerials && (deviceSerials.length > 0)) {
         const found = deviceSerials.find((serialized, index) => {
             return serialized.id === id;
@@ -210,7 +216,7 @@ const RebreathedFraction = (props: {co2ppm: number}) => {
 
 
 
-const mapMeasurementsToTableBody = (measurements: Array<SerializedSingleMeasurement>, dispatch: AppDispatch, setShowMeasurementModal: React.Dispatch<React.SetStateAction<boolean>>, setSelectedMeasurement: React.Dispatch<React.SetStateAction<string>>, withDelete?: boolean, innerLocation?: InnerLocationDetails, deviceSerials?: Array<SerializedSingleDeviceSerial>, withDevice?: boolean)/*: JSX.Element*/ => {
+const mapMeasurementsToTableBody = (measurements: Array<SerializedSingleMeasurement>, dispatch: AppDispatch, setShowMeasurementModal: React.Dispatch<React.SetStateAction<boolean>>, setSelectedMeasurement: React.Dispatch<React.SetStateAction<number | null>>, withDelete?: boolean, innerLocation?: InnerLocationDetails, deviceSerials?: Array<SerializedSingleDeviceSerial>, withDevice?: boolean)/*: JSX.Element*/ => {
     if (measurements === undefined) {
         throw new Error(`measurements is undefined! This is a bug in MeasurementsTable.tsx. deviceSerials: ${deviceSerials?.toString()}`);
     }
@@ -221,6 +227,10 @@ const mapMeasurementsToTableBody = (measurements: Array<SerializedSingleMeasurem
         // }
         // debugger;
         // const maybeDeviceId = (measurement.relationships ?  : '')
+        if (measurement.id === null) {
+            console.error("Corrupted measurement lacks ID, simply rendering null...");
+            return null;
+        }
         return (
             <tr key={measurementRowKey(measurement.id)}>
                 {/* <td>{index}</td> */}
@@ -245,9 +255,9 @@ const mapMeasurementsToTableBody = (measurements: Array<SerializedSingleMeasurem
 }
 
 
-const measureTableBody = (measurements: Array<SerializedSingleMeasurement>, dispatch: AppDispatch, setShowMeasurementModal: React.Dispatch<React.SetStateAction<boolean>>, setSelectedMeasurement: React.Dispatch<React.SetStateAction<string>>, withDelete?: boolean, innerLocation?: InnerLocationDetails, deviceSerials?: Array<SerializedSingleDeviceSerial>, withDevice?: boolean): JSX.Element =>
+const MeasureTableBody = (props: {measurements: Array<SerializedSingleMeasurement>, dispatch: AppDispatch, setShowMeasurementModal: React.Dispatch<React.SetStateAction<boolean>>, setSelectedMeasurement: React.Dispatch<React.SetStateAction<number | null>>, withDelete?: boolean, innerLocation?: InnerLocationDetails, deviceSerials?: Array<SerializedSingleDeviceSerial>, withDevice?: boolean}): JSX.Element =>
     <tbody>
-        {mapMeasurementsToTableBody(measurements, dispatch, setShowMeasurementModal, setSelectedMeasurement, withDelete, innerLocation, deviceSerials, withDevice)}
+        {mapMeasurementsToTableBody(props.measurements, props.dispatch, props.setShowMeasurementModal, props.setSelectedMeasurement, props.withDelete, props.innerLocation, props.deviceSerials, props.withDevice)}
     </tbody>
 
 
@@ -296,7 +306,7 @@ export const MeasurementsTable: React.FC<MeasurementsTableProps> = (props: Measu
     // debugger;
 
     const [showMeasurementModal, setShowMeasurementModal] = useState(false);
-    const [selectedMeasurement, setSelectedMeasurement] = useState('');
+    const [selectedMeasurement, setSelectedMeasurement] = useState(null as (number | null));
     // const [selectedMeasurementObj, setSelectedMeasurementObj] = useState(undefined as SerializedSingleMeasurement | undefined);
     if (props.measurements === undefined) {
         debugger;
@@ -318,7 +328,7 @@ export const MeasurementsTable: React.FC<MeasurementsTableProps> = (props: Measu
             <Suspense fallback="loading translations">
                 <Table striped bordered hover>
                     <MeasurementTableHeader withDelete={props.withDelete} innerLocation={props.innerLocation} withDevice={props.withDevice} />
-                    {measureTableBody(props.measurements, dispatch, setShowMeasurementModal, setSelectedMeasurement, props.withDelete, props.innerLocation, props.deviceSerials, props.withDevice)}
+                    <MeasureTableBody measurements={props.measurements} dispatch={dispatch} setShowMeasurementModal={setShowMeasurementModal} setSelectedMeasurement={setSelectedMeasurement} withDelete={props.withDelete} innerLocation={props.innerLocation} deviceSerials={props.deviceSerials} withDevice={props.withDevice}/>
                 </Table>
                 <ShowMeasurementModal showMeasurementModal={showMeasurementModal} setShowMeasurementModal={setShowMeasurementModal} selectedMeasurement={selectedMeasurement} setSelectedMeasurement={setSelectedMeasurement}/>
             </Suspense>
