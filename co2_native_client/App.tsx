@@ -391,7 +391,7 @@ function App() {
   const uploadStatus = useSelector(selectUploadStatus);
   const dispatch = useDispatch();
   const userSettings = useSelector(selectUserSettings);
-  const sucessfulUploads = useSelector(selectSuccessfulUploads);
+  const successfulUploads = useSelector(selectSuccessfulUploads);
 
   useEffect(() => {
     console.log("NOTE TO SELF: if no fetch requests are going through to local machine in dev, make sure running rails as 'rails s -b 0.0.0.0 to allow all through!");
@@ -420,7 +420,7 @@ function App() {
       <AuthContainer/>
       <MaybeIfValue text="Device fetch errors: " value={userDeviceErrors}/>
       <MaybeIfValue text="Realtime upload status/errors: " value={uploadStatus}/>
-      <MaybeIfValue text="Measurments uploaded: " value={sucessfulUploads} />
+      <MaybeIfValue text="Measurments uploaded: " value={successfulUploads} />
       <UserSettingsMaybeDisplay/>
       <StatusBar style="auto" />
     </SafeAreaProvider>

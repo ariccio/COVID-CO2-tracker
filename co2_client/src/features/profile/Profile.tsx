@@ -125,7 +125,7 @@ const deleteSettings = () => {
         return awaitedResponse.json();
     }
     const deleteSettingsSuccessCallback = async (awaitedResponse: Response): Promise<DeleteSettingsResponseType> => {
-        console.error(`Sucessfully deleted settings!`);
+        console.error(`Successfully deleted settings!`);
         return awaitedResponse.json();
     }
     const result = fetchJSONWithChecks(USER_SETTINGS_URL, init, 200, true, deleteSettingsFailedCallback, deleteSettingsSuccessCallback) as Promise<DeleteSettingsResponseType>;

@@ -1333,6 +1333,9 @@ function DisplayAppleNotSupported(): JSX.Element {
 function DisplayChromeSupported(): JSX.Element {
     const supportsGetDevices = useSelector(selectSupportsGetDevices);
     const [browser, _setBrowser] = useState(Bowser.getParser(window.navigator.userAgent).getBrowser());
+    console.warn(`A page or script is accessing at least one of navigator.userAgent, navigator.appVersion, and navigator.platform. Starting in Chrome 101, the amount of information available in the User Agent string will be reduced.
+    To fix this issue, replace the usage of navigator.userAgent, navigator.appVersion, and navigator.platform with feature detection, progressive enhancement, or migrate to navigator.userAgentData.
+    Note that for performance reasons, only the first access to one of the properties is shown.`);
     const [os, _setOS] = useState(Bowser.getParser(window.navigator.userAgent).getOS());
     if (browser.name === 'Chrome') {
         if ((os.name === 'Android')|| (os.name === 'Windows') || (os.name === 'macOS')) {

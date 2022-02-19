@@ -5,6 +5,9 @@ export function isMobileSafari(): boolean {
     //https://stackoverflow.com/a/29696509/625687
 
     //Note to self, "i" is flag for case insensitivity. Why do we have yet-another printf-like DSL?
+    console.warn(`A page or script is accessing at least one of navigator.userAgent, navigator.appVersion, and navigator.platform. Starting in Chrome 101, the amount of information available in the User Agent string will be reduced.
+    To fix this issue, replace the usage of navigator.userAgent, navigator.appVersion, and navigator.platform with feature detection, progressive enhancement, or migrate to navigator.userAgentData.
+    Note that for performance reasons, only the first access to one of the properties is shown.`);
     const ua = window.navigator.userAgent;
     const iPad = ua.match(/iPad/i);
     const iPhone = ua.match(/iPhone/i);
@@ -33,7 +36,9 @@ export function isMobileFacebookBrowser(): boolean {
         console.log(`window.PERSISTENT: ${persistent}`);
     }
 
-
+    console.warn(`A page or script is accessing at least one of navigator.userAgent, navigator.appVersion, and navigator.platform. Starting in Chrome 101, the amount of information available in the User Agent string will be reduced.
+    To fix this issue, replace the usage of navigator.userAgent, navigator.appVersion, and navigator.platform with feature detection, progressive enhancement, or migrate to navigator.userAgentData.
+    Note that for performance reasons, only the first access to one of the properties is shown.`);
     const ua = window.navigator.userAgent;
     const FBAN = ua.match(/FBAN/);
     const FBIOS = ua.match(/FBIOS/);

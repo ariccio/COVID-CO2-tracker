@@ -6,11 +6,11 @@ import { Link } from 'react-router-dom';
 import { placesPath } from '../../paths/paths';
 import { defaultGooglePlacesState } from '../google/googleSlice';
 
-const renderPlacesServiceStatus = (placesServiceStatus: google.maps.places.PlacesServiceStatus) => {
+const RenderPlacesServiceStatus = (props: {placesServiceStatus: google.maps.places.PlacesServiceStatus}) => {
     return (
         <div>
             <span>
-                Google Places service status: {placesServiceStatus}
+                Google Places service status: {props.placesServiceStatus}
                 <br/>
             </span>
         </div>
@@ -18,25 +18,25 @@ const renderPlacesServiceStatus = (placesServiceStatus: google.maps.places.Place
 }
 
 
-const renderPlacesServiceStatusWithHighlight = (placesServiceStatus: google.maps.places.PlacesServiceStatus) => {
-    if (placesServiceStatus !== google.maps.places.PlacesServiceStatus.OK) {
+const RenderPlacesServiceStatusWithHighlight = (props: {placesServiceStatus: google.maps.places.PlacesServiceStatus}) => {
+    if (props.placesServiceStatus !== google.maps.places.PlacesServiceStatus.OK) {
         return (
             <div>
                 <b><i><u>
-                    {renderPlacesServiceStatus(placesServiceStatus)}
+                    <RenderPlacesServiceStatus placesServiceStatus={props.placesServiceStatus}/>
                 </u></i></b>
             </div>
         )
     }
     return (
         <div>
-            {renderPlacesServiceStatus(placesServiceStatus)}
+            <RenderPlacesServiceStatus placesServiceStatus={props.placesServiceStatus}/>
         </div>
     )
 }
 
-const renderName = (name?: string) => {
-    if (name === undefined) {
+const RenderName = (props: {name?: string}) => {
+    if (props.name === undefined) {
         return (
             <div>
                 Missing place name!
@@ -54,8 +54,8 @@ const renderName = (name?: string) => {
     return null;
 }
 
-const renderFormattedAddress = (formatted_address?: string) => {
-    if (formatted_address === undefined) {
+const RenderFormattedAddress = (props: {formatted_address?: string}) => {
+    if (props.formatted_address === undefined) {
         return (
             <div>
                 Formatted address missing!
@@ -65,14 +65,14 @@ const renderFormattedAddress = (formatted_address?: string) => {
     }
     return (
         <div>
-            address: <i>{formatted_address}</i>
+            address: <i>{props.formatted_address}</i>
             <br/>
         </div>
     );
 }
 
-const renderTypes = (types?: Array<string>) => {
-    if (types === undefined) {
+const RenderTypes = (props: {types?: string[]}) => {
+    if (props.types === undefined) {
         return (
             <div>
                 Missing types!
@@ -82,14 +82,14 @@ const renderTypes = (types?: Array<string>) => {
     }
     return (
         <div>
-            types: <i>{types.join(', ')}</i>
+            types: <i>{props.types.join(', ')}</i>
             <br/>
         </div>
     );
 }
 
-const renderLinkWithName = (url?: string, name?: string) => {
-    if (url === undefined) {
+const RenderLinkWithName = (props: {url?: string, name?: string}) => {
+    if (props.url === undefined) {
         return (
             <div>
                 Missing url!
@@ -97,7 +97,7 @@ const renderLinkWithName = (url?: string, name?: string) => {
             </div>
         );
     }
-    if (name === undefined) {
+    if (props.name === undefined) {
         return (
             <div>
                 Missing name!
@@ -107,8 +107,8 @@ const renderLinkWithName = (url?: string, name?: string) => {
     }
     return (
         <div>
-            <a href={url}>
-                <b>{name} in Google Maps</b>
+            <a href={props.url}>
+                <b>{props.name} in Google Maps</b>
             </a>
             <br/>
         </div>
@@ -116,8 +116,8 @@ const renderLinkWithName = (url?: string, name?: string) => {
 }
 
 
-const renderLinkToPlacesWithName = (place_id?: string, name?: string) => {
-    if (place_id === undefined) {
+const RenderLinkToPlacesWithName = (props: {place_id?: string, name?: string}) => {
+    if (props.place_id === undefined) {
         return (
             <div>
                 Missing place_id!
@@ -125,7 +125,7 @@ const renderLinkToPlacesWithName = (place_id?: string, name?: string) => {
             </div>
         );
     }
-    if (name === undefined) {
+    if (props.name === undefined) {
         return (
             <div>
                 Missing name!
@@ -138,8 +138,8 @@ const renderLinkToPlacesWithName = (place_id?: string, name?: string) => {
             {/* <a href={url}>
                 <b>{name}</b>
             </a> */}
-            <Link to={`${placesPath}/${place_id}`}>
-                <b>See detailed info for {name}</b>
+            <Link to={`${placesPath}/${props.place_id}`}>
+                <b>See detailed info for {props.name}</b>
             </Link>
             <br/>
         </div>
@@ -147,8 +147,8 @@ const renderLinkToPlacesWithName = (place_id?: string, name?: string) => {
 }
 
 
-const renderVicinity = (vicinity?: string) => {
-    if (vicinity === undefined) {
+const RenderVicinity = (props: {vicinity?: string}) => {
+    if (props.vicinity === undefined) {
         return (
             <div>
                 Missing vicinity!
@@ -158,7 +158,7 @@ const renderVicinity = (vicinity?: string) => {
     }
     return (
         <div>
-            currentPlace.vicinity <i>{vicinity}</i>
+            currentPlace.vicinity <i>{props.vicinity}</i>
             <br/>
         </div>
     );
@@ -189,17 +189,17 @@ export const RenderSelectedPlaceInfo = (props: {currentPlace: google.maps.places
     // }
     return (
         <div>
-            {renderPlacesServiceStatusWithHighlight(props.placesServiceStatus)}
-            {renderLinkWithName(props.currentPlace.url, props.currentPlace.name)}
-            {renderLinkToPlacesWithName(props.currentPlace.place_id, props.currentPlace.name)}
+            <RenderPlacesServiceStatusWithHighlight placesServiceStatus={props.placesServiceStatus}/>
+            <RenderLinkWithName url={props.currentPlace.url} name={props.currentPlace.name}/>
+            <RenderLinkToPlacesWithName place_id={props.currentPlace.place_id} name={props.currentPlace.name}/>
             {/* {renderPlaceId(currentPlace.place_id)} */}
-            {renderFormattedAddress(props.currentPlace.formatted_address)}
+            <RenderFormattedAddress formatted_address={props.currentPlace.formatted_address}/>
             {/* {currentPlace.icon ? `currentPlace.icon: ${currentPlace.icon}` : null} 
             {currentPlace.icon ? <img src={currentPlace.icon} alt={`google supplied icon for ${currentPlace.name}`}/> : null}
             <br/> */}
-            {renderTypes(props.currentPlace.types)}
-            {renderVicinity(props.currentPlace.vicinity)}
-            {renderName(props.currentPlace.name)}
+            <RenderTypes types={props.currentPlace.types}/>
+            <RenderVicinity vicinity={props.currentPlace.vicinity}/>
+            <RenderName name={props.currentPlace.name}/>
             <br/>
         </div>
     )

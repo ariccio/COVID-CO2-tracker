@@ -43,11 +43,11 @@ type NavBarProps = {
 
 // ugly casts fixes some kind of bizarre bug in styled components: https://github.com/styled-components/styled-components/issues/1198#issuecomment-336621217
 // as unknown as unknown is my hack to fix THAT bug's interaction with typescript
-const loggedIn = (username: string) =>
-  <NavDropdown title={username} id="basic-nav-dropdown" flip={1 as unknown as boolean} align="end" renderMenuOnMount>
+const LoggedIn = (props: {username: string}) =>
+  <NavDropdown title={props.username} id="basic-nav-dropdown" flip={1 as unknown as boolean} align="end" renderMenuOnMount>
     <NavDropdown.Item>
         <LinkContainer to={profilePath}>
-            <NavItem className='nav-item'>{username}'s profile</NavItem>
+            <NavItem className='nav-item'>{props.username}'s profile</NavItem>
         </LinkContainer>
     </NavDropdown.Item>
     <NavDropdown.Item>
@@ -55,8 +55,8 @@ const loggedIn = (username: string) =>
     </NavDropdown.Item>
   </NavDropdown>
 
-function loginOrSignupMaybe(username: string): JSX.Element {
-  if (username === '') {
+const LoginOrSignupMaybe = (props: {username: string}): JSX.Element => {
+  if (props.username === '') {
     // console.log("no username, rendering login/signup options")
     return (
       <div>
@@ -66,7 +66,7 @@ function loginOrSignupMaybe(username: string): JSX.Element {
   }
   // console.log("logged in, rendering profile and logout");
   // debugger;
-  return loggedIn(username);
+  return <LoggedIn username={props.username}/>;
 }
 
 
@@ -128,7 +128,7 @@ const UserNav: React.FC<UserNavProps> = ({username, googleProfile}) => {
             <Nav className="container-fluid justify-content-end" variant="tabs" style={{display:"flex", flexDirection:"row", float: "right"}}>
                 {/* {profileIfLoggedIn(username)} */}
                 <Nav.Link href="https://github.com/ariccio/COVID-CO2-tracker">Github/{translate('sponsor')}</Nav.Link>
-                {loginOrSignupMaybe(username)}
+                <LoginOrSignupMaybe username={username}/>
                 
                 {/* <NavItem className='nav-item' pullRight>{props.username}</NavItem> */}
             </Nav>
@@ -186,8 +186,9 @@ const loadEmail = (dispatch: AppDispatch, username: string) => {
       console.error(`Email errors: ${formatErrors(email.errors)}`)
     }
   }).catch((error) => {
-    console.error(`Failed to get email from server! fetch itself failed with error ${error}`);
-    alert(`Failed to get your email. Did you interrupt the fetch with a refresh or abort? Is your connection bad? Error message: ${error.message}`);
+    console.error(`Failed to get email from server! fetch itself failed with error '${error}'`);
+    debugger;
+    // alert(`Failed to get your email. Did you interrupt the fetch with a refresh or abort? Is your connection bad? Error message: ${error.message}`);
     // debugger;
     // throw error;
   })

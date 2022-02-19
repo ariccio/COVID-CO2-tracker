@@ -185,7 +185,7 @@ export const googlePlacesSlice = createSlice({
 
 //lat and lng are functions because google loves OO. Redux does not like functions as data. They aren't serializable.
 export function autocompleteSelectedPlaceToAction(action_: google.maps.places.PlaceResult): placeResultWithTranslatedType {
-    console.log("the utc_offset warning in the next line is spurious. I do not use that field, but copying this object touches it.");
+    // console.log("the utc_offset warning in the next line is spurious. I do not use that field, but copying this object touches it.");
     const action = Object.assign({}, action_);
     const lat = action.geometry?.location?.lat();
     const lng = action.geometry?.location?.lng();

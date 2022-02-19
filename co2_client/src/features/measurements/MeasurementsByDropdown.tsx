@@ -25,7 +25,7 @@ const maybeDescription = (location: SublocationMeasurements, withDescription: bo
     if (withDescription) {
         return (
             <div>
-                Inner location description: {location.description}
+                Inner location description: {location.description} - ({location.measurements.data.length} measurements)
             </div>
         );
     }

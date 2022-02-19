@@ -202,7 +202,7 @@ const loginWithIDToken = (id_token: string) => {
             console.log(`Logging into server failed: ${formatErrors(response.errors)}`);
         }
         else {
-            console.log("sucessfully logged in to server!");
+            console.log("successfully logged in to server!");
         }
         return;
 
