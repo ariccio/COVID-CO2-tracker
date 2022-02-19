@@ -40,7 +40,9 @@ class User < ApplicationRecord
     #   ::Measurement.measurement_with_device_as_json(measurement)
     # end
 
+    byebug
     ::MeasurementSerializer.new(ordered).serializable_hash
+    # ::MeasurementSerializer.new(ordered, include: [:extra_measurement_info]).serializable_hash
   end
 
   def last_measurement
