@@ -1,7 +1,7 @@
 // See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { UserSettings } from '../../../../co2_client/src/utils/UserSettings';
 
+import { UserSettings } from '../../../../co2_client/src/utils/UserSettings';
 // import { UserSettings } from '../../../../co2_client/src/utils/UserInfoTypes';
 import { RootState } from '../../app/rootReducer';
 

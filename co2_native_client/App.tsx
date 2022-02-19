@@ -311,6 +311,77 @@ async function realtimeUpload(jwt: string, measurement: MeasurementDataForUpload
   return result;
 }
 
+
+function measurementChange(measurement: MeasurementDataForUpload | null, userSettings: UserSettings | null | undefined, jwt: string | null, dispatch: AppDispatch) {
+  console.log(`Measurement changed! ${JSON.stringify(measurement)}`);
+
+  // dispatch(addMeasurement())
+  if (!userSettings) {
+    console.log("No user settings, nothing to upload.");
+    return;
+  }
+  if (!(userSettings.setting_place_google_place_id)) {
+    console.log("No place to upload to.");
+    return;
+  }
+
+  if (!(userSettings.realtime_upload_sub_location_id)) {
+    console.log("No sublocation to upload to.");
+    return;
+  }
+
+  if (jwt === null) {
+    console.log("cannot upload, not logged in.");
+    return;
+  }
+  if (measurement === null) {
+    console.log("measurement is null?");
+    return;
+  }
+  dispatch(setUploadStatus(`Uploading new measurement (${measurement.co2ppm})...`));
+  realtimeUpload(jwt, measurement, userSettings).then((response) => {
+    if (response.errors) {
+      debugger;
+      dispatch(setUploadStatus(`Error uploading measurement: ${formatErrors(response.errors)}`));
+      return;
+    }
+    dispatch(setUploadStatus(`Sucessful at ${(new Date(Date.now())).toLocaleTimeString()}`));
+  }).catch((error) => {
+    dispatch(setUploadStatus(`Error uploading measurement: ${String(error)}`));
+    debugger;
+  });
+}
+
+function loadDevices(jwt: string | null, userName: string | null | undefined, setUserDeviceErrors: React.Dispatch<React.SetStateAction<string | null>>, dispatch: AppDispatch) {
+  // console.log("Getting devices...");
+  get_my_devices(jwt, userName)?.then((devicesResponse) => {
+    handleDevicesResponse(devicesResponse, setUserDeviceErrors, dispatch);
+
+  }).catch((error) => {
+    setUserDeviceErrors(`Getting devices failed! Probably a bad network connection. Error: ${String(error)}`);
+    // eslint-disable-next-line no-debugger
+    debugger;
+    throw error;
+  })
+}
+
+function loadSettings(jwt: string | null, userName: string | null | undefined, dispatch: AppDispatch) {
+  getSettings(jwt, userName)?.then((response) => {
+    if (response === null) {
+      console.log("user has no settings.");
+      dispatch(setUserSettingsErrors('User has not created settings.'));
+      return;
+    }
+    console.log(`Got user settings response: ${JSON.stringify(response)}`);
+    dispatch(setUserSettings(response));
+    // debugger;
+  }).catch((error) => {
+    dispatch(setUserSettingsErrors(String(error)))
+    debugger;
+  })
+
+}
+
 function App() {
   const {device, measurement} = useBluetoothConnectAranet();
   const jwt = useSelector(selectJWT);
@@ -326,72 +397,16 @@ function App() {
   }, []);
 
   useEffect(() => {
-    // console.log("Getting devices...");
-    get_my_devices(jwt, userName)?.then((devicesResponse) => {
-      handleDevicesResponse(devicesResponse, setUserDeviceErrors, dispatch);
-
-    }).catch((error) => {
-      setUserDeviceErrors(`Getting devices failed! Probably a bad network connection. Error: ${String(error)}`);
-      // eslint-disable-next-line no-debugger
-      debugger;
-      throw error;
-    })
+    loadDevices(jwt, userName, setUserDeviceErrors, dispatch);
   }, [userName, jwt])
 
   useEffect(() => {
-    getSettings(jwt, userName)?.then((response) => {
-      if (response === null) {
-        console.log("user has no settings.");
-        dispatch(setUserSettingsErrors('User has not created settings.'));
-        return;
-      }
-      console.log(`Got user settings response: ${JSON.stringify(response)}`);
-      dispatch(setUserSettings(response));
-      // debugger;
-    }).catch((error) => {
-      dispatch(setUserSettingsErrors(String(error)))
-      debugger;
-    })
+    loadSettings(jwt, userName, dispatch);
   }, [userName, jwt])
 
 
   useEffect(() => {
-    console.log(`Measurement changed! ${JSON.stringify(measurement)}`);
-
-    // dispatch(addMeasurement())
-    if (!userSettings) {
-      console.log("No user settings, nothing to upload.");
-      return;
-    }
-    if (!(userSettings.setting_place_google_place_id)) {
-      console.log("No place to upload to.");
-      return;
-    }
-
-    if (!(userSettings.realtime_upload_sub_location_id)) {
-      console.log("No sublocation to upload to.");
-      return;
-    }
-
-    if (jwt === null) {
-      console.log("cannot upload, not logged in.");
-      return;
-    }
-    if (measurement === null) {
-      console.log("measurement is null?");
-      return;
-    }
-    dispatch(setUploadStatus(`Uploading new measurement (${measurement.co2ppm})...`));
-    debugger;
-    realtimeUpload(jwt, measurement, userSettings).then((response) => {
-      if (response.errors) {
-        dispatch(setUploadStatus(`Error uploading measurement: ${formatErrors(response.errors)}`));
-        return;
-      }
-      dispatch(setUploadStatus(`Sucessful at ${(new Date(Date.now())).toLocaleTimeString()}`));
-    }).catch((error) => {
-      dispatch(setUploadStatus(`Error uploading measurement: ${String(error)}`));
-    });
+    measurementChange(measurement, userSettings, jwt, dispatch);
 
   }, [measurement])
 
@@ -402,7 +417,7 @@ function App() {
       <MaybeNoSupportedBluetoothDevices/>
       <AuthContainer/>
       <MaybeIfValue text="Device fetch errors: " value={userDeviceErrors}/>
-      <MaybeIfValue text="Realtime upload errors: " value={uploadStatus}/>
+      <MaybeIfValue text="Realtime upload status/errors: " value={uploadStatus}/>
       <UserSettingsMaybeDisplay/>
       <StatusBar style="auto" />
     </SafeAreaProvider>

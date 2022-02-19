@@ -95,6 +95,17 @@ const maybeRenderMeasurements = (userInfo: UserInfoType) => {
     )
 }
 
+const RenderMeasurementsCount = (props: {userInfo: UserInfoType}) => {
+    if (props.userInfo.user_info.measurements === null) {
+        return null;
+    }
+    return (
+        <span>
+            ({props.userInfo.user_info.measurements.data.length})
+        </span>
+    );
+}
+
 function deleteSettingsRequestInit(): RequestInit {
     const defaultRequestOptions = deleteRequestOptions();
     // const newOptions = {
@@ -303,7 +314,7 @@ export const Profile: React.FC<ProfileProps> = () => {
             <Settings userSettings={settings} errors={settingsErrors}/><br/>
             Devices:
             <DevicesTable devices={userInfo.user_info.devices}/>
-            Measurements:
+            Measurements <RenderMeasurementsCount userInfo={userInfo}/>:
             {maybeRenderMeasurements(userInfo)}
             {errorState}
         </div>

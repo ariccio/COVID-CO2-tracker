@@ -1,5 +1,6 @@
 import { Text } from 'react-native';
 import { useSelector } from "react-redux";
+
 // import { defaultUserSettings } from "../../../../co2_client/src/utils/UserSettings";
 import { MaybeIfValue } from "../../utils/RenderValues";
 import { selectUserSettings, selectUserSettingsErrors } from "../userInfo/userInfoSlice"

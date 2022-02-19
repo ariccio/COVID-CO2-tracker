@@ -253,7 +253,7 @@ export const ChoosePlaceAsDefault: React.FC<{place_id?: string | undefined}> = (
     // debugger;
 
     if (settings === undefined) {
-        debugger;
+        // debugger;
         return (
             <>
                 <MaybeUserInfoErrors settingsErrors={settingsErrors}/><br/>
