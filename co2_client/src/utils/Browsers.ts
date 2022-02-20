@@ -8,6 +8,11 @@ export function isMobileSafari(): boolean {
     console.warn(`A page or script is accessing at least one of navigator.userAgent, navigator.appVersion, and navigator.platform. Starting in Chrome 101, the amount of information available in the User Agent string will be reduced.
     To fix this issue, replace the usage of navigator.userAgent, navigator.appVersion, and navigator.platform with feature detection, progressive enhancement, or migrate to navigator.userAgentData.
     Note that for performance reasons, only the first access to one of the properties is shown.`);
+    console.log("Notes to self, see the following:");
+    console.log("https://blog.chromium.org/2021/09/user-agent-reduction-origin-trial-and-dates.html");
+    console.log("https://web.dev/migrate-to-ua-ch/");
+    console.log("https://www.chromium.org/updates/ua-reduction/");
+
     const ua = window.navigator.userAgent;
     const iPad = ua.match(/iPad/i);
     const iPhone = ua.match(/iPhone/i);
@@ -39,6 +44,11 @@ export function isMobileFacebookBrowser(): boolean {
     console.warn(`A page or script is accessing at least one of navigator.userAgent, navigator.appVersion, and navigator.platform. Starting in Chrome 101, the amount of information available in the User Agent string will be reduced.
     To fix this issue, replace the usage of navigator.userAgent, navigator.appVersion, and navigator.platform with feature detection, progressive enhancement, or migrate to navigator.userAgentData.
     Note that for performance reasons, only the first access to one of the properties is shown.`);
+    console.log("Notes to self, see the following:");
+    console.log("https://blog.chromium.org/2021/09/user-agent-reduction-origin-trial-and-dates.html");
+    console.log("https://web.dev/migrate-to-ua-ch/");
+    console.log("https://www.chromium.org/updates/ua-reduction/");
+
     const ua = window.navigator.userAgent;
     const FBAN = ua.match(/FBAN/);
     const FBIOS = ua.match(/FBIOS/);
