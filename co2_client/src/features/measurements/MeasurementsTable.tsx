@@ -154,16 +154,22 @@ const RiskRow = (props: {co2ppm: number}) => {
 
 const CrowdingOrRealtime = (props: {measurement: SerializedSingleMeasurement}) => {
     if (props.measurement.attributes.crowding !== null) {
-        if (props.measurement.attributes.extra_measurement_info !== null) {
+        //NOTE TO SELF: right now, serializing the extra measurement info is getting super slow. So Just assume FOR NOW that anything without crowding is realtime.
+        if (props.measurement.attributes.extra_measurement_info) {
+            debugger;
             throw new Error(`Bad combination of crowding and realtime! ${JSON.stringify(props.measurement)}`);
         }
         return (
             <td>{props.measurement.attributes.crowding}</td>
-        )
+        );
     }
     if (props.measurement.attributes.extra_measurement_info === undefined) {
-        debugger;
+        //NOTE TO SELF: right now, serializing the extra measurement info is getting super slow. So Just assume FOR NOW that anything without crowding is realtime.
+        return (
+            <td><p style={{color:"red"}}>Realtime measurement!</p></td>
+        );
     }
+    debugger;
     if (props.measurement.attributes.extra_measurement_info !== null) {
         if (props.measurement.attributes.crowding !== null) {
             throw new Error(`Bad combination of realtime and crowding! ${JSON.stringify(props.measurement)}`);
@@ -177,7 +183,7 @@ const CrowdingOrRealtime = (props: {measurement: SerializedSingleMeasurement}) =
             }
             return (
                 <td><p style={{color:"red"}}>Realtime measurement!</p></td>
-            )
+            );
         }
         throw new Error("Missing realtime?");
     }

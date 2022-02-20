@@ -16,7 +16,7 @@ class Place < ApplicationRecord
       #   ::Measurement.measurement_with_device_as_json(measurement)
       # end
       # byebug
-      temp = ::MeasurementSerializer.new(loc.measurement.includes([:extra_measurement_info]).order('measurementtime DESC')).serializable_hash
+      temp = ::MeasurementSerializer.new(loc.measurement.order('measurementtime DESC')).serializable_hash
       {
         sub_location_id: loc.id,
         description: loc.description,

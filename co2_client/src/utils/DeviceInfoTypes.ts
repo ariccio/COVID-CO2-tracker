@@ -92,7 +92,7 @@ export interface SerializedSingleMeasurement {
         crowding: number | null,
         updated_at: string,
         created_at: string,
-        extra_measurement_info: ExtraMeasurementInfo | null
+        extra_measurement_info?: ExtraMeasurementInfo | null
     },
     relationships: {
         device: {

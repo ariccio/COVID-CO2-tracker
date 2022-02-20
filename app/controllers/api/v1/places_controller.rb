@@ -73,6 +73,10 @@ module Api
         @place = ::Place.includes(:sub_location).find_by!(google_place_id: params.fetch(:google_place_id))
         refresh_latlng_from_google
 
+        # if Rails.env.development?
+        #   serial = ::PlaceSerializer.new(@place)
+        #   byebug
+        # end
         # TODO: place_measurementtime_desc discards the fetched info
         # TODO: use an ACTUAL place serializer, serializing sublocations and measurements
         measurements = @place.place_measurementtime_desc
