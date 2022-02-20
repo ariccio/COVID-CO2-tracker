@@ -4,7 +4,7 @@
 import {Buffer} from 'buffer';
 import { useEffect, useState } from 'react';
 import { PermissionsAndroid, Text, Button, NativeSyntheticEvent, NativeTouchEvent } from 'react-native';
-import { BleManager, Device, BleError, LogLevel, Service, Characteristic, BleErrorCode, DeviceId, State } from 'react-native-ble-plx';
+import { BleManager, Device, BleError, LogLevel, Service, Characteristic, BleErrorCode, DeviceId, State, BleAndroidErrorCode } from 'react-native-ble-plx';
 import { useDispatch, useSelector } from 'react-redux';
 
 
@@ -534,7 +534,10 @@ function bleErrorToUsefulString(error: BleError): string {
 
 function filterBleReadError(error: unknown, dispatch: AppDispatch, deviceID: string | null): void | boolean {
     if (error instanceof BleError) {
-        // 0x89 === GATT_AUTH_FAIL
+        if (error.errorCode === BleErrorCode.OperationCancelled) {
+            dispatch(setDeviceStatusString('Bluetooth read was cancelled for some reason. Will try again.'));
+            return true;
+        }
         if (error.errorCode === BleErrorCode.DeviceNotConnected) {
             console.log(`Device ${deviceID} not connected. Data not available. Will try again.`);
             dispatch(setDeviceStatusString('Read failed, connection lost! Will try again..'));
@@ -553,6 +556,23 @@ function filterBleReadError(error: unknown, dispatch: AppDispatch, deviceID: str
         if (error.errorCode === BleErrorCode.OperationTimedOut) {
             console.log(`Bluetooth operation timed out.`);
             dispatch(setDeviceStatusString('Read failed, OS reports operation timed out! Will try again..'));
+            return true;
+        }
+        //0x11 === GATT_INSUF_RESOURCE
+        //Need to cast because react-native-ble-plx doesn't enumerate this? :)
+        if ((error.androidErrorCode as number) === 0x11) {
+            dispatch(setDeviceStatusString("Your device didn't even have enough memory to process the error message! There's something wrong, I will NOT try again. I didn't expect to see this problem, ever!"));
+            debugger;
+            return false;
+        }
+        //NoResources === 0x80
+        if (error.androidErrorCode === BleAndroidErrorCode.NoResources) {
+            dispatch(setDeviceStatusString("Your device is out of memory, no point in trying again!"));
+        }
+        //0x81 === GATT_INTERNAL_ERROR (android messed up)
+        if (error.androidErrorCode === 0x81) {
+            console.log("Google screwed up!");
+            dispatch(setDeviceStatusString("Android did something wrong (GATT_INTERNAL_ERROR), nothing I can do except try again..."));
             return true;
         }
         //0x85 === GATT_ERROR (a generic error)
@@ -652,6 +672,7 @@ async function pollAranet4(setTimeoutHandle: React.Dispatch<React.SetStateAction
     if (!knownDevice) {
         // debugger;
     }
+    console.log("polling...");
     const updated = await updateCallback(deviceID, dispatch, beginWithDeviceConnection, finish);
     if (updated === undefined) {
         console.log("Failed to read measurement from known device. Nothing to upload");
@@ -667,12 +688,16 @@ async function pollAranet4(setTimeoutHandle: React.Dispatch<React.SetStateAction
         return;
     }
     if (supportedDevices === null) {
-        dispatch(setUploadStatus('Cannot upload measurement to server. Device not in known devices?'));
+        dispatch(setUploadStatus('Still loading user devices, cannot upload measurement to server. This should go away in a minute or so.'));
         return;
     }
     if (updated.genericInfo.serialNumberString === null) {
         debugger;
         console.error("missing serial number AFTER read?");
+        return;
+    }
+    if (supportedDevices.length === 0) {
+        dispatch(setUploadStatus(`You haven't configured any devices in the web interface! You need to do that before you can upload data :)`));
         return;
     }
     const deviceIDInDatabase = deviceIDFromUserInfoDevice(supportedDevices, updated.genericInfo.serialNumberString);
@@ -815,13 +840,13 @@ export const useBluetoothConnectAranet = () => {
     }, [aranet4SpecificInformation?.measurementInterval])
 
     useEffect(() => {
+        if (timeoutHandle !== null) {
+            console.log("Timeout already set, ignoring.")
+            return;
+        }
 
         const timerTime = maybeNextMeasurementInOrDefault(aranet4SpecificInformation);
         if (deviceID === null) {
-            return;
-        }
-        if (timeoutHandle !== null) {
-            console.log("Timeout already set, ignoring.")
             return;
         }
         console.log(`Setting update timer (${timerTime/1000} seconds)...`);
@@ -1013,6 +1038,12 @@ function maybeNextMeasurementIn(aranet4MeasurementInterval: number | null, arane
     return maybeNext;
 }
 
+function atLeastOneMinute(maybeNextSeconds: number): number {
+    const plusMinute = maybeNextSeconds + 60;
+    const asMS = plusMinute * 1000;
+    return asMS;
+}
+
 function maybeNextMeasurementInOrDefault(aranet4SpecificInformation: Aranet4SpecificInformation | null) {
     const defaultTime = (1000 * 10);
     if (aranet4SpecificInformation === null) {
@@ -1027,15 +1058,20 @@ function maybeNextMeasurementInOrDefault(aranet4SpecificInformation: Aranet4Spec
     }
     // console.log(`measurement interval: ${aranet4SpecificInformation.measurementInterval}, seconds since last measurement: ${aranet4SpecificInformation.secondsSinceLastMeasurement}`);
     const maybeNextSeconds = (aranet4SpecificInformation.measurementInterval - aranet4SpecificInformation.secondsSinceLastMeasurement) + 1;
-    const maybeNext = (maybeNextSeconds * 1000);
-    if (maybeNext < 5000) {
-        if (maybeNext < 100) {
+    if (maybeNextSeconds < 60) {
+        // debugger;
+        return atLeastOneMinute(maybeNextSeconds);
+    }
+    const maybeNextMs = (maybeNextSeconds * 1000);
+    if (maybeNextMs < 5000) {
+        if (maybeNextMs < 100) {
             debugger;
         }
         console.log("Interval too short. Setting interval to 5 seconds");
         return 5000;
     }
-    return maybeNext;
+    
+    return maybeNextMs;
 }
 
 
