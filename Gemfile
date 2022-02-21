@@ -75,3 +75,11 @@ gem 'barnes'
 gem 'sentry-ruby'
 
 gem 'sentry-rails'
+
+
+gem 'tzinfo-data'
+
+
+# https://stackoverflow.com/a/70500221/625687
+gem 'net-smtp', require: false
+

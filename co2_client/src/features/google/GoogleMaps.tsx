@@ -363,7 +363,7 @@ const onClickMaps = (e: google.maps.MapMouseEvent, setCenter: React.Dispatch<Rea
         lng: e.latLng.lng()
     }
     setCenter(latlng);
-    dispatch(setMapCenter(latLng));
+    dispatch(setMapCenter(latlng));
     // debugger;
     if (service === null) {
         console.error("Maps clicked, but service not ready yet.");
@@ -753,6 +753,13 @@ function placeSelectedWithCoords(selectedPlace: placeResultWithTranslatedType): 
     return latlng;
 }
 
+const geolocationButtonClick = (geolocationInProgress: boolean, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>, setGeolocationInProgress: React.Dispatch<React.SetStateAction<boolean>>) => {
+    if (geolocationInProgress) {
+        return;
+    }
+    invokeBrowserGeolocation(setCenter, geolocationInProgress, setGeolocationInProgress);
+}
+
 export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) => {
 
     //TODO: streetview service?
@@ -841,14 +848,6 @@ export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) =
         setMapLoaded(false);
     }, [])
 
-
-    // useEffect(() => {
-    //     // console.log("set zoom")
-    //     map?.setZoom(_zoomLevel);
-    //     // debugger;
-    //     // console.log(_zoomLevel);
-    // }, [_zoomLevel])
-
     useEffect(() => {
         if (service?.getDetails === undefined) {
             console.log("service null, nothing to update...");
@@ -881,13 +880,7 @@ export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) =
                 {placeMarkersDataDebugText(placeMarkersFetchInProgres, placeMarkersFromDatabase, placeMarkersFetchStartMS, placeMarkersFetchFinishMS)}
                 <br/>
                 <AutocompleteElement map={map} setCenter={setCenter} mapLoaded={mapLoaded}/>
-                <Button onClick={() => {
-                    if (geolocationInProgress) {
-                        return;
-                    }
-                    invokeBrowserGeolocation(setCenter, geolocationInProgress, setGeolocationInProgress);
-                    }
-                }>
+                <Button onClick={() => {geolocationButtonClick(geolocationInProgress, setCenter, setGeolocationInProgress)}}>
                     {geolocationInProgress ? "geolocation running..." : translate('find-me')}
                 </Button>
                 <br/>
