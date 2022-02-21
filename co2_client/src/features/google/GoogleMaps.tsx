@@ -12,7 +12,7 @@ import { Button, Form } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 
 
-import {selectSelectedPlace, selectPlacesServiceStatus, autocompleteSelectedPlaceToAction, placeResultWithTranslatedType} from '../google/googleSlice';
+import {selectSelectedPlace, selectPlacesServiceStatus, autocompleteSelectedPlaceToAction, placeResultWithTranslatedType, defaultCenter} from '../google/googleSlice';
 
 import {setSelectedPlace, INTERESTING_FIELDS} from './googleSlice';
 
@@ -41,10 +41,6 @@ interface MapsProps {
     definitely_not_an_apeeeye_key: string
 }
 
-const defaultCenter: google.maps.LatLngLiteral = {
-    lat: 40.76797,
-    lng: -73.9592
-};
 
 //Some dumb problem with typescript:
 //   interface GeolocationPositionError {
@@ -314,6 +310,7 @@ const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null
                     lng: placeLocation.location.lng()
                 }
                 setCenter(loc);
+                dispatch(setMapCenter(loc));
             }
             else {
                 console.warn("Can't set center because placeLocation is defined, but placeLocatio.location is undefined. Huh?");
@@ -366,6 +363,7 @@ const onClickMaps = (e: google.maps.MapMouseEvent, setCenter: React.Dispatch<Rea
         lng: e.latLng.lng()
     }
     setCenter(latlng);
+    dispatch(setMapCenter(latLng));
     // debugger;
     if (service === null) {
         console.error("Maps clicked, but service not ready yet.");
@@ -920,3 +918,7 @@ export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) =
         </div>
     )
 }
+function setMapCenter(loc: google.maps.LatLngLiteral): any {
+    throw new Error('Function not implemented.');
+}
+

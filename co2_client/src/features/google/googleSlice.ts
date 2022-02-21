@@ -119,6 +119,12 @@ export const INTERESTING_FIELDS = [
     "utc_offset_minutes"
 ];
 
+export const defaultCenter: google.maps.LatLngLiteral = {
+    lat: 40.76797,
+    lng: -73.9592
+};
+
+
 type geometryPODType = {
     geometry_translated?: {
         lat?: number,
@@ -128,24 +134,26 @@ type geometryPODType = {
 
 export type placeResultWithTranslatedType = google.maps.places.PlaceResult & geometryPODType;
 
-interface googlePlacesState {
+interface GooglePlacesState {
     // google.maps.places.
     selected: placeResultWithTranslatedType,
     placesServiceStatus: google.maps.places.PlacesServiceStatus | null,
     definitelyNotAMapsAPeeEyeKey: string,
     mapsAaaPeeEyeKeyErrorState: string,
+    mapCenter: google.maps.LatLngLiteral
     // selectedPlaceIdString: string
     // isLoaded: boolean,
     // JSAPILoadError: Error | undefined
 }
 
-export const defaultGooglePlacesState: googlePlacesState = {
+export const defaultGooglePlacesState: GooglePlacesState = {
     selected: {
         name: ''
     },
     placesServiceStatus: null,
     definitelyNotAMapsAPeeEyeKey: '',
     mapsAaaPeeEyeKeyErrorState: '',
+    mapCenter: defaultCenter
     // selectedPlaceIdString: ''
     // isLoaded: false,
     // JSAPILoadError: undefined
@@ -169,6 +177,9 @@ export const googlePlacesSlice = createSlice({
         },
         setMapsAaaPeeEyeKeyErrorState: (state, action: PayloadAction<string>) => {
             state.mapsAaaPeeEyeKeyErrorState = action.payload;
+        },
+        setMapCenter: (state, action: PayloadAction<google.maps.LatLngLiteral>) => {
+            state.mapCenter = action.payload;
         }
         // setSelectedPlaceIdString: (state, action: PayloadAction<string>) => {
         //     state.selectedPlaceIdString = action.payload;
@@ -210,6 +221,7 @@ export const selectSelectedPlace = (state: RootState) => state.places.selected;
 export const selectPlacesServiceStatus = (state: RootState) => state.places.placesServiceStatus;
 export const selectMapsAaPeEyeKey = (state: RootState) => state.places.definitelyNotAMapsAPeeEyeKey;
 export const selectMapsAaaPeeEyeKeyErrorState = (state: RootState) => state.places.mapsAaaPeeEyeKeyErrorState;
+export const selectMapCenter = (state: RootState) => state.places.mapCenter;
 // export const selectSelectedPlaceIdString = (state: RootState) => state.places.selectedPlaceIdString;
 // export const selectIsLoaded = (state: RootState) => state.places.isLoaded;
 // export const selectJSApiLoadError = (state: RootState) => state.places.JSAPILoadError;
