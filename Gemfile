@@ -72,6 +72,6 @@ gem 'validates_timeliness', '~> 6.0.0.alpha1'
 
 gem 'barnes'
 
-gem 'sentry-ruby', '~> 4.3'
+gem 'sentry-ruby'
 
-gem 'sentry-rails', '~> 4.3'
+gem 'sentry-rails'
