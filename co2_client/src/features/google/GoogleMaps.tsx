@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 
 import {selectSelectedPlace, selectPlacesServiceStatus, autocompleteSelectedPlaceToAction, placeResultWithTranslatedType, defaultCenter} from '../google/googleSlice';
 
-import {setSelectedPlace, INTERESTING_FIELDS} from './googleSlice';
+import {setSelectedPlace, INTERESTING_FIELDS, setMapCenter} from './googleSlice';
 
 import {updatePlacesInfoFromBackend, queryPlacesInBoundsFromBackend} from '../../utils/QueryPlacesInfo';
 import { defaultPlaceMarkers, EachPlaceFromDatabaseForMarker, placesFromDatabaseForMarker, selectPlaceMarkersFromDatabase, selectPlacesMarkersErrors, selectPlaceMarkersFetchInProgress, setPlaceMarkersFetchInProgress, selectPlaceMarkersFetchStartMS, selectPlaceMarkersFetchFinishMS } from '../places/placesSlice';
@@ -71,18 +71,66 @@ interface GeolocationPositionError_ {
     readonly TIMEOUT: number;
 };
 
+const USER_DENIED_GEOLOCATION_STRING = "User denied Geolocation";
+
+function handleGeolocationPermissionDenied(error: GeolocationPositionError_) {
+    if (!window.isSecureContext) {
+        console.log("!window.isSecureContext");
+        alert("Location permission denied by user or browser settings, and not running app from a secure (https) context. Move map manually or try reloading with an encrypted (https) context.");
+        Sentry.captureMessage("GeolocationPositionError.PERMISSION_DENIED, not in a secure context?");
+        return;
+    }
+    if (isMobileFacebookBrowser()) {
+        console.log("isMobileFacebookBrowser()");
+        alert(`Location permission denied by user or browser settings. Move map manually. You seem to be browsing from facebook, and my telemetry suggests facebook might block location access. If you didn't get a prompt about locaiton permissions, you can try opening in a full browser! (click the three dots at top right, then click 'Open in browser')`);
+
+        // Note: I've seen "Location Services not available." as the error.message in facebook safari webviews.
+
+        Sentry.captureMessage("Facebook GeolocationPositionError.PERMISSION_DENIED.");
+        return;
+    }
+    if (isMobileSafari()) {
+        console.log("isMobileSafari()");
+        alert(`Location permission denied by user or browser settings. Move map manually. Some users on iOS devices seem to have disabled location services in the *system* privacy options, and Safari will not show a dialog to prompt you. Check if you have set it to "Never" in Settings -> Privacy -> Location Services -> Safari Websites. Sorry about this, but it's Apple's design decision, not mine..`);
+        Sentry.captureMessage("Safari GeolocationPositionError.PERMISSION_DENIED.");
+        return;
+    }
+    if (error.message === USER_DENIED_GEOLOCATION_STRING) {
+        console.log(`error.message === '${USER_DENIED_GEOLOCATION_STRING}', user probably denied the permissions request. Nothing to do!`);
+        alert(error.message);
+        return;
+    }
+    //do nothing
+    alert(`Location permission denied by user or browser settings. Move map manually. Secure context: ${window.isSecureContext}`);
+    Sentry.captureMessage("GeolocationPositionError.PERMISSION_DENIED, unknown reason?");
+
+}
+
+function handlePositionUnavailable(error: GeolocationPositionError_) {
+    if (error.message.includes("application does not have sufficient geolocation permissions")) {
+        alert("It looks like the browser you're using doesn't have geolocation permissions. I've seen this in my telemetry coming from the facebook browser. If you're browsing from facebook, try opening in a full browser (click the three dots at top right, then click 'Open in browser') and try again!");
+        Sentry.captureMessage("GeolocationPositionError.POSITION_UNAVAILABLE - facebook browser?");
+        return;    
+        }
+    console.error("The position of the device could not be determined. For instance, one or more of the location providers used in the location acquisition process reported an internal error that caused the process to fail entirely.");
+    console.error("perusing the chromium sources suggests failed network location provider requests are one example.");
+    alert(`Some kind of internal error getting the position. Message given by your browser: ${error.message}. Move map manually. Sorry!`);
+    Sentry.captureMessage("GeolocationPositionError.POSITION_UNAVAILABLE");
+}
+
+
 
 const errorPositionCallback = (error: GeolocationPositionError_, geolocationInProgress: boolean, setGeolocationInProgress: React.Dispatch<React.SetStateAction<boolean>>) => {
     console.assert(geolocationInProgress);
     setGeolocationInProgress(false);
-    const userDeniedString = "User denied Geolocation";
+    
     const errorStr = JSON.stringify(error);
     console.log("GeolocationPositionError interface: https://w3c.github.io/geolocation-api/#position_error_interface");
     console.error(`GeolocationPositionError.code: ${error.code}, message: ${error.message}.`);
     console.error(`Full error object text as stringified JSON: ${errorStr}`);
-    if (error.message !== userDeniedString) {
+    if (error.message !== USER_DENIED_GEOLOCATION_STRING) {
         console.log(`error.message !== userDeniedString`);
-        console.log(`i.e.: '${error.message}' !== '${userDeniedString}'`)
+        console.log(`i.e.: '${error.message}' !== '${USER_DENIED_GEOLOCATION_STRING}'`)
     }
     //These really are the only three, surprisingly:
     //https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/modules/geolocation/geolocation.cc;l=75;drc=1d00cb24b27d946f3061e0a81e09efed8001ad45?q=GeolocationPositionError
@@ -93,47 +141,11 @@ const errorPositionCallback = (error: GeolocationPositionError_, geolocationInPr
     //https://source.chromium.org/chromium/chromium/src/+/master:services/device/geolocation/network_location_request.cc;l=290;drc=1d00cb24b27d946f3061e0a81e09efed8001ad45
     if (error.code === /*GeolocationPositionError.PERMISSION_DENIED*/ 1) {
         console.warn("The location acquisition process failed because the document does not have permission to use the Geolocation API.");
-        if (!window.isSecureContext) {
-            console.log("!window.isSecureContext");
-            alert("Location permission denied by user or browser settings, and not running app from a secure (https) context. Move map manually or try reloading with an encrypted (https) context.");
-            Sentry.captureMessage("GeolocationPositionError.PERMISSION_DENIED, not in a secure context?");
-            return;
-        }
-        if (isMobileFacebookBrowser()) {
-            console.log("isMobileFacebookBrowser()");
-            alert(`Location permission denied by user or browser settings. Move map manually. You seem to be browsing from facebook, and my telemetry suggests facebook might block location access. If you didn't get a prompt about locaiton permissions, you can try opening in a full browser! (click the three dots at top right, then click 'Open in browser')`);
-
-            // Note: I've seen "Location Services not available." as the error.message in facebook safari webviews.
-
-            Sentry.captureMessage("Facebook GeolocationPositionError.PERMISSION_DENIED.");
-            return;
-        }
-        if (isMobileSafari()) {
-            console.log("isMobileSafari()");
-            alert(`Location permission denied by user or browser settings. Move map manually. Some users on iOS devices seem to have disabled location services in the *system* privacy options, and Safari will not show a dialog to prompt you. Check if you have set it to "Never" in Settings -> Privacy -> Location Services -> Safari Websites. Sorry about this, but it's Apple's design decision, not mine..`);
-            Sentry.captureMessage("Safari GeolocationPositionError.PERMISSION_DENIED.");
-            return;
-        }
-        if (error.message === userDeniedString) {
-            console.log(`error.message === '${userDeniedString}', user probably denied the permissions request. Nothing to do!`);
-            alert(error.message);
-            return;
-        }
-        //do nothing
-        alert(`Location permission denied by user or browser settings. Move map manually. Secure context: ${window.isSecureContext}`);
-        Sentry.captureMessage("GeolocationPositionError.PERMISSION_DENIED, unknown reason?");
+        handleGeolocationPermissionDenied(error);
         return;
     }
     else if (error.code === /*GeolocationPositionError.POSITION_UNAVAILABLE*/ 2) {
-        if (error.message.includes("application does not have sufficient geolocation permissions")) {
-            alert("It looks like the browser you're using doesn't have geolocation permissions. I've seen this in my telemetry coming from the facebook browser. If you're browsing from facebook, try opening in a full browser (click the three dots at top right, then click 'Open in browser') and try again!");
-            Sentry.captureMessage("GeolocationPositionError.POSITION_UNAVAILABLE - facebook browser?");
-            return;    
-            }
-        console.error("The position of the device could not be determined. For instance, one or more of the location providers used in the location acquisition process reported an internal error that caused the process to fail entirely.");
-        console.error("perusing the chromium sources suggests failed network location provider requests are one example.");
-        alert(`Some kind of internal error getting the position. Message given by your browser: ${error.message}. Move map manually. Sorry!`);
-        Sentry.captureMessage("GeolocationPositionError.POSITION_UNAVAILABLE");
+        handlePositionUnavailable(error);
         return;
     }
     else if (error.code === /*GeolocationPositionError.TIMEOUT*/ 3) {
@@ -259,6 +271,7 @@ const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (pr
 
 const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null, dispatch: AppDispatch, map: google.maps.Map | null, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>, setErrorState: React.Dispatch<React.SetStateAction<string>>) => {
     if (autocomplete === null) {
+        console.log("No autocomplete, but autocomplete place change handler?");
         return;
     }
     // debugger;
@@ -266,57 +279,22 @@ const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null
     // Returns the details of the Place selected by user if the details were successfully retrieved.
     // Otherwise returns a stub Place object, with the name property set to the current value of the input field.
     const place = autocomplete.getPlace();
-    console.table(place);
+    // console.table(place);
     if (place.place_id === undefined) {
         console.log("autocomplete likely returned a stub object, place probably not found!");
         setErrorState(`'${place.name}' not found. Try picking from dropdown list.`);
         return;
     }
-    // autocomplete.
-    // console.log(`id: ${place.id}`);
+
     console.log(`place_id: ${place.place_id}`);
-    if (place.geometry?.location !== undefined) {
-        console.log(`geometry.location.toString: ${place.geometry?.location.toString()}`);
-    }
-    else {
-        console.log('place.geometry.location is undefined!')
-    }
-    if (place.geometry?.viewport !== undefined) {
-        console.log(`geometry.viewport.toString: ${place.geometry?.viewport.toString()}`)
-    }
-    else {
-        console.log('place.geometry.viewport is undefined!')
-    }
-    // autocomplete.getPlace()
-    // debugger;
-    // const geometry = autocomplete.getPlace()
-    const placeForAction = autocompleteSelectedPlaceToAction(place);
-    dispatch(setSelectedPlace(placeForAction));
-    if (placeForAction.place_id === undefined) {
-        debugger;
-        throw new Error('autocomplete place_id is undefined! Hmm.');
-    }
-    // dispatch(setSelectedPlaceIdString(placeForAction.place_id));
+    logPlaceGeometry(place);
+
+    setPlaceFromAutocompletePlace(place, dispatch);
+
     dispatch(setSublocationSelectedLocationID(-1));
-    if (map) {
-        // debugger;
-        const placeLocation = place.geometry;
-        if (placeLocation) {
-            // debugger;
-            // map.setCenter(placeLocation.location)
-            if (placeLocation.location !== undefined) {
-                const loc: google.maps.LatLngLiteral = {
-                    lat: placeLocation.location.lat(),
-                    lng: placeLocation.location.lng()
-                }
-                setCenter(loc);
-                dispatch(setMapCenter(loc));
-            }
-            else {
-                console.warn("Can't set center because placeLocation is defined, but placeLocatio.location is undefined. Huh?");
-            }
-        }
-    }
+    // console.log("Autocomplete updating map center...");
+    updateMapCenter(map, place, setCenter, dispatch);
+    // console.log("Autocomplete updated map center!");
     const placeId = place.place_id;
     if (placeId === undefined) {
         console.log('no place to query');
@@ -397,6 +375,57 @@ const autoCompleteLoadThunk = (autocompleteEvent: google.maps.places.Autocomplet
 }
 
 
+function setPlaceFromAutocompletePlace(place: google.maps.places.PlaceResult, dispatch: AppDispatch) {
+    const placeForAction = autocompleteSelectedPlaceToAction(place);
+    dispatch(setSelectedPlace(placeForAction));
+    if (placeForAction.place_id === undefined) {
+        debugger;
+        throw new Error('autocomplete place_id is undefined! Hmm.');
+    }
+}
+
+function updateMapCenter(map: google.maps.Map | null, place: google.maps.places.PlaceResult, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>, dispatch: AppDispatch) {
+    if (!map) {
+        debugger;
+        return;
+    }
+    // debugger;
+    const placeLocation = place.geometry;
+    if (!placeLocation) {
+        debugger;
+        return;
+    }
+    // debugger;
+    // map.setCenter(placeLocation.location)
+    if (placeLocation.location === undefined) {
+        console.warn("Can't set center because placeLocation is defined, but placeLocation.location is undefined. Huh?");
+        return;
+    }
+
+    const loc: google.maps.LatLngLiteral = {
+        lat: placeLocation.location.lat(),
+        lng: placeLocation.location.lng()
+    };
+    setCenter(loc);
+    dispatch(setMapCenter(loc));
+    debugger;
+}
+
+function logPlaceGeometry(place: google.maps.places.PlaceResult) {
+    if (place.geometry?.location !== undefined) {
+        console.log(`geometry.location.toString: ${place.geometry?.location.toString()}`);
+    }
+    else {
+        console.log('place.geometry.location is undefined!');
+    }
+    if (place.geometry?.viewport !== undefined) {
+        console.log(`geometry.viewport.toString: ${place.geometry?.viewport.toString()}`);
+    }
+    else {
+        console.log('place.geometry.viewport is undefined!');
+    }
+}
+
 function legalNoticeNote() {
     console.log("legal notice to self:");
     console.log("(a)  No Scraping. Customer will not export, extract, or otherwise scrape Google Maps Content for use outside the Services. For example, Customer will not: (i) pre-fetch, index, store, reshare, or rehost Google Maps Content outside the services; (ii) bulk download Google Maps tiles, Street View images, geocodes, directions, distance matrix results, roads information, places information, elevation values, and time zone details; (iii) copy and save business names, addresses, or user reviews; or (iv) use Google Maps Content with text-to-speech services.");
@@ -451,23 +480,24 @@ const clustererCallback = (placeMarkersFromDatabase: placesFromDatabaseForMarker
 
 }
 
-const renderMarkers = (placeMarkersFromDatabase: placesFromDatabaseForMarker, placeMarkerErrors: string, dispatch: AppDispatch, service: google.maps.places.PlacesService | null) => {
-    if (placeMarkerErrors !== '') {
+const Markers = (props: {placeMarkersFromDatabase: placesFromDatabaseForMarker, placeMarkerErrors: string, service: google.maps.places.PlacesService | null}) => {
+    const dispatch = useDispatch();
+    if (props.placeMarkerErrors !== '') {
         console.error("cant render markers, got errors:");
-        console.error(placeMarkerErrors);
+        console.error(props.placeMarkerErrors);
         return null;
     }
-    if (placeMarkersFromDatabase === defaultPlaceMarkers) {
+    if (props.placeMarkersFromDatabase === defaultPlaceMarkers) {
         // console.log("Not rendering place markers, still loading from database...");
         return null;
     }
-    if (placeMarkersFromDatabase === null) {
+    if (props.placeMarkersFromDatabase === null) {
         console.log("default state?");
         debugger;
         return null;
     }
 
-    if (placeMarkersFromDatabase.places === null) {
+    if (props.placeMarkersFromDatabase.places === null) {
         console.log("No markers.");
         return null;
     }
@@ -475,7 +505,7 @@ const renderMarkers = (placeMarkersFromDatabase: placesFromDatabaseForMarker, pl
     return (
         <MarkerClusterer averageCenter={true} minimumClusterSize={2} maxZoom={14}>
             {(clusterer) => {
-                return clustererCallback(placeMarkersFromDatabase, dispatch, clusterer, service);
+                return clustererCallback(props.placeMarkersFromDatabase, dispatch, clusterer, props.service);
             }}
         </MarkerClusterer>
     )
@@ -599,17 +629,13 @@ const GoogleMapInContainer = (props: {
         <div className="map">
             <div className="map-container">
                 <GoogleMap 
-                    mapContainerStyle={containerStyle}
-                    onLoad={props.onLoad}
-                    onUnmount={props.onUnmount}
-                    options={mapOptions}
+                    mapContainerStyle={containerStyle} onLoad={props.onLoad} onUnmount={props.onUnmount} options={mapOptions}
                     
                     onClick={(e: google.maps.MapMouseEvent) => {onClickMaps(e, props.setCenter, dispatch, props.service); updateMarkers(props.map, dispatch)}}
                     onIdle={() => onMapIdle(props.map, props.mapLoaded, props.setMapLoaded, dispatch)}
                     /*onTilesLoaded={() => {console.log("tiles loaded"); updateMarkers(map, dispatch)}}*/
                     >
-                        { /* Child components, such as markers, info windows, etc. */}
-                        {renderMarkers(placeMarkersFromDatabase, placeMarkerErrors, dispatch, props.service)}
+                        <Markers placeMarkersFromDatabase={placeMarkersFromDatabase} placeMarkerErrors={placeMarkerErrors} service={props.service}/>
                 </GoogleMap>
             </div>
         </div>
@@ -773,6 +799,55 @@ const GeolocationButton = (props: {setCenter: React.Dispatch<React.SetStateActio
     )
 }
 
+const handleMapUnmount = (map: google.maps.Map | null, setMap: React.Dispatch<React.SetStateAction<google.maps.Map | null>>, setMapLoaded: React.Dispatch<React.SetStateAction<boolean>>) => {
+    console.log("map unmount")
+    if (map === null) {
+        console.error("map already null?");
+    }
+    setMap(null);
+    setMapLoaded(false);
+};
+
+const handleMapLoaded = (map_: google.maps.Map, setMap: React.Dispatch<React.SetStateAction<google.maps.Map | null>>, setService: React.Dispatch<React.SetStateAction<google.maps.places.PlacesService | null>>) => {
+    // console.log("map load")
+    loadCallback(map_, setMap, setService);
+    // debugger;
+}
+
+const PlacesServiceStatus = () => {
+    const placesServiceStatus = useSelector(selectPlacesServiceStatus);
+    const [translate] = useTranslation();
+
+    if (placesServiceStatus !== null) {
+        return (
+            <div>
+                {(translate('last-query-status') + placesServiceStatus)}
+            </div>    
+        );
+    }
+    return null;
+}
+
+
+const MapsLoadError = (props: {loadError: Error}) => {
+    console.warn("Google maps Load error, if you're using a headless browser or a crawler, I shake my fist at you.")
+    console.warn("stringified error:")
+    console.error(JSON.stringify(props.loadError))
+    Sentry.captureException(props.loadError);
+
+    //TODO: maybe I can check with a fetch or something?
+    return (
+        <div>
+            Google maps load failed!<br/>
+            Message, if any: {props.loadError.message}<br/>
+            This failure has been reported automatically. There's usually not much I can do about this - something went wrong loading google libraries - but I keep track of it anyways.<br/>
+
+            Full error object: {JSON.stringify(props.loadError)}
+        </div>
+    );
+
+}
+
 export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) => {
 
     //TODO: streetview service?
@@ -781,14 +856,12 @@ export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) =
 
     const dispatch = useDispatch();
 
-    const [translate] = useTranslation();
-
     const [center, setCenter] = useState(defaultCenter);
     const [map, setMap] = React.useState(null as google.maps.Map | null);
     const [service, setService] = useState(null as google.maps.places.PlacesService | null);
     const [mapLoaded, setMapLoaded] = useState(false);
 
-    const placesServiceStatus = useSelector(selectPlacesServiceStatus);
+    
     const selectedPlace = useSelector(selectSelectedPlace);
     const username = useSelector(selectUsername);
     
@@ -805,22 +878,11 @@ export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) =
     //Needed (for now) to update on clicking markers
     // const [selectedPlaceIdString, setSelectedPlaceIdString] = useState('');
 
-    
-
-    // debugger;
     const { isLoaded, loadError } = useJsApiLoader({
         id: 'google-map-script',
         googleMapsApiKey: props.definitely_not_an_apeeeye_key,
         libraries: GOOGLE_LIBRARIES
     })
-
-    const onLoad = React.useCallback((map_: google.maps.Map) => {
-        // console.log("map load")
-        loadCallback(map_, setMap, setService);
-        // debugger;
-    }, []);
-
-    //I think in order to end the warnings here, I need to use a useCallback instead of a useEffect, to deliberatley ignore changes?
 
     useEffect(() => {
         if (username === '') {
@@ -850,24 +912,17 @@ export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) =
         centerChange(map, mapLoaded, center, dispatch)
     }, [center])
 
-    const onUnmount = React.useCallback(function callback(map: google.maps.Map | null) {
-        console.log("map unmount")
-        if (map === null) {
-            console.error("map already null?");
-        }
-        setMap(null);
-        setMapLoaded(false);
-    }, [])
 
-    useEffect(() => {
-        if (service?.getDetails === undefined) {
-            console.log("service null, nothing to update...");
-            return;
-        }
-        // console.log(`useEffect, updating on new place: selectedPlace.place_id: "${selectedPlace.place_id}"`);
-        // debugger;
-        // updateOnNewPlace(service, dispatch, selectedPlace.place_id);
-    }, [service, dispatch, selectedPlace.place_id])
+
+    // useEffect(() => {
+    //     if (service?.getDetails === undefined) {
+    //         console.log("service null, nothing to update...");
+    //         return;
+    //     }
+    //     // console.log(`useEffect, updating on new place: selectedPlace.place_id: "${selectedPlace.place_id}"`);
+    //     // debugger;
+    //     // updateOnNewPlace(service, dispatch, selectedPlace.place_id);
+    // }, [service])
 
     useEffect(legalNoticeNote, []);
     
@@ -887,31 +942,19 @@ export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) =
 
         return (
             <div>
-                <GoogleMapInContainer onLoad={onLoad} onUnmount={onUnmount} map={map} setCenter={setCenter} mapLoaded={mapLoaded} setMapLoaded={setMapLoaded} service={service}/>
+                <GoogleMapInContainer onLoad={(mapLoaded) => handleMapLoaded(mapLoaded, setMap, setService)} onUnmount={() => handleMapUnmount(map, setMap, setMapLoaded)} map={map} setCenter={setCenter} mapLoaded={mapLoaded} setMapLoaded={setMapLoaded} service={service}/>
                 <PlaceMarkersDataDebugText/>
                 <br/>
                 <AutocompleteElement map={map} setCenter={setCenter} mapLoaded={mapLoaded}/>
                 <GeolocationButton setCenter={setCenter} /><br/>
-                {placesServiceStatus !== null ? (translate('last-query-status') + placesServiceStatus) : null}
+                <PlacesServiceStatus/>
             </div>
         );
     }
     if (loadError) {
-        console.warn("Google maps Load error, if you're using a headless browser or a crawler, I shake my fist at you.")
-        console.warn("stringified error:")
-        console.error(JSON.stringify(loadError))
-        Sentry.captureException(loadError);
-
-        //TODO: maybe I can check with a fetch or something?
         return (
-            <div>
-                Google maps load failed!<br/>
-                Message, if any: {loadError.message}<br/>
-                This failure has been reported automatically. There's usually not much I can do about this - something went wrong loading google libraries - but I keep track of it anyways.<br/>
-
-                Full error object: {JSON.stringify(loadError)}
-            </div>
-        );
+            <MapsLoadError loadError={loadError}/>
+        )
     }
     return (
         <div>
@@ -919,7 +962,3 @@ export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) =
         </div>
     )
 }
-function setMapCenter(loc: google.maps.LatLngLiteral): any {
-    throw new Error('Function not implemented.');
-}
-

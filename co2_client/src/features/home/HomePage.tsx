@@ -62,8 +62,8 @@ const renderInfoFromDatabase = (selectedPlaceInfoFromDatabase: SelectedPlaceData
         return null;
     }
     if (selectedPlaceInfoFromDatabase.measurements_by_sublocation === undefined) {
-            //Seen in sentry, was undefined.
-            console.warn(`"selectedPlaceInfoFromDatabase.measurements_by_sublocation" === undefined. No measurements to fetch. Rest of object: ${JSON.stringify(selectedPlaceInfoFromDatabase)}`);
+        //Seen in sentry, was undefined.
+        console.warn(`"selectedPlaceInfoFromDatabase.measurements_by_sublocation" === undefined. No measurements to fetch. Rest of object: ${JSON.stringify(selectedPlaceInfoFromDatabase)}`);
         }
     return (
         <div>
@@ -163,9 +163,7 @@ const HomePage: FunctionComponent<{}> = (props: any) => {
     //Transparently uses placeResultWithTranslatedType
     const currentPlace = useSelector(selectSelectedPlace);
     const selectedPlaceInfoFromDatabase = useSelector(selectPlacesInfoFromDatabase);
-    const selectedPlaceInfoFromDatabaseErrors = useSelector(selectPlacesInfoErrors);
-    const selectedPlaceExistsInDatabase = useSelector(selectPlaceExistsInDatabase);
-    const placesServiceStatus = useSelector(selectPlacesServiceStatus);
+
     const mapsAaaPeeEyeKey = useSelector(selectMapsAaPeEyeKey);
     const mapsAaPeeEyeKeyErrorState = useSelector(selectMapsAaaPeeEyeKeyErrorState);
 
@@ -210,29 +208,25 @@ const HomePage: FunctionComponent<{}> = (props: any) => {
             <h3>{translate('welcome-header')}</h3>
             <br/>
             <Button href={YOUTUBE_VIDEO_INSTRUCTIONS_URL}>{translate('Instruction video')}</Button>
-            <br/>
-            <br/>
-            <br/>
+            <br/><br/><br/>
             <Container>
                 <Row className="show-grid">
                     <Col md={6} xs={12}>
                         {renderMapsWhenLoaded(mapsAaaPeeEyeKey)}
                         <br/>
                         {mapsAaPeeEyeKeyErrorState}
-                        <br/>
-                        <br/>
+                        <br/><br/>
                     </Col>
-                    <PlaceContainer infoRef={infoRef} currentPlace={currentPlace} location={location} setShowCreateNewMeasurement={setShowCreateNewMeasurement} showCreateNewMeasurement={showCreateNewMeasurement} selectedPlaceInfoFromDatabase={selectedPlaceInfoFromDatabase} selectedPlaceInfoFromDatabaseErrors={selectedPlaceInfoFromDatabaseErrors} placesServiceStatus={placesServiceStatus} selectedPlaceExistsInDatabase={selectedPlaceExistsInDatabase} localitySelectedWarningString={localitySelectedWarningString}/>
+                    <PlaceContainer infoRef={infoRef} location={location} setShowCreateNewMeasurement={setShowCreateNewMeasurement} showCreateNewMeasurement={showCreateNewMeasurement} localitySelectedWarningString={localitySelectedWarningString}/>
                 </Row>
                 <Row className="show-grid">
                     <Col md={6} xs={12}>
-                            <AppStatsContainer/>
+                        <AppStatsContainer/>
                     </Col>
                 </Row>
-
             </Container>
         </div>
-    )
+    );
 }
 
 export const HomePageContainer = () => {
@@ -242,27 +236,26 @@ export const HomePageContainer = () => {
                 <HomePage/>
             </Suspense>
         </div>
-    )
-
+    );
 }
 
 interface PlaceContainerProps {
     infoRef: React.MutableRefObject<HTMLDivElement | null>;
-    currentPlace: placeResultWithTranslatedType;
     location: ReturnType<typeof useLocation>;
     setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>;
     showCreateNewMeasurement: boolean;
-    selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo;
-    selectedPlaceInfoFromDatabaseErrors: string;
-    placesServiceStatus: google.maps.places.PlacesServiceStatus | null;
-    selectedPlaceExistsInDatabase: boolean | null;
     localitySelectedWarningString: string;
 }
 
 const PlaceContainer: React.FC<PlaceContainerProps> = (props: PlaceContainerProps) => {
+    const currentPlace = useSelector(selectSelectedPlace);
+    const selectedPlaceInfoFromDatabase = useSelector(selectPlacesInfoFromDatabase);
+    const selectedPlaceInfoFromDatabaseErrors = useSelector(selectPlacesInfoErrors);
+    const placesServiceStatus = useSelector(selectPlacesServiceStatus);
+    const selectedPlaceExistsInDatabase = useSelector(selectPlaceExistsInDatabase);
     return <Col md={6} xs={12} ref={props.infoRef}>
         <div>
-            <RenderPlace currentPlace={props.currentPlace} location={props.location} setShowCreateNewMeasurement={props.setShowCreateNewMeasurement} showCreateNewMeasurement={props.showCreateNewMeasurement} selectedPlaceInfoFromDatabase={props.selectedPlaceInfoFromDatabase} selectedPlaceInfoFromDatabaseErrors={props.selectedPlaceInfoFromDatabaseErrors} placesServiceStatus={props.placesServiceStatus} selectedPlaceExistsInDatabase={props.selectedPlaceExistsInDatabase} localitySelectedWarningString={props.localitySelectedWarningString}/>
+            <RenderPlace currentPlace={currentPlace} location={props.location} setShowCreateNewMeasurement={props.setShowCreateNewMeasurement} showCreateNewMeasurement={props.showCreateNewMeasurement} selectedPlaceInfoFromDatabase={selectedPlaceInfoFromDatabase} selectedPlaceInfoFromDatabaseErrors={selectedPlaceInfoFromDatabaseErrors} placesServiceStatus={placesServiceStatus} selectedPlaceExistsInDatabase={selectedPlaceExistsInDatabase} localitySelectedWarningString={props.localitySelectedWarningString}/>
             <br />
             <br />
             <Suspense fallback="Loading translations...">
