@@ -263,7 +263,7 @@ async function readBatteryLevelFromBluetoothDevice(deviceID: string): Promise<nu
 
 async function readGenericBluetoothInformation(deviceID: string): Promise<GenericBluetoothInformation> {
     // dispatch(setScanningStatusString(`Beginning serial number read...`));
-    let serialNumberStringError = null;
+    // let serialNumberStringError = null;
 
     const serialNumberString = await readSerialNumberFromBluetoothDevice(deviceID);
     
@@ -272,17 +272,17 @@ async function readGenericBluetoothInformation(deviceID: string): Promise<Generi
     // setSerialNumberString(serialNumberString);
     if (serialNumberString.length === 0) {
         console.warn(`Device ${deviceID} has an empty serial number string?`);
-        serialNumberStringError = new Error(`Device ${deviceID} has an empty serial number string?`);
+        // serialNumberStringError = new Error(`Device ${deviceID} has an empty serial number string?`);
     }
     // dispatch(setScanningStatusString(`Got serial number! ('${serialNumberString}')`));
 
     const deviceNameString = await readDeviceNameFromBluetoothDevice(deviceID)
-    let deviceNameStringError = null;
+    // let deviceNameStringError = null;
     console.log(`Device name: ${deviceNameString}`)
     // setDeviceNameString(deviceNameString);
     if (deviceNameString.length === 0) {
         console.warn(`Device ${deviceID} has an empty name?`);
-        deviceNameStringError = new Error(`Device ${deviceID} has an empty name?`);
+        // deviceNameStringError = new Error(`Device ${deviceID} has an empty name?`);
     }
     // dispatch(`Got device name! ('${deviceNameString}')`);
     // dispatch(setScanningStatusString(null));
@@ -386,7 +386,7 @@ async function readAranet4SpecificInformation(deviceID: string, dispatch: AppDis
     // if(!device?.serviceUUIDs?.includes(BLUETOOTH.ARANET4_SENSOR_SERVICE_UUID)) {
     //     debugger;
     // }
-    const co2CharacteristicMeasurement = await readAranet4Co2Characteristic(deviceID!)
+    const co2CharacteristicMeasurement = await readAranet4Co2Characteristic(deviceID)
     
     // console.log(`Aranet4 measurement:`);
     console.log(`\tCO2: ${co2CharacteristicMeasurement?.co2}ppm`);
@@ -394,7 +394,7 @@ async function readAranet4SpecificInformation(deviceID: string, dispatch: AppDis
     // console.log(`\tHumidity: ${co2CharacteristicMeasurement?.humidity}%`);
 
     dispatch(setDeviceStatusString('Reading aranet4 seconds since last measurement...'));
-    const secondsSinceLastMeasurement = await readAranet4SecondsSinceLastMeasurementCharacteristic(deviceID!)
+    const secondsSinceLastMeasurement = await readAranet4SecondsSinceLastMeasurementCharacteristic(deviceID)
     /*
 
             if (action.payload) {
@@ -607,7 +607,6 @@ async function forceEnableBluetooth(dispatch: AppDispatch) {
     else {
         dispatch(setScanningStatusString(`Bluetooth manager status: ${bluetothState}`));
     }
-    return;
 }
 
 interface Aranet4GenericAndSpecificInformation {

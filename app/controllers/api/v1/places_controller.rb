@@ -74,6 +74,14 @@ module Api
         refresh_latlng_from_google
 
         # if Rails.env.development?
+        #   # serial = ::PlaceSerializer.new(@place)
+        #   # Much faster than current method!
+        #   meas = ::MeasurementSerializer.new(@place.measurement)
+        #   # pp meas
+        #   byebug
+        # end
+
+        # if Rails.env.development?
         #   serial = ::PlaceSerializer.new(@place)
         #   byebug
         # end
