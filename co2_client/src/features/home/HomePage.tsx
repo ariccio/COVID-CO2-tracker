@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 
 import {Container, Row, Col} from 'react-bootstrap';
 
-import {selectSelectedPlace, defaultGooglePlacesState, selectPlacesServiceStatus, selectMapsAaPeEyeKey, selectMapsAaaPeeEyeKeyErrorState, setMapsAaaPeeEyeKey, setMapsAaaPeeEyeKeyErrorState, placeResultWithTranslatedType} from '../google/googleSlice';
+import {selectSelectedPlace, defaultGooglePlacesState, selectPlacesServiceStatus, selectMapsAaPeEyeKey, selectMapsAaaPeeEyeKeyErrorState, setMapsAaaPeeEyeKey, setMapsAaaPeeEyeKeyErrorState} from '../google/googleSlice';
 import {getGoogleMapsJavascriptAaaaPeeEyeKey} from '../../utils/GoogleAPIKeys';
 
 import {GoogleMapsContainer} from '../google/GoogleMaps';

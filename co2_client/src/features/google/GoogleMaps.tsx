@@ -408,7 +408,7 @@ function updateMapCenter(map: google.maps.Map | null, place: google.maps.places.
     };
     setCenter(loc);
     dispatch(setMapCenter(loc));
-    debugger;
+    // debugger;
 }
 
 function logPlaceGeometry(place: google.maps.places.PlaceResult) {
@@ -651,6 +651,7 @@ const centerChange = (map: google.maps.Map | null, mapLoaded: boolean, center: g
         console.log("map not loaded, not setting center");
         return;
     }
+
     console.log(`center changed ${center.lat}, ${center.lng}`);
     map.setCenter(center);
     updateMarkers(map, dispatch);
@@ -862,9 +863,10 @@ export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) =
     const [mapLoaded, setMapLoaded] = useState(false);
 
     
-    const selectedPlace = useSelector(selectSelectedPlace);
     const username = useSelector(selectUsername);
     
+    //Should be useRef
+    const selectedPlace = useSelector(selectSelectedPlace);
     
     // Displayed on HomePage.
     // const selectedPlaceInfoFromDatabaseErrors = useSelector(selectPlacesInfoErrors);
@@ -884,11 +886,14 @@ export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) =
         libraries: GOOGLE_LIBRARIES
     })
 
+
+    //Pan to selected place only on first load, should utilize a useRef for selected place.
     useEffect(() => {
         if (username === '') {
             // debugger;
             return;
         }
+        //Should be useRef
         const selected = placeSelectedWithCoords(selectedPlace);
         if (selected) {
             if (map === null) {
@@ -908,9 +913,8 @@ export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) =
     }, [username, map])
 
     useEffect(() => {
-        console.log("center changed!");
         centerChange(map, mapLoaded, center, dispatch)
-    }, [center])
+    }, [center, map, mapLoaded, dispatch])
 
 
 
@@ -954,11 +958,11 @@ export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) =
     if (loadError) {
         return (
             <MapsLoadError loadError={loadError}/>
-        )
+        );
     }
     return (
         <div>
             Google maps loading...
         </div>
-    )
+    );
 }
