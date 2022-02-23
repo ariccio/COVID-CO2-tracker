@@ -224,6 +224,7 @@ function filterUnsupportedDevices(device: UserInfoDevice): boolean {
   return !(filterSupportedDevices(device));
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function dumpUserDevicesInfoResponse(response: UserDevicesInfo): void {
   console.log(`User devices:`);
   for (let i = 0; i < response.devices.length; i++) {
@@ -387,6 +388,25 @@ function loadSettings(jwt: string | null, userName: string | null | undefined, d
 
 }
 
+//https://notifee.app/react-native/docs/displaying-a-notification
+async function onDisplayNotification() {
+  // Create a channel
+  const channelId = await notifee.createChannel({
+    id: 'default',
+    name: 'Default Channel',
+  });
+
+  // Display a notification
+  await notifee.displayNotification({
+    title: 'Notification Title',
+    body: 'Main body content of the notification',
+    android: {
+      channelId,
+      smallIcon: 'name-of-a-small-icon', // optional, defaults to 'ic_launcher'.
+    },
+  });
+}
+
 function App() {
   const {device, measurement} = useBluetoothConnectAranet();
   const jwt = useSelector(selectJWT);
@@ -422,6 +442,7 @@ function App() {
       <MaybeIfValue text="Measurments uploaded: " value={successfulUploads} />
       <MaybeIfValue text="Your phone type: " value={Device.modelName}/>
       <UserSettingsMaybeDisplay/>
+      <Button title="Display notifee Notification" onPress={() => {onDisplayNotification()}} />
       <StatusBar style="auto" />
     </SafeAreaProvider>
   );
