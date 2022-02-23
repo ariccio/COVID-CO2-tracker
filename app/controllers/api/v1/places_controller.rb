@@ -193,9 +193,16 @@ module Api
       def in_bounds
         @sw = ::Geokit::LatLng.new(place_bounds_params.fetch(:south), place_bounds_params.fetch(:west))
         @ne = ::Geokit::LatLng.new(place_bounds_params.fetch(:north), place_bounds_params.fetch(:east))
-        byebug
+        
+        
+        
+
+        # (byebug) pp ::Place.in_bounds([@sw, @ne]).to_sql
+        # nil
+        # (byebug) "SELECT \"places\".* FROM \"places\" WHERE places.place_lat > 40.75877119144174 AND places.place_lat < 40.77716753537969 AND places.place_lng > -73.97284707946775 AND places.place_lng < -73.94555292053221"
+
         # Can I do this in RAW SQL with PG? https://josh.mn/2020/05/01/serializing-one-million-records/
-        found = ::Place.in_bounds([@sw, @ne])
+        found = ::Place.in_bounds([@sw, @ne]).select(:id, :google_place_id, :place_lat, :place_lng)
         # byebug
         # places_as_json =
         #   found.each.map do |place|
