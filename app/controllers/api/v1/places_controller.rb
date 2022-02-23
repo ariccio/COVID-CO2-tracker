@@ -193,7 +193,7 @@ module Api
       def in_bounds
         @sw = ::Geokit::LatLng.new(place_bounds_params.fetch(:south), place_bounds_params.fetch(:west))
         @ne = ::Geokit::LatLng.new(place_bounds_params.fetch(:north), place_bounds_params.fetch(:east))
-        # byebug
+        byebug
         # Can I do this in RAW SQL with PG? https://josh.mn/2020/05/01/serializing-one-million-records/
         found = ::Place.in_bounds([@sw, @ne])
         # byebug

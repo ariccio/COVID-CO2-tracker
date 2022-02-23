@@ -6,11 +6,20 @@ class User < ApplicationRecord
   has_many :devices, dependent: :restrict_with_exception
   has_many :measurement, -> { distinct }, through: :devices
   has_one :user_setting
+
+  # Note to self, from active record doctor:
+  # add `NOT NULL` to users.email - models validates its presence but it's not non-NULL in the database
+  # add `NOT NULL` to users.name - models validates its presence but it's not non-NULL in the database
+  # add `NOT NULL` to users.sub_google_uid - models validates its presence but it's not non-NULL in the database
+
+
   # app/models/user.rb:7:3: C: Rails/UniqueValidationWithoutIndex: Uniqueness validation should be with a unique index.
   validates :email, presence: true, uniqueness: true
-  # validates :password_digest, presence: true
   validates :name, presence: true
   validates :sub_google_uid, presence: true, uniqueness: true, length: { minimum: 1 }
+
+
+
   def my_devices
     # byebug
     return [] if (devices.blank?)

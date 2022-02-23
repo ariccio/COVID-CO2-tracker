@@ -3,6 +3,7 @@
 
 import { StatusBar } from 'expo-status-bar';
 import * as WebBrowser from 'expo-web-browser';
+import * as Device from 'expo-device';
 import {useEffect, useState} from 'react';
 import { StyleSheet, Button, Linking, Text } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -421,6 +422,7 @@ function App() {
       <MaybeIfValue text="Device fetch errors: " value={userDeviceErrors}/>
       <MaybeIfValue text="Realtime upload status/errors: " value={uploadStatus}/>
       <MaybeIfValue text="Measurments uploaded: " value={successfulUploads} />
+      <MaybeIfValue text="Your phone type: " value={Device.modelName}/>
       <UserSettingsMaybeDisplay/>
       <StatusBar style="auto" />
     </SafeAreaProvider>

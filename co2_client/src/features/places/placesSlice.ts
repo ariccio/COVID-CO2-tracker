@@ -44,7 +44,7 @@ export const defaultPlaceInfo: SelectedPlaceDatabaseInfo = {
     }
 */
 export interface EachPlaceFromDatabaseForMarker {
-    id: number, //TODO: comes back as a number in reality?
+    id: number,
     type: string,
     attributes: {
         google_place_id: string,
@@ -54,7 +54,7 @@ export interface EachPlaceFromDatabaseForMarker {
 }
 
 export interface placesFromDatabaseForMarker {
-    places: Array<EachPlaceFromDatabaseForMarker> | null
+    places: EachPlaceFromDatabaseForMarker[] | null
 }
 
 export const defaultPlaceMarkers: placesFromDatabaseForMarker = {

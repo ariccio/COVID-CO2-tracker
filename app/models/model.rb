@@ -6,6 +6,9 @@ class Model < ApplicationRecord
   # https://guides.rubyonrails.org/association_basics.html#has-many-association-reference
   has_many :measurement, -> { distinct }, through: :device
 
+
+  validates :name, presence: true
+
   # May need to be a distinct relation?
 
   def self.show_as_json(model)
