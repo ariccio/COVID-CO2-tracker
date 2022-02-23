@@ -5,7 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import * as WebBrowser from 'expo-web-browser';
 import * as Device from 'expo-device';
 import {useEffect, useState} from 'react';
-import { StyleSheet, Button, Linking, Text } from 'react-native';
+import { AppState, StyleSheet, Button, Linking, Text } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 
@@ -393,11 +393,6 @@ function App() {
   const dispatch = useDispatch();
   const userSettings = useSelector(selectUserSettings);
   const successfulUploads = useSelector(selectSuccessfulUploads);
-
-  useEffect(() => {
-    console.log("NOTE TO SELF: if no fetch requests are going through to local machine in dev, make sure running rails as 'rails s -b 0.0.0.0 to allow all through!");
-    console.log("Note to self (TODO): there's really nothing sensitive about the client ID, but I'd like to obfuscate it anyways.");
-  }, []);
 
   useEffect(() => {
     loadDevices(jwt, userName, setUserDeviceErrors, dispatch);
