@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@config-plugins/react-native-ble-plx": "^0.0.2",
-    "@notifee/react-native": "^4.1.0",
+    "@notifee/react-native": "^3.0.4",
     "@reduxjs/toolkit": "^1.7.1",
     "buffer": "^6.0.3",
     "expo": "~44.0.0",
