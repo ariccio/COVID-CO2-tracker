@@ -14,8 +14,11 @@ import expo.modules.ReactActivityDelegateWrapper;
 
 public class MainActivity extends DevMenuAwareReactActivity {
 
+  // public boolean isOnNewIntent = false;
+
   @Override
   public void onNewIntent(Intent intent) {
+    // isOnNewIntent = true;
     if (DevLauncherController.tryToHandleIntent(this, intent)) {
       return;
     }
