@@ -70,7 +70,7 @@ module Api
 
       def show_by_google_place_id
         # byebug
-        @place = ::Place.includes(:sub_location).find_by!(google_place_id: params.fetch(:google_place_id))
+        @place = ::Place.find_by!(google_place_id: params.fetch(:google_place_id))
         refresh_latlng_from_google
 
         # if Rails.env.development?

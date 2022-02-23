@@ -7,7 +7,7 @@ import {SerializedSingleMeasurement, defaultSerializedSingleMeasurementInfo} fro
 
 export interface SublocationMeasurements {
     measurements: {
-        data: Array<SerializedSingleMeasurement>,
+        data: SerializedSingleMeasurement[],
     },
     sub_location_id: number,
     description: string
@@ -22,7 +22,7 @@ const defaultSublocationMeasurements: SublocationMeasurements = {
 }
 
 export interface SelectedPlaceDatabaseInfo {
-    measurements_by_sublocation: Array<SublocationMeasurements>
+    measurements_by_sublocation: SublocationMeasurements[]
 }
 
 export const defaultPlaceInfo: SelectedPlaceDatabaseInfo = {
