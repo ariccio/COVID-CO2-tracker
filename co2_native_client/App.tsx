@@ -1,13 +1,15 @@
 /* eslint-disable no-debugger */
 // See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
 
+import notifee from '@notifee/react-native';
+import * as Device from 'expo-device';
 import { StatusBar } from 'expo-status-bar';
 import * as WebBrowser from 'expo-web-browser';
-import * as Device from 'expo-device';
 import {useEffect, useState} from 'react';
 import { AppState, StyleSheet, Button, Linking, Text } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider, useDispatch, useSelector } from 'react-redux';
+
 
 
 import { userRequestOptions, postRequestOptions } from '../co2_client/src/utils/DefaultRequestOptions';
@@ -44,6 +46,7 @@ function checkUserInfoDevice(device: UserInfoDevice): void {
 }
 
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function userDevicesInfoResponseToStrongType(responseMaybeUserDevicesInfo: any): UserDevicesInfo {
   console.assert(responseMaybeUserDevicesInfo !== undefined);
   if (responseMaybeUserDevicesInfo.errors !== undefined) {

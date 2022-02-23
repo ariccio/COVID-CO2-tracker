@@ -81,6 +81,7 @@ function rawEmailResponseToStrongType(response: unknown): NativeEmailResponseTyp
   
 
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function checkEmail(responseExists: any) {
   if (responseExists.email === null) {
     throw new Error("Null email field");
@@ -93,6 +94,7 @@ function checkEmail(responseExists: any) {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function checkJWT(responseExists: any) {
   if (responseExists.jwt === null) {
     throw new Error("Null jwt.");
