@@ -401,8 +401,8 @@ async function onDisplayNotification() {
     title: 'Notification Title',
     body: 'Main body content of the notification',
     android: {
-      channelId,
-      smallIcon: 'name-of-a-small-icon', // optional, defaults to 'ic_launcher'.
+      channelId
+      // smallIcon: 'name-of-a-small-icon', // optional, defaults to 'ic_launcher'.
     },
   });
 }
