@@ -6,11 +6,13 @@ import { RootState } from './rootReducer';
 interface Globals {
     jwt: string | null;
     successfulUploads: number;
+    batteryOptimizationEnabled: boolean | null;
 }
 
 const initialState: Globals = {
     jwt: null,
-    successfulUploads: 0
+    successfulUploads: 0,
+    batteryOptimizationEnabled: null
 };
 
 export const globalSlice = createSlice({
@@ -22,13 +24,17 @@ export const globalSlice = createSlice({
         },
         incrementSuccessfulUploads: (state, action: PayloadAction<void>) => {
             state.successfulUploads += 1;
+        },
+        setBatteryOptimizationEnabled: (state, action: PayloadAction<boolean | null>) => {
+            state.batteryOptimizationEnabled = action.payload;
         }
     }
 });
 
-export const {setJWT, incrementSuccessfulUploads} = globalSlice.actions;
+export const {setJWT, incrementSuccessfulUploads, setBatteryOptimizationEnabled} = globalSlice.actions;
 
 export const selectJWT = (state: RootState) => state.globals.jwt;
 export const selectSuccessfulUploads = (state: RootState) => state.globals.successfulUploads;
+export const selectBatteryOptimizationEnabled = (state: RootState) => state.globals.batteryOptimizationEnabled;
 
 export const globalsReducer = globalSlice.reducer;

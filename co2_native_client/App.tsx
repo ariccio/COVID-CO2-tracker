@@ -1,7 +1,7 @@
 /* eslint-disable no-debugger */
 // See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
 
-import notifee from '@notifee/react-native';
+import notifee, {IOSNotificationSettings, Notification} from '@notifee/react-native';
 import * as Device from 'expo-device';
 import { StatusBar } from 'expo-status-bar';
 import * as WebBrowser from 'expo-web-browser';
@@ -18,7 +18,7 @@ import {ErrorObjectType, formatErrors, withErrors} from '../co2_client/src/utils
 // import {} from '../co2_client/src/utils/UserInfoTypes';
 import { userSettingsResponseDataAsPlainSettings, userSettingsResponseToStrongType} from '../co2_client/src/utils/QuerySettingsTypes';
 import {UserSettings} from '../co2_client/src/utils/UserSettings';
-import { incrementSuccessfulUploads, selectJWT, selectSuccessfulUploads } from './src/app/globalSlice';
+import { incrementSuccessfulUploads, selectBatteryOptimizationEnabled, selectJWT, selectSuccessfulUploads, setBatteryOptimizationEnabled } from './src/app/globalSlice';
 import { AppDispatch, store } from './src/app/store';
 import {AuthContainer} from './src/features/Auth/Auth';
 import { MeasurementDataForUpload } from './src/features/Measurement/MeasurementTypes';
@@ -388,23 +388,133 @@ function loadSettings(jwt: string | null, userName: string | null | undefined, d
 
 }
 
-//https://notifee.app/react-native/docs/displaying-a-notification
-async function onDisplayNotification() {
-  // Create a channel
-  const channelId = await notifee.createChannel({
-    id: 'default',
-    name: 'Default Channel',
-  });
 
-  // Display a notification
-  await notifee.displayNotification({
-    title: 'Notification Title',
-    body: 'Main body content of the notification',
-    android: {
-      channelId
+function defaultNotification(channelId: string): Notification {
+  const defaultNotificationOptions: Notification = {
+    // See: co2_native_client\node_modules\@notifee\react-native\dist\types\Notification.d.ts
+    // See: co2_native_client\node_modules\@notifee\react-native\dist\types\NotificationAndroid.d.ts
+    title: 'COVID CO2 tracker', // "The notification title which appears above the body text."
+    body: 'Main body content of the notification', // "The main body content of a notification."
+    android: { // "Android specific notification options. See the [`NotificationAndroid`](/react-native/reference/notificationandroid) interface for more information and default options which are applied to a notification."
+      channelId // "Specifies the `AndroidChannel` which the notification will be delivered on."
       // smallIcon: 'name-of-a-small-icon', // optional, defaults to 'ic_launcher'.
-    },
-  });
+    }
+  }
+  return defaultNotificationOptions;
+}
+
+async function checkedCreateChannel(setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>): Promise<string | null> {
+  try {
+    return await notifee.createChannel({
+      id: 'default',
+      name: 'Default Channel',
+    });
+  }
+  catch (exception) {
+    //Probably native error.
+    setNativeErrors(`Error in createChannel: '${String(exception)}'`);
+    debugger;
+    return null;
+  }
+}
+
+async function checkedRequestPermission(setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>): Promise<IOSNotificationSettings | null> {
+  try {
+    return await notifee.requestPermission();
+  }
+  catch (exception) {
+    //Probably native error.
+    setNativeErrors(`Error in requestPermission: '${String(exception)}'`);
+    debugger;
+    return null;
+  }
+}
+
+//https://notifee.app/react-native/docs/displaying-a-notification
+async function onDisplayNotification(setDisplayNotificationErrors: React.Dispatch<React.SetStateAction<string | null>>, setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>) {
+  // Create a channel
+
+  //https://github.com/invertase/notifee/blob/7d03bb4eda27b5d4325473cf155852cef42f5909/docs/react-native/docs/debugging.md
+  // To quickly view Android logs in the terminal:
+  //   adb logcat '*:S' NOTIFEE:D
+
+  const channelId = await checkedCreateChannel(setNativeErrors);
+  if (channelId === null) {
+    debugger;
+    return;
+  }
+  // Required for iOS
+  // See https://notifee.app/react-native/docs/ios/permissions
+  await checkedRequestPermission(setNativeErrors);
+
+
+  const notificationWithChannel = defaultNotification(channelId);
+  try {
+    // Display a notification
+
+    // See also:
+    //   https://github.com/invertase/notifee/blob/7d03bb4eda27b5d4325473cf155852cef42f5909/android/src/main/java/app/notifee/core/NotificationManager.java#L508
+    //     AKA Task<Void> displayNotification(NotificationModel notificationModel, Bundle triggerBundle) 
+    //   https://github.com/invertase/notifee/blob/7d03bb4eda27b5d4325473cf155852cef42f5909/android/src/main/java/app/notifee/core/NotificationManager.java#L83
+      //   AKA Task<NotificationCompat.Builder> notificationBundleToBuilder(NotificationModel notificationModel)
+    // debugger;
+
+    // result is ID.
+    // From Notification.d.ts: (See: co2_native_client\node_modules\@notifee\react-native\dist\types\Notification.d.ts)
+    //   "A unique identifier for your notification."
+    //   "Notifications with the same ID will be created as the same instance, allowing you to update a notification which already exists on the device."
+    //   "Defaults to a random string if not provided."
+    const result = await notifee.displayNotification(notificationWithChannel);
+    console.assert(result !== null);
+    console.assert(result !== undefined);
+    console.assert(typeof result === 'string');
+    console.log("Sucessfully displayed notifee notification.");
+    setDisplayNotificationErrors(null);
+    return result;
+  }
+  catch (e) {
+    console.error(`Error displaying notification! ${String(e)}`);
+    if (e instanceof Error) {
+      setDisplayNotificationErrors(String(e));
+      return;
+    }
+    // Usually a Native Module exception?
+    // See: https://github.com/facebook/react-native/blob/main/ReactAndroid/src/main/java/com/facebook/react/bridge/PromiseImpl.java
+    // usually has some fields like
+    //   'code' (e.g. "EUNSPECIFIED")
+    //   'message' (e.g. "Invalid notification (no valid small icon): Notification(channel=default pri=0 contentView=null vibrate=null sound=null defaults=0x0 flags=0x10 color=0x00000000 vis=PRIVATE)")
+    //   'nativeStackAndroid' (e.g. ...giant array...)
+    setDisplayNotificationErrors(String(e));
+  }
+}
+
+const useNotifeeNotifications = () => {
+  const [displayNotificationErrors, setDisplayNotificationErrors] = useState(null as (string | null));
+  const [nativeErrors, setNativeErrors] = useState(null as (string | null));
+  const [notificationID, setNotificationID] = useState(null as (string | null));
+
+  const dispatch = useDispatch();
+
+  const handleClickDisplayNotification = async () => {
+    const result = await onDisplayNotification(setDisplayNotificationErrors, setNativeErrors);
+    if (result !== undefined) {
+      setNotificationID(result);
+    }
+  }
+
+
+  useEffect(() => {
+    // debugger;
+    notifee.isBatteryOptimizationEnabled().then((result) => {
+      console.log(`Battery optimization: ${result}`);
+      dispatch(setBatteryOptimizationEnabled(result));
+    }).catch((exception) => {
+      // In theory, the native java code can throw exceptions if something is desperatley wrong...
+      setNativeErrors(`Error in isBatteryOptimizationEnabled: '${String(exception)}'`);
+    })
+  }, [])
+
+  return {handleClickDisplayNotification, displayNotificationErrors, nativeErrors, notificationID}
 }
 
 function App() {
@@ -416,6 +526,10 @@ function App() {
   const dispatch = useDispatch();
   const userSettings = useSelector(selectUserSettings);
   const successfulUploads = useSelector(selectSuccessfulUploads);
+
+  const batteryOptimizationEnabled = useSelector(selectBatteryOptimizationEnabled);
+
+  const {handleClickDisplayNotification, displayNotificationErrors, nativeErrors, notificationID} = useNotifeeNotifications();
 
   useEffect(() => {
     loadDevices(jwt, userName, setUserDeviceErrors, dispatch);
@@ -431,6 +545,7 @@ function App() {
 
   }, [measurement])
 
+  // console.log(batteryOptimizationEnabled);
 
   return (
     <SafeAreaProvider style={styles.container}>          
@@ -442,7 +557,11 @@ function App() {
       <MaybeIfValue text="Measurments uploaded: " value={successfulUploads} />
       <MaybeIfValue text="Your phone type: " value={Device.modelName}/>
       <UserSettingsMaybeDisplay/>
-      <Button title="Display notifee Notification" onPress={() => {onDisplayNotification()}} />
+      <Button title="Display notifee Notification" onPress={() => {handleClickDisplayNotification()}} />
+      <MaybeIfValue text="Errors from displaying notifications: " value={displayNotificationErrors}/>
+      <MaybeIfValue text="Battery optimization enabled: " value={(batteryOptimizationEnabled === null) ? null : String(batteryOptimizationEnabled)}/>
+      <MaybeIfValue text="Notifee native errors (what?): " value={nativeErrors}/>
+      <MaybeIfValue text="Notification ID: " value={notificationID}/>
       <StatusBar style="auto" />
     </SafeAreaProvider>
   );
