@@ -393,11 +393,13 @@ function defaultNotification(channelId: string): Notification {
   const defaultNotificationOptions: Notification = {
     // See: co2_native_client\node_modules\@notifee\react-native\dist\types\Notification.d.ts
     // See: co2_native_client\node_modules\@notifee\react-native\dist\types\NotificationAndroid.d.ts
+
+    // See also: https://notifee.app/react-native/docs/android/appearance#small-icons
     title: 'COVID CO2 tracker', // "The notification title which appears above the body text."
     body: 'Main body content of the notification', // "The main body content of a notification."
     android: { // "Android specific notification options. See the [`NotificationAndroid`](/react-native/reference/notificationandroid) interface for more information and default options which are applied to a notification."
-      channelId // "Specifies the `AndroidChannel` which the notification will be delivered on."
-      // smallIcon: 'name-of-a-small-icon', // optional, defaults to 'ic_launcher'.
+      channelId, // "Specifies the `AndroidChannel` which the notification will be delivered on."
+      smallIcon: 'ic_small_icon', // optional, defaults to 'ic_launcher'.
     }
   }
   return defaultNotificationOptions;
