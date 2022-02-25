@@ -3,7 +3,7 @@
 // See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
 import {Buffer} from 'buffer';
 import { useEffect, useState } from 'react';
-import { PermissionsAndroid, Text, Button, NativeSyntheticEvent, NativeTouchEvent } from 'react-native';
+import { PermissionsAndroid, Text, Button, NativeSyntheticEvent, NativeTouchEvent, Linking } from 'react-native';
 import { BleManager, Device, BleError, LogLevel, Service, Characteristic, BleErrorCode, DeviceId, State, BleAndroidErrorCode } from 'react-native-ble-plx';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -17,6 +17,7 @@ import { MeasurementDataForUpload } from '../Measurement/MeasurementTypes';
 import { setUploadStatus } from '../Uploading/uploadSlice';
 import { selectSupportedDevices } from '../userInfo/devicesSlice';
 import { Aranet4_1503CO2, incrementUpdates, MeasurementData, selectAranet4SpecificData, selectDeviceBatterylevel, selectDeviceID, selectDeviceName, selectDeviceRSSI, selectDeviceSerialNumberString, selectDeviceStatusString, selectHasBluetooth, selectMeasurementData, selectNeedsBluetoothTurnOn, selectScanningErrorStatusString, selectScanningStatusString, selectUpdateCount, setAranet4Color, setAranet4SecondsSinceLastMeasurement, setDeviceBatteryLevel, setDeviceID, setDeviceName, setDeviceSerialNumber, setDeviceStatusString, setHasBluetooth, setMeasurementData, setMeasurementInterval, setNeedsBluetoothTurnOn, setRssi, setScanningErrorStatusString, setScanningStatusString } from './bluetoothSlice';
+import { COVID_CO2_TRACKER_DEVICES_URL } from '../../utils/UrlPaths';
 
 
 //https://github.com/thespacemanatee/Smart-Shef-IoT/blob/4782c95f383040f36e4ae7ce063166cce5c76129/smart_shef_app/src/utils/hooks/useMonitorHumidityCharacteristic.ts
@@ -47,9 +48,6 @@ manager.setLogLevel(LogLevel.Debug);
 
 // const BleManagerModule = NativeModules.BleManager;
 // const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
-
-
-
 
 
 
@@ -638,23 +636,10 @@ async function updateCallback(deviceID: string, dispatch: AppDispatch, beginWith
            console.warn("missing co2 characteristic result!");
            return;
        }
-        // const measurement: MeasurementDataForUpload = {
-        //     co2ppm: aranet4Info.co2CharacteristicValue.co2,
-        //     measurementtime: aranet4Info.lastMeasurementTimeAsUTCString,
-        //     google_place_id
-        // };
-        // console.log("Will upload to server...");
-        // debugger;
         return {
             specificInfo: aranet4Info,
             genericInfo
         };
-        // if (knownDevice) {
-        // }
-        // else {
-        //     console.log("DEVICE NOT KNOWN");
-        // }
-
     }
     catch(error) {
         if (!filterBleReadError(error, dispatch, deviceID)) {
@@ -882,20 +867,6 @@ async function firstBluetoothUpdate(beginWithDeviceConnection: () => Promise<Dev
             genericInfo: generic,
             specificInfo: specific
         }
-        // .then(() => {
-        //     return 
-        // }).then(() => {
-        //     return 
-        // }).then(() => {
-        //     return 
-        // }).then(() => {
-        // })
-        //     .catch((error) => {
-        //         //handle?
-        //         if (!filterBleReadError(error, dispatch, deviceID)) {
-        //             debugger;
-        //         }
-        //     });
     }
     catch (error) {
         //handle?
@@ -917,24 +888,6 @@ async function attemptConnectScannedDevice(scannedDevice: DeviceId, dispatch: Ap
     const connectedDevice = await manager.connectToDevice(scannedDevice);
     // console.log("Connected!");
     return connectedDevice;
-    // try {
-    // }
-    // catch (error) {
-    //     if (error instanceof BleError) {
-    //         if (error.errorCode === BleErrorCode.DeviceAlreadyConnected) {
-    //             debugger;
-    //         }
-    //     }    
-    // }
-    // try {
-    // }
-    // catch (error) {
-    //     const errStr = `Error connecting to aranet4! Error: ${String(error)}`;
-    //     console.warn(errStr);
-    //     dispatch(setScanningErrorStatusString(errStr));
-    //     debugger;
-    //     return null;
-    // }
 
 }
 
@@ -1112,7 +1065,95 @@ const BluetoothMaybeNeedsTurnOn:React.FC<{}> = () => {
 }
 
 
-export const BluetoothData: React.FC<{ device: Device | null }> = ({ device }) => {
+async function openCO2TrackerDevicesPage(setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>) {
+    try {
+        Linking.openURL(COVID_CO2_TRACKER_DEVICES_URL);
+    }
+    catch (exception) {
+        setNativeErrors(`Error opening web console: ${String(exception)}`)
+    }
+}
+
+const useOpenableLink = (url: string, setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>): {openable: (boolean | null)} => {
+    const [openable, setOpenable] = useState(null as (boolean | null));
+
+    useEffect(() => {
+        Linking.canOpenURL(url).then((canOpen) => {
+            setOpenable(canOpen);
+        }).catch((errors) => {
+            setNativeErrors(`canOpenUrl error: ${String(errors)}`);
+        })
+    }, [])
+
+    return {openable};
+}
+
+const IfNotOpenable = (props: {openable: (boolean | null) }) => {
+    if (props.openable === null) {
+        return (
+            <>
+                Checking whether you can open the web console...
+            </>
+        )
+    }
+    if (!props.openable) {
+        return (
+            <>
+                <Text>Warning: may not be able to open link. Will report automatically in the future.</Text>
+            </>
+        )
+    }
+    return null;
+}
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+const MaybeNoSupportedBluetoothDevices: React.FC<{}> = () => {
+    const supportedDevices = useSelector(selectSupportedDevices);
+    const [nativeErrors, setNativeErrors] = useState(null as (string | null));
+    const {openable} = useOpenableLink(COVID_CO2_TRACKER_DEVICES_URL, setNativeErrors);
+
+
+    if (supportedDevices === null) {
+      return null;
+    }
+    if (supportedDevices.length === 0) {
+      return (
+        <>
+          <Text>You do not have any devices entered into the database. To upload data, please create a device in the web console.</Text>
+          <IfNotOpenable openable={openable}/>
+          <MaybeIfValue text="Native errors: " value={nativeErrors}/>
+          <Button title="Open web console" onPress={() => openCO2TrackerDevicesPage(setNativeErrors)}/>
+        </>
+      )
+    }
+    return null;
+  }
+  
+export const useBluetoothAranet4 = () => {
+    const dispatch = useDispatch();
+    const supportedDevices = useSelector(selectSupportedDevices);
+    const aranet4Data = useSelector(selectAranet4SpecificData);
+    const serialNumber = useSelector(selectDeviceSerialNumberString);
+
+    const [knownDevice, setKnownDevice] = useState(null as (boolean | null));
+    const [nextMeasurement, setNextMeasurement] = useState(null as (number | null));
+
+    useEffect(() => {
+        requestLocationPermission(dispatch);
+    }, []);
+
+    useEffect(() => {
+        setKnownDevice(isSupportedDevice(supportedDevices, serialNumber))
+    }, [supportedDevices, serialNumber])
+
+    useEffect(() => {
+        setNextMeasurement(maybeNextMeasurementIn(aranet4Data?.aranet4MeasurementInterval, aranet4Data?.aranet4SecondsSinceLastMeasurement));
+    }, [aranet4Data?.aranet4MeasurementInterval, aranet4Data?.aranet4SecondsSinceLastMeasurement])
+
+    return {knownDevice, nextMeasurement};
+}
+
+export const BluetoothData: React.FC<{ device: Device | null, knownDevice: boolean | null, nextMeasurement: number | null }> = ({ device, knownDevice, nextMeasurement }) => {
     const id = useSelector(selectDeviceID);
     const name = useSelector(selectDeviceName);
     const rssi = useSelector(selectDeviceRSSI);
@@ -1122,26 +1163,11 @@ export const BluetoothData: React.FC<{ device: Device | null }> = ({ device }) =
     const deviceBatteryLevel = useSelector(selectDeviceBatterylevel);
     const measurementData = useSelector(selectMeasurementData);
     const aranet4Data = useSelector(selectAranet4SpecificData);
-    const supportedDevices = useSelector(selectSupportedDevices);
+    
     const deviceStatus = useSelector(selectDeviceStatusString);
-    const [knownDevice, setKnownDevice] = useState(null as (boolean | null));
-    const [nextMeasurement, setNextMeasurement] = useState(null as (number | null));
+    
+    
     const updateCount = useSelector(selectUpdateCount);
-
-    const dispatch = useDispatch();
-
-    useEffect(() => {
-        requestLocationPermission(dispatch);
-    }, []);
-
-
-    useEffect(() => {
-        setKnownDevice(isSupportedDevice(supportedDevices, serialNumber))
-    }, [supportedDevices, serialNumber])
-
-    useEffect(() => {
-        setNextMeasurement(maybeNextMeasurementIn(aranet4Data?.aranet4MeasurementInterval, aranet4Data?.aranet4SecondsSinceLastMeasurement));
-    }, [aranet4Data?.aranet4MeasurementInterval, aranet4Data?.aranet4SecondsSinceLastMeasurement])
 
     return (
         <>
@@ -1168,6 +1194,7 @@ export const BluetoothData: React.FC<{ device: Device | null }> = ({ device }) =
             <MaybeIfValue text="Measurement interval: " value={aranet4Data?.aranet4MeasurementInterval} suffix=" seconds" />
             <MaybeIfValue text="Next measurement: " value={nextMeasurement} suffix=" seconds" />
             <BluetoothMaybeNeedsTurnOn/>
+            <MaybeNoSupportedBluetoothDevices/>
         </>
     );
 }

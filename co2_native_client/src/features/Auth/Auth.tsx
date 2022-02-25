@@ -455,7 +455,7 @@ const LoginOrLogoutButton: React.FC<{jwt: string | null, promptAsyncReady: boole
 }
 
 
-export function AuthContainer(): JSX.Element {
+export function AuthContainerWithLogic(): JSX.Element {
     const jwt = useSelector(selectJWT);
     const userName = useSelector(selectUserName);
     const {promptAsync, promptAsyncReady, asyncStoreError, logout, loginErrors} = useGoogleAuthForCO2Tracker();

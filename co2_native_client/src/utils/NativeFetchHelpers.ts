@@ -281,7 +281,7 @@ export async function fetchJSONWithChecks(input: RequestInfo, init: RequestInit,
         })
     }
     catch(error) {
-        console.warn(`last chance bailed?`)
+        console.warn(`last chance bailed? (${input.toString()})`)
         // eslint-disable-next-line no-debugger
         debugger;
         fetchFilter(error);

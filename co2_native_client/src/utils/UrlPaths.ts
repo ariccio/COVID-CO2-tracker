@@ -23,3 +23,6 @@ export const EMAIL_URL_NATIVE = (BASE_EXPO_URL + EMAIL_URL);
 export const USER_SETTINGS_URL_NATIVE = (BASE_EXPO_URL + USER_SETTINGS_URL);
 
 export const REAL_TIME_UPLOAD_URL_NATIVE = (BASE_EXPO_URL + REAL_TIME_MEASUREMENT_URL);
+
+export const COVID_CO2_TRACKER_DEVICES_URL = "https://covid-co2-tracker.herokuapp.com/devices";
+

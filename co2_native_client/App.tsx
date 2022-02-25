@@ -1,12 +1,12 @@
 /* eslint-disable no-debugger */
 // See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
 
-import notifee, {IOSNotificationSettings, Notification, EventType} from '@notifee/react-native';
+import notifee, {IOSNotificationSettings, Notification, EventType, Event} from '@notifee/react-native';
 import * as Device from 'expo-device';
 import { StatusBar } from 'expo-status-bar';
 import * as WebBrowser from 'expo-web-browser';
 import {useEffect, useState} from 'react';
-import { AppState, StyleSheet, Button, Linking, Text } from 'react-native';
+import { AppState, StyleSheet, Button, Text } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 
@@ -20,12 +20,12 @@ import { userSettingsResponseDataAsPlainSettings, userSettingsResponseToStrongTy
 import {UserSettings} from '../co2_client/src/utils/UserSettings';
 import { incrementSuccessfulUploads, selectBatteryOptimizationEnabled, selectJWT, selectSuccessfulUploads, setBatteryOptimizationEnabled } from './src/app/globalSlice';
 import { AppDispatch, store } from './src/app/store';
-import {AuthContainer} from './src/features/Auth/Auth';
+import {AuthContainerWithLogic} from './src/features/Auth/Auth';
 import { MeasurementDataForUpload } from './src/features/Measurement/MeasurementTypes';
 import { selectUploadStatus, setUploadStatus } from './src/features/Uploading/uploadSlice';
 import { UserSettingsMaybeDisplay } from './src/features/UserSettings/UserSettingsDisplay';
-import { BluetoothData, useBluetoothConnectAranet } from './src/features/bluetooth/Bluetooth';
-import { selectSupportedDevices, setSupportedDevices, setUNSupportedDevices } from './src/features/userInfo/devicesSlice';
+import { BluetoothData, useBluetoothAranet4, useBluetoothConnectAranet } from './src/features/bluetooth/Bluetooth';
+import { setSupportedDevices, setUNSupportedDevices } from './src/features/userInfo/devicesSlice';
 import { selectUserName, selectUserSettings, setUserSettings, setUserSettingsErrors } from './src/features/userInfo/userInfoSlice';
 import { withAuthorizationHeader } from './src/utils/NativeDefaultRequestHelpers';
 import {fetchJSONWithChecks} from './src/utils/NativeFetchHelpers';
@@ -259,28 +259,6 @@ function handleDevicesResponse(devicesResponse: UserDevicesInfo, setUserDeviceEr
 
 }
 
-const COVID_CO2_TRACKER_DEVICES_URL = "https://covid-co2-tracker.herokuapp.com/devices";
-
-function openCO2TrackerDevicesPage() {
-  Linking.openURL(COVID_CO2_TRACKER_DEVICES_URL);
-}
-
-// eslint-disable-next-line @typescript-eslint/ban-types
-const MaybeNoSupportedBluetoothDevices: React.FC<{}> = () => {
-  const supportedDevices = useSelector(selectSupportedDevices);
-  if (supportedDevices === null) {
-    return null;
-  }
-  if (supportedDevices.length === 0) {
-    return (
-      <>
-        <Text>You do not have any devices entered into the database. To upload data, please create a device in the web console.</Text>
-        <Button title="Open web console" onPress={() => openCO2TrackerDevicesPage()}/>
-      </>
-    )
-  }
-  return null;
-}
 
 
 function initRealtimeMeasurement(jwt: string, measurement: MeasurementDataForUpload, userSettings: UserSettings): RequestInit {
@@ -442,32 +420,38 @@ async function checkedRequestPermission(setNativeErrors: React.Dispatch<React.Se
     return null;
   }
 }
-
-
+// { type: EventType, detail: EventDetail }
+async function handleForegroundEvent({ type, detail }: Event) {
+  console.log(`Recieved foreground service event: ${JSON.stringify(type)}, ${JSON.stringify(detail)}`);
+  if (type === EventType.ACTION_PRESS) {
+    if (!detail) {
+      console.warn("missing notification event detail?");
+      debugger;
+      return;
+    }
+    if (detail.pressAction === undefined) {
+      console.warn("missing notification event detail pressAction?");
+      debugger;
+      return;
+    }
+    if (detail.pressAction.id === 'stop') {
+      console.log("Stopping foreground service...");
+      await notifee.stopForegroundService();
+      return;
+    }
+    console.log(`...Unexpected pressAction? ${detail.pressAction.id}`);
+  }
+}
 async function registerForegroundService(setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>): Promise<void> {
   try {
     console.log("Registering foreground service...");
     notifee.registerForegroundService( (notification) => {
       return new Promise(() => {
+        console.log("Registering notification service event handlers...");
         // https://notifee.app/react-native/docs/android/foreground-service
-        notifee.onForegroundEvent(async ({ type, detail }) => {
-          if (type === EventType.ACTION_PRESS) {
-            if (!detail) {
-              console.warn("missing notification event detail?");
-              debugger;
-              return;
-            }
-            if (detail.pressAction === undefined) {
-              console.warn("missing notification event detail pressAction?");
-              debugger;
-              return;
-            }
-            if (detail.pressAction.id === 'stop') {
-              await notifee.stopForegroundService();
-            }
-          }
-        });
-        debugger;
+        notifee.onForegroundEvent(handleForegroundEvent);
+        notifee.onBackgroundEvent(handleForegroundEvent);
+        // debugger;
       })
     })
   }
@@ -538,7 +522,14 @@ async function onDisplayNotification(setDisplayNotificationErrors: React.Dispatc
   }
 }
 
-const useNotifeeNotifications = () => {
+interface NotifeeNotificationHookState {
+  handleClickDisplayNotification: () => Promise<void>;
+  displayNotificationErrors: string | null;
+  nativeErrors: string | null;
+  notificationID: string | null;
+}
+
+const useNotifeeNotifications = (): NotifeeNotificationHookState => {
   const [displayNotificationErrors, setDisplayNotificationErrors] = useState(null as (string | null));
   const [nativeErrors, setNativeErrors] = useState(null as (string | null));
   const [notificationID, setNotificationID] = useState(null as (string | null));
@@ -567,19 +558,46 @@ const useNotifeeNotifications = () => {
   return {handleClickDisplayNotification, displayNotificationErrors, nativeErrors, notificationID}
 }
 
+const RealtimeMeasurementInfo = (props: {userDeviceErrors: string | null}) => {
+  const uploadStatus = useSelector(selectUploadStatus);
+  const successfulUploads = useSelector(selectSuccessfulUploads);
+  return (
+    <>
+      <MaybeIfValue text="Device fetch errors: " value={props.userDeviceErrors}/>
+      <MaybeIfValue text="Realtime upload status/errors: " value={uploadStatus}/>
+      <MaybeIfValue text="Measurments uploaded: " value={successfulUploads} />
+      <MaybeIfValue text="Your phone type: " value={Device.modelName}/>    
+    </>
+  );
+}
+
+const NotificationInfo = (props: {notificationState: NotifeeNotificationHookState, batteryOptimizationEnabled: boolean | null}) => {
+
+  return (
+    <>
+      <Button title="Display notifee Notification" onPress={() => {props.notificationState.handleClickDisplayNotification()}} />
+      <MaybeIfValue text="Errors from displaying notifications: " value={props.notificationState.displayNotificationErrors}/>
+      <MaybeIfValue text="Battery optimization enabled: " value={(props.batteryOptimizationEnabled === null) ? null : String(props.batteryOptimizationEnabled)}/>
+      <MaybeIfValue text="Notifee native errors (what?): " value={props.notificationState.nativeErrors}/>
+      <MaybeIfValue text="Notification ID: " value={props.notificationState.notificationID}/>
+    </>
+  )
+}
+
 function App() {
   const {device, measurement} = useBluetoothConnectAranet();
   const jwt = useSelector(selectJWT);
   const userName = useSelector(selectUserName);
   const [userDeviceErrors, setUserDeviceErrors] = useState(null as (string | null));
-  const uploadStatus = useSelector(selectUploadStatus);
+  
   const dispatch = useDispatch();
   const userSettings = useSelector(selectUserSettings);
-  const successfulUploads = useSelector(selectSuccessfulUploads);
+  
 
   const batteryOptimizationEnabled = useSelector(selectBatteryOptimizationEnabled);
 
-  const {handleClickDisplayNotification, displayNotificationErrors, nativeErrors, notificationID} = useNotifeeNotifications();
+  const notificationState: NotifeeNotificationHookState = useNotifeeNotifications();
+  const {knownDevice, nextMeasurement} = useBluetoothAranet4();
 
   useEffect(() => {
     loadDevices(jwt, userName, setUserDeviceErrors, dispatch);
@@ -592,26 +610,19 @@ function App() {
 
   useEffect(() => {
     measurementChange(measurement, userSettings, jwt, dispatch);
-
   }, [measurement])
 
   // console.log(batteryOptimizationEnabled);
 
   return (
     <SafeAreaProvider style={styles.container}>          
-      <BluetoothData device={device}/>
-      <MaybeNoSupportedBluetoothDevices/>
-      <AuthContainer/>
-      <MaybeIfValue text="Device fetch errors: " value={userDeviceErrors}/>
-      <MaybeIfValue text="Realtime upload status/errors: " value={uploadStatus}/>
-      <MaybeIfValue text="Measurments uploaded: " value={successfulUploads} />
-      <MaybeIfValue text="Your phone type: " value={Device.modelName}/>
+      <BluetoothData device={device} knownDevice={knownDevice} nextMeasurement={nextMeasurement}/>
+      
+      <AuthContainerWithLogic/>
+      <RealtimeMeasurementInfo userDeviceErrors={userDeviceErrors}/>
       <UserSettingsMaybeDisplay/>
-      <Button title="Display notifee Notification" onPress={() => {handleClickDisplayNotification()}} />
-      <MaybeIfValue text="Errors from displaying notifications: " value={displayNotificationErrors}/>
-      <MaybeIfValue text="Battery optimization enabled: " value={(batteryOptimizationEnabled === null) ? null : String(batteryOptimizationEnabled)}/>
-      <MaybeIfValue text="Notifee native errors (what?): " value={nativeErrors}/>
-      <MaybeIfValue text="Notification ID: " value={notificationID}/>
+      
+      <NotificationInfo notificationState={notificationState} batteryOptimizationEnabled={batteryOptimizationEnabled}/>
       <StatusBar style="auto" />
     </SafeAreaProvider>
   );
