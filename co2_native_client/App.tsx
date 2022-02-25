@@ -1,7 +1,7 @@
 /* eslint-disable no-debugger */
 // See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
 
-import notifee, {IOSNotificationSettings, Notification} from '@notifee/react-native';
+import notifee, {IOSNotificationSettings, Notification, EventType} from '@notifee/react-native';
 import * as Device from 'expo-device';
 import { StatusBar } from 'expo-status-bar';
 import * as WebBrowser from 'expo-web-browser';
@@ -400,6 +400,17 @@ function defaultNotification(channelId: string): Notification {
     android: { // "Android specific notification options. See the [`NotificationAndroid`](/react-native/reference/notificationandroid) interface for more information and default options which are applied to a notification."
       channelId, // "Specifies the `AndroidChannel` which the notification will be delivered on."
       smallIcon: 'ic_small_icon', // optional, defaults to 'ic_launcher'.
+
+      // https://notifee.app/react-native/docs/android/foreground-service
+      asForegroundService: true, 
+      actions: [
+        {
+          title: 'Stop',
+          pressAction: {
+            id: 'stop',
+          }
+        }
+      ]
     }
   }
   return defaultNotificationOptions;
@@ -432,6 +443,41 @@ async function checkedRequestPermission(setNativeErrors: React.Dispatch<React.Se
   }
 }
 
+
+async function registerForegroundService(setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>): Promise<void> {
+  try {
+    console.log("Registering foreground service...");
+    notifee.registerForegroundService( (notification) => {
+      return new Promise(() => {
+        // https://notifee.app/react-native/docs/android/foreground-service
+        notifee.onForegroundEvent(async ({ type, detail }) => {
+          if (type === EventType.ACTION_PRESS) {
+            if (!detail) {
+              console.warn("missing notification event detail?");
+              debugger;
+              return;
+            }
+            if (detail.pressAction === undefined) {
+              console.warn("missing notification event detail pressAction?");
+              debugger;
+              return;
+            }
+            if (detail.pressAction.id === 'stop') {
+              await notifee.stopForegroundService();
+            }
+          }
+        });
+        debugger;
+      })
+    })
+  }
+  catch (exception) {
+    //Probably native error.
+    setNativeErrors(`Error in registerForegroundService: '${String(exception)}'`);
+    debugger;
+  }
+}
+
 //https://notifee.app/react-native/docs/displaying-a-notification
 async function onDisplayNotification(setDisplayNotificationErrors: React.Dispatch<React.SetStateAction<string | null>>, setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>) {
   // Create a channel
@@ -439,6 +485,9 @@ async function onDisplayNotification(setDisplayNotificationErrors: React.Dispatc
   //https://github.com/invertase/notifee/blob/7d03bb4eda27b5d4325473cf155852cef42f5909/docs/react-native/docs/debugging.md
   // To quickly view Android logs in the terminal:
   //   adb logcat '*:S' NOTIFEE:D
+
+
+  await registerForegroundService(setNativeErrors);
 
   const channelId = await checkedCreateChannel(setNativeErrors);
   if (channelId === null) {
@@ -459,7 +508,6 @@ async function onDisplayNotification(setDisplayNotificationErrors: React.Dispatc
     //     AKA Task<Void> displayNotification(NotificationModel notificationModel, Bundle triggerBundle) 
     //   https://github.com/invertase/notifee/blob/7d03bb4eda27b5d4325473cf155852cef42f5909/android/src/main/java/app/notifee/core/NotificationManager.java#L83
       //   AKA Task<NotificationCompat.Builder> notificationBundleToBuilder(NotificationModel notificationModel)
-    // debugger;
 
     // result is ID.
     // From Notification.d.ts: (See: co2_native_client\node_modules\@notifee\react-native\dist\types\Notification.d.ts)
