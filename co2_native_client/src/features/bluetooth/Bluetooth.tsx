@@ -12,12 +12,13 @@ import * as BLUETOOTH from '../../../../co2_client/src/utils/BluetoothConstants'
 import { UserInfoDevice } from '../../../../co2_client/src/utils/DeviceInfoTypes';
 import { AppDispatch } from '../../app/store';
 import { MaybeIfValue } from '../../utils/RenderValues';
+import { COVID_CO2_TRACKER_DEVICES_URL } from '../../utils/UrlPaths';
+import { useOpenableLink, IfNotOpenable } from '../Links/OpenLink';
 import { addMeasurement } from '../Measurement/MeasurementSlice';
 import { MeasurementDataForUpload } from '../Measurement/MeasurementTypes';
 import { setUploadStatus } from '../Uploading/uploadSlice';
 import { selectSupportedDevices } from '../userInfo/devicesSlice';
 import { Aranet4_1503CO2, incrementUpdates, MeasurementData, selectAranet4SpecificData, selectDeviceBatterylevel, selectDeviceID, selectDeviceName, selectDeviceRSSI, selectDeviceSerialNumberString, selectDeviceStatusString, selectHasBluetooth, selectMeasurementData, selectNeedsBluetoothTurnOn, selectScanningErrorStatusString, selectScanningStatusString, selectUpdateCount, setAranet4Color, setAranet4SecondsSinceLastMeasurement, setDeviceBatteryLevel, setDeviceID, setDeviceName, setDeviceSerialNumber, setDeviceStatusString, setHasBluetooth, setMeasurementData, setMeasurementInterval, setNeedsBluetoothTurnOn, setRssi, setScanningErrorStatusString, setScanningStatusString } from './bluetoothSlice';
-import { COVID_CO2_TRACKER_DEVICES_URL } from '../../utils/UrlPaths';
 
 
 //https://github.com/thespacemanatee/Smart-Shef-IoT/blob/4782c95f383040f36e4ae7ce063166cce5c76129/smart_shef_app/src/utils/hooks/useMonitorHumidityCharacteristic.ts
@@ -843,6 +844,7 @@ export const useBluetoothConnectAranet = () => {
                 console.log("Clearing co2 timer...");
                 clearTimeout(timeoutHandle);
                 setTimeoutHandle(null);
+                clearTimeout(handle);
             }
         }
     }, [deviceID, timeoutHandle, knownDevice])
@@ -990,9 +992,15 @@ function maybeNextMeasurementIn(aranet4MeasurementInterval: number | null, arane
     return maybeNext;
 }
 
-function atLeastOneMinute(maybeNextSeconds: number): number {
-    const plusMinute = maybeNextSeconds + 60;
-    const asMS = plusMinute * 1000;
+function atLeastOneMinuteInDev(maybeNextSeconds: number): number {
+    // if (__DEV__) {
+    //     const plusMinute = maybeNextSeconds + 60;
+    //     const asMS = plusMinute * 1000;
+    //     return asMS;
+    
+    // }
+    const plus15Minute = maybeNextSeconds + (60 * 15);
+    const asMS = plus15Minute * 1000;
     return asMS;
 }
 
@@ -1012,7 +1020,7 @@ function maybeNextMeasurementInOrDefault(aranet4SpecificInformation: Aranet4Spec
     const maybeNextSeconds = (aranet4SpecificInformation.measurementInterval - aranet4SpecificInformation.secondsSinceLastMeasurement) + 1;
     if (maybeNextSeconds < 60) {
         // debugger;
-        return atLeastOneMinute(maybeNextSeconds);
+        return atLeastOneMinuteInDev(maybeNextSeconds);
     }
     const maybeNextMs = (maybeNextSeconds * 1000);
     if (maybeNextMs < 5000) {
@@ -1074,37 +1082,6 @@ async function openCO2TrackerDevicesPage(setNativeErrors: React.Dispatch<React.S
     }
 }
 
-const useOpenableLink = (url: string, setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>): {openable: (boolean | null)} => {
-    const [openable, setOpenable] = useState(null as (boolean | null));
-
-    useEffect(() => {
-        Linking.canOpenURL(url).then((canOpen) => {
-            setOpenable(canOpen);
-        }).catch((errors) => {
-            setNativeErrors(`canOpenUrl error: ${String(errors)}`);
-        })
-    }, [])
-
-    return {openable};
-}
-
-const IfNotOpenable = (props: {openable: (boolean | null) }) => {
-    if (props.openable === null) {
-        return (
-            <>
-                Checking whether you can open the web console...
-            </>
-        )
-    }
-    if (!props.openable) {
-        return (
-            <>
-                <Text>Warning: may not be able to open link. Will report automatically in the future.</Text>
-            </>
-        )
-    }
-    return null;
-}
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 const MaybeNoSupportedBluetoothDevices: React.FC<{}> = () => {

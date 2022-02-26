@@ -26,3 +26,4 @@ export const REAL_TIME_UPLOAD_URL_NATIVE = (BASE_EXPO_URL + REAL_TIME_MEASUREMEN
 
 export const COVID_CO2_TRACKER_DEVICES_URL = "https://covid-co2-tracker.herokuapp.com/devices";
 
+export const COVID_CO2_TRACKER_PLACES_URL = "https://covid-co2-tracker.herokuapp.com/places";

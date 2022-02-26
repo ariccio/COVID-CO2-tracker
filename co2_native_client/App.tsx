@@ -1,12 +1,12 @@
 /* eslint-disable no-debugger */
 // See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
 
-import notifee, {IOSNotificationSettings, Notification, EventType, Event} from '@notifee/react-native';
+import notifee, {IOSNotificationSettings, Notification, EventType, Event, TriggerType, TimeUnit, IntervalTrigger} from '@notifee/react-native';
 import * as Device from 'expo-device';
 import { StatusBar } from 'expo-status-bar';
 import * as WebBrowser from 'expo-web-browser';
 import {useEffect, useState} from 'react';
-import { AppState, StyleSheet, Button, Text } from 'react-native';
+import { AppState, StyleSheet, Button } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 
@@ -295,7 +295,7 @@ async function realtimeUpload(jwt: string, measurement: MeasurementDataForUpload
 }
 
 
-function measurementChange(measurement: MeasurementDataForUpload | null, userSettings: UserSettings | null | undefined, jwt: string | null, dispatch: AppDispatch) {
+function measurementChange(measurement: MeasurementDataForUpload | null, userSettings: UserSettings | null | undefined, jwt: string | null, dispatch: AppDispatch, shouldUpload: boolean) {
   console.log(`Measurement changed! ${JSON.stringify(measurement)}`);
 
   // dispatch(addMeasurement())
@@ -319,6 +319,10 @@ function measurementChange(measurement: MeasurementDataForUpload | null, userSet
   }
   if (measurement === null) {
     console.log("measurement is null?");
+    return;
+  }
+  if (!shouldUpload) {
+    console.log("User has not requested to begin uploading.");
     return;
   }
   dispatch(setUploadStatus(`Uploading new measurement (${measurement.co2ppm})...`));
@@ -394,6 +398,9 @@ function defaultNotification(channelId: string): Notification {
   return defaultNotificationOptions;
 }
 
+
+
+
 async function checkedCreateChannel(setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>): Promise<string | null> {
   try {
     return await notifee.createChannel({
@@ -420,9 +427,82 @@ async function checkedRequestPermission(setNativeErrors: React.Dispatch<React.Se
     return null;
   }
 }
+
+
+function defaultTriggerNotification(channelId: string): Notification {
+  const defaultNotificationOptions: Notification = {
+    // See: co2_native_client\node_modules\@notifee\react-native\dist\types\Notification.d.ts
+    // See: co2_native_client\node_modules\@notifee\react-native\dist\types\NotificationAndroid.d.ts
+
+    // See also: https://notifee.app/react-native/docs/android/appearance#small-icons
+    title: 'COVID CO2 tracker', // "The notification title which appears above the body text."
+    body: 'Updating TRIGGERED...', // "The main body content of a notification."
+    android: { // "Android specific notification options. See the [`NotificationAndroid`](/react-native/reference/notificationandroid) interface for more information and default options which are applied to a notification."
+      channelId, // "Specifies the `AndroidChannel` which the notification will be delivered on."
+      smallIcon: 'ic_small_icon', // optional, defaults to 'ic_launcher'.
+    }
+  }
+  return defaultNotificationOptions;
+}
+
+
+// https://github.com/invertase/notifee/blob/7d03bb4eda27b5d4325473cf155852cef42f5909/tests_react_native/example/videoApp.tsx#L142
+function logEvent(state: string, event: any): void {
+  const { type, detail } = event;
+
+  let eventTypeString;
+
+  switch (type) {
+    case EventType.UNKNOWN:
+      eventTypeString = 'UNKNOWN';
+      console.log('Notification Id', detail.notification?.id);
+      break;
+    case EventType.DISMISSED:
+      eventTypeString = 'DISMISSED';
+      console.log('Notification Id', detail.notification?.id);
+      break;
+    case EventType.PRESS:
+      eventTypeString = 'PRESS';
+      console.log('Action ID', detail.pressAction?.id || 'N/A');
+      break;
+    case EventType.ACTION_PRESS:
+      eventTypeString = 'ACTION_PRESS';
+      console.log('Action ID', detail.pressAction?.id || 'N/A');
+      break;
+    case EventType.DELIVERED:
+      eventTypeString = 'DELIVERED';
+      console.log('Notification Id', detail.notification?.id);
+      break;
+    case EventType.APP_BLOCKED:
+      eventTypeString = 'APP_BLOCKED';
+      console.log('Blocked', detail.blocked);
+      break;
+    case EventType.CHANNEL_BLOCKED:
+      eventTypeString = 'CHANNEL_BLOCKED';
+      console.log('Channel', detail.channel);
+      break;
+    case EventType.CHANNEL_GROUP_BLOCKED:
+      eventTypeString = 'CHANNEL_GROUP_BLOCKED';
+      console.log('Channel Group', detail.channelGroup);
+      break;
+    case EventType.TRIGGER_NOTIFICATION_CREATED:
+      eventTypeString = 'TRIGGER_NOTIFICATION_CREATED';
+      console.log('Trigger Notification');
+      break;
+    default:
+      eventTypeString = 'UNHANDLED_NATIVE_EVENT';
+  }
+
+  console.log(`Received a ${eventTypeString} ${state} event in JS mode.`);
+  // console.warn(JSON.stringify(event));
+}
+
+
+
 // { type: EventType, detail: EventDetail }
 async function handleForegroundEvent({ type, detail }: Event) {
-  console.log(`Recieved foreground service event: ${JSON.stringify(type)}, ${JSON.stringify(detail)}`);
+  logEvent('foreground', {type, detail});
+  console.log(`-------\r\n\tRecieved foreground service event: ${JSON.stringify(type)}, ${JSON.stringify(detail)}`);
   if (type === EventType.ACTION_PRESS) {
     if (!detail) {
       console.warn("missing notification event detail?");
@@ -440,6 +520,10 @@ async function handleForegroundEvent({ type, detail }: Event) {
       return;
     }
     console.log(`...Unexpected pressAction? ${detail.pressAction.id}`);
+  }
+
+  if (type === EventType.DELIVERED) {
+    console.log("Likely event trigger?");
   }
 }
 async function registerForegroundService(setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>): Promise<void> {
@@ -463,21 +547,15 @@ async function registerForegroundService(setNativeErrors: React.Dispatch<React.S
 }
 
 //https://notifee.app/react-native/docs/displaying-a-notification
-async function onDisplayNotification(setDisplayNotificationErrors: React.Dispatch<React.SetStateAction<string | null>>, setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>) {
+async function onDisplayNotification(setDisplayNotificationErrors: React.Dispatch<React.SetStateAction<string | null>>, setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>, channelId: string) {
   // Create a channel
 
   //https://github.com/invertase/notifee/blob/7d03bb4eda27b5d4325473cf155852cef42f5909/docs/react-native/docs/debugging.md
   // To quickly view Android logs in the terminal:
   //   adb logcat '*:S' NOTIFEE:D
 
-
   await registerForegroundService(setNativeErrors);
 
-  const channelId = await checkedCreateChannel(setNativeErrors);
-  if (channelId === null) {
-    debugger;
-    return;
-  }
   // Required for iOS
   // See https://notifee.app/react-native/docs/ios/permissions
   await checkedRequestPermission(setNativeErrors);
@@ -522,24 +600,57 @@ async function onDisplayNotification(setDisplayNotificationErrors: React.Dispatc
   }
 }
 
+async function createTriggerNotification(setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>, channelId: string) {
+  const trigger: IntervalTrigger = {
+    type: TriggerType.INTERVAL,
+    interval: 15,
+    timeUnit: TimeUnit.MINUTES
+  };
+
+  const triggerNotif = defaultTriggerNotification(channelId);
+
+  try {
+    const result = await notifee.createTriggerNotification(triggerNotif, trigger);
+    return result;
+  }
+  catch (exception) {
+    setNativeErrors(`Error creating trigger notification: ${String(exception)}`);
+  }
+}
+
 interface NotifeeNotificationHookState {
   handleClickDisplayNotification: () => Promise<void>;
   displayNotificationErrors: string | null;
   nativeErrors: string | null;
   notificationID: string | null;
+  channelID: string | null;
+  triggerNotification: string | null;
 }
 
 const useNotifeeNotifications = (): NotifeeNotificationHookState => {
   const [displayNotificationErrors, setDisplayNotificationErrors] = useState(null as (string | null));
   const [nativeErrors, setNativeErrors] = useState(null as (string | null));
   const [notificationID, setNotificationID] = useState(null as (string | null));
+  const [channelID, setChannelID] = useState(null as (string | null));
+  const [triggerNotification, setTriggerNotification] = useState(null as (string | null));
 
   const dispatch = useDispatch();
 
   const handleClickDisplayNotification = async () => {
-    const result = await onDisplayNotification(setDisplayNotificationErrors, setNativeErrors);
+    const channelId_ = await checkedCreateChannel(setNativeErrors);
+    if (channelId_ === null) {
+      debugger;
+      return;
+    }
+    setChannelID(channelId_);
+
+    const result = await onDisplayNotification(setDisplayNotificationErrors, setNativeErrors, channelId_);
     if (result !== undefined) {
       setNotificationID(result);
+    }
+    const triggerResult = await createTriggerNotification(setNativeErrors, channelId_);
+    if (triggerResult !== undefined) {
+      setTriggerNotification(triggerResult);
     }
   }
 
@@ -555,7 +666,8 @@ const useNotifeeNotifications = (): NotifeeNotificationHookState => {
     })
   }, [])
 
-  return {handleClickDisplayNotification, displayNotificationErrors, nativeErrors, notificationID}
+
+  return {handleClickDisplayNotification, displayNotificationErrors, nativeErrors, notificationID, channelID, triggerNotification}
 }
 
 const RealtimeMeasurementInfo = (props: {userDeviceErrors: string | null}) => {
@@ -580,15 +692,29 @@ const NotificationInfo = (props: {notificationState: NotifeeNotificationHookStat
       <MaybeIfValue text="Battery optimization enabled: " value={(props.batteryOptimizationEnabled === null) ? null : String(props.batteryOptimizationEnabled)}/>
       <MaybeIfValue text="Notifee native errors (what?): " value={props.notificationState.nativeErrors}/>
       <MaybeIfValue text="Notification ID: " value={props.notificationState.notificationID}/>
+      <MaybeIfValue text="Trigger notification: " value={props.notificationState.triggerNotification}/>
+      <MaybeIfValue text="Notification channel: " value={props.notificationState.channelID}/>
     </>
   )
 }
 
+
+
+const UploadingButton = (props: {shouldUpload: boolean, setShouldUpload: React.Dispatch<React.SetStateAction<boolean>>}) => {
+  const text = (props.shouldUpload ? "Stop uploading" : "Start uploading"); 
+
+  return (
+    <Button title={text} onPress={() => {props.setShouldUpload(!props.shouldUpload)}}/>
+  );
+}
+
 function App() {
+  const [shouldUpload, setShouldUpload] = useState(false);
   const {device, measurement} = useBluetoothConnectAranet();
   const jwt = useSelector(selectJWT);
   const userName = useSelector(selectUserName);
   const [userDeviceErrors, setUserDeviceErrors] = useState(null as (string | null));
+  
   
   const dispatch = useDispatch();
   const userSettings = useSelector(selectUserSettings);
@@ -609,8 +735,15 @@ function App() {
 
 
   useEffect(() => {
-    measurementChange(measurement, userSettings, jwt, dispatch);
-  }, [measurement])
+    measurementChange(measurement, userSettings, jwt, dispatch, shouldUpload);
+  }, [measurement, userSettings, jwt, shouldUpload])
+
+  useEffect(() => {
+    return () => {
+      notifee.cancelAllNotifications();
+      notifee.stopForegroundService();
+    }
+  }, [])
 
   // console.log(batteryOptimizationEnabled);
 
@@ -623,6 +756,7 @@ function App() {
       <UserSettingsMaybeDisplay/>
       
       <NotificationInfo notificationState={notificationState} batteryOptimizationEnabled={batteryOptimizationEnabled}/>
+      <UploadingButton shouldUpload={shouldUpload} setShouldUpload={setShouldUpload}/>
       <StatusBar style="auto" />
     </SafeAreaProvider>
   );

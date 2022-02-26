@@ -23,6 +23,7 @@ export const globalSlice = createSlice({
             state.jwt = action.payload;
         },
         incrementSuccessfulUploads: (state, action: PayloadAction<void>) => {
+            // debugger;
             state.successfulUploads += 1;
         },
         setBatteryOptimizationEnabled: (state, action: PayloadAction<boolean | null>) => {

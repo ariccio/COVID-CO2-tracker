@@ -1,10 +1,41 @@
-import { Text } from 'react-native';
+import { useState } from 'react';
+import { Linking, Text } from 'react-native';
 import { useSelector } from "react-redux";
 
 // import { defaultUserSettings } from "../../../../co2_client/src/utils/UserSettings";
 import { MaybeIfValue } from "../../utils/RenderValues";
+import { COVID_CO2_TRACKER_PLACES_URL } from '../../utils/UrlPaths';
+import { useOpenableLink, IfNotOpenable } from '../Links/OpenLink';
 import { selectUserSettings, selectUserSettingsErrors } from "../userInfo/userInfoSlice"
 
+async function openCO2TrackerPlacePage(setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>, url: string) {
+    console.log(`Opening ${url}...`)
+    try {
+        Linking.openURL(url);
+    }
+    catch (exception) {
+        setNativeErrors(`Error opening web console: ${String(exception)}`)
+    }
+}
+
+
+const LinkIfValue = (props: {setting_place_google_place_id?: string | null | undefined}) => {
+    const [nativeErrors, setNativeErrors] = useState(null as (string | null));
+    const placesUrl = (COVID_CO2_TRACKER_PLACES_URL + '/' + props.setting_place_google_place_id);
+    const {openable} = useOpenableLink(placesUrl, setNativeErrors);
+
+    if (!props.setting_place_google_place_id) {
+        return null;
+    }
+
+    return (
+        <>
+            <IfNotOpenable openable={openable}/>
+            <MaybeIfValue text="Native errors from link: " value={nativeErrors}/>
+            <Text onLongPress={() => openCO2TrackerPlacePage(setNativeErrors, placesUrl)} onPress={() => openCO2TrackerPlacePage(setNativeErrors, placesUrl)}>Uploading place: {props.setting_place_google_place_id}</Text>
+        </>
+    )
+}
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const UserSettingsMaybeDisplay: React.FC<{}> = () => {
@@ -30,7 +61,7 @@ export const UserSettingsMaybeDisplay: React.FC<{}> = () => {
     return (
         <>
             <MaybeIfValue text="User settings errors: " value={userSettingsErrors}/>
-            <MaybeIfValue text="Uploading place: " value={userSettings?.setting_place_google_place_id}/>
+            <LinkIfValue setting_place_google_place_id={userSettings?.setting_place_google_place_id}/>
             <MaybeIfValue text="sublocation description: '" value={userSettings?.sublocation_description} suffix="'"/>
         </>
     )
