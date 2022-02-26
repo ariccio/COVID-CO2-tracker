@@ -83,3 +83,7 @@ gem 'tzinfo-data'
 # https://stackoverflow.com/a/70500221/625687
 gem 'net-smtp', require: false
 
+gem 'net-pop', require: false
+
+gem 'net-imap', require: false
+
