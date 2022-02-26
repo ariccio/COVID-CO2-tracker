@@ -254,7 +254,7 @@ const MapMeasurementsToTableBody = (props: {measurements: Array<SerializedSingle
             console.error("Corrupted measurement lacks ID, simply rendering null...");
             return (
                 <tr>
-
+                    Bad measurement info!!
                 </tr>
             );
         }
