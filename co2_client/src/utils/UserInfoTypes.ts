@@ -7,7 +7,7 @@ interface UserInfoInternal {
     username: string,
     devices: UserInfoDevice[],
     measurements: {
-        data: SerializedSingleMeasurement[]
+        data?: SerializedSingleMeasurement[]
     } | null,
     // settings?: UserSettings | null,
     //TODO: FIXME: should not fetch with all user info, may slow a lot of things down.

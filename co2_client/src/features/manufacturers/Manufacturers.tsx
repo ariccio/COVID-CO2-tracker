@@ -116,7 +116,7 @@ const selectManufacturerHandler = (eventKey: string | null, event: React.Synthet
     const selected = dropdownKeyToManufacturerID(eventKey);
     if (selected !== null) {
         dispatch(setSelectedManufacturer(selected));
-        console.log(`user selected manufactuer dropdown number: ${eventKey}`);
+        console.log(`user selected manufacturer dropdown number: ${eventKey}`);
     }
 }
 

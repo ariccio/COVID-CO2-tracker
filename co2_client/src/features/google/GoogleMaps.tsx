@@ -121,7 +121,7 @@ function handlePositionUnavailable(error: GeolocationPositionError_) {
 
 
 const errorPositionCallback = (error: GeolocationPositionError_, geolocationInProgress: boolean, setGeolocationInProgress: React.Dispatch<React.SetStateAction<boolean>>) => {
-    console.assert(geolocationInProgress);
+    console.assert(geolocationInProgress && "geolocationInProgress");
     setGeolocationInProgress(false);
     
     const errorStr = JSON.stringify(error);

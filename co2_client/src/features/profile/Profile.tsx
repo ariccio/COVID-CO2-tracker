@@ -2,6 +2,9 @@ import React, {useEffect, useState} from 'react';
 import { Link } from 'react-router-dom';
 import {Button} from 'react-bootstrap';
 
+import * as Sentry from "@sentry/browser"; // for manual error reporting.
+
+
 import { useDispatch, useSelector } from 'react-redux';
 import {selectUsername} from '../login/loginSlice';
 import {DevicesTable} from '../devices/DevicesTable';
@@ -97,6 +100,12 @@ const maybeRenderMeasurements = (userInfo: UserInfoType) => {
 
 const RenderMeasurementsCount = (props: {userInfo: UserInfoType}) => {
     if (props.userInfo.user_info.measurements === null) {
+        return null;
+    }
+    // if (props.userInfo.user_info.measurements)
+    if (props.userInfo.user_info.measurements.data === undefined) {
+        // Likely props.userInfo.user_info.measurements is array.
+        Sentry.captureMessage(`Unexpected undefined data, whole object: ${JSON.stringify(props.userInfo)}`);
         return null;
     }
     return (
@@ -288,7 +297,7 @@ export const Profile: React.FC<ProfileProps> = () => {
         return (
             <div>
                 <p>
-                    Not logged in!
+                    Not logged in!<br/>
                     {errorState}
                 </p>
             </div>
