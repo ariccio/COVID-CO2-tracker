@@ -113,6 +113,7 @@ async function dumpServiceDescriptions(services: Service[]) {
     }
 }
 
+
 const scanCallback = async (error: BleError | null, scannedDevice: Device | null, setDevice: React.Dispatch<React.SetStateAction<Device | null>>, dispatch: AppDispatch) => {
     if (error) {
         console.error(`error scanning: ${error}`);
@@ -131,32 +132,20 @@ const scanCallback = async (error: BleError | null, scannedDevice: Device | null
 
     dumpNewScannedDeviceInfo(scannedDevice);
     if (!scannedDevice) {
-        // dispatch(setScanningErrorStatusString(`scannedDevice is null?: Something's wrong.`));
         return;
     }
     if (scannedDevice.name === null) {
-        // dispatch(setScanningStatusString(`scannedDevice has no name. ID: ${scannedDevice.id}`));
         return;
     }
     if ((scannedDevice.name.startsWith('Aranet4'))) {
         await foundAranet4(scannedDevice, dispatch, setDevice);
-        // if (withRSSI.txPowerLevel) {
-        //   dispatch(setTxPower(withRSSI.txPowerLevel));
-        // }
-        // else {
-        //   console.error("No txPowerLevel?");
-        // }
-
     }
-    // else {
-    //     dispatch(setScanningStatusString(`found non-aranet device: ${scannedDevice.name}`));
-    // }
-
-    // debugger;
 }
 
+const aranetService = [BLUETOOTH.ARANET4_SENSOR_SERVICE_UUID];
+
 const scanAndIdentify = (setDevice: React.Dispatch<React.SetStateAction<Device | null>>, dispatch: AppDispatch) => {
-    const aranetService = [BLUETOOTH.ARANET4_SENSOR_SERVICE_UUID];
+    
     dispatch(setScanningStatusString(`Beginning scan for devices with services: ${aranetService}...`));
     manager.startDeviceScan(aranetService, null, (error, scannedDevice) => scanCallback(error, scannedDevice, setDevice, dispatch));
 }
@@ -417,13 +406,6 @@ async function readAranet4SpecificInformation(deviceID: string, dispatch: AppDis
     dispatch(setDeviceStatusString('Reading aranet4 measurement interval...'));
     const interval = await readAranet4MeasurementInterval(deviceID);
     // console.log(`Measurement interval: ${interval}`)
-    
-    // .then((interval) => {
-    //     setMeasurementInterval(interval);
-    // }).catch((error) => {
-    //     // debugger;
-    //     setMeasurementIntervalError(error);
-    // })
 
     return {
         // co2CharacteristicError: null,
@@ -434,6 +416,181 @@ async function readAranet4SpecificInformation(deviceID: string, dispatch: AppDis
         // secondsSinceLastMeasurementError: null,
         lastMeasurementTimeAsUTC: lastMeasurementTime
     }
+}
+
+const connect = async (deviceID: string): Promise<Device | null> => {
+    console.log("Not connected. Connecting...");
+    const connectedDevice = await manager.connectToDevice(deviceID);
+    return connectedDevice;
+
+}
+
+
+const connectOrAlreadyConnected = async (deviceID: string): Promise<Device | boolean | null> => {
+    console.log(`Checking if ${deviceID} is connected first...`);
+    const isConnected = await manager.isDeviceConnected(deviceID);
+    if (!isConnected) {
+        return connect(deviceID);
+    }
+    console.log("connected, checking connection manager for connection...");
+    const connectedDevices = await manager.connectedDevices([deviceID]);
+    console.log(`Manager reports connected devices: ${JSON.stringify(connectedDevices)}`);
+    const inConnectedDevices = connectedDevices.find((eachDevice) => eachDevice.id === deviceID);
+    if (inConnectedDevices === undefined) {
+        console.error("BUG! device is connected, but not in connected devices? Maybe race condition? Maybe try again?");
+        return true;
+    }
+    return inConnectedDevices;
+}
+
+const headlessForegroundScanConnectRead = async (deviceID: string, supportedDevices: UserInfoDevice[]): Promise<Aranet4GenericAndSpecificInformation | boolean> => {    
+    try {
+
+
+        const connectedDevice = await connectOrAlreadyConnected(deviceID);
+
+    
+        if (connectedDevice === null) {
+            console.error("Connection to aranet4 failed.");
+            return false;
+        }
+        if (connectedDevice === true) {
+            console.error("connection failed, but should retry...");
+            return true;
+        }
+        if (connectedDevice === false) {
+            return false;
+        }
+    
+        console.log("Discovering services and characteristics...");
+        const deviceWithServicesAndCharacteristics = await connectedDevice.discoverAllServicesAndCharacteristics();
+        
+        console.log("Connected to aranet4, services discovered!");
+    
+        const services = await deviceWithServicesAndCharacteristics.services();
+        const genericInfo = await readGenericBluetoothInformation(deviceID);
+        // const aranet4Info = await readAranet4SpecificInformation(deviceID, dispatch);
+    
+    
+        const co2CharacteristicMeasurement = await readAranet4Co2Characteristic(deviceID)
+        console.log(`\tCO2: ${co2CharacteristicMeasurement?.co2}ppm`);
+        const secondsSinceLastMeasurement = await readAranet4SecondsSinceLastMeasurementCharacteristic(deviceID)
+        const now = Date.now();
+        const seconds = secondsSinceLastMeasurement * 1000;
+        const lastMeasurementTime = (new Date(now - seconds));
+        console.log(`Last measurement taken: ${lastMeasurementTime.toLocaleTimeString()}/${lastMeasurementTime.toUTCString()} (UTC)`);
+    
+    
+        const interval = await readAranet4MeasurementInterval(deviceID);
+    
+        /*
+    
+        
+        return {
+            co2CharacteristicValue: co2CharacteristicMeasurement,
+            measurementInterval: interval,
+            secondsSinceLastMeasurement,
+            lastMeasurementTimeAsUTC: lastMeasurementTime
+        }
+    
+                return {
+                specificInfo: aranet4Info,
+                genericInfo
+            };
+    
+    */
+        const closed = await manager.cancelDeviceConnection(deviceID);
+        return {
+            specificInfo: {
+                co2CharacteristicValue: co2CharacteristicMeasurement,
+                measurementInterval: interval,
+                secondsSinceLastMeasurement,
+                lastMeasurementTimeAsUTC: lastMeasurementTime
+            },
+            genericInfo
+        }
+
+    }
+    catch(error) {
+        const filtered = headlessFilterBleReadError(error, deviceID);
+        const retryable = filtered.retry ? "Retryable " : "Non-retryable ";
+        console.log(`${retryable}error: ${filtered.message}`);
+        console.log(`\terror fitered: ${JSON.stringify(filtered)}`)
+        // if (!filtered.retry) {
+        //     debugger;
+        // }
+        return filtered.retry;
+    }
+
+}
+const headlessForegroundScanConnectReadWithRetry = async (deviceID: string, supportedDevices: UserInfoDevice[]): Promise<Aranet4GenericAndSpecificInformation | null> => {
+    const updatedOrNeedsRetry = await headlessForegroundScanConnectRead(deviceID, supportedDevices);
+    if (updatedOrNeedsRetry === false) {
+        console.warn("non recoverable error, not retrying...");
+        return null;
+    }
+    if (updatedOrNeedsRetry === true) {
+        console.warn(`Retrying ONCE...`);
+        const triedAgainOrNeedsRetry = await headlessForegroundScanConnectRead(deviceID, supportedDevices);
+
+        if (triedAgainOrNeedsRetry === false) {
+            return null;
+        }
+        if (triedAgainOrNeedsRetry === true) {
+            return null;
+        }
+        return triedAgainOrNeedsRetry;
+    }
+
+    return updatedOrNeedsRetry;
+    
+}
+
+
+export const onHeadlessTaskTriggerBluetooth = async (deviceID: string, supportedDevices: UserInfoDevice[]): Promise<MeasurementDataForUpload | null> => {
+    const updated = await headlessForegroundScanConnectReadWithRetry(deviceID, supportedDevices);
+    if (updated === null) {
+        console.error("failed to read in headless task!");
+        // debugger;
+        return null;
+    }
+    if (updated.specificInfo.co2CharacteristicValue === null) {
+        console.log("Missing co2 value in headless task??");
+        return null;
+    }
+    if (updated.genericInfo.serialNumberString === null) {
+        console.log("Missing serial number in headless task?");
+        return null;
+    }
+
+    const deviceIDInDatabase = deviceIDFromUserInfoDevice(supportedDevices, updated.genericInfo.serialNumberString);
+    const fullMeasurement: MeasurementDataForUpload = {
+        co2ppm: updated.specificInfo.co2CharacteristicValue.co2,
+        measurementtime: updated.specificInfo.lastMeasurementTimeAsUTC,
+        device_id: deviceIDInDatabase
+    };
+    
+    return fullMeasurement;
+
+    /*
+
+    const updated = await updateCallback(deviceID, dispatch, beginWithDeviceConnection, finish);
+    if (updated === undefined) {
+        console.log("Failed to read measurement from known device. Nothing to upload");
+        // debugger;
+        return;
+    }
+
+
+    
+    const fullMeasurement: MeasurementDataForUpload = {
+        co2ppm: updated.specificInfo.co2CharacteristicValue.co2,
+        measurementtime: updated.specificInfo.lastMeasurementTimeAsUTC,
+        device_id: deviceIDInDatabase
+    };
+    setMeasurement(fullMeasurement);
+
+    */
 }
 
 const useScanConnectAranet4 = () => {
@@ -463,7 +620,7 @@ const useScanConnectAranet4 = () => {
             debugger;
             return null;
         }
-        const connectedDevice = await attemptConnectScannedDevice(deviceID, dispatch, device);
+        const connectedDevice = await attemptConnectScannedDevice(deviceID, device);
 
         if (connectedDevice === null) {
             console.error("Connection failed.");
@@ -531,6 +688,92 @@ function bleErrorToUsefulString(error: BleError): string {
     return asStringManualFormat;
 }
 
+interface BleErrorInfo {
+    retry: boolean;
+    message: string | null;
+
+}
+
+function headlessFilterBleReadError(error: unknown, deviceID: string | null): BleErrorInfo {
+    if (error instanceof BleError) {
+        if (error.errorCode === BleErrorCode.OperationCancelled) {
+            return {
+                message: 'Bluetooth read was cancelled for some reason. Will try again.',
+                retry: true
+            }
+        }
+        if (error.errorCode === BleErrorCode.DeviceNotConnected) {
+            console.log(`Device ${deviceID} not connected. Data not available. Will try again.`);
+            return {
+                message: 'Read failed, connection lost! Will try again..',
+                retry: true
+            }
+        }
+        if (error.errorCode === BleErrorCode.DeviceDisconnected) {
+            console.log(`Device ${deviceID} connection LOST. Data not available. Will try again.`);
+            return {
+                message: 'Read failed, connection lost! Will try again..',
+                retry: true
+            }
+        }
+        if (error.errorCode === BleErrorCode.DeviceAlreadyConnected) {
+            console.log(`Device ${deviceID} already connected!`);
+            return {
+                message: null,
+                retry: true
+            }
+        }
+        if (error.errorCode === BleErrorCode.OperationTimedOut) {
+            console.log(`Bluetooth operation timed out.`);
+            return {
+                message: 'Read failed, OS reports operation timed out! Will try again..',
+                retry: true
+            }
+        }
+        //0x11 === GATT_INSUF_RESOURCE
+        //Need to cast because react-native-ble-plx doesn't enumerate this? :)
+        if ((error.androidErrorCode as number) === 0x11) {
+            return {
+                message: "Your device didn't even have enough memory to process the error message! There's something wrong, I will NOT try again. I didn't expect to see this problem, ever!",
+                retry: false
+            }
+        }
+        //NoResources === 0x80
+        if (error.androidErrorCode === BleAndroidErrorCode.NoResources) {
+            console.error("Your device is out of memory, no point in trying again!");
+        }
+        //0x81 === GATT_INTERNAL_ERROR (android messed up)
+        if (error.androidErrorCode === 0x81) {
+            console.log("Google screwed up!");
+            return {
+                message: "Android did something wrong (GATT_INTERNAL_ERROR), nothing I can do except try again...",
+                retry: true
+            }
+        }
+        //0x85 === GATT_ERROR (a generic error)
+        if (error.androidErrorCode === 0x85) {
+            console.log("Stupid-ass generic android error: https://cs.android.com/android/platform/superproject/+/master:packages/modules/Bluetooth/system/stack/include/gatt_api.h;l=65?q=%20%22GATT_ERROR%22&start=1");
+            return {
+                message: 'Read failed, android gives no specific reason... Will try again..',
+                retry: true
+            }
+        }
+        if (error.androidErrorCode === 0x89) {
+            console.log("Authentication failed.");
+            return {
+                message: 'Read failed, authentication failed or you cancelled it... Will try again..',
+                retry: true
+            }
+        }
+        console.error(`----UNEXPECTED bluetooth error while reading from device: ${bleErrorToUsefulString(error)}----`)
+        debugger;
+        throw error;
+    }
+    console.error(`----UNEXPECTED error while reading from device: ${String(error)}----`);
+    debugger;
+    throw error;
+}
+
 function filterBleReadError(error: unknown, dispatch: AppDispatch, deviceID: string | null): void | boolean {
     if (error instanceof BleError) {
         if (error.errorCode === BleErrorCode.OperationCancelled) {
@@ -592,7 +835,6 @@ function filterBleReadError(error: unknown, dispatch: AppDispatch, deviceID: str
     dispatch(setDeviceStatusString(`Unexpected error while reading from device: ${String(error)}`))
     debugger;
     throw error;
-
 }
 
 async function forceEnableBluetooth(dispatch: AppDispatch) {
@@ -694,12 +936,30 @@ async function pollAranet4(setTimeoutHandle: React.Dispatch<React.SetStateAction
     setMeasurement(fullMeasurement);
 }
 
-export const useBluetoothConnectAranet = () => {
+const useCheckKnownDevice = (supportedDevices: UserInfoDevice[] | null, serialNumber?: string | null) => {
+    const [knownDevice, setKnownDevice] = useState(null as (boolean | null));
+    useEffect(() => {
+        if (serialNumber === undefined) {
+            console.log("------------------------------NOT setting known device?");
+            setKnownDevice(false);
+            // return;
+        }
+        else {
+            console.log("------------------------------setting known device?");
+            setKnownDevice(isSupportedDevice(supportedDevices, serialNumber))
+        }
+    }, [supportedDevices, serialNumber]);
+
+    return {knownDevice};
+
+}
+
+export const useBluetoothConnectAndPollAranet = () => {
     // const [hasBluetooth, setHasBluetooth] = useState(false);
     // const [device, setDevice] = useState(null as (Device | null));
     const hasBluetooth = useSelector(selectHasBluetooth);
     const supportedDevices = useSelector(selectSupportedDevices);
-    const [knownDevice, setKnownDevice] = useState(false);
+    const [knownDeviceBluetooth, setKnownDeviceBluetooth] = useState(false);
     
     const dispatch = useDispatch();
     
@@ -714,15 +974,17 @@ export const useBluetoothConnectAranet = () => {
     const [measurement, setMeasurement] = useState(null as (MeasurementDataForUpload | null));
     
     useEffect(() => {
+
+        
         if (genericBluetoothInformation === null) {
             // debugger;
-            setKnownDevice(false);
+            setKnownDeviceBluetooth(false);
             return;
         }
         const known = isSupportedDevice(supportedDevices, genericBluetoothInformation.serialNumberString);
         const knownBluetooth = !!known;
         console.log(`Setting device known to ${knownBluetooth}`);
-        setKnownDevice(knownBluetooth);
+        setKnownDeviceBluetooth(knownBluetooth);
         // debugger;
         if (knownBluetooth) {
             console.log(`Device ${genericBluetoothInformation.serialNumberString} is known to bluetooth hook!`);
@@ -740,7 +1002,7 @@ export const useBluetoothConnectAranet = () => {
             dispatch(setDeviceStatusString("User has NOT granted bluetooth permissions. Beginning first read over bluetooth anyways..."));
         }
         else {
-            dispatch(setDeviceStatusString(`Beginning first read over bluetooth... device known: ${knownDevice}`));
+            dispatch(setDeviceStatusString(`Beginning first read over bluetooth... device known: ${knownDeviceBluetooth}`));
         }
         // if (!knownDevice) {
         //     console.warn("Not configured yet, warns eery first connection?")
@@ -785,25 +1047,6 @@ export const useBluetoothConnectAranet = () => {
         }
     }, [aranet4SpecificInformation?.co2CharacteristicValue]);
 
-    useEffect(() => {
-        if (aranet4SpecificInformation === null) {
-            return;
-        }
-        if (genericBluetoothInformation === null) {
-            return;
-        }
-        if (aranet4SpecificInformation.co2CharacteristicValue === null) {
-            return;
-        }
-        if (genericBluetoothInformation.battery === null) {
-            return;
-        }
-        if (genericBluetoothInformation.battery !== aranet4SpecificInformation.co2CharacteristicValue.battery) {
-            console.log(`battery value in generic bluetooth info (${genericBluetoothInformation.battery}) differs from co2 characteristic battery level (${aranet4SpecificInformation.co2CharacteristicValue.battery})`);
-            // See also, I decided to open an issue to discuss: https://github.com/Anrijs/Aranet4-Python/issues/12
-            // debugger;
-        }
-    }, [aranet4SpecificInformation, genericBluetoothInformation])
 
     useEffect(() => {
         if (aranet4SpecificInformation === null) {
@@ -835,7 +1078,7 @@ export const useBluetoothConnectAranet = () => {
             return;
         }
         console.log(`Setting update timer (${timerTime/1000} seconds)...`);
-        const handle = setTimeout(() => pollAranet4(setTimeoutHandle, deviceID, knownDevice, setGenericBluetoothInformation, setAranet4SpecificInformation, dispatch, supportedDevices, beginWithDeviceConnection, finish, setMeasurement), timerTime);
+        const handle = setTimeout(() => pollAranet4(setTimeoutHandle, deviceID, knownDeviceBluetooth, setGenericBluetoothInformation, setAranet4SpecificInformation, dispatch, supportedDevices, beginWithDeviceConnection, finish, setMeasurement), timerTime);
         // console.log(`Set update timer: ${handle}`)
         setTimeoutHandle(handle);
 
@@ -847,7 +1090,7 @@ export const useBluetoothConnectAranet = () => {
                 clearTimeout(handle);
             }
         }
-    }, [deviceID, timeoutHandle, knownDevice])
+    }, [deviceID, timeoutHandle, knownDeviceBluetooth])
 
 
 
@@ -878,7 +1121,7 @@ async function firstBluetoothUpdate(beginWithDeviceConnection: () => Promise<Dev
     }
 }
 
-async function attemptConnectScannedDevice(scannedDevice: DeviceId, dispatch: AppDispatch, device: Device | null): Promise<Device | null> {
+async function attemptConnectScannedDevice(scannedDevice: DeviceId, device: Device | null): Promise<Device | null> {
     // console.log(`Attempting connection to ${scannedDevice}`);
     if (device !== null) {
         const isAlreadyConnected = await device.isConnected();
@@ -917,8 +1160,23 @@ async function foundAranet4(scannedDevice: Device, dispatch: AppDispatch, setDev
     }
     manager.stopDeviceScan();
     // debugger;
-
 }
+
+async function headlessFoundAranet4(scannedDevice: Device) {
+    console.log("Connecting to aranet4...");
+    if (scannedDevice.id) {
+        if (scannedDevice.id === '?') {
+            debugger;
+        }
+    }
+    else {
+        //TODO: bubble error up?
+        console.error("No ID?");
+        debugger;
+    }
+    manager.stopDeviceScan();
+}
+
 
 function dumpNewScannedDeviceInfo(scannedDevice: Device | null) {
     // console.log("New device!");
@@ -1112,16 +1370,13 @@ export const useBluetoothAranet4 = () => {
     const aranet4Data = useSelector(selectAranet4SpecificData);
     const serialNumber = useSelector(selectDeviceSerialNumberString);
 
-    const [knownDevice, setKnownDevice] = useState(null as (boolean | null));
+    // const [knownDevice, setKnownDevice] = useState(null as (boolean | null));
+    const {knownDevice} = useCheckKnownDevice(supportedDevices, serialNumber);
     const [nextMeasurement, setNextMeasurement] = useState(null as (number | null));
 
     useEffect(() => {
         requestLocationPermission(dispatch);
     }, []);
-
-    useEffect(() => {
-        setKnownDevice(isSupportedDevice(supportedDevices, serialNumber))
-    }, [supportedDevices, serialNumber])
 
     useEffect(() => {
         setNextMeasurement(maybeNextMeasurementIn(aranet4Data?.aranet4MeasurementInterval, aranet4Data?.aranet4SecondsSinceLastMeasurement));

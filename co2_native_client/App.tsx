@@ -24,7 +24,7 @@ import {AuthContainerWithLogic} from './src/features/Auth/Auth';
 import { MeasurementDataForUpload } from './src/features/Measurement/MeasurementTypes';
 import { selectUploadStatus, setUploadStatus } from './src/features/Uploading/uploadSlice';
 import { UserSettingsMaybeDisplay } from './src/features/UserSettings/UserSettingsDisplay';
-import { BluetoothData, useBluetoothAranet4, useBluetoothConnectAranet } from './src/features/bluetooth/Bluetooth';
+import { BluetoothData, useBluetoothAranet4, useBluetoothConnectAndPollAranet } from './src/features/bluetooth/Bluetooth';
 import { NotifeeNotificationHookState, useNotifeeNotifications, NotificationInfo } from './src/features/service/Notification';
 import { setSupportedDevices, setUNSupportedDevices } from './src/features/userInfo/devicesSlice';
 import { selectUserName, selectUserSettings, setUserSettings, setUserSettingsErrors } from './src/features/userInfo/userInfoSlice';
@@ -401,7 +401,7 @@ const UploadingButton = (props: {shouldUpload: boolean, setShouldUpload: React.D
 
 function App() {
   const [shouldUpload, setShouldUpload] = useState(false);
-  const {device, measurement} = useBluetoothConnectAranet();
+  const {device, measurement} = useBluetoothConnectAndPollAranet();
   const jwt = useSelector(selectJWT);
   const userName = useSelector(selectUserName);
   const [userDeviceErrors, setUserDeviceErrors] = useState(null as (string | null));
@@ -413,8 +413,8 @@ function App() {
 
   const batteryOptimizationEnabled = useSelector(selectBatteryOptimizationEnabled);
 
-  const notificationState: NotifeeNotificationHookState = useNotifeeNotifications();
   const {knownDevice, nextMeasurement} = useBluetoothAranet4();
+  const notificationState: NotifeeNotificationHookState = useNotifeeNotifications();
 
 
   //https://notifee.app/react-native/docs/events#app-open-events
@@ -454,6 +454,7 @@ function App() {
     return () => {
       notifee.cancelAllNotifications();
       notifee.stopForegroundService();
+      notifee.cancelTriggerNotifications();
     }
   }, [])
 

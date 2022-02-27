@@ -1,12 +1,16 @@
 import notifee, {IOSNotificationSettings, Notification, EventType, Event, TriggerType, TimeUnit, IntervalTrigger} from '@notifee/react-native';
-import {useState, useEffect} from 'react';
-import { Button } from 'react-native';
+import {useState, useEffect, useRef} from 'react';
+import { Button, AppState, AppStateStatus } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 
+import { UserInfoDevice } from '../../../../co2_client/src/utils/DeviceInfoTypes';
 import { selectJWT, setBatteryOptimizationEnabled } from '../../app/globalSlice';
 import { MaybeIfValue } from '../../utils/RenderValues';
+import { onHeadlessTaskTriggerBluetooth } from '../bluetooth/Bluetooth';
+import { selectDeviceID } from '../bluetooth/bluetoothSlice';
+import { selectSupportedDevices } from '../userInfo/devicesSlice';
 import { selectUserSettings } from '../userInfo/userInfoSlice';
-
+import {logEvent} from './LogEvent';
 
 function defaultNotification(channelId: string): Notification {
     const defaultNotificationOptions: Notification = {
@@ -15,7 +19,7 @@ function defaultNotification(channelId: string): Notification {
 
         // See also: https://notifee.app/react-native/docs/android/appearance#small-icons
         title: 'COVID CO2 tracker', // "The notification title which appears above the body text."
-        body: 'Main body content of the notification', // "The main body content of a notification."
+        body: 'COVID CO2 tracker service is running.', // "The main body content of a notification."
         android: { // "Android specific notification options. See the [`NotificationAndroid`](/react-native/reference/notificationandroid) interface for more information and default options which are applied to a notification."
             channelId, // "Specifies the `AndroidChannel` which the notification will be delivered on."
             smallIcon: 'ic_small_icon', // optional, defaults to 'ic_launcher'.
@@ -23,6 +27,14 @@ function defaultNotification(channelId: string): Notification {
             // https://notifee.app/react-native/docs/android/foreground-service
             asForegroundService: true,
             actions: [
+                {
+                    title: 'Open',
+                    icon: 'https://my-cdn.com/icons/open-chat.png',
+                    pressAction: {
+                        id: 'open-chat',
+                        launchActivity: 'default',
+                    },
+                },
                 {
                     title: 'Stop',
                     pressAction: {
@@ -36,6 +48,23 @@ function defaultNotification(channelId: string): Notification {
 }
 
 
+function defaultTriggerNotification(channelId: string): Notification {
+    const defaultNotificationOptions: Notification = {
+        // See: co2_native_client\node_modules\@notifee\react-native\dist\types\Notification.d.ts
+        // See: co2_native_client\node_modules\@notifee\react-native\dist\types\NotificationAndroid.d.ts
+
+        // See also: https://notifee.app/react-native/docs/android/appearance#small-icons
+        title: 'COVID CO2 tracker', // "The notification title which appears above the body text."
+        body: 'Updating TRIGGERED...', // "The main body content of a notification."
+        android: { // "Android specific notification options. See the [`NotificationAndroid`](/react-native/reference/notificationandroid) interface for more information and default options which are applied to a notification."
+            channelId, // "Specifies the `AndroidChannel` which the notification will be delivered on."
+            smallIcon: 'ic_small_icon', // optional, defaults to 'ic_launcher'.
+            timeoutAfter: (1000 * 60),
+            onlyAlertOnce: true
+        }
+    }
+    return defaultNotificationOptions;
+}
 
 
 async function checkedCreateChannel(setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>): Promise<string | null> {
@@ -66,81 +95,73 @@ async function checkedRequestPermission(setNativeErrors: React.Dispatch<React.Se
 }
 
 
-function defaultTriggerNotification(channelId: string): Notification {
-    const defaultNotificationOptions: Notification = {
-        // See: co2_native_client\node_modules\@notifee\react-native\dist\types\Notification.d.ts
-        // See: co2_native_client\node_modules\@notifee\react-native\dist\types\NotificationAndroid.d.ts
-
-        // See also: https://notifee.app/react-native/docs/android/appearance#small-icons
-        title: 'COVID CO2 tracker', // "The notification title which appears above the body text."
-        body: 'Updating TRIGGERED...', // "The main body content of a notification."
-        android: { // "Android specific notification options. See the [`NotificationAndroid`](/react-native/reference/notificationandroid) interface for more information and default options which are applied to a notification."
-            channelId, // "Specifies the `AndroidChannel` which the notification will be delivered on."
-            smallIcon: 'ic_small_icon', // optional, defaults to 'ic_launcher'.
-        }
-    }
-    return defaultNotificationOptions;
-}
 
 
-// https://github.com/invertase/notifee/blob/7d03bb4eda27b5d4325473cf155852cef42f5909/tests_react_native/example/videoApp.tsx#L142
-function logEvent(state: string, event: any): void {
-    const { type, detail } = event;
-
-    let eventTypeString;
-
-    switch (type) {
-        case EventType.UNKNOWN:
-            eventTypeString = 'UNKNOWN';
-            console.log('Notification Id', detail.notification?.id);
-            break;
-        case EventType.DISMISSED:
-            eventTypeString = 'DISMISSED';
-            console.log('Notification Id', detail.notification?.id);
-            break;
-        case EventType.PRESS:
-            eventTypeString = 'PRESS';
-            console.log('Action ID', detail.pressAction?.id || 'N/A');
-            break;
-        case EventType.ACTION_PRESS:
-            eventTypeString = 'ACTION_PRESS';
-            console.log('Action ID', detail.pressAction?.id || 'N/A');
-            break;
-        case EventType.DELIVERED:
-            eventTypeString = 'DELIVERED';
-            console.log('Notification Id', detail.notification?.id);
-            break;
-        case EventType.APP_BLOCKED:
-            eventTypeString = 'APP_BLOCKED';
-            console.log('Blocked', detail.blocked);
-            break;
-        case EventType.CHANNEL_BLOCKED:
-            eventTypeString = 'CHANNEL_BLOCKED';
-            console.log('Channel', detail.channel);
-            break;
-        case EventType.CHANNEL_GROUP_BLOCKED:
-            eventTypeString = 'CHANNEL_GROUP_BLOCKED';
-            console.log('Channel Group', detail.channelGroup);
-            break;
-        case EventType.TRIGGER_NOTIFICATION_CREATED:
-            eventTypeString = 'TRIGGER_NOTIFICATION_CREATED';
-            console.log('Trigger Notification');
-            break;
-        default:
-            eventTypeString = 'UNHANDLED_NATIVE_EVENT';
-    }
-
-    console.log(`Received a ${eventTypeString} ${state} event in JS mode.`);
-    // console.warn(JSON.stringify(event));
-}
 
 
 
 // { type: EventType, detail: EventDetail }
-async function handleForegroundEvent({ type, detail }: Event) {
-    logEvent('foreground', { type, detail });
-    console.log(`-------\r\n\tRecieved foreground service event: ${JSON.stringify(type)}, ${JSON.stringify(detail)}`);
+// async function handleForegroundEvent({ type, detail }: Event, deviceID: string, supportedDevices: UserInfoDevice[]) {
+    
+    
+//     if (type === EventType.ACTION_PRESS) {
+//         const eventMessage = logEvent('trigger', { type, detail });
+//         console.log(`-------\r\n\t${eventMessage}: ${JSON.stringify(detail)}`);
+        
+
+//         if (!detail) {
+//             console.warn("missing notification event detail?");
+//             debugger;
+//             return;
+//         }
+//         if (detail.pressAction === undefined) {
+//             console.warn("missing notification event detail pressAction?");
+//             debugger;
+//             return;
+//         }
+//         if (detail.pressAction.id === 'stop') {
+//             console.log("Stopping foreground service...");
+//             notifee.stopForegroundService();
+//             notifee.cancelAllNotifications();
+//             notifee.cancelTriggerNotifications();
+//             return;
+//         }
+//         console.log(`...Unexpected pressAction? ${detail.pressAction.id}`);
+//     }
+
+//     else if (type === EventType.DELIVERED) {
+//         const eventMessage = logEvent('trigger', { type, detail });
+//         console.log(`-------\r\n\t${eventMessage}: ${JSON.stringify(detail)}`);
+        
+
+//         if (detail.notification === undefined) {
+//             throw new Error("Missing notification content in detail!");
+//         }
+//         if (detail.notification.id === undefined) {
+//             throw new Error("Missing notification ID in detail!");
+//         }
+
+//         console.log("Likely event trigger?");
+//         console.log(`Starting headless task with deviceID: ${deviceID}, supportedDevices: ${JSON.stringify(supportedDevices)}`);
+//         const result = onHeadlessTaskTriggerBluetooth(deviceID, supportedDevices);
+//         console.log(`Read this value!\n\t${JSON.stringify(await result)}`);
+//         await notifee.cancelDisplayedNotification(detail.notification.id)
+//     }
+//     else {
+//         const eventMessage = logEvent('trigger', { type, detail });
+//         console.log(`-------\r\n\t${eventMessage} (unimplemented event handling for this event.): ${JSON.stringify(detail)}`);
+//     }
+// }
+
+
+async function handleForegroundServiceEvent({ type, detail }: Event, deviceID: string, supportedDevices: UserInfoDevice[], foreground: string) {
+    
+    
     if (type === EventType.ACTION_PRESS) {
+        const eventMessage = logEvent(foreground, { type, detail });
+        console.log(`-------\r\n(SERVICE, ${Date.now().toLocaleString()})${eventMessage}: ${JSON.stringify(detail)}`);
+        
+
         if (!detail) {
             console.warn("missing notification event detail?");
             debugger;
@@ -153,28 +174,53 @@ async function handleForegroundEvent({ type, detail }: Event) {
         }
         if (detail.pressAction.id === 'stop') {
             console.log("Stopping foreground service...");
-            await notifee.stopForegroundService();
+            notifee.stopForegroundService();
+            notifee.cancelAllNotifications();
+            notifee.cancelTriggerNotifications();
             return;
         }
         console.log(`...Unexpected pressAction? ${detail.pressAction.id}`);
     }
 
-    if (type === EventType.DELIVERED) {
+    else if (type === EventType.DELIVERED) {
+        const eventMessage = logEvent(foreground, { type, detail });
+        console.log(`-------\r\n\t(SERVICE, ${Date.now().toLocaleString()})${eventMessage}: ${JSON.stringify(detail)}`);
+        
+
+        if (detail.notification === undefined) {
+            throw new Error("Missing notification content in detail!");
+        }
+        if (detail.notification.id === undefined) {
+            throw new Error("Missing notification ID in detail!");
+        }
+
         console.log("Likely event trigger?");
+        console.log(`Starting headless task with deviceID: ${deviceID}, supportedDevices: ${JSON.stringify(supportedDevices)}`);
+        const result = onHeadlessTaskTriggerBluetooth(deviceID, supportedDevices);
+        console.log(`Read this value!\n\t${JSON.stringify(await result)}`);
+        await notifee.cancelDisplayedNotification(detail.notification.id)
+    }
+    else {
+        const eventMessage = logEvent(foreground, { type, detail });
+        console.log(`-------\r\n\(SERVICE, ${Date.now().toLocaleString()})${eventMessage} (unimplemented event handling for this event.): ${JSON.stringify(detail)}`);
     }
 }
-async function registerForegroundService(setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>): Promise<void> {
+
+const foregroundServiceCallback = (notification: Notification, deviceID: string, supportedDevices: UserInfoDevice[]): Promise<void> => {
+    console.log(`--------FOREGROUND SERVICE CALLBACK ${JSON.stringify(notification)}------`);
+    return new Promise(() => {
+        console.warn("Registering notification service event handlers...");
+        // https://notifee.app/react-native/docs/android/foreground-service
+        notifee.onForegroundEvent(({ type, detail }: Event) => {return handleForegroundServiceEvent({type, detail}, deviceID, supportedDevices, 'foreground')});
+        notifee.onBackgroundEvent(({ type, detail }: Event) => {return handleForegroundServiceEvent({type, detail}, deviceID, supportedDevices, 'background')});
+        // debugger;
+    })
+}
+
+async function registerForegroundService(setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>, deviceID: string, supportedDevices: UserInfoDevice[]): Promise<void> {
     try {
         console.log("Registering foreground service...");
-        notifee.registerForegroundService((notification) => {
-            return new Promise(() => {
-                console.log("Registering notification service event handlers...");
-                // https://notifee.app/react-native/docs/android/foreground-service
-                notifee.onForegroundEvent(handleForegroundEvent);
-                notifee.onBackgroundEvent(handleForegroundEvent);
-                // debugger;
-            })
-        })
+        notifee.registerForegroundService((notification: Notification) => foregroundServiceCallback(notification, deviceID, supportedDevices));
     }
     catch (exception) {
         //Probably native error.
@@ -184,14 +230,14 @@ async function registerForegroundService(setNativeErrors: React.Dispatch<React.S
 }
 
 //https://notifee.app/react-native/docs/displaying-a-notification
-async function onDisplayNotification(setDisplayNotificationErrors: React.Dispatch<React.SetStateAction<string | null>>, setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>, channelId: string) {
+async function onDisplayNotification(setDisplayNotificationErrors: React.Dispatch<React.SetStateAction<string | null>>, setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>, channelId: string, deviceID: string, supportedDevices: UserInfoDevice[]) {
     // Create a channel
 
     //https://github.com/invertase/notifee/blob/7d03bb4eda27b5d4325473cf155852cef42f5909/docs/react-native/docs/debugging.md
     // To quickly view Android logs in the terminal:
     //   adb logcat '*:S' NOTIFEE:D
 
-    await registerForegroundService(setNativeErrors);
+    await registerForegroundService(setNativeErrors, deviceID, supportedDevices);
 
     // Required for iOS
     // See https://notifee.app/react-native/docs/ios/permissions
@@ -240,8 +286,8 @@ async function onDisplayNotification(setDisplayNotificationErrors: React.Dispatc
 async function createTriggerNotification(setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>, channelId: string) {
     const trigger: IntervalTrigger = {
         type: TriggerType.INTERVAL,
-        interval: 15,
-        timeUnit: TimeUnit.MINUTES
+        interval: 50,
+        timeUnit: TimeUnit.SECONDS
     };
 
     const triggerNotif = defaultTriggerNotification(channelId);
@@ -267,7 +313,7 @@ export const NotificationInfo = (props: { notificationState: NotifeeNotification
 
     return (
         <>
-            <Button title="Display notifee Notification" onPress={() => { onClickNotificationButton(props.notificationState.handleClickDisplayNotification, props.setShouldUpload) }} />
+            <Button title="Start background polling" onPress={() => { onClickNotificationButton(props.notificationState.handleClickDisplayNotification, props.setShouldUpload) }} />
             <MaybeIfValue text="Errors from displaying notifications: " value={props.notificationState.displayNotificationErrors} />
             <MaybeIfValue text="Battery optimization enabled: " value={(props.batteryOptimizationEnabled === null) ? null : String(props.batteryOptimizationEnabled)} />
             <MaybeIfValue text="Notifee native errors (what?): " value={props.notificationState.nativeErrors} />
@@ -288,13 +334,48 @@ export interface NotifeeNotificationHookState {
     triggerNotification: string | null;
 }
 
+const init = async (setDisplayNotificationErrors: React.Dispatch<React.SetStateAction<string | null>>, setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>, deviceID: string | null, supportedDevices: UserInfoDevice[] | null, setChannelID: React.Dispatch<React.SetStateAction<string | null>>, setNotificationID: React.Dispatch<React.SetStateAction<string | null>>, channelID: string | null) => {
+    console.log(`display notificaiton clicked!`);
+    if (channelID === null) {
+        console.log("Channel not created yet, creating...");
+        const channelId_ = await checkedCreateChannel(setNativeErrors);
+        if (channelId_ === null) {
+            console.error("Channel creation failed! Native errors should be set.");
+            return;
+        }
+        setChannelID(channelId_);
+        return;
+    }
+
+    if (deviceID === null) {
+        console.log("Need to connect to device before starting service...");
+        return;
+    }
+    if (supportedDevices === null) {
+        console.log("need to load user info before starting service...");
+        return;
+    }
+
+    const result = await onDisplayNotification(setDisplayNotificationErrors, setNativeErrors, channelID, deviceID, supportedDevices);
+    if (result !== undefined) {
+        setNotificationID(result);
+    }
+}
+
+
 export const useNotifeeNotifications = (): NotifeeNotificationHookState => {
     const [displayNotificationErrors, setDisplayNotificationErrors] = useState(null as (string | null));
     const [nativeErrors, setNativeErrors] = useState(null as (string | null));
+    
     const [notificationID, setNotificationID] = useState(null as (string | null));
     const [channelID, setChannelID] = useState(null as (string | null));
     const [triggerNotification, setTriggerNotification] = useState(null as (string | null));
 
+    const appState = useRef(AppState.currentState);
+    const [appStateVisible, setAppStateVisible] = useState(appState.current);
+
+    const deviceID = useSelector(selectDeviceID);
+    const supportedDevices = useSelector(selectSupportedDevices);
 
     const userSettings = useSelector(selectUserSettings);
     const jwt = useSelector(selectJWT);
@@ -303,16 +384,17 @@ export const useNotifeeNotifications = (): NotifeeNotificationHookState => {
     const dispatch = useDispatch();
 
     const handleClickDisplayNotification = async () => {
-        const channelId_ = await checkedCreateChannel(setNativeErrors);
+        let channelId_ = channelID;
         if (channelId_ === null) {
-            debugger;
+            console.log("Channel not created yet, creating...");
+            channelId_ = await checkedCreateChannel(setNativeErrors);
+            if (channelId_ === null) {
+                console.error("Channel creation failed! Native errors should be set.");
+                return;
+            }
+            setChannelID(channelId_);
             return;
-        }
-        setChannelID(channelId_);
-
-        const result = await onDisplayNotification(setDisplayNotificationErrors, setNativeErrors, channelId_);
-        if (result !== undefined) {
-            setNotificationID(result);
+    
         }
         const triggerResult = await createTriggerNotification(setNativeErrors, channelId_);
         if (triggerResult !== undefined) {
@@ -320,6 +402,37 @@ export const useNotifeeNotifications = (): NotifeeNotificationHookState => {
         }
     }
 
+    useEffect(() => {
+        init(setDisplayNotificationErrors, setNativeErrors, deviceID, supportedDevices, setChannelID, setNotificationID, channelID);
+        return (() => {
+            notifee.stopForegroundService();
+            notifee.cancelAllNotifications();
+            notifee.cancelTriggerNotifications();
+        })
+    }, [deviceID, supportedDevices, channelID])
+
+    useEffect(() => {
+        console.log(appStateVisible);
+    }, [appStateVisible]);
+
+    // https://docs.expo.dev/versions/latest/react-native/appstate/  
+    useEffect(() => {
+      AppState.addEventListener('change', _handleAppStateChange);
+  
+      return () => {
+        AppState.removeEventListener('change', _handleAppStateChange);
+      };
+    }, []);
+  
+    const _handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+        console.log('App has come to the foreground!');
+      }
+  
+      appState.current = nextAppState;
+      setAppStateVisible(appState.current);
+      console.log('AppState', appState.current);
+    };
 
     useEffect(() => {
         // debugger;
