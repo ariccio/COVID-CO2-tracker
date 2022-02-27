@@ -153,13 +153,18 @@ async function checkedRequestPermission(setNativeErrors: React.Dispatch<React.Se
 //     }
 // }
 
+function time(): string {
+    const now = Date.now();
+    const nowS = new Date(now).toLocaleTimeString();
+    return nowS;
+}
 
 async function handleForegroundServiceEvent({ type, detail }: Event, deviceID: string, supportedDevices: UserInfoDevice[], foreground: string) {
     
     
     if (type === EventType.ACTION_PRESS) {
         const eventMessage = logEvent(foreground, { type, detail });
-        console.log(`-------\r\n(SERVICE, ${Date.now().toLocaleString()})${eventMessage}: ${JSON.stringify(detail)}`);
+        console.log(`-------\r\n(SERVICE, ${time()})${eventMessage}: ${JSON.stringify(detail)}`);
         
 
         if (!detail) {
@@ -184,7 +189,7 @@ async function handleForegroundServiceEvent({ type, detail }: Event, deviceID: s
 
     else if (type === EventType.DELIVERED) {
         const eventMessage = logEvent(foreground, { type, detail });
-        console.log(`-------\r\n\t(SERVICE, ${Date.now().toLocaleString()})${eventMessage}: ${JSON.stringify(detail)}`);
+        console.log(`-------\r\n\t(SERVICE, ${time()})${eventMessage}: ${JSON.stringify(detail)}`);
         
 
         if (detail.notification === undefined) {
@@ -202,7 +207,7 @@ async function handleForegroundServiceEvent({ type, detail }: Event, deviceID: s
     }
     else {
         const eventMessage = logEvent(foreground, { type, detail });
-        console.log(`-------\r\n\(SERVICE, ${Date.now().toLocaleString()})${eventMessage} (unimplemented event handling for this event.): ${JSON.stringify(detail)}`);
+        console.log(`-------\r\n\(SERVICE, ${time()})${eventMessage} (unimplemented event handling for this event.): ${JSON.stringify(detail)}`);
     }
 }
 
@@ -286,8 +291,8 @@ async function onDisplayNotification(setDisplayNotificationErrors: React.Dispatc
 async function createTriggerNotification(setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>, channelId: string) {
     const trigger: IntervalTrigger = {
         type: TriggerType.INTERVAL,
-        interval: 50,
-        timeUnit: TimeUnit.SECONDS
+        interval: 1,
+        timeUnit: TimeUnit.MINUTES
     };
 
     const triggerNotif = defaultTriggerNotification(channelId);
