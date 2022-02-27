@@ -22,5 +22,4 @@ if (__DEV__) {
     const EXPO_WARNING_STATIC_FILES = `If you want to make static changes to your native project files like the iOS Info.plist, or AndroidManifest.xml and still have access to prebuilding, check out the config plugins guide to see how you can hook into the prebuild process to make those changes.`;
     console.warn(`Note to self: '${EXPO_WARNING_STATIC_FILES}'`);
 
-    console.warn("Google now requires target sdk API version > 29 for new apps!");
 }
