@@ -291,7 +291,7 @@ async function onDisplayNotification(setDisplayNotificationErrors: React.Dispatc
 async function createTriggerNotification(setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>, channelId: string) {
     const trigger: IntervalTrigger = {
         type: TriggerType.INTERVAL,
-        interval: 1,
+        interval: 15,
         timeUnit: TimeUnit.MINUTES
     };
 
@@ -340,7 +340,6 @@ export interface NotifeeNotificationHookState {
 }
 
 const init = async (setDisplayNotificationErrors: React.Dispatch<React.SetStateAction<string | null>>, setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>, deviceID: string | null, supportedDevices: UserInfoDevice[] | null, setChannelID: React.Dispatch<React.SetStateAction<string | null>>, setNotificationID: React.Dispatch<React.SetStateAction<string | null>>, channelID: string | null) => {
-    console.log(`display notificaiton clicked!`);
     if (channelID === null) {
         console.log("Channel not created yet, creating...");
         const channelId_ = await checkedCreateChannel(setNativeErrors);
