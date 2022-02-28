@@ -8,13 +8,15 @@ interface Globals {
     successfulUploads: number;
     batteryOptimizationEnabled: boolean | null;
     backgroundPolling: boolean;
+    shouldUpload: boolean
 }
 
 const initialState: Globals = {
     jwt: null,
     successfulUploads: 0,
     batteryOptimizationEnabled: null,
-    backgroundPolling: false
+    backgroundPolling: false,
+    shouldUpload: false
 };
 
 export const globalSlice = createSlice({
@@ -33,15 +35,19 @@ export const globalSlice = createSlice({
         },
         setBackgroundPollingEnabled: (state, action: PayloadAction<boolean>) => {
             state.backgroundPolling = action.payload;
+        },
+        setShouldUpload: (state, action: PayloadAction<boolean>) => {
+            state.shouldUpload = action.payload;
         }
     }
 });
 
-export const {setJWT, incrementSuccessfulUploads, setBatteryOptimizationEnabled, setBackgroundPollingEnabled} = globalSlice.actions;
+export const {setJWT, incrementSuccessfulUploads, setBatteryOptimizationEnabled, setBackgroundPollingEnabled, setShouldUpload} = globalSlice.actions;
 
 export const selectJWT = (state: RootState) => state.globals.jwt;
 export const selectSuccessfulUploads = (state: RootState) => state.globals.successfulUploads;
 export const selectBatteryOptimizationEnabled = (state: RootState) => state.globals.batteryOptimizationEnabled;
 export const selectBackgroundPollingEnabled = (state: RootState) => state.globals.backgroundPolling;
+export const selectShouldUpload = (state: RootState) => state.globals.shouldUpload;
 
 export const globalsReducer = globalSlice.reducer;

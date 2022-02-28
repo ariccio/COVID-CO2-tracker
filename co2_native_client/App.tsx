@@ -18,7 +18,7 @@ import {ErrorObjectType, formatErrors, withErrors} from '../co2_client/src/utils
 // import {} from '../co2_client/src/utils/UserInfoTypes';
 import { userSettingsResponseDataAsPlainSettings, userSettingsResponseToStrongType} from '../co2_client/src/utils/QuerySettingsTypes';
 import {UserSettings} from '../co2_client/src/utils/UserSettings';
-import { incrementSuccessfulUploads, selectBatteryOptimizationEnabled, selectJWT, selectSuccessfulUploads } from './src/app/globalSlice';
+import { incrementSuccessfulUploads, selectBatteryOptimizationEnabled, selectJWT, selectShouldUpload, selectSuccessfulUploads, setShouldUpload } from './src/app/globalSlice';
 import { AppDispatch, store } from './src/app/store';
 import {AuthContainerWithLogic} from './src/features/Auth/Auth';
 import { MeasurementDataForUpload } from './src/features/Measurement/MeasurementTypes';
@@ -34,6 +34,7 @@ import { MaybeIfValue } from './src/utils/RenderValues';
 import { REAL_TIME_UPLOAD_URL_NATIVE, USER_DEVICES_URL_NATIVE, USER_SETTINGS_URL_NATIVE } from './src/utils/UrlPaths';
 import { isLoggedIn, isNullString, isUndefinedString } from './src/utils/isLoggedIn';
 import { selectDeviceSerialNumberString } from './src/features/bluetooth/bluetoothSlice';
+import { realtimeUpload } from './src/features/Measurement/MeasurementUpload';
 
 
 // import {AppStatsResponse, queryAppStats} from '../co2_client/src/utils/QueryAppStats';
@@ -263,38 +264,8 @@ function handleDevicesResponse(devicesResponse: UserDevicesInfo, setUserDeviceEr
 
 
 
-function initRealtimeMeasurement(jwt: string, measurement: MeasurementDataForUpload, userSettings: UserSettings): RequestInit {
-  const defaultOptions = postRequestOptions();
-  const options = {
-    ...defaultOptions,
-    headers: {
-      ...withAuthorizationHeader(jwt),
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      measurement: {
-        device_id: measurement.device_id,
-        co2ppm: measurement.co2ppm,
-        google_place_id: userSettings.setting_place_google_place_id,
-        sub_location_id: userSettings.realtime_upload_sub_location_id,
-        measurementtime: measurement.measurementtime,
-        realtime: true
-      }
-    })
-  }
-  return options;
-}
 
-async function realtimeUpload(jwt: string, measurement: MeasurementDataForUpload, userSettings: UserSettings): Promise<withErrors> {
-  const options = initRealtimeMeasurement(jwt, measurement, userSettings);
 
-  const uploadCallback = async (awaitedResponse: Response): Promise<unknown> => {
-    const response = awaitedResponse.json();
-    return response;
-  }
-  const result = fetchJSONWithChecks(REAL_TIME_UPLOAD_URL_NATIVE, options, 203, true, uploadCallback, uploadCallback) as Promise<withErrors>;
-  return result;
-}
 
 
 function measurementChange(measurement: MeasurementDataForUpload | null, userSettings: UserSettings | null | undefined, jwt: string | null, dispatch: AppDispatch, shouldUpload: boolean) {
@@ -331,11 +302,10 @@ function measurementChange(measurement: MeasurementDataForUpload | null, userSet
   realtimeUpload(jwt, measurement, userSettings).then((response) => {
     if (response.errors) {
       debugger;
-      dispatch(setUploadStatus(`Error uploading measurement: ${formatErrors(response.errors)}`));
-      return;
+      return dispatch(setUploadStatus(`Error uploading measurement: ${formatErrors(response.errors)}`));
     }
     dispatch(setUploadStatus(`Successful at ${(new Date(Date.now())).toLocaleTimeString()}`));
-    dispatch(incrementSuccessfulUploads());
+    return dispatch(incrementSuccessfulUploads());
   }).catch((error) => {
     dispatch(setUploadStatus(`Error uploading measurement: ${String(error)}`));
     debugger;
@@ -345,8 +315,7 @@ function measurementChange(measurement: MeasurementDataForUpload | null, userSet
 function loadDevices(jwt: string | null, userName: string | null | undefined, setUserDeviceErrors: React.Dispatch<React.SetStateAction<string | null>>, dispatch: AppDispatch) {
   // console.log("Getting devices...");
   get_my_devices(jwt, userName)?.then((devicesResponse) => {
-    handleDevicesResponse(devicesResponse, setUserDeviceErrors, dispatch);
-
+    return handleDevicesResponse(devicesResponse, setUserDeviceErrors, dispatch);
   }).catch((error) => {
     setUserDeviceErrors(`Getting devices failed! Probably a bad network connection. Error: ${String(error)}`);
     // eslint-disable-next-line no-debugger
@@ -363,7 +332,7 @@ function loadSettings(jwt: string | null, userName: string | null | undefined, d
       return;
     }
     console.log(`Got user settings response: ${JSON.stringify(response)}`);
-    dispatch(setUserSettings(response));
+    return dispatch(setUserSettings(response));
     // debugger;
   }).catch((error) => {
     dispatch(setUserSettingsErrors(String(error)))
@@ -392,11 +361,14 @@ const RealtimeMeasurementInfo = (props: {userDeviceErrors: string | null}) => {
 
 
 
-const UploadingButton = (props: {shouldUpload: boolean, setShouldUpload: React.Dispatch<React.SetStateAction<boolean>>}) => {
-  const text = (props.shouldUpload ? "Stop uploading" : "Start uploading"); 
+const UploadingButton = (props: object) => {
+  const shouldUpload = useSelector(selectShouldUpload);
+  const dispatch = useDispatch();
+
+  const text = (shouldUpload ? "Stop uploading" : "Start uploading"); 
 
   return (
-    <Button title={text} onPress={() => {props.setShouldUpload(!props.shouldUpload)}}/>
+    <Button title={text} onPress={() => {dispatch(setShouldUpload(!shouldUpload))}}/>
   );
 }
 
@@ -422,7 +394,7 @@ const useCheckKnownDevice = (supportedDevices: UserInfoDevice[] | null, serialNu
 function App() {
   const dispatch = useDispatch();
 
-  const [shouldUpload, setShouldUpload] = useState(false);
+  // const [shouldUpload, setShouldUpload] = useState(false);
   const [userDeviceErrors, setUserDeviceErrors] = useState(null as (string | null));
   
   
@@ -432,6 +404,7 @@ function App() {
   const batteryOptimizationEnabled = useSelector(selectBatteryOptimizationEnabled);
   const supportedDevices = useSelector(selectSupportedDevices);
   const serialNumber = useSelector(selectDeviceSerialNumberString);
+  const shouldUpload = useSelector(selectShouldUpload);
 
 
   const {nextMeasurementTime} = useAranet4NextMeasurementTime();
@@ -491,8 +464,8 @@ function App() {
       <RealtimeMeasurementInfo userDeviceErrors={userDeviceErrors}/>
       <UserSettingsMaybeDisplay/>
       
-      <NotificationInfo notificationState={notificationState} batteryOptimizationEnabled={batteryOptimizationEnabled} setShouldUpload={setShouldUpload}/>
-      <UploadingButton shouldUpload={shouldUpload} setShouldUpload={setShouldUpload}/>
+      <NotificationInfo notificationState={notificationState} batteryOptimizationEnabled={batteryOptimizationEnabled}/>
+      <UploadingButton/>
       <StatusBar style="auto" />
     </SafeAreaProvider>
   );

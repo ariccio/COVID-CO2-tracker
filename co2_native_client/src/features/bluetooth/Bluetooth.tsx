@@ -855,6 +855,9 @@ async function pollAranet4(setTimeoutHandle: React.Dispatch<React.SetStateAction
         dispatch(setUploadStatus('Still loading user devices, cannot upload measurement to server. This should go away in a minute or so.'));
         return;
     }
+    else {
+        dispatch(setUploadStatus(null));
+    }
     if (updated.genericInfo.serialNumberString === null) {
         console.error("missing serial number AFTER read?");
         return;

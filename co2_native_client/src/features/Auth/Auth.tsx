@@ -460,12 +460,9 @@ const LoginOrLogoutButton: React.FC<{jwt: string | null, promptAsyncReady: boole
       </>
     );      
   }
-  // console.log("LOGOUTLOGOUTLOGOUTLOGOUTLOGOUTLOGOUTLOGOUT");
   return (
     <>
-      <Text>Empty</Text>
       <Button title={`Log out of ${userName}`} onPress={() => {logout()}}/>
-      <Text>Empty</Text>
     </>
   );
 }
