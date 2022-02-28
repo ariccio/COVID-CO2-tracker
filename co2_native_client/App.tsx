@@ -24,15 +24,16 @@ import {AuthContainerWithLogic} from './src/features/Auth/Auth';
 import { MeasurementDataForUpload } from './src/features/Measurement/MeasurementTypes';
 import { selectUploadStatus, setUploadStatus } from './src/features/Uploading/uploadSlice';
 import { UserSettingsMaybeDisplay } from './src/features/UserSettings/UserSettingsDisplay';
-import { BluetoothData, useBluetoothAranet4, useBluetoothConnectAndPollAranet } from './src/features/bluetooth/Bluetooth';
+import { BluetoothData, isSupportedDevice, useAranet4NextMeasurementTime, useBluetoothConnectAndPollAranet } from './src/features/bluetooth/Bluetooth';
 import { NotifeeNotificationHookState, useNotifeeNotifications, NotificationInfo } from './src/features/service/Notification';
-import { setSupportedDevices, setUNSupportedDevices } from './src/features/userInfo/devicesSlice';
+import { selectSupportedDevices, setSupportedDevices, setUNSupportedDevices } from './src/features/userInfo/devicesSlice';
 import { selectUserName, selectUserSettings, setUserSettings, setUserSettingsErrors } from './src/features/userInfo/userInfoSlice';
 import { withAuthorizationHeader } from './src/utils/NativeDefaultRequestHelpers';
 import {fetchJSONWithChecks} from './src/utils/NativeFetchHelpers';
 import { MaybeIfValue } from './src/utils/RenderValues';
 import { REAL_TIME_UPLOAD_URL_NATIVE, USER_DEVICES_URL_NATIVE, USER_SETTINGS_URL_NATIVE } from './src/utils/UrlPaths';
 import { isLoggedIn, isNullString, isUndefinedString } from './src/utils/isLoggedIn';
+import { selectDeviceSerialNumberString } from './src/features/bluetooth/bluetoothSlice';
 
 
 // import {AppStatsResponse, queryAppStats} from '../co2_client/src/utils/QueryAppStats';
@@ -148,7 +149,7 @@ const fetchMyDevicesFailedCallback = async (awaitedResponse: Response): Promise<
 
 
 const fetchMyDevicesSucessCallback = async (awaitedResponse: Response): Promise<UserDevicesInfo> => {
-  console.log("Fetching devices suceeded!");
+  // console.log("Fetching devices suceeded!");
   const response = awaitedResponse.json();
   return userDevicesInfoResponseToStrongType(await response);
 };
@@ -156,11 +157,11 @@ const fetchMyDevicesSucessCallback = async (awaitedResponse: Response): Promise<
 const get_my_devices = (jwt: string | null, userName?: string | null) => {
   const eitherNull = isNullString(jwt) || isNullString(userName);
   if (eitherNull) {
-    console.log("No JWT or username, not getting devices?");
+    // console.log("No JWT or username, not getting devices?");
     return;
   }
   if (isUndefinedString(userName)) {
-    console.log("Loading userName...");
+    // console.log("Loading userName...");
     return;
   }
   const loggedIn = isLoggedIn(jwt, userName);
@@ -168,7 +169,7 @@ const get_my_devices = (jwt: string | null, userName?: string | null) => {
     console.log("Not logged in, not getting devices?");
     return;
   }
-  console.log("Getting devices...");
+  // console.log("Getting devices...");
   const deviceRequestOptions = initDeviceRequestOptions(jwt);
   const result = fetchJSONWithChecks(USER_DEVICES_URL_NATIVE, deviceRequestOptions, 200, true, fetchMyDevicesFailedCallback, fetchMyDevicesSucessCallback) as Promise<UserDevicesInfo>;
   return result;
@@ -199,14 +200,14 @@ const getSettings = (jwt: string | null, userName?: string | null):  Promise<Use
     return;
   }
   if (isUndefinedString(userName)) {
-    console.log("Loading userName...");
+    // console.log("Loading userName...");
     return;
   }
   const loggedIn = isLoggedIn(jwt, userName);
   if (!loggedIn) {
     return;
   }
-  console.log("Getting user settings...");
+  // console.log("Getting user settings...");
   const settingsRequestOptions = defaultNativeUserRequestOptions(jwt);
   const result = fetchJSONWithChecks(USER_SETTINGS_URL_NATIVE, settingsRequestOptions, 200, true, fetchSettingsFailureCallback, fetchSettingsSuccessCallback) as Promise<UserSettings | null>;
   return result;
@@ -297,11 +298,11 @@ async function realtimeUpload(jwt: string, measurement: MeasurementDataForUpload
 
 
 function measurementChange(measurement: MeasurementDataForUpload | null, userSettings: UserSettings | null | undefined, jwt: string | null, dispatch: AppDispatch, shouldUpload: boolean) {
-  console.log(`Measurement changed! ${JSON.stringify(measurement)}`);
+  // console.log(`Measurement changed! ${JSON.stringify(measurement)}`);
 
   // dispatch(addMeasurement())
   if (!userSettings) {
-    console.log("No user settings, nothing to upload.");
+    // console.log("No user settings, nothing to upload.");
     return;
   }
   if (!(userSettings.setting_place_google_place_id)) {
@@ -319,7 +320,7 @@ function measurementChange(measurement: MeasurementDataForUpload | null, userSet
     return;
   }
   if (measurement === null) {
-    console.log("measurement is null?");
+    // console.log("measurement is null?");
     return;
   }
   if (!shouldUpload) {
@@ -399,21 +400,43 @@ const UploadingButton = (props: {shouldUpload: boolean, setShouldUpload: React.D
   );
 }
 
+const useCheckKnownDevice = (supportedDevices: UserInfoDevice[] | null, serialNumber?: string | null) => {
+  const [knownDevice, setKnownDevice] = useState(null as (boolean | null));
+  useEffect(() => {
+      if (serialNumber === undefined) {
+          // console.log("------------------------------NOT setting known device?");
+          setKnownDevice(false);
+          // return;
+      }
+      else {
+          // console.log("------------------------------setting known device?");
+          setKnownDevice(isSupportedDevice(supportedDevices, serialNumber))
+      }
+  }, [supportedDevices, serialNumber]);
+
+  return {knownDevice};
+
+}
+
+
 function App() {
+  const dispatch = useDispatch();
+
   const [shouldUpload, setShouldUpload] = useState(false);
-  const {device, measurement} = useBluetoothConnectAndPollAranet();
-  const jwt = useSelector(selectJWT);
-  const userName = useSelector(selectUserName);
   const [userDeviceErrors, setUserDeviceErrors] = useState(null as (string | null));
   
   
-  const dispatch = useDispatch();
   const userSettings = useSelector(selectUserSettings);
-  
-
+  const jwt = useSelector(selectJWT);
+  const userName = useSelector(selectUserName);
   const batteryOptimizationEnabled = useSelector(selectBatteryOptimizationEnabled);
+  const supportedDevices = useSelector(selectSupportedDevices);
+  const serialNumber = useSelector(selectDeviceSerialNumberString);
 
-  const {knownDevice, nextMeasurement} = useBluetoothAranet4();
+
+  const {nextMeasurementTime} = useAranet4NextMeasurementTime();
+  const {knownDevice} = useCheckKnownDevice(supportedDevices, serialNumber);
+  const {measurement} = useBluetoothConnectAndPollAranet();
   const notificationState: NotifeeNotificationHookState = useNotifeeNotifications();
 
 
@@ -462,7 +485,7 @@ function App() {
 
   return (
     <SafeAreaProvider style={styles.container}>          
-      <BluetoothData device={device} knownDevice={knownDevice} nextMeasurement={nextMeasurement}/>
+      <BluetoothData knownDevice={knownDevice} nextMeasurement={nextMeasurementTime}/>
       
       <AuthContainerWithLogic/>
       <RealtimeMeasurementInfo userDeviceErrors={userDeviceErrors}/>

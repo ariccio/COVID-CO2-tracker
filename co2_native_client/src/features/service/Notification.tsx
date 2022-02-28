@@ -4,7 +4,8 @@ import { Button, AppState, AppStateStatus } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { UserInfoDevice } from '../../../../co2_client/src/utils/DeviceInfoTypes';
-import { selectJWT, setBatteryOptimizationEnabled } from '../../app/globalSlice';
+import { selectBackgroundPollingEnabled, selectJWT, setBackgroundPollingEnabled, setBatteryOptimizationEnabled } from '../../app/globalSlice';
+import { AppDispatch } from '../../app/store';
 import { MaybeIfValue } from '../../utils/RenderValues';
 import { onHeadlessTaskTriggerBluetooth } from '../bluetooth/Bluetooth';
 import { selectDeviceID } from '../bluetooth/bluetoothSlice';
@@ -214,7 +215,7 @@ async function handleForegroundServiceEvent({ type, detail }: Event, deviceID: s
 const foregroundServiceCallback = (notification: Notification, deviceID: string, supportedDevices: UserInfoDevice[]): Promise<void> => {
     console.log(`--------FOREGROUND SERVICE CALLBACK ${JSON.stringify(notification)}------`);
     return new Promise(() => {
-        console.warn("Registering notification service event handlers...");
+        console.log("Registering notification service event handlers...");
         // https://notifee.app/react-native/docs/android/foreground-service
         notifee.onForegroundEvent(({ type, detail }: Event) => {return handleForegroundServiceEvent({type, detail}, deviceID, supportedDevices, 'foreground')});
         notifee.onBackgroundEvent(({ type, detail }: Event) => {return handleForegroundServiceEvent({type, detail}, deviceID, supportedDevices, 'background')});
@@ -380,6 +381,7 @@ export const useNotifeeNotifications = (): NotifeeNotificationHookState => {
 
     const deviceID = useSelector(selectDeviceID);
     const supportedDevices = useSelector(selectSupportedDevices);
+    const backgroundPollingEnabled = useSelector(selectBackgroundPollingEnabled);
 
     const userSettings = useSelector(selectUserSettings);
     const jwt = useSelector(selectJWT);
@@ -404,16 +406,22 @@ export const useNotifeeNotifications = (): NotifeeNotificationHookState => {
         if (triggerResult !== undefined) {
             setTriggerNotification(triggerResult);
         }
+        dispatch(setBackgroundPollingEnabled(true));
     }
 
     useEffect(() => {
+        if (!backgroundPollingEnabled) {
+            console.log("NOT polling in background.");
+            return;
+        }
+        console.log("polling in background.");
         init(setDisplayNotificationErrors, setNativeErrors, deviceID, supportedDevices, setChannelID, setNotificationID, channelID);
         return (() => {
             notifee.stopForegroundService();
             notifee.cancelAllNotifications();
             notifee.cancelTriggerNotifications();
         })
-    }, [deviceID, supportedDevices, channelID])
+    }, [deviceID, supportedDevices, channelID, backgroundPollingEnabled])
 
     useEffect(() => {
         console.log(appStateVisible);
@@ -441,7 +449,7 @@ export const useNotifeeNotifications = (): NotifeeNotificationHookState => {
     useEffect(() => {
         // debugger;
         notifee.isBatteryOptimizationEnabled().then((result) => {
-            console.log(`Battery optimization: ${result}`);
+            // console.log(`Battery optimization: ${result}`);
             dispatch(setBatteryOptimizationEnabled(result));
         }).catch((exception) => {
             // In theory, the native java code can throw exceptions if something is desperatley wrong...

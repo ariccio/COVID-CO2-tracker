@@ -161,6 +161,18 @@ export const bluetoothSlice = createSlice({
         setMeasurementData: (state, action: PayloadAction<MeasurementData>) => {
             state.device.measurementData = action.payload;
         },
+        setMeasurementDataFromCO2Characteristic: (state, action: PayloadAction<Aranet4_1503CO2>) => {
+          /*
+          dispatch(setMeasurementData(measurementData));
+          */
+         const measurementData: MeasurementData = {
+             co2: action.payload.co2,
+             temperature: action.payload.temperatureC,
+             barometricPressure: action.payload.barometricPressure,
+             humidity: action.payload.humidity
+         };
+         state.device.measurementData = measurementData;
+        },
         setAranet4Color: (state, action: PayloadAction<number>) => {
             state.device.aranet4SpecificData.aranet4Color = action.payload;
         },
@@ -169,7 +181,7 @@ export const bluetoothSlice = createSlice({
             if (action.payload) {
                 const now = Date.now();
                 const seconds = action.payload * 1000;
-                state.device.aranet4SpecificData.aranet4MeasurementTime = (new Date(now - seconds)).toLocaleTimeString();
+                state.device.aranet4SpecificData.aranet4MeasurementTime = (new Date(now - seconds)).toJSON();
             }
         },
         setMeasurementInterval: (state, action: PayloadAction<number | null>) => {
@@ -187,7 +199,7 @@ export const bluetoothSlice = createSlice({
     }
 })
 
-export const {setDeviceID, setDeviceName, setRssi, setHasBluetooth, setScanningStatusString, setDeviceSerialNumber, setScanningErrorStatusString, setDeviceBatteryLevel, setMeasurementData, setAranet4Color, setAranet4SecondsSinceLastMeasurement, setMeasurementInterval, setDeviceStatusString, incrementUpdates, setNeedsBluetoothTurnOn} = bluetoothSlice.actions;
+export const {setDeviceID, setDeviceName, setRssi, setHasBluetooth, setScanningStatusString, setDeviceSerialNumber, setScanningErrorStatusString, setDeviceBatteryLevel, setMeasurementData, setAranet4Color, setAranet4SecondsSinceLastMeasurement, setMeasurementInterval, setDeviceStatusString, incrementUpdates, setNeedsBluetoothTurnOn, setMeasurementDataFromCO2Characteristic} = bluetoothSlice.actions;
 
 export const selectHasBluetooth = (state: RootState) => state.bluetooth.hasBluetooth;
 export const selectScanningStatusString = (state: RootState) => state.bluetooth.scanningStatusString;
@@ -202,6 +214,9 @@ export const selectAranet4SpecificData = (state: RootState) => state.bluetooth.d
 export const selectDeviceStatusString = (state: RootState) => state.bluetooth.device.statusString;
 export const selectUpdateCount = (state: RootState) => state.bluetooth.updates;
 export const selectNeedsBluetoothTurnOn = (state: RootState) => state.bluetooth.needsBluetoothTurnOn;
+export const selectMeasurementInterval = (state: RootState) => state.bluetooth.device.aranet4SpecificData.aranet4MeasurementInterval;
+export const selectMeasurementTime = (state: RootState) => state.bluetooth.device.aranet4SpecificData.aranet4MeasurementTime
+
 
 export const bluetoothReducer = bluetoothSlice.reducer;
 

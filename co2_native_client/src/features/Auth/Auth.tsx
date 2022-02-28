@@ -5,7 +5,7 @@ import { AuthRequestPromptOptions, AuthSessionResult } from 'expo-auth-session';
 import * as Google from 'expo-auth-session/providers/google';
 import * as SecureStore from 'expo-secure-store';
 import {useEffect, useState} from 'react';
-import { Button } from 'react-native';
+import { Button, Text } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 
 
@@ -167,7 +167,7 @@ const nativeGetEmail = async (jwt: string) => {
         return rawEmailResponseToStrongType(await awaitedResponse.json());
     }
     const emailFetchSuccessCallback = async (awaitedResponse: Response): Promise<NativeEmailResponseType> => {
-        console.log("Email fetch success!");
+        // console.log("Email fetch success!");
         return rawEmailResponseToStrongType(await awaitedResponse.json());
     }
     console.log(`Fetching email from: ${EMAIL_URL_NATIVE}`);
@@ -228,7 +228,7 @@ async function queryAsyncStoreForStoredJWT(setAsyncStoreError: React.Dispatch<Re
         console.warn("JWT in storage is empty?");
         return null;
       } 
-      console.log(`Got JWT from storage! ${maybeJWT}`);
+      // console.log(`Got JWT from storage! ${maybeJWT}`);
       return maybeJWT;
     }
     catch (error) {
@@ -263,7 +263,7 @@ function setIDTokenIfGoodResponseFromGoogle(setIDToken: React.Dispatch<React.Set
     throw new Error("Response from google (auth) is undefined?");
   }
   if (responseFromGoogle === null) {
-    console.log("response is null. Must not have tried logging in yet.");
+    // console.log("response is null. Must not have tried logging in yet.");
     return;
   }
   if (responseFromGoogle.type === 'error') {
@@ -328,9 +328,9 @@ function handleGoogleAuthErrorResponse(responseFromGoogle: AuthSessionResult, se
 async function handleAsyncStoreResult(maybeJWT: string | null, dispatch: AppDispatch, setLoginErrors: React.Dispatch<React.SetStateAction<string | null>>) {
     if (maybeJWT) {
         dispatch(setJWT(maybeJWT));
-        console.log("Set JWT from storage! Will try and get email/username from server...");
+        // console.log("Set JWT from storage! Will try and get email/username from server...");
         nativeGetEmail(maybeJWT).then((emailResponse) => {
-            console.log(`Server responds with email response: ${JSON.stringify(emailResponse)}`);
+            // console.log(`Server responds with email response: ${JSON.stringify(emailResponse)}`);
             // debugger;
             dispatch(setUserName(emailResponse.email))
         }).catch((error) => {
@@ -363,9 +363,12 @@ const useGoogleAuthForCO2Tracker = () => {
     });
   
     const logout = () => {
+      console.log("Log out clicked...");
       dispatch(setJWT(null));
       deleteJWTFromAsyncStore(setAsyncStoreError);
     };
+
+
     useEffect(() => {
         queryAsyncStoreForStoredJWT(setAsyncStoreError).then((maybeJWT) => {
             handleAsyncStoreResult(maybeJWT, dispatch, setLoginErrors);
@@ -375,7 +378,7 @@ const useGoogleAuthForCO2Tracker = () => {
     useEffect(() => {
       // "Be sure to disable the prompt until request is defined."
       const requestSet = (request !== null);
-      console.log(`request ready for promptAsync: ${requestSet}`);
+      // console.log(`request ready for promptAsync: ${requestSet}`);
       setPromptAsyncReady(requestSet);
     }, [request]);
   
@@ -386,7 +389,7 @@ const useGoogleAuthForCO2Tracker = () => {
   
     useEffect(() => {
       if (idToken === null) {
-        console.log("id token is null, nothing to forward to server.");
+        // console.log("id token is null, nothing to forward to server.");
         return;
       }
       if (idToken.length === 0) {
@@ -441,16 +444,25 @@ const LoginOrLogoutButton: React.FC<{jwt: string | null, promptAsyncReady: boole
   }
   if (userName === null) {
     return (
-      <Button disabled={!buttonDisable} title="Log out" onPress={() => logout()}/>
+      <>
+        <Button title="Log out" onPress={() => logout()}/>
+      </>
     );
   }
   if (userName === undefined) {
     return (
-      <Button disabled={!buttonDisable} title="Log out of (username loading...)" onPress={() => logout()}/>
+      <>
+        <Button title="Log out of (username loading...)" onPress={() => logout()}/>
+      </>
     );      
   }
+  // console.log("LOGOUTLOGOUTLOGOUTLOGOUTLOGOUTLOGOUTLOGOUT");
   return (
-      <Button disabled={!buttonDisable} title={`Log out of ${userName}`} onPress={() => logout()}/>
+    <>
+      <Text>Empty</Text>
+      <Button title={`Log out of ${userName}`} onPress={() => {logout()}}/>
+      <Text>Empty</Text>
+    </>
   );
 }
 
@@ -460,10 +472,10 @@ export function AuthContainerWithLogic(): JSX.Element {
     const userName = useSelector(selectUserName);
     const {promptAsync, promptAsyncReady, asyncStoreError, logout, loginErrors} = useGoogleAuthForCO2Tracker();
   
-  
+    
     return (
       <>
-        <LoginOrLogoutButton jwt={jwt} promptAsyncReady={promptAsyncReady} promptAsync={promptAsync} logout={logout} userName={userName}/>
+        <LoginOrLogoutButton jwt={jwt} promptAsyncReady={promptAsyncReady} promptAsync={promptAsync} logout={() => logout()} userName={userName}/>
         
         <MaybeIfValue text="Errors with automatic login! Details: " value={asyncStoreError}/>
         <MaybeIfValue text="Login errors: " value={loginErrors}/>

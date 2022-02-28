@@ -10,6 +10,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import * as BLUETOOTH from '../../../../co2_client/src/utils/BluetoothConstants';
 import { UserInfoDevice } from '../../../../co2_client/src/utils/DeviceInfoTypes';
+import { selectBackgroundPollingEnabled } from '../../app/globalSlice';
 import { AppDispatch } from '../../app/store';
 import { MaybeIfValue } from '../../utils/RenderValues';
 import { COVID_CO2_TRACKER_DEVICES_URL } from '../../utils/UrlPaths';
@@ -18,27 +19,22 @@ import { addMeasurement } from '../Measurement/MeasurementSlice';
 import { MeasurementDataForUpload } from '../Measurement/MeasurementTypes';
 import { setUploadStatus } from '../Uploading/uploadSlice';
 import { selectSupportedDevices } from '../userInfo/devicesSlice';
-import { Aranet4_1503CO2, incrementUpdates, MeasurementData, selectAranet4SpecificData, selectDeviceBatterylevel, selectDeviceID, selectDeviceName, selectDeviceRSSI, selectDeviceSerialNumberString, selectDeviceStatusString, selectHasBluetooth, selectMeasurementData, selectNeedsBluetoothTurnOn, selectScanningErrorStatusString, selectScanningStatusString, selectUpdateCount, setAranet4Color, setAranet4SecondsSinceLastMeasurement, setDeviceBatteryLevel, setDeviceID, setDeviceName, setDeviceSerialNumber, setDeviceStatusString, setHasBluetooth, setMeasurementData, setMeasurementInterval, setNeedsBluetoothTurnOn, setRssi, setScanningErrorStatusString, setScanningStatusString } from './bluetoothSlice';
+import { Aranet4_1503CO2, incrementUpdates, MeasurementData, selectAranet4SpecificData, selectDeviceBatterylevel, selectDeviceID, selectDeviceName, selectDeviceRSSI, selectDeviceSerialNumberString, selectDeviceStatusString, selectHasBluetooth, selectMeasurementData, selectMeasurementInterval, selectMeasurementTime, selectNeedsBluetoothTurnOn, selectScanningErrorStatusString, selectScanningStatusString, selectUpdateCount, setAranet4Color, setAranet4SecondsSinceLastMeasurement, setDeviceBatteryLevel, setDeviceID, setDeviceName, setDeviceSerialNumber, setDeviceStatusString, setHasBluetooth, setMeasurementDataFromCO2Characteristic, setMeasurementInterval, setNeedsBluetoothTurnOn, setRssi, setScanningErrorStatusString, setScanningStatusString } from './bluetoothSlice';
 
 
 //https://github.com/thespacemanatee/Smart-Shef-IoT/blob/4782c95f383040f36e4ae7ce063166cce5c76129/smart_shef_app/src/utils/hooks/useMonitorHumidityCharacteristic.ts
 
 interface GenericBluetoothInformation {
     serialNumberString: string | null,
-    // serialNumberError: Error | null,
     deviceNameString: string | null,
-    // deviceNameError: Error | null
     battery: number | null
 }
 
 interface Aranet4SpecificInformation {
     co2CharacteristicValue: Aranet4_1503CO2 | null,
-    // co2CharacteristicError: Error | null,
     secondsSinceLastMeasurement: number | null,
     lastMeasurementTimeAsUTC: Date,
-    // secondsSinceLastMeasurementError: Error | null,
     measurementInterval: number | null,
-    // measurementIntervalError: Error | null
 }
 
 
@@ -114,7 +110,7 @@ async function dumpServiceDescriptions(services: Service[]) {
 }
 
 
-const scanCallback = async (error: BleError | null, scannedDevice: Device | null, setDevice: React.Dispatch<React.SetStateAction<Device | null>>, dispatch: AppDispatch) => {
+const scanCallback = async (error: BleError | null, scannedDevice: Device | null, dispatch: AppDispatch) => {
     if (error) {
         console.error(`error scanning: ${error}`);
         //TODO: if bluetooth is off, will get BleErrorCode.BluetoothPoweredOff (102);
@@ -138,16 +134,16 @@ const scanCallback = async (error: BleError | null, scannedDevice: Device | null
         return;
     }
     if ((scannedDevice.name.startsWith('Aranet4'))) {
-        await foundAranet4(scannedDevice, dispatch, setDevice);
+        await foundAranet4(scannedDevice, dispatch);
     }
 }
 
 const aranetService = [BLUETOOTH.ARANET4_SENSOR_SERVICE_UUID];
 
-const scanAndIdentify = (setDevice: React.Dispatch<React.SetStateAction<Device | null>>, dispatch: AppDispatch) => {
+const scanAndIdentify = (dispatch: AppDispatch) => {
     
     dispatch(setScanningStatusString(`Beginning scan for devices with services: ${aranetService}...`));
-    manager.startDeviceScan(aranetService, null, (error, scannedDevice) => scanCallback(error, scannedDevice, setDevice, dispatch));
+    manager.startDeviceScan(aranetService, null, (error, scannedDevice) => scanCallback(error, scannedDevice, dispatch));
 }
 
 const requestLocationPermission = async (dispatch: AppDispatch) => {
@@ -250,39 +246,21 @@ async function readBatteryLevelFromBluetoothDevice(deviceID: string): Promise<nu
 // }
 
 async function readGenericBluetoothInformation(deviceID: string): Promise<GenericBluetoothInformation> {
-    // dispatch(setScanningStatusString(`Beginning serial number read...`));
-    // let serialNumberStringError = null;
-
     const serialNumberString = await readSerialNumberFromBluetoothDevice(deviceID);
     
     console.log(`Serial number: ${serialNumberString}`);
-    // dispatch(setDeviceSerialNumber(serialNumberString));
-    // setSerialNumberString(serialNumberString);
     if (serialNumberString.length === 0) {
         console.warn(`Device ${deviceID} has an empty serial number string?`);
-        // serialNumberStringError = new Error(`Device ${deviceID} has an empty serial number string?`);
     }
-    // dispatch(setScanningStatusString(`Got serial number! ('${serialNumberString}')`));
 
     const deviceNameString = await readDeviceNameFromBluetoothDevice(deviceID)
-    // let deviceNameStringError = null;
     console.log(`Device name: ${deviceNameString}`)
-    // setDeviceNameString(deviceNameString);
     if (deviceNameString.length === 0) {
         console.warn(`Device ${deviceID} has an empty name?`);
-        // deviceNameStringError = new Error(`Device ${deviceID} has an empty name?`);
     }
-    // dispatch(`Got device name! ('${deviceNameString}')`);
-    // dispatch(setScanningStatusString(null));
-
     const battery = await readBatteryLevelFromBluetoothDevice(deviceID);
-    // console.log(`Battery: ${battery}`);
-    
-
     return {
         deviceNameString,
-        // deviceNameError: deviceNameStringError,
-        // serialNumberError: serialNumberStringError,
         serialNumberString,
         battery
     };
@@ -408,12 +386,9 @@ async function readAranet4SpecificInformation(deviceID: string, dispatch: AppDis
     // console.log(`Measurement interval: ${interval}`)
 
     return {
-        // co2CharacteristicError: null,
         co2CharacteristicValue: co2CharacteristicMeasurement,
         measurementInterval: interval,
-        // measurementIntervalError: null,
         secondsSinceLastMeasurement,
-        // secondsSinceLastMeasurementError: null,
         lastMeasurementTimeAsUTC: lastMeasurementTime
     }
 }
@@ -569,18 +544,26 @@ export const onHeadlessTaskTriggerBluetooth = async (deviceID: string, supported
     */
 }
 
-const beginWithDeviceConnection = async (deviceID: string | null, device: Device | null, dispatch: AppDispatch, setDevice: React.Dispatch<React.SetStateAction<Device | null>>) => {
+const beginWithDeviceConnection = async (deviceID: string | null, dispatch: AppDispatch) => {
     if (deviceID === null) {
         debugger;
         return null;
     }
-    const connectedDevice = await attemptConnectScannedDevice(deviceID, device);
+    // const connectedDevice = await attemptConnectScannedDevice(deviceID, device);
+    const connectedDevice = await connectOrAlreadyConnected(deviceID);
 
     if (connectedDevice === null) {
-        console.error("Connection failed.");
-        dispatch(setScanningStatusString("Connection to aranet4 failed."));
+        dispatch(setScanningErrorStatusString("Connection to aranet4 failed."));
         return null;
     }
+    if (connectedDevice === true) {
+        dispatch(setScanningErrorStatusString("Connection to aranet4 failed... Likely will work if tried again"));
+        return null;
+    }
+    if (connectedDevice === false) {
+        throw new Error("Connection to aranet4 failed: BUG");
+    }
+
     dispatch(setScanningStatusString(`Connected to aranet4 ${deviceID}). Discovering services and characteristics...`));
     const deviceWithServicesAndCharacteristics = await connectedDevice.discoverAllServicesAndCharacteristics();
 
@@ -590,7 +573,7 @@ const beginWithDeviceConnection = async (deviceID: string | null, device: Device
 
     const withRSSI = await deviceWithServicesAndCharacteristics.readRSSI();
 
-    setDevice(withRSSI);
+    
     if (withRSSI.rssi) {
         dispatch(setRssi(withRSSI.rssi));
     }
@@ -609,9 +592,11 @@ const finish = async (deviceID: string, setDevice: React.Dispatch<React.SetState
     //     console.error("Called in incorrect order.")
     //     throw new Error("broken.");
     // }
-    const closed = await manager.cancelDeviceConnection(deviceID);
-    setDevice(closed);
+    // const closed = await manager.cancelDeviceConnection(deviceID);
+    
+    // return closed;
     // console.log("Device connection closed.");
+
 }
 
 const updateAranet4SpecificInformation = async (deviceID: string, dispatch: AppDispatch) => {
@@ -646,12 +631,12 @@ function headlessFilterBleReadError(error: unknown, deviceID: string | null): Bl
         if (error.errorCode === BleErrorCode.DeviceNotConnected) {
             console.log(`Device ${deviceID} not connected. Data not available. Will try again.`);
             return {
-                message: 'Read failed, connection lost! Will try again..',
+                message: '(headless) Read failed, connection lost! Will try again..',
                 retry: true
             }
         }
         if (error.errorCode === BleErrorCode.DeviceDisconnected) {
-            console.log(`Device ${deviceID} connection LOST. Data not available. Will try again.`);
+            console.log(`(headless) Device ${deviceID} connection LOST. Data not available. Will try again.`);
             return {
                 message: 'Read failed, connection lost! Will try again..',
                 retry: true
@@ -796,20 +781,25 @@ interface Aranet4GenericAndSpecificInformation {
     genericInfo: GenericBluetoothInformation
 }
 
-async function updateCallback(deviceID: string, dispatch: AppDispatch, setDevice: React.Dispatch<React.SetStateAction<Device | null>>, device: Device): Promise<Aranet4GenericAndSpecificInformation | undefined> {
-    console.log("update co2 triggered!");
+async function updateCallback(deviceID: string, dispatch: AppDispatch): Promise<Aranet4GenericAndSpecificInformation | undefined> {
+    // console.log("update co2 triggered!");
     dispatch(setDeviceStatusString("Updating CO2 over bluetooth..."));
     
     try {
         await forceEnableBluetooth(dispatch);
-        const deviceOrNull = await beginWithDeviceConnection(deviceID, device, dispatch, setDevice);
+        const deviceOrNull = await beginWithDeviceConnection(deviceID, dispatch);
+        if (deviceOrNull === null) {
+            console.error("connection failed.");
+            return;
+        }
         const genericInfo = await readGenericBluetoothInformation(deviceID);
         dispatch(setDeviceStatusString('Reading generic bluetooth information...'));
 
-        const aranet4Info = await updateAranet4SpecificInformation(deviceID, dispatch);
+        const specificInfo = await updateAranet4SpecificInformation(deviceID, dispatch);
         dispatch(setDeviceStatusString(null));
         dispatch(incrementUpdates());
-        await finish(deviceID, setDevice);
+        // const closed = await finish(deviceID, setDevice);
+        // setDevice(closed);
         /*
             device_id: number,
             co2ppm: number,
@@ -817,49 +807,42 @@ async function updateCallback(deviceID: string, dispatch: AppDispatch, setDevice
             google_place_id: string,
             sub_location_id: number
         */
-       if (aranet4Info.co2CharacteristicValue === null) {
+       if (specificInfo.co2CharacteristicValue === null) {
            debugger;
            console.warn("missing co2 characteristic result!");
            return;
        }
         return {
-            specificInfo: aranet4Info,
+            specificInfo,
             genericInfo
         };
     }
     catch(error) {
+        console.log(`update callback exception handler...`);
         if (!filterBleReadError(error, dispatch, deviceID)) {
             debugger;
         }
     }
 }
 
-async function pollAranet4(setTimeoutHandle: React.Dispatch<React.SetStateAction<NodeJS.Timeout | null>>, deviceID: string, knownDevice: boolean, setAranet4SpecificInformation: React.Dispatch<React.SetStateAction<Aranet4SpecificInformation | null>>, dispatch: AppDispatch, supportedDevices: UserInfoDevice[] | null, setMeasurement: React.Dispatch<React.SetStateAction<MeasurementDataForUpload | null>>, device: Device, setDevice: React.Dispatch<React.SetStateAction<Device | null>>) {
+async function pollAranet4(setTimeoutHandle: React.Dispatch<React.SetStateAction<NodeJS.Timeout | null>>, deviceID: string, dispatch: AppDispatch, supportedDevices: UserInfoDevice[] | null, setMeasurement: React.Dispatch<React.SetStateAction<MeasurementDataForUpload | null>>) {
     setTimeoutHandle(null);
     if (deviceID === '?') {
         debugger;
     }
-    if (!knownDevice) {
-        // debugger;
-    }
+
     console.log("polling...");
-    const updated = await updateCallback(deviceID, dispatch, setDevice, device);
+    const updated = await updateCallback(deviceID, dispatch);
     if (updated === undefined) {
-        console.log("Failed to read measurement from known device. Nothing to upload");
-        // debugger;
+        console.warn("Failed to read measurement from known device. Nothing to upload");
         return;
     }
-    console.log(JSON.stringify(updated));
-    if (updated.genericInfo.serialNumberString !== null) {
-        dispatch(setDeviceSerialNumber(updated.genericInfo.serialNumberString));
-    }
-    if (updated.genericInfo.deviceNameString !== null) {
-        dispatch(setDeviceName(updated.genericInfo.deviceNameString));
-    }
+    // console.log(JSON.stringify(updated));
 
-    setAranet4SpecificInformation(updated.specificInfo);
+    dispatch(setDeviceSerialNumber(updated.genericInfo.serialNumberString));
+    dispatch(setDeviceName(updated.genericInfo.deviceNameString));
+    setFromAranet4SpecificInfo(dispatch, updated.specificInfo);
     if (updated.specificInfo.co2CharacteristicValue === null) {
-        debugger;
         console.error("missing co2");
         return;
     }
@@ -868,7 +851,6 @@ async function pollAranet4(setTimeoutHandle: React.Dispatch<React.SetStateAction
         return;
     }
     if (updated.genericInfo.serialNumberString === null) {
-        debugger;
         console.error("missing serial number AFTER read?");
         return;
     }
@@ -885,47 +867,45 @@ async function pollAranet4(setTimeoutHandle: React.Dispatch<React.SetStateAction
     setMeasurement(fullMeasurement);
 }
 
-const useCheckKnownDevice = (supportedDevices: UserInfoDevice[] | null, serialNumber?: string | null) => {
-    const [knownDevice, setKnownDevice] = useState(null as (boolean | null));
-    useEffect(() => {
-        if (serialNumber === undefined) {
-            console.log("------------------------------NOT setting known device?");
-            setKnownDevice(false);
-            // return;
-        }
-        else {
-            console.log("------------------------------setting known device?");
-            setKnownDevice(isSupportedDevice(supportedDevices, serialNumber))
-        }
-    }, [supportedDevices, serialNumber]);
-
-    return {knownDevice};
-
+function setFromAranet4SpecificInfo(dispatch: AppDispatch, aranet4SpecificInformation: Aranet4SpecificInformation) {
+    dispatch(setMeasurementInterval(aranet4SpecificInformation.measurementInterval));
+    dispatch(setAranet4SecondsSinceLastMeasurement(aranet4SpecificInformation.secondsSinceLastMeasurement));
+    if (aranet4SpecificInformation.co2CharacteristicValue !== null) {
+        dispatch(setMeasurementDataFromCO2Characteristic(aranet4SpecificInformation.co2CharacteristicValue));
+        dispatch(setDeviceBatteryLevel(aranet4SpecificInformation.co2CharacteristicValue.battery));
+        dispatch(setAranet4Color(aranet4SpecificInformation.co2CharacteristicValue.statusColor));
+    }
 }
 
 export const useBluetoothConnectAndPollAranet = () => {
-    // const [hasBluetooth, setHasBluetooth] = useState(false);
-    // const [device, setDevice] = useState(null as (Device | null));
+    const dispatch = useDispatch();
+
     const hasBluetooth = useSelector(selectHasBluetooth);
     const supportedDevices = useSelector(selectSupportedDevices);
     const [knownDeviceBluetooth, setKnownDeviceBluetooth] = useState(false);
     
     const needsBluetoothTurnOn = useSelector(selectNeedsBluetoothTurnOn);
     
-
-    const dispatch = useDispatch();
-    
     const deviceID = useSelector(selectDeviceID);
     const serialNumberString = useSelector(selectDeviceSerialNumberString);
 
-    const [device, setDevice] = useState(null as (Device | null));
-
-
+    // const [device, setDevice] = useState(null as (Device | null));
     const [timeoutHandle, setTimeoutHandle] = useState(null as (null | NodeJS.Timeout));
-
-    const [aranet4SpecificInformation, setAranet4SpecificInformation] = useState(null as (null | Aranet4SpecificInformation));
+    // const [aranet4SpecificInformation, setAranet4SpecificInformation] = useState(null as (null | Aranet4SpecificInformation));
     const [measurement, setMeasurement] = useState(null as (MeasurementDataForUpload | null));
     
+
+        //measurementInterval
+        //secondsSinceLastMeasurement
+    
+    const measurementInterval = useSelector(selectMeasurementInterval);
+    const lastMeasurementTime = useSelector(selectMeasurementTime);
+
+    const backgroundPollingEnabled = useSelector(selectBackgroundPollingEnabled);
+    useEffect(() => {
+        requestLocationPermission(dispatch);
+    }, []);
+
     useEffect(() => {
         if (!hasBluetooth) {
             return;
@@ -933,22 +913,15 @@ export const useBluetoothConnectAndPollAranet = () => {
         if (needsBluetoothTurnOn) {
             return;
         }
-        scanAndIdentify(setDevice, dispatch);
+        scanAndIdentify(dispatch);
     }, [hasBluetooth, needsBluetoothTurnOn]);
 
 
 
     useEffect(() => {
-
-        
-        // if (genericBluetoothInformation === null) {
-        //     // debugger;
-        //     setKnownDeviceBluetooth(false);
-        //     return;
-        // }
         const known = isSupportedDevice(supportedDevices, serialNumberString);
         const knownBluetooth = !!known;
-        console.log(`Setting device known to ${knownBluetooth}`);
+        // console.log(`Setting device known to ${knownBluetooth}`);
         setKnownDeviceBluetooth(knownBluetooth);
         // debugger;
         if (knownBluetooth) {
@@ -969,89 +942,43 @@ export const useBluetoothConnectAndPollAranet = () => {
         else {
             dispatch(setDeviceStatusString(`Beginning first read over bluetooth... device known: ${knownDeviceBluetooth}`));
         }
-        // if (!knownDevice) {
-        //     console.warn("Not configured yet, warns eery first connection?")
-        //     dispatch(setDeviceStatusString(`Device is not set up. Please set it up in the web console!`));
-        //     return;
-        // }
-        firstBluetoothUpdate(deviceID, dispatch, device, setDevice).then((info) => {
+
+        // console.log(`First bluetooth read, deviceID ${deviceID}`);
+
+        firstBluetoothUpdate(deviceID, dispatch).then((info) => {
             if (info === undefined) {
                 return;
             }
-            if (info.genericInfo.serialNumberString !== null) {
-                dispatch(setDeviceSerialNumber(info.genericInfo.serialNumberString));
-            }
-            if (info.genericInfo.deviceNameString !== null) {
-                dispatch(setDeviceName(info.genericInfo.deviceNameString));
-            }
-        
-            setAranet4SpecificInformation(info.specificInfo)
+            dispatch(setDeviceSerialNumber(info.genericInfo.serialNumberString));
+            dispatch(setDeviceName(info.genericInfo.deviceNameString));
+            setFromAranet4SpecificInfo(dispatch, info.specificInfo);
+
+            // setAranet4SpecificInformation(info.specificInfo);
         })
     }, [deviceID])
 
-    // useEffect(() => {
-    //     if (genericBluetoothInformation && (genericBluetoothInformation?.serialNumberString !== null)) {
-    //         dispatch(setDeviceSerialNumber(genericBluetoothInformation?.serialNumberString));
-    //     }
-    // }, [genericBluetoothInformation?.serialNumberString]);
-
-    // useEffect(() => {
-    //     if (genericBluetoothInformation && (genericBluetoothInformation?.deviceNameString !== null)) {
-    //         dispatch(setDeviceName(genericBluetoothInformation?.deviceNameString));
-    //     }
-    // }, [genericBluetoothInformation?.deviceNameString]);
 
     useEffect(() => {
-        if (aranet4SpecificInformation === null) {
-            return;
-        }
-        if (aranet4SpecificInformation.co2CharacteristicValue !== null) {
-            const measurementData: MeasurementData = {
-                co2: aranet4SpecificInformation.co2CharacteristicValue.co2,
-                temperature: aranet4SpecificInformation.co2CharacteristicValue.temperatureC,
-                barometricPressure: aranet4SpecificInformation.co2CharacteristicValue.barometricPressure,
-                humidity: aranet4SpecificInformation.co2CharacteristicValue.humidity
-            };
-            dispatch(setMeasurementData(measurementData));
-            dispatch(setDeviceBatteryLevel(aranet4SpecificInformation.co2CharacteristicValue.battery));
-            dispatch(setAranet4Color(aranet4SpecificInformation.co2CharacteristicValue.statusColor));
-        }
-    }, [aranet4SpecificInformation?.co2CharacteristicValue]);
-
-
-    useEffect(() => {
-        if (aranet4SpecificInformation === null) {
-            return;
-        }
-        if (aranet4SpecificInformation.secondsSinceLastMeasurement !== null) {
-            dispatch(setAranet4SecondsSinceLastMeasurement(aranet4SpecificInformation.secondsSinceLastMeasurement));
-        }
-    }, [aranet4SpecificInformation?.secondsSinceLastMeasurement])
-
-
-    useEffect(() => {
-        if (aranet4SpecificInformation === null) {
-            return;
-        }
-        if (aranet4SpecificInformation.measurementInterval) {
-            dispatch(setMeasurementInterval(aranet4SpecificInformation.measurementInterval));
-        }
-    }, [aranet4SpecificInformation?.measurementInterval])
-
-    useEffect(() => {
+        // console.log(`deviceID ${deviceID}, timeoutHandle ${timeoutHandle}, knownDeviceBluetooth ${knownDeviceBluetooth}, backgroundPollingEnabled ${backgroundPollingEnabled}`);
         if (timeoutHandle !== null) {
-            console.log("Timeout already set, ignoring.")
+            // console.log("Timeout already set, ignoring.")
             return;
         }
 
-        const timerTime = maybeNextMeasurementInOrDefault(aranet4SpecificInformation);
         if (deviceID === null) {
             return;
         }
-        if (device === null) {
+        if (backgroundPollingEnabled) {
+            console.log("NOT polling in foreground, backgroundPollingEnabled");
             return;
         }
-        const handle = setTimeout(() => pollAranet4(setTimeoutHandle, deviceID, knownDeviceBluetooth, setAranet4SpecificInformation, dispatch, supportedDevices, setMeasurement, device, setDevice), timerTime);
+        //measurementInterval
+        //secondsSinceLastMeasurement
+
+        const lastMeasurementTimeDate = (lastMeasurementTime !== null) ? new Date(lastMeasurementTime) : new Date(Date.now());
+        const timerTime = maybeNextMeasurementInOrDefault(measurementInterval, lastMeasurementTimeDate);
+        console.log(`timerTime: ${timerTime/1000} seconds`);
+        const handle = setTimeout(() => pollAranet4(setTimeoutHandle, deviceID, dispatch, supportedDevices, setMeasurement), timerTime);
         // console.log(`Set update timer: ${handle}`)
         setTimeoutHandle(handle);
 
@@ -1063,48 +990,70 @@ export const useBluetoothConnectAndPollAranet = () => {
                 clearTimeout(handle);
             }
         }
-    }, [deviceID, timeoutHandle, knownDeviceBluetooth, device])
+    }, [deviceID, timeoutHandle, knownDeviceBluetooth, backgroundPollingEnabled])
 
 
 
-    return { device, measurement };
+    return { measurement };
 }
 
-async function firstBluetoothUpdate(deviceID: string, dispatch: AppDispatch, device: Device | null, setDevice: React.Dispatch<React.SetStateAction<Device | null>>): Promise<Aranet4GenericAndSpecificInformation | undefined>  {
+async function firstBluetoothUpdate(deviceID: string, dispatch: AppDispatch): Promise<Aranet4GenericAndSpecificInformation | undefined>  {
     try {
-        // debugger;
         //FIRST and ONLY the first of these.
-        await beginWithDeviceConnection(deviceID, device, dispatch, setDevice);
-        dispatch(setDeviceStatusString('Reading generic bluetooth information...'));
-        const generic = await readGenericBluetoothInformation(deviceID);
+        // const deviceOrNull = await beginWithDeviceConnection(deviceID, device, dispatch);
+        const connectedDevice = await connectOrAlreadyConnected(deviceID);
 
-        const specific = await updateAranet4SpecificInformation(deviceID, dispatch);
-        await finish(deviceID, setDevice);
+        if (connectedDevice === null) {
+            dispatch(setScanningErrorStatusString("Connection to aranet4 failed."));
+            return;
+        }
+        if (connectedDevice === true) {
+            dispatch(setScanningErrorStatusString("Connection to aranet4 failed... Likely will work if tried again"));
+            return;
+        }
+        if (connectedDevice === false) {
+            throw new Error("Connection to aranet4 failed: BUG");
+        }
+        dispatch(setScanningStatusString(`Connected to aranet4 ${deviceID}). Discovering services and characteristics...`));
+        const deviceWithServicesAndCharacteristics = await connectedDevice.discoverAllServicesAndCharacteristics();
+
+        dispatch(setScanningStatusString("Connected to aranet4, services discovered!"));
+
+        const services = await deviceWithServicesAndCharacteristics.services();
+
+
+        
+        dispatch(setDeviceStatusString('Reading generic bluetooth information...'));
+        const genericInfo = await readGenericBluetoothInformation(deviceID);
+
+        const specificInfo = await updateAranet4SpecificInformation(deviceID, dispatch);
+        // await finish(deviceID);
         dispatch(setDeviceStatusString(null));
         dispatch(incrementUpdates());
 
         return {
-            genericInfo: generic,
-            specificInfo: specific
+            genericInfo,
+            specificInfo
         }
     }
     catch (error) {
-        //handle?
+        console.log(`First bluetooth read exception handler...`);
         if (!filterBleReadError(error, dispatch, deviceID)) {
-            debugger;
+            console.error(`UNHANDLED ble read error: ${String(error)}, device: ${deviceID}`);
         }
     }
 }
 
 const connectOrAlreadyConnected = async (deviceID: string): Promise<Device | boolean | null> => {
-    console.log(`Checking if ${deviceID} is connected first...`);
+    // console.log(`Checking if ${deviceID} is connected first...`);
     const isConnected = await manager.isDeviceConnected(deviceID);
     if (!isConnected) {
+        // console.log("NOT connected, connecting...");
         return manager.connectToDevice(deviceID);
     }
     console.log("connected, checking connection manager for connection...");
-    const connectedDevices = await manager.connectedDevices([deviceID]);
-    console.log(`Manager reports connected devices: ${JSON.stringify(connectedDevices)}`);
+    const connectedDevices = await manager.connectedDevices([BLUETOOTH.ARANET4_SENSOR_SERVICE_UUID]);
+    console.log(`Manager reports ${connectedDevices.length} connected devices`);
     const inConnectedDevices = connectedDevices.find((eachDevice) => eachDevice.id === deviceID);
     if (inConnectedDevices === undefined) {
         console.error("BUG! device is connected, but not in connected devices? Maybe race condition? Maybe try again?");
@@ -1130,7 +1079,7 @@ async function attemptConnectScannedDevice(scannedDevice: DeviceId, device: Devi
 }
 
 
-async function foundAranet4(scannedDevice: Device, dispatch: AppDispatch, setDevice: React.Dispatch<React.SetStateAction<Device | null>>) {
+async function foundAranet4(scannedDevice: Device, dispatch: AppDispatch) {
     dispatch(setScanningStatusString(`Found aranet4! (${scannedDevice.id}) Connecting...`));
     console.log("Connecting to aranet4...");
     if (scannedDevice.id) {
@@ -1198,18 +1147,6 @@ function dumpNewScannedDeviceInfo(scannedDevice: Device | null) {
     }
 }
 
-/*
-    await queryAranet4BasicInformation(deviceServer, dispatch);
- 
- 
-    console.log("Getting device information service...")
-    const deviceInformationService = await deviceServer.getPrimaryService(BLUETOOTH.DEVICE_INFORMATION_SERVICE_UUID);
- 
- 
-    await queryDeviceInformationService(deviceInformationService, dispatch);
- 
-*/
-
 function deviceIDFromUserInfoDevice(supportedDevices: UserInfoDevice[], serialNumber: string): number {
     const device = supportedDevices.find((device) => device.serial === serialNumber);
     if (device === undefined) {
@@ -1218,7 +1155,7 @@ function deviceIDFromUserInfoDevice(supportedDevices: UserInfoDevice[], serialNu
     return device.device_id;    
 }
 
-function isSupportedDevice(supportedDevices: UserInfoDevice[] | null, serialNumber: string | null): boolean | null {
+export function isSupportedDevice(supportedDevices: UserInfoDevice[] | null, serialNumber: string | null): boolean | null {
     if (!supportedDevices) {
         return null;
     }
@@ -1243,35 +1180,44 @@ function maybeNextMeasurementIn(aranet4MeasurementInterval: number | null, arane
     return maybeNext;
 }
 
-function atLeastOneMinuteInDev(maybeNextSeconds: number): number {
-    // if (__DEV__) {
-    //     const plusMinute = maybeNextSeconds + 60;
-    //     const asMS = plusMinute * 1000;
-    //     return asMS;
+function atLeastOneMinuteOrDev(maybeNextSeconds: number): number {
+    if (__DEV__) {
+        if (maybeNextSeconds > 30) {
+            console.log(`__DEV__ (${maybeNextSeconds}) short, but not too short`)
+            return maybeNextSeconds * 1000;
+        }
+        console.log(`__DEV__ (${maybeNextSeconds}) too short for dev`);
+        const plusMinute = maybeNextSeconds + 60;
+        console.log(plusMinute)
+        const asMS = plusMinute * 1000;
+        return asMS;
     
-    // }
+    }
     const plus15Minute = maybeNextSeconds + (60 * 15);
     const asMS = plus15Minute * 1000;
     return asMS;
 }
 
-function maybeNextMeasurementInOrDefault(aranet4SpecificInformation: Aranet4SpecificInformation | null) {
+function maybeNextMeasurementInOrDefault(measurementInterval: number | null, lastMeasurementTime: Date | null) {
     const defaultTime = (1000 * 10);
-    if (aranet4SpecificInformation === null) {
+    // console.log(`defaultTime: ${defaultTime}`);
+    if (measurementInterval === null) {
         return defaultTime;
     }
-    if (aranet4SpecificInformation.secondsSinceLastMeasurement === null) {
-        return defaultTime;
-    }
-    if (aranet4SpecificInformation.measurementInterval === null) {
-        // debugger;
+    if (lastMeasurementTime === null) {
         return defaultTime;
     }
     // console.log(`measurement interval: ${aranet4SpecificInformation.measurementInterval}, seconds since last measurement: ${aranet4SpecificInformation.secondsSinceLastMeasurement}`);
-    const maybeNextSeconds = (aranet4SpecificInformation.measurementInterval - aranet4SpecificInformation.secondsSinceLastMeasurement) + 1;
+    const maybeNextSeconds = (measurementInterval) + 1;
+    // console.log(`maybeNextSeconds: ${maybeNextSeconds}`);
+    // console.log("FARTIPELAGOFARTIPELAGOFARTIPELAGOFARTIPELAGOFARTIPELAGOFARTIPELAGOFARTIPELAGOFARTIPELAGO");
+    debugger;
     if (maybeNextSeconds < 60) {
         // debugger;
-        return atLeastOneMinuteInDev(maybeNextSeconds);
+        return atLeastOneMinuteOrDev(maybeNextSeconds);
+    }
+    if (__DEV__ && (maybeNextSeconds > 30)) {
+        return 30 * 1000;
     }
     const maybeNextMs = (maybeNextSeconds * 1000);
     if (maybeNextMs < 5000) {
@@ -1357,28 +1303,31 @@ const MaybeNoSupportedBluetoothDevices: React.FC<{}> = () => {
     return null;
   }
   
-export const useBluetoothAranet4 = () => {
-    const dispatch = useDispatch();
-    const supportedDevices = useSelector(selectSupportedDevices);
+export const useAranet4NextMeasurementTime = () => {
     const aranet4Data = useSelector(selectAranet4SpecificData);
-    const serialNumber = useSelector(selectDeviceSerialNumberString);
-
-    // const [knownDevice, setKnownDevice] = useState(null as (boolean | null));
-    const {knownDevice} = useCheckKnownDevice(supportedDevices, serialNumber);
-    const [nextMeasurement, setNextMeasurement] = useState(null as (number | null));
-
-    useEffect(() => {
-        requestLocationPermission(dispatch);
-    }, []);
+    const [nextMeasurementTime, setNextMeasurement] = useState(null as (number | null));
 
     useEffect(() => {
         setNextMeasurement(maybeNextMeasurementIn(aranet4Data?.aranet4MeasurementInterval, aranet4Data?.aranet4SecondsSinceLastMeasurement));
     }, [aranet4Data?.aranet4MeasurementInterval, aranet4Data?.aranet4SecondsSinceLastMeasurement])
 
-    return {knownDevice, nextMeasurement};
+    return {nextMeasurementTime};
 }
 
-export const BluetoothData: React.FC<{ device: Device | null, knownDevice: boolean | null, nextMeasurement: number | null }> = ({ device, knownDevice, nextMeasurement }) => {
+const MaybeDate = (props: {aranet4MeasurementTime?: string | null}) => {
+    if (props.aranet4MeasurementTime === undefined) {
+        return null;
+    }
+    if (props.aranet4MeasurementTime === null) {
+        return null;
+    }
+
+    return (
+        <MaybeIfValue text="Measurement time: " value={new Date(props.aranet4MeasurementTime).toLocaleTimeString()} />
+    );
+}
+
+export const BluetoothData: React.FC<{ knownDevice: boolean | null, nextMeasurement: number | null }> = ({ knownDevice, nextMeasurement }) => {
     const id = useSelector(selectDeviceID);
     const name = useSelector(selectDeviceName);
     const rssi = useSelector(selectDeviceRSSI);
@@ -1388,11 +1337,12 @@ export const BluetoothData: React.FC<{ device: Device | null, knownDevice: boole
     const deviceBatteryLevel = useSelector(selectDeviceBatterylevel);
     const measurementData = useSelector(selectMeasurementData);
     const aranet4Data = useSelector(selectAranet4SpecificData);
-    
+    // const deviceName = useSelector(selectD)
     const deviceStatus = useSelector(selectDeviceStatusString);
     
     
     const updateCount = useSelector(selectUpdateCount);
+    const backgroundPollingEnabled = useSelector(selectBackgroundPollingEnabled);
 
     return (
         <>
@@ -1408,16 +1358,18 @@ export const BluetoothData: React.FC<{ device: Device | null, knownDevice: boole
             <MaybeIfValue text="Battery: " value={deviceBatteryLevel} suffix="%" />
             <MaybeIfValue text="Known user device?: " value={knownDevice} suffix="yes"/>
 
-            <MaybeIfValue text="localName: " value={(device?.localName) ? device.localName : null} />
-            <MaybeIfValue text="manufacturerData: " value={(device?.manufacturerData) ? device?.manufacturerData : null} />
+            {/* <MaybeIfValue text="localName: " value={(device?.localName) ? device.localName : null} /> */}
+            {/* <MaybeIfValue text="manufacturerData: " value={(device?.manufacturerData) ? device?.manufacturerData : null} /> */}
 
             <MaybeIfValue text="CO2: " value={measurementData?.co2} suffix="ppm" />
             <MaybeIfValue text="Humidity: " value={measurementData?.humidity} suffix="%" />
             <MaybeIfValue text="Temperature: " value={measurementData?.temperature} suffix="°C" />
-            <MaybeIfValue text="Pressure: " value={measurementData?.barometricPressure} suffix="hPa" />
-            <MaybeIfValue text="Measurement time: " value={aranet4Data?.aranet4MeasurementTime} />
+            {/* <MaybeIfValue text="Pressure: " value={measurementData?.barometricPressure} suffix="hPa" /> */}
+            
+            <MaybeDate aranet4MeasurementTime={aranet4Data.aranet4MeasurementTime}/>
             <MaybeIfValue text="Measurement interval: " value={aranet4Data?.aranet4MeasurementInterval} suffix=" seconds" />
             <MaybeIfValue text="Next measurement: " value={nextMeasurement} suffix=" seconds" />
+            <MaybeIfValue text="Background polling: " value={backgroundPollingEnabled}/>
             <BluetoothMaybeNeedsTurnOn/>
             <MaybeNoSupportedBluetoothDevices/>
         </>
