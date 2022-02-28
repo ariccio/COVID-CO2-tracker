@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 // import { defaultUserSettings } from "../../../../co2_client/src/utils/UserSettings";
 import { MaybeIfValue } from "../../utils/RenderValues";
 import { COVID_CO2_TRACKER_PLACES_URL } from '../../utils/UrlPaths';
+import { useIsLoggedIn } from '../../utils/UseLoggedIn';
 import { useOpenableLink, IfNotOpenable } from '../Links/OpenLink';
 import { selectUserSettings, selectUserSettingsErrors } from "../userInfo/userInfoSlice"
 
@@ -42,7 +43,12 @@ export const UserSettingsMaybeDisplay: React.FC<{}> = () => {
     const userSettings = useSelector(selectUserSettings);
     const userSettingsErrors = useSelector(selectUserSettingsErrors);
 
+    const {loggedIn} = useIsLoggedIn();
+
     if (userSettings === undefined) {
+        if (!loggedIn) {
+            return null;
+        }
         return (
             <>
                 <Text>Loading user settings...</Text>

@@ -417,8 +417,11 @@ const useGoogleAuthForCO2Tracker = () => {
     return false;
 }
 
-function userNameValueOrLoading(userName?: string | null) {
+function userNameValueOrLoading(userName?: string | null, jwt: string | null) {
   if (userName === undefined) {
+    if (jwt === null) {
+      return undefined;
+    }
     return null;
   }
   if (userName === null) {
@@ -437,7 +440,7 @@ const LoginOrLogoutButton: React.FC<{jwt: string | null, promptAsyncReady: boole
   if (!buttonDisable) {
     return (
       <>
-          <ValueOrLoading text="username: " value={userNameValueOrLoading(userName)} suffix=" (this shouldn't show up)"/>
+          <ValueOrLoading text="username: " value={userNameValueOrLoading(userName, jwt)} suffix=" (this shouldn't show up)"/>
           <Button disabled={buttonDisable} title="Login" onPress={() => {promptAsync();}}/>
       </>
     );

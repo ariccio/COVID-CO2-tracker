@@ -12,8 +12,9 @@ import * as BLUETOOTH from '../../../../co2_client/src/utils/BluetoothConstants'
 import { UserInfoDevice } from '../../../../co2_client/src/utils/DeviceInfoTypes';
 import { selectBackgroundPollingEnabled } from '../../app/globalSlice';
 import { AppDispatch } from '../../app/store';
-import { MaybeIfValue } from '../../utils/RenderValues';
+import { MaybeIfValue, MaybeIfValueTrue } from '../../utils/RenderValues';
 import { COVID_CO2_TRACKER_DEVICES_URL } from '../../utils/UrlPaths';
+import { useIsLoggedIn } from '../../utils/UseLoggedIn';
 import { useOpenableLink, IfNotOpenable } from '../Links/OpenLink';
 import { addMeasurement } from '../Measurement/MeasurementSlice';
 import { MeasurementDataForUpload } from '../Measurement/MeasurementTypes';
@@ -825,7 +826,7 @@ async function updateCallback(deviceID: string, dispatch: AppDispatch): Promise<
     }
 }
 
-async function pollAranet4(setTimeoutHandle: React.Dispatch<React.SetStateAction<NodeJS.Timeout | null>>, deviceID: string, dispatch: AppDispatch, supportedDevices: UserInfoDevice[] | null, setMeasurement: React.Dispatch<React.SetStateAction<MeasurementDataForUpload | null>>) {
+async function pollAranet4(setTimeoutHandle: React.Dispatch<React.SetStateAction<NodeJS.Timeout | null>>, deviceID: string, dispatch: AppDispatch, supportedDevices: UserInfoDevice[] | null, setMeasurement: React.Dispatch<React.SetStateAction<MeasurementDataForUpload | null>>, loggedIn: boolean) {
     setTimeoutHandle(null);
     if (deviceID === '?') {
         debugger;
@@ -847,6 +848,10 @@ async function pollAranet4(setTimeoutHandle: React.Dispatch<React.SetStateAction
         return;
     }
     if (supportedDevices === null) {
+        if (!loggedIn) {
+            dispatch(setUploadStatus('Please log in.'));
+            return;
+        }
         dispatch(setUploadStatus('Still loading user devices, cannot upload measurement to server. This should go away in a minute or so.'));
         return;
     }
@@ -902,6 +907,9 @@ export const useBluetoothConnectAndPollAranet = () => {
     const lastMeasurementTime = useSelector(selectMeasurementTime);
 
     const backgroundPollingEnabled = useSelector(selectBackgroundPollingEnabled);
+
+    const {loggedIn} = useIsLoggedIn();
+
     useEffect(() => {
         requestLocationPermission(dispatch);
     }, []);
@@ -978,7 +986,7 @@ export const useBluetoothConnectAndPollAranet = () => {
         const lastMeasurementTimeDate = (lastMeasurementTime !== null) ? new Date(lastMeasurementTime) : new Date(Date.now());
         const timerTime = maybeNextMeasurementInOrDefault(measurementInterval, lastMeasurementTimeDate);
         console.log(`timerTime: ${timerTime/1000} seconds`);
-        const handle = setTimeout(() => pollAranet4(setTimeoutHandle, deviceID, dispatch, supportedDevices, setMeasurement), timerTime);
+        const handle = setTimeout(() => pollAranet4(setTimeoutHandle, deviceID, dispatch, supportedDevices, setMeasurement, loggedIn), timerTime);
         // console.log(`Set update timer: ${handle}`)
         setTimeoutHandle(handle);
 
@@ -990,7 +998,7 @@ export const useBluetoothConnectAndPollAranet = () => {
                 clearTimeout(handle);
             }
         }
-    }, [deviceID, timeoutHandle, knownDeviceBluetooth, backgroundPollingEnabled])
+    }, [deviceID, timeoutHandle, knownDeviceBluetooth, backgroundPollingEnabled, supportedDevices])
 
 
 
@@ -1369,7 +1377,7 @@ export const BluetoothData: React.FC<{ knownDevice: boolean | null, nextMeasurem
             <MaybeDate aranet4MeasurementTime={aranet4Data.aranet4MeasurementTime}/>
             <MaybeIfValue text="Measurement interval: " value={aranet4Data?.aranet4MeasurementInterval} suffix=" seconds" />
             <MaybeIfValue text="Next measurement: " value={nextMeasurement} suffix=" seconds" />
-            <MaybeIfValue text="Background polling: " value={backgroundPollingEnabled}/>
+            <MaybeIfValueTrue text="Background polling: " value={backgroundPollingEnabled}/>
             <BluetoothMaybeNeedsTurnOn/>
             <MaybeNoSupportedBluetoothDevices/>
         </>
