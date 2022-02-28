@@ -271,6 +271,7 @@ function setIDTokenIfGoodResponseFromGoogle(setIDToken: React.Dispatch<React.Set
   }
   if (responseFromGoogle.type === 'success') {
     handleGoogleAuthSuccessResponse(responseFromGoogle, setLoginErrors, setIDToken);
+    return;
   }
   throw new Error(`Unexpected respnseFromGoogle type: "${responseFromGoogle.type}". Full object: ${JSON.stringify(responseFromGoogle)} `);
 }
@@ -383,7 +384,7 @@ const useGoogleAuthForCO2Tracker = () => {
     }, [request]);
   
     useEffect(() => {
-      console.table(request);
+      // console.log(request);
       setIDTokenIfGoodResponseFromGoogle(setIDToken, response, setLoginErrors);
     }, [response]);
   
