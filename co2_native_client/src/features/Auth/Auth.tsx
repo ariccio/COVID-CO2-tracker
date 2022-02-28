@@ -331,7 +331,7 @@ async function handleAsyncStoreResult(maybeJWT: string | null, dispatch: AppDisp
         nativeGetEmail(maybeJWT).then((emailResponse) => {
             // console.log(`Server responds with email response: ${JSON.stringify(emailResponse)}`);
             // debugger;
-            dispatch(setUserName(emailResponse.email))
+            return dispatch(setUserName(emailResponse.email));
         }).catch((error) => {
             setLoginErrors(`Failed to load up-to-date username/email: ${String(error)}`)
         })
@@ -369,8 +369,10 @@ const useGoogleAuthForCO2Tracker = () => {
 
     useEffect(() => {
         queryAsyncStoreForStoredJWT(setAsyncStoreError).then((maybeJWT) => {
-            handleAsyncStoreResult(maybeJWT, dispatch, setLoginErrors);
-        });
+            return handleAsyncStoreResult(maybeJWT, dispatch, setLoginErrors);
+        }).catch((error) => {
+          setAsyncStoreError(String(error));
+        })
     }, []);
   
     useEffect(() => {

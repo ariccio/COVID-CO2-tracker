@@ -232,7 +232,6 @@ async function registerForegroundService(setNativeErrors: React.Dispatch<React.S
     catch (exception) {
         //Probably native error.
         setNativeErrors(`Error in registerForegroundService: '${String(exception)}'`);
-        debugger;
     }
 }
 
@@ -457,7 +456,7 @@ export const useNotifeeNotifications = (): NotifeeNotificationHookState => {
         // debugger;
         notifee.isBatteryOptimizationEnabled().then((result) => {
             // console.log(`Battery optimization: ${result}`);
-            dispatch(setBatteryOptimizationEnabled(result));
+            return dispatch(setBatteryOptimizationEnabled(result));
         }).catch((exception) => {
             // In theory, the native java code can throw exceptions if something is desperatley wrong...
             setNativeErrors(`Error in isBatteryOptimizationEnabled: '${String(exception)}'`);

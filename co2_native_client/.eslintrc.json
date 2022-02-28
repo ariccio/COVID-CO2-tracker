@@ -1,13 +1,16 @@
 {
     "env": {
-        "es2021": true
+        "es2021": true,
+        "react-native-globals/all": true
     },
     "extends": [
         "eslint:recommended",
         "plugin:react/recommended",
         "plugin:@typescript-eslint/recommended",
         "universe/native",
-        "prettier"
+        "prettier",
+        "plugin:promise/recommended",
+        "plugin:react-perf/recommended"
     ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
@@ -20,11 +23,16 @@
     "plugins": [
         "react",
         "@typescript-eslint",
-        "prettier"
+        "prettier",
+        "promise",
+        "react-native",
+        "react-native-globals",
+        "react-perf"
     ],
     "rules": {
         "prettier/prettier": 0,
         // "quotes": [0, "single"],
-        "react/react-in-jsx-scope": "off"
+        "react/react-in-jsx-scope": "off",
+        "react-perf/jsx-no-new-function-as-prop": "off"
     }
 }
