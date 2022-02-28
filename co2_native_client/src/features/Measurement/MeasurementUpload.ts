@@ -72,7 +72,7 @@ export function uploadMeasurementHeadless(measurement: MeasurementDataForUpload 
     // dispatch(setUploadStatus(`Uploading new measurement (${measurement.co2ppm})...`));
     realtimeUpload(jwt, measurement, userSettings).then((response) => {
         if (response.errors) {
-            debugger;
+            // debugger;
             console.error(`Headless upload errors: ${formatErrors(response.errors)}`);
             // dispatch(setUploadStatus(`Error uploading measurement: ${formatErrors(response.errors)}`));
             // eslint-disable-next-line no-useless-return
@@ -80,13 +80,14 @@ export function uploadMeasurementHeadless(measurement: MeasurementDataForUpload 
         }
         // eslint-disable-next-line no-useless-return
         console.log('SUCESSFULL MEASUREMENT UPLOAD!');
+        // eslint-disable-next-line no-useless-return
         return;
     //   dispatch(setUploadStatus(`Successful at ${(new Date(Date.now())).toLocaleTimeString()}`));
     //   dispatch(incrementSuccessfulUploads());
     }).catch((error) => {
         console.error(`Headless upload error: ${String(error)}`);
     //   dispatch(setUploadStatus(`Error uploading measurement: ${String(error)}`));
-        debugger;
+        // debugger;
     });
   }
   

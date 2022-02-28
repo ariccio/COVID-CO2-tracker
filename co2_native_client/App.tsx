@@ -12,7 +12,7 @@ import { Provider, useDispatch, useSelector } from 'react-redux';
 
 
 
-import { userRequestOptions, postRequestOptions } from '../co2_client/src/utils/DefaultRequestOptions';
+import { userRequestOptions } from '../co2_client/src/utils/DefaultRequestOptions';
 import { UserInfoDevice } from '../co2_client/src/utils/DeviceInfoTypes';
 import {ErrorObjectType, formatErrors, withErrors} from '../co2_client/src/utils/ErrorObject';
 // import {} from '../co2_client/src/utils/UserInfoTypes';
@@ -31,7 +31,7 @@ import { selectUserName, selectUserSettings, setUserSettings, setUserSettingsErr
 import { withAuthorizationHeader } from './src/utils/NativeDefaultRequestHelpers';
 import {fetchJSONWithChecks} from './src/utils/NativeFetchHelpers';
 import { MaybeIfValue } from './src/utils/RenderValues';
-import { REAL_TIME_UPLOAD_URL_NATIVE, USER_DEVICES_URL_NATIVE, USER_SETTINGS_URL_NATIVE } from './src/utils/UrlPaths';
+import { USER_DEVICES_URL_NATIVE, USER_SETTINGS_URL_NATIVE } from './src/utils/UrlPaths';
 import { isLoggedIn, isNullString, isUndefinedString } from './src/utils/isLoggedIn';
 import { selectDeviceSerialNumberString } from './src/features/bluetooth/bluetoothSlice';
 import { realtimeUpload } from './src/features/Measurement/MeasurementUpload';

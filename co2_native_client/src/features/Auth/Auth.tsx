@@ -5,7 +5,7 @@ import { AuthRequestPromptOptions, AuthSessionResult } from 'expo-auth-session';
 import * as Google from 'expo-auth-session/providers/google';
 import * as SecureStore from 'expo-secure-store';
 import {useEffect, useState} from 'react';
-import { Button, Text } from 'react-native';
+import { Button } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 
 

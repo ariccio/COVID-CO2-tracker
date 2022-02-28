@@ -420,6 +420,11 @@ const headlessForegroundScanConnectRead = async (deviceID: string, supportedDevi
         console.log("Connected to aranet4, services discovered!");
     
         const services = await deviceWithServicesAndCharacteristics.services();
+        const hasServiceSanityCheck = checkContainsAranet4Service(services);
+        if (!hasServiceSanityCheck) {
+            console.warn("Missing aranet4 service?");
+        }
+    
         const genericInfo = await readGenericBluetoothInformation(deviceID);
         // const aranet4Info = await readAranet4SpecificInformation(deviceID, dispatch);
     
@@ -451,7 +456,7 @@ const headlessForegroundScanConnectRead = async (deviceID: string, supportedDevi
             };
     
     */
-        const closed = await manager.cancelDeviceConnection(deviceID);
+        // const closed = await manager.cancelDeviceConnection(deviceID);
         return {
             specificInfo: {
                 co2CharacteristicValue: co2CharacteristicMeasurement,
@@ -545,6 +550,14 @@ export const onHeadlessTaskTriggerBluetooth = async (deviceID: string, supported
     */
 }
 
+function checkContainsAranet4Service(services: Service[]): boolean {
+    const found = services.find((service) => {return service.uuid === BLUETOOTH.ARANET4_SENSOR_SERVICE_UUID});
+    if (found === undefined) {
+        return false;
+    }
+    return true;
+}
+
 const beginWithDeviceConnection = async (deviceID: string | null, dispatch: AppDispatch) => {
     if (deviceID === null) {
         debugger;
@@ -571,7 +584,10 @@ const beginWithDeviceConnection = async (deviceID: string | null, dispatch: AppD
     dispatch(setScanningStatusString("Connected to aranet4, services discovered!"));
 
     const services = await deviceWithServicesAndCharacteristics.services();
-
+    const hasServiceSanityCheck = checkContainsAranet4Service(services);
+    if (!hasServiceSanityCheck) {
+        console.warn("Missing aranet4 service?");
+    }
     const withRSSI = await deviceWithServicesAndCharacteristics.readRSSI();
 
     
@@ -587,18 +603,18 @@ const beginWithDeviceConnection = async (deviceID: string | null, dispatch: AppD
     return withRSSI;
 }
 
-const finish = async (deviceID: string, setDevice: React.Dispatch<React.SetStateAction<Device | null>>) => {
-    // if (deviceID === null) {
-    //     debugger;
-    //     console.error("Called in incorrect order.")
-    //     throw new Error("broken.");
-    // }
-    // const closed = await manager.cancelDeviceConnection(deviceID);
+// const finish = async (deviceID: string, setDevice: React.Dispatch<React.SetStateAction<Device | null>>) => {
+//     // if (deviceID === null) {
+//     //     debugger;
+//     //     console.error("Called in incorrect order.")
+//     //     throw new Error("broken.");
+//     // }
+//     // const closed = await manager.cancelDeviceConnection(deviceID);
     
-    // return closed;
-    // console.log("Device connection closed.");
+//     // return closed;
+//     // console.log("Device connection closed.");
 
-}
+// }
 
 const updateAranet4SpecificInformation = async (deviceID: string, dispatch: AppDispatch) => {
     
@@ -962,9 +978,11 @@ export const useBluetoothConnectAndPollAranet = () => {
             }
             dispatch(setDeviceSerialNumber(info.genericInfo.serialNumberString));
             dispatch(setDeviceName(info.genericInfo.deviceNameString));
-            setFromAranet4SpecificInfo(dispatch, info.specificInfo);
+            return setFromAranet4SpecificInfo(dispatch, info.specificInfo);
 
             // setAranet4SpecificInformation(info.specificInfo);
+        }).catch((error) => {
+            dispatch(setScanningErrorStatusString(`Unexpected error on first bluetooth update: ${String(error)}`));
         })
     }, [deviceID])
 
@@ -1031,7 +1049,11 @@ async function firstBluetoothUpdate(deviceID: string, dispatch: AppDispatch): Pr
         dispatch(setScanningStatusString("Connected to aranet4, services discovered!"));
 
         const services = await deviceWithServicesAndCharacteristics.services();
-
+        const hasServiceSanityCheck = checkContainsAranet4Service(services);
+        if (!hasServiceSanityCheck) {
+            console.warn("Missing aranet4 service?");
+        }
+    
 
         
         dispatch(setDeviceStatusString('Reading generic bluetooth information...'));
@@ -1263,17 +1285,23 @@ const RSSIOrWeakRSSI: React.FC<{rssi: number | null}> = ({rssi}) => {
 const BluetoothMaybeNeedsTurnOn:React.FC<{}> = () => {
     const dispatch = useDispatch();
     const needsBluetoothTurnOn = useSelector(selectNeedsBluetoothTurnOn);
+    const [nativeErrors, setNativeErrors] = useState(null as (string | null));
 
     const turnOn = (ev: NativeSyntheticEvent<NativeTouchEvent>) => {
         console.log(String(ev));
         manager.enable().then(() => {
             dispatch(setNeedsBluetoothTurnOn(false));
-            dispatch(setScanningErrorStatusString(null))
+            return dispatch(setScanningErrorStatusString(null))
+        }).catch((error) => {
+            setNativeErrors(String(error));
         })
     }
     if (needsBluetoothTurnOn) {
         return (
-            <Button title="Turn Bluetooth on" onPress={(ev) => {turnOn(ev)}}/>
+            <>
+                <MaybeIfValue text="Native errors turning bluetooth on: " value={nativeErrors}/>
+                <Button title="Turn Bluetooth on" onPress={(ev) => {turnOn(ev)}}/>
+            </>
         );
     }
 
