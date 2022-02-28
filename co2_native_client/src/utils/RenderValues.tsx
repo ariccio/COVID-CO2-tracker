@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
 
 /* eslint-disable react/prop-types */

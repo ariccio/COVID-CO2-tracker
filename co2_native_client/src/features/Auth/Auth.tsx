@@ -52,7 +52,6 @@ function rawEmailResponseToStrongType(response: unknown): NativeEmailResponseTyp
         throw new Error("Email null!");
     }
     if (responseExists.email === undefined) {
-        debugger;
         throw new Error("Email missing!");
     }
     if (responseExists.email.length === 0) {
@@ -334,7 +333,6 @@ async function handleAsyncStoreResult(maybeJWT: string | null, dispatch: AppDisp
             // debugger;
             dispatch(setUserName(emailResponse.email))
         }).catch((error) => {
-            debugger;
             setLoginErrors(`Failed to load up-to-date username/email: ${String(error)}`)
         })
     }
@@ -417,7 +415,7 @@ const useGoogleAuthForCO2Tracker = () => {
     return false;
 }
 
-function userNameValueOrLoading(userName?: string | null, jwt: string | null) {
+function userNameValueOrLoading(jwt: string | null, userName?: string | null) {
   if (userName === undefined) {
     if (jwt === null) {
       return undefined;
@@ -440,7 +438,7 @@ const LoginOrLogoutButton: React.FC<{jwt: string | null, promptAsyncReady: boole
   if (!buttonDisable) {
     return (
       <>
-          <ValueOrLoading text="username: " value={userNameValueOrLoading(userName, jwt)} suffix=" (this shouldn't show up)"/>
+          <ValueOrLoading text="username: " value={userNameValueOrLoading(jwt, userName)} suffix=" (this shouldn't show up)"/>
           <Button disabled={buttonDisable} title="Login" onPress={() => {promptAsync();}}/>
       </>
     );

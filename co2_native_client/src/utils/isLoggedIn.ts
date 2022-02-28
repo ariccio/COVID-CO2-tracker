@@ -21,8 +21,3 @@ export function isLoggedIn(jwt: string, userName: string): boolean {
     return true;
 }
 
-export function useIsLoggedIn(): boolean {
-  const jwt = useSelector(selectJWT);
-  const userName = useSelector(selectUserName);
-
-}
