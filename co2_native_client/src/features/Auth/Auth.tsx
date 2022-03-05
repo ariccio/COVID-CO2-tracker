@@ -169,7 +169,7 @@ const nativeGetEmail = async (jwt: string) => {
         // console.log("Email fetch success!");
         return rawEmailResponseToStrongType(await awaitedResponse.json());
     }
-    console.log(`Fetching email from: ${EMAIL_URL_NATIVE}`);
+    // console.log(`Fetching email from: ${EMAIL_URL_NATIVE}`);
     // debugger;
     const result = fetchJSONWithChecks(EMAIL_URL_NATIVE, options, 200, false, emailFetchFailedCallback, emailFetchSuccessCallback) as Promise<NativeEmailResponseType>;
     return await result;

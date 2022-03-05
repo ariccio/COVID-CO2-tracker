@@ -9,13 +9,14 @@ import { selectBackgroundPollingEnabled, selectJWT, selectShouldUpload, setBackg
 import { AppDispatch } from '../../app/store';
 import { MaybeIfValue } from '../../utils/RenderValues';
 import { useIsLoggedIn } from '../../utils/UseLoggedIn';
-import { onHeadlessTaskTriggerBluetooth } from '../bluetooth/Bluetooth';
-import { selectDeviceID } from '../bluetooth/bluetoothSlice';
 import { MeasurementDataForUpload } from '../Measurement/MeasurementTypes';
 import { uploadMeasurementHeadless } from '../Measurement/MeasurementUpload';
+import { onHeadlessTaskTriggerBluetooth } from '../bluetooth/Bluetooth';
+import { selectDeviceID } from '../bluetooth/bluetoothSlice';
 import { selectSupportedDevices } from '../userInfo/devicesSlice';
 import { selectUserSettings } from '../userInfo/userInfoSlice';
 import {logEvent} from './LogEvent';
+import { timeNowAsString } from '../../utils/TimeNow';
 
 function defaultNotification(channelId: string): Notification {
     const defaultNotificationOptions: Notification = {
@@ -160,18 +161,13 @@ async function checkedRequestPermission(setNativeErrors: React.Dispatch<React.Se
 //     }
 // }
 
-function time(): string {
-    const now = Date.now();
-    const nowS = new Date(now).toLocaleTimeString();
-    return nowS;
-}
 
 async function handleForegroundServiceEvent({ type, detail }: Event, deviceID: string, supportedDevices: UserInfoDevice[], foreground: string, userSettings: UserSettings, jwt: string, shouldUpload: boolean) {
     
     
     if (type === EventType.ACTION_PRESS) {
         const eventMessage = logEvent(foreground, { type, detail });
-        console.log(`-------\r\n(SERVICE, ${time()})${eventMessage}: ${JSON.stringify(detail)}`);
+        console.log(`-------\r\n(SERVICE, ${timeNowAsString()})${eventMessage}: ${JSON.stringify(detail)}`);
         
 
         if (!detail) {
@@ -194,7 +190,7 @@ async function handleForegroundServiceEvent({ type, detail }: Event, deviceID: s
 
     else if (type === EventType.DELIVERED) {
         const eventMessage = logEvent(foreground, { type, detail });
-        console.log(`-------\r\n\t(SERVICE, ${time()})${eventMessage}: ${JSON.stringify(detail)}`);
+        console.log(`-------\r\n\t(SERVICE, ${timeNowAsString()})${eventMessage}: ${JSON.stringify(detail)}`);
         
 
         if (detail.notification === undefined) {
@@ -209,11 +205,11 @@ async function handleForegroundServiceEvent({ type, detail }: Event, deviceID: s
         const result: MeasurementDataForUpload | null = await onHeadlessTaskTriggerBluetooth(deviceID, supportedDevices);
         console.log(`Read this value!\n\t${JSON.stringify(await result)}`);
         await notifee.cancelDisplayedNotification(detail.notification.id);
-        // await uploadMeasurementHeadless(result, userSettings, jwt, shouldUpload);
+        await uploadMeasurementHeadless(result, userSettings, jwt, shouldUpload);
     }
     else {
         const eventMessage = logEvent(foreground, { type, detail });
-        console.log(`-------\r\n(SERVICE, ${time()})${eventMessage} (unimplemented event handling for this event.): ${JSON.stringify(detail)}`);
+        console.log(`-------\r\n(SERVICE, ${timeNowAsString()})${eventMessage} (unimplemented event handling for this event.): ${JSON.stringify(detail)}`);
     }
 }
 
@@ -302,7 +298,7 @@ async function createTriggerNotification(setNativeErrors: React.Dispatch<React.S
     };
 
     const triggerNotif = defaultTriggerNotification(channelId);
-
+    console.log(`Creating trigger notification at ${timeNowAsString()}...`);
     try {
         const result = await notifee.createTriggerNotification(triggerNotif, trigger);
         return result;
@@ -315,6 +311,7 @@ async function createTriggerNotification(setNativeErrors: React.Dispatch<React.S
 
 const onClickNotificationButton = (handleClickDisplayNotification: () => Promise<void>, dispatch: AppDispatch) => {
     dispatch(setShouldUpload(false));
+    dispatch(setShouldUpload(true));
     handleClickDisplayNotification();
     dispatch(setBackgroundPollingEnabled(true));
 }
@@ -324,7 +321,7 @@ export const NotificationInfo = (props: { notificationState: NotifeeNotification
     const dispatch = useDispatch();
     return (
         <>
-            <Button title="Start background polling" onPress={() => { onClickNotificationButton(props.notificationState.handleClickDisplayNotification, dispatch) }} />
+            <Button title="Start background polling & uploading" onPress={() => { onClickNotificationButton(props.notificationState.handleClickDisplayNotification, dispatch) }} />
             <MaybeIfValue text="Errors from displaying notifications: " value={props.notificationState.displayNotificationErrors} />
             <MaybeIfValue text="Battery optimization enabled: " value={(props.batteryOptimizationEnabled === null) ? null : String(props.batteryOptimizationEnabled)} />
             <MaybeIfValue text="Notifee native errors (what?): " value={props.notificationState.nativeErrors} />
@@ -413,7 +410,7 @@ export const useNotifeeNotifications = (): NotifeeNotificationHookState => {
                 return;
             }
             setChannelID(channelId_);
-            return;
+            // return;
     
         }
         const triggerResult = await createTriggerNotification(setNativeErrors, channelId_);

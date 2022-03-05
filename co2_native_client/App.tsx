@@ -22,9 +22,11 @@ import { incrementSuccessfulUploads, selectBatteryOptimizationEnabled, selectJWT
 import { AppDispatch, store } from './src/app/store';
 import {AuthContainerWithLogic} from './src/features/Auth/Auth';
 import { MeasurementDataForUpload } from './src/features/Measurement/MeasurementTypes';
+import { realtimeUpload } from './src/features/Measurement/MeasurementUpload';
 import { selectUploadStatus, setUploadStatus } from './src/features/Uploading/uploadSlice';
 import { UserSettingsMaybeDisplay } from './src/features/UserSettings/UserSettingsDisplay';
 import { BluetoothData, isSupportedDevice, useAranet4NextMeasurementTime, useBluetoothConnectAndPollAranet } from './src/features/bluetooth/Bluetooth';
+import { selectDeviceSerialNumberString } from './src/features/bluetooth/bluetoothSlice';
 import { NotifeeNotificationHookState, useNotifeeNotifications, NotificationInfo } from './src/features/service/Notification';
 import { selectSupportedDevices, setSupportedDevices, setUNSupportedDevices } from './src/features/userInfo/devicesSlice';
 import { selectUserName, selectUserSettings, setUserSettings, setUserSettingsErrors } from './src/features/userInfo/userInfoSlice';
@@ -33,8 +35,7 @@ import {fetchJSONWithChecks} from './src/utils/NativeFetchHelpers';
 import { MaybeIfValue } from './src/utils/RenderValues';
 import { USER_DEVICES_URL_NATIVE, USER_SETTINGS_URL_NATIVE } from './src/utils/UrlPaths';
 import { isLoggedIn, isNullString, isUndefinedString } from './src/utils/isLoggedIn';
-import { selectDeviceSerialNumberString } from './src/features/bluetooth/bluetoothSlice';
-import { realtimeUpload } from './src/features/Measurement/MeasurementUpload';
+import { timeNowAsString } from './src/utils/TimeNow';
 
 
 // import {AppStatsResponse, queryAppStats} from '../co2_client/src/utils/QueryAppStats';
@@ -331,7 +332,7 @@ function loadSettings(jwt: string | null, userName: string | null | undefined, d
       dispatch(setUserSettingsErrors('User has not created settings.'));
       return;
     }
-    console.log(`Got user settings response: ${JSON.stringify(response)}`);
+    // console.log(`Got user settings response: ${JSON.stringify(response)}`);
     return dispatch(setUserSettings(response));
     // debugger;
   }).catch((error) => {
@@ -412,7 +413,6 @@ function App() {
   const {measurement} = useBluetoothConnectAndPollAranet();
   const notificationState: NotifeeNotificationHookState = useNotifeeNotifications();
 
-
   //https://notifee.app/react-native/docs/events#app-open-events
   const [loading, setLoading] = useState(true);
 
@@ -426,6 +426,10 @@ function App() {
       debugger;
     }
   }
+
+  useEffect(() => {
+    console.log(`App starting at ${timeNowAsString()}.`);
+  }, [])
 
   useEffect(() => {
     bootstrap()
