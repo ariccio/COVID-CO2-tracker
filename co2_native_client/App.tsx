@@ -9,6 +9,7 @@ import {useEffect, useState} from 'react';
 import { AppState, StyleSheet, Button } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider, useDispatch, useSelector } from 'react-redux';
+import * as Sentry from 'sentry-expo';
 
 
 
@@ -37,6 +38,14 @@ import { USER_DEVICES_URL_NATIVE, USER_SETTINGS_URL_NATIVE } from './src/utils/U
 import { isLoggedIn, isNullString, isUndefinedString } from './src/utils/isLoggedIn';
 import { timeNowAsString } from './src/utils/TimeNow';
 
+
+
+
+Sentry.init({
+  dsn: "https://5c72ea76ca204179b35fa8a3eb847ab0@o584271.ingest.sentry.io/5737166",
+  enableInExpoDevelopment: true,
+  debug: true, // If `true`, Sentry will try to print out useful debugging information if something goes wrong with sending the event. Set it to `false` in production
+});
 
 // import {AppStatsResponse, queryAppStats} from '../co2_client/src/utils/QueryAppStats';
 

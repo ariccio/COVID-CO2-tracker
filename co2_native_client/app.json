@@ -41,8 +41,19 @@
     },
     "plugins": [
       "@config-plugins/react-native-ble-plx",
-      "@notifee/react-native",
-      "sentry-expo"
-    ]
+      "@notifee/react-native"
+    ],
+    "hooks": {
+      "postPublish": [
+        {
+          "file": "sentry-expo/upload-sourcemaps",
+          "config": {
+            "organization": "covid-co2-tracker",
+            "project": "covid-co2-tracker",
+            "authToken": "62c8b1fd78484639bc77b251408ee0ea9d634bb4022a440fa13c0201a035c77d"
+          }
+        }
+      ]
+    }
   }
 }
