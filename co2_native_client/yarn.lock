@@ -1943,10 +1943,26 @@
     "@sentry/types" "6.18.1"
     tslib "^1.9.3"
 
-"@sentry/react-native@^3.1.1", "@sentry/react-native@^3.3.0":
+"@sentry/react-native@^3.1.1":
   version "3.3.0"
   resolved "https://registry.yarnpkg.com/@sentry/react-native/-/react-native-3.3.0.tgz#5a170ce594ebcb803c60d60e022935238728a5b8"
   integrity sha512-Y5C13M6K8yB0rVz92dlT5c21TDMa/YqfpUCA01/wElXSZ6lQ69imhlGrwDgTBESYJh4+d500OSSqP0NlCcJ8qg==
+  dependencies:
+    "@sentry/browser" "6.17.9"
+    "@sentry/cli" "^1.72.0"
+    "@sentry/core" "6.17.9"
+    "@sentry/hub" "6.17.9"
+    "@sentry/integrations" "6.17.9"
+    "@sentry/react" "6.17.9"
+    "@sentry/tracing" "6.17.9"
+    "@sentry/types" "6.17.9"
+    "@sentry/utils" "6.17.9"
+    "@sentry/wizard" "^1.2.17"
+
+"@sentry/react-native@^3.3.0":
+  version "3.3.1"
+  resolved "https://registry.yarnpkg.com/@sentry/react-native/-/react-native-3.3.1.tgz#f6f765f9d34b5e5d7cc623562924e88350ac5332"
+  integrity sha512-AuLBEF2XR/bEv3+/JKzGESAWLdpK6LBVCaJOfTlXda6jvhQKP1oqz0VTnaDm/aovKJOOVLnwORTTxO1wces4VA==
   dependencies:
     "@sentry/browser" "6.17.9"
     "@sentry/cli" "^1.72.0"
@@ -7169,12 +7185,7 @@ side-channel@^1.0.4:
     get-intrinsic "^1.0.2"
     object-inspect "^1.9.0"
 
-signal-exit@^3.0.0:
-  version "3.0.6"
-  resolved "https://registry.yarnpkg.com/signal-exit/-/signal-exit-3.0.6.tgz#24e630c4b0f03fea446a2bd299e62b4a6ca8d0af"
-  integrity sha512-sDl4qMFpijcGw22U5w63KmD3cZJfBuFlVNbVMKje2keoKML7X2UzWbc4XrmEbDwg0NXJc3yv4/ox7b+JWb57kQ==
-
-signal-exit@^3.0.2:
+signal-exit@^3.0.0, signal-exit@^3.0.2:
   version "3.0.7"
   resolved "https://registry.yarnpkg.com/signal-exit/-/signal-exit-3.0.7.tgz#a9a1767f8af84155114eaabd73f99273c8f59ad9"
   integrity sha512-wnD2ZE+l+SPC/uoS0vXeE9L1+0wuaMqKlfz9AMUo38JsyLSBWSFcHR1Rri62LZc12vLr1gb3jl7iwQhgwpAbGQ==
