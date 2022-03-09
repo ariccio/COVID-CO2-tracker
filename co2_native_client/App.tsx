@@ -253,7 +253,9 @@ function dumpDeviceInfo(devices: UserInfoDevice[]): void {
 
 function handleDevicesResponse(devicesResponse: UserDevicesInfo, setUserDeviceErrors: React.Dispatch<React.SetStateAction<string | null>>, dispatch: AppDispatch) {
   if (devicesResponse.errors) {
-    setUserDeviceErrors(`Getting devices failed! Reasons: ${formatErrors(devicesResponse.errors)}`);
+    const str = `Getting devices failed! Reasons: ${formatErrors(devicesResponse.errors)}`;
+    setUserDeviceErrors(str);
+    Sentry.Native.captureMessage(str);
     return;
   }
   // dumpUserDevicesInfoResponse(response);
@@ -327,7 +329,10 @@ function loadDevices(jwt: string | null, userName: string | null | undefined, se
   get_my_devices(jwt, userName)?.then((devicesResponse) => {
     return handleDevicesResponse(devicesResponse, setUserDeviceErrors, dispatch);
   }).catch((error) => {
-    setUserDeviceErrors(`Getting devices failed! Probably a bad network connection. Error: ${String(error)}`);
+    const str = `Getting devices failed! Probably a bad network connection. Error: ${String(error)}`;
+    setUserDeviceErrors(str);
+    console.warn(error);
+    Sentry.Native.captureException(error);
     // eslint-disable-next-line no-debugger
     debugger;
     throw error;
@@ -345,6 +350,7 @@ function loadSettings(jwt: string | null, userName: string | null | undefined, d
     return dispatch(setUserSettings(response));
     // debugger;
   }).catch((error) => {
+    Sentry.Native.captureException(error);
     dispatch(setUserSettingsErrors(String(error)))
     debugger;
   })
@@ -438,6 +444,7 @@ function App() {
 
   useEffect(() => {
     console.log(`App starting at ${timeNowAsString()}.`);
+    // Sentry.Browser.captureMessage("native fartipelago");
   }, [])
 
   useEffect(() => {

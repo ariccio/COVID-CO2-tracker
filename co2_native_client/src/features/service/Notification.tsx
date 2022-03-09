@@ -2,6 +2,7 @@ import notifee, {IOSNotificationSettings, Notification, EventType, Event, Trigge
 import {useState, useEffect, useRef} from 'react';
 import { Button, AppState, AppStateStatus } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
+import * as Sentry from 'sentry-expo';
 
 import { UserInfoDevice } from '../../../../co2_client/src/utils/DeviceInfoTypes';
 import { UserSettings } from '../../../../co2_client/src/utils/UserSettings';
@@ -86,6 +87,7 @@ async function checkedCreateChannel(setNativeErrors: React.Dispatch<React.SetSta
     }
     catch (exception) {
         //Probably native error.
+        Sentry.Native.captureException(exception);
         setNativeErrors(`Error in createChannel: '${String(exception)}'`);
         return null;
     }
@@ -97,6 +99,7 @@ async function checkedRequestPermission(setNativeErrors: React.Dispatch<React.Se
     }
     catch (exception) {
         //Probably native error.
+        Sentry.Native.captureException(exception);
         setNativeErrors(`Error in requestPermission: '${String(exception)}'`);
         return null;
     }
@@ -230,6 +233,7 @@ async function registerForegroundService(setNativeErrors: React.Dispatch<React.S
         notifee.registerForegroundService((notification: Notification) => foregroundServiceCallback(notification, deviceID, supportedDevices, userSettings, jwt, shouldUpload));
     }
     catch (exception) {
+        Sentry.Native.captureException(exception);
         //Probably native error.
         setNativeErrors(`Error in registerForegroundService: '${String(exception)}'`);
     }
@@ -275,6 +279,7 @@ async function onDisplayNotification(setDisplayNotificationErrors: React.Dispatc
         return result;
     }
     catch (e) {
+        Sentry.Native.captureException(e);
         console.error(`Error displaying notification! ${String(e)}`);
         if (e instanceof Error) {
             setDisplayNotificationErrors(String(e));
@@ -304,6 +309,7 @@ async function createTriggerNotification(setNativeErrors: React.Dispatch<React.S
         return result;
     }
     catch (exception) {
+        Sentry.Native.captureException(exception);
         setNativeErrors(`Error creating trigger notification: ${String(exception)}`);
     }
 }
@@ -476,6 +482,7 @@ export const useNotifeeNotifications = (): NotifeeNotificationHookState => {
             // console.log(`Battery optimization: ${result}`);
             return dispatch(setBatteryOptimizationEnabled(result));
         }).catch((exception) => {
+            Sentry.Native.captureException(exception);
             // In theory, the native java code can throw exceptions if something is desperatley wrong...
             setNativeErrors(`Error in isBatteryOptimizationEnabled: '${String(exception)}'`);
         })

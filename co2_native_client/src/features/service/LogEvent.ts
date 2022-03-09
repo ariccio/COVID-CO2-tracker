@@ -1,4 +1,5 @@
 import {EventType} from '@notifee/react-native';
+import * as Sentry from 'sentry-expo';
 
 // https://github.com/invertase/notifee/blob/7d03bb4eda27b5d4325473cf155852cef42f5909/tests_react_native/example/videoApp.tsx#L142
 export function logEvent(state: string, event: any): string {
@@ -9,6 +10,7 @@ export function logEvent(state: string, event: any): string {
     switch (type) {
         case EventType.UNKNOWN:
             eventTypeString = 'UNKNOWN';
+            Sentry.Native.captureMessage(`Unknown notification type?: ${type}, ${detail}`)
             console.log('Notification Id', detail.notification?.id);
             break;
         case EventType.DISMISSED:

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Linking, Text } from 'react-native';
 import { useSelector } from "react-redux";
+import * as Sentry from 'sentry-expo';
+
 
 // import { defaultUserSettings } from "../../../../co2_client/src/utils/UserSettings";
 import { MaybeIfValue } from "../../utils/RenderValues";
@@ -15,6 +17,7 @@ async function openCO2TrackerPlacePage(setNativeErrors: React.Dispatch<React.Set
         Linking.openURL(url);
     }
     catch (exception) {
+        Sentry.Native.captureException(exception);
         setNativeErrors(`Error opening web console: ${String(exception)}`)
     }
 }
@@ -31,7 +34,7 @@ const LinkIfValue = (props: {setting_place_google_place_id?: string | null | und
 
     return (
         <>
-            <IfNotOpenable openable={openable}/>
+            <IfNotOpenable openable={openable} url={placesUrl}/>
             <MaybeIfValue text="Native errors from link: " value={nativeErrors}/>
             <Text onLongPress={() => openCO2TrackerPlacePage(setNativeErrors, placesUrl)} onPress={() => openCO2TrackerPlacePage(setNativeErrors, placesUrl)}>Uploading place: {props.setting_place_google_place_id}</Text>
         </>

@@ -7,7 +7,7 @@ import * as SecureStore from 'expo-secure-store';
 import {useEffect, useState} from 'react';
 import { Button } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-
+import * as Sentry from 'sentry-expo';
 
 import { postRequestOptions, userRequestOptions } from '../../../../co2_client/src/utils/DefaultRequestOptions';
 import {formatErrors, withErrors} from '../../../../co2_client/src/utils/ErrorObject';
@@ -184,8 +184,10 @@ const loginWithIDToken = (id_token: string, setAsyncStoreError: React.Dispatch<R
     const result = fetchJSONWithChecks(LOGIN_URL_NATIVE, options, 200, true, fetchLoginFailedCallback, fetchLoginSuccessCallback) as Promise<NativeLoginResponseType>;
     return result.then((response) => {
       if (response.errors !== undefined) {
-        console.error("Login to server FAILED");
-        setLoginErrors(formatErrors(response.errors));
+        const str = formatErrors(response.errors);
+        console.error(`Login to server FAILED: ${str}`);
+        setLoginErrors(str);
+        Sentry.Native.captureMessage(str);
         // eslint-disable-next-line no-debugger
         debugger;
         return null;
@@ -198,9 +200,10 @@ const loginWithIDToken = (id_token: string, setAsyncStoreError: React.Dispatch<R
       return saveJWTToAsyncStore(response.jwt, setAsyncStoreError);
   
     }).catch((error) => {
-        console.error(error);
-        // eslint-disable-next-line no-debugger
-        debugger;
+      Sentry.Native.captureException(error);
+      console.error(error);
+      // eslint-disable-next-line no-debugger
+      debugger;
     })
   };
   
@@ -233,6 +236,7 @@ async function queryAsyncStoreForStoredJWT(setAsyncStoreError: React.Dispatch<Re
     catch (error) {
       console.error(error);
       setAsyncStoreError(`Error loading login info from secure local storage: ${String(error)}. You will need to login manually.`);
+      Sentry.Native.captureException(error);
       // eslint-disable-next-line no-debugger
       debugger;
       return null;
@@ -250,6 +254,7 @@ async function queryAsyncStoreForStoredJWT(setAsyncStoreError: React.Dispatch<Re
     catch (error) {
       console.error(error);
       setAsyncStoreError(`Error clearing login info from secure local storage: ${String(error)}. This is weird. Try clearing app data?`);
+      Sentry.Native.captureException(error);
       // eslint-disable-next-line no-debugger
       debugger;
     }
@@ -285,6 +290,7 @@ function handleGoogleAuthSuccessResponse(responseFromGoogle: AuthSessionResult, 
   }
   if (responseFromGoogle.authentication === null) {
     console.warn('authentication is null?');
+    Sentry.Native.captureMessage("Authentication is null?");
     // eslint-disable-next-line no-debugger
     debugger;
     return;
@@ -296,6 +302,7 @@ function handleGoogleAuthSuccessResponse(responseFromGoogle: AuthSessionResult, 
   console.log(`refreshToken: ${responseFromGoogle.authentication.refreshToken}`);
   if (responseFromGoogle.authentication.idToken === null) {
     setLoginErrors('ID token missing from google response. May be a bug?');
+    Sentry.Native.captureMessage("responseFromGoogle.authentication.idToken null??!?");
     throw new Error("responseFromGoogle.authentication.idToken null??!?");
   }
   if (responseFromGoogle.authentication.idToken === undefined) {
@@ -308,7 +315,6 @@ function handleGoogleAuthSuccessResponse(responseFromGoogle: AuthSessionResult, 
 
 function handleGoogleAuthErrorResponse(responseFromGoogle: AuthSessionResult, setLoginErrors: React.Dispatch<React.SetStateAction<string | null>>) {
   let googleAuthError = `Error logging in with google!`;
-  console.warn("TODO: report to sentry!");
   if (responseFromGoogle.type !== "error") {
     throw new Error("compile time bug. Wrong type passed to handleGoogleAuthErrorResponse, I'm not good enough at typescript to do correctly.");
   }
@@ -323,6 +329,7 @@ function handleGoogleAuthErrorResponse(responseFromGoogle: AuthSessionResult, se
   }
   googleAuthError += ` ...full object: ${JSON.stringify(responseFromGoogle)}`;
   setLoginErrors(googleAuthError);
+  Sentry.Native.captureMessage(googleAuthError);
 }
 
 async function handleAsyncStoreResult(maybeJWT: string | null, dispatch: AppDispatch, setLoginErrors: React.Dispatch<React.SetStateAction<string | null>>) {
@@ -334,7 +341,8 @@ async function handleAsyncStoreResult(maybeJWT: string | null, dispatch: AppDisp
             // debugger;
             return dispatch(setUserName(emailResponse.email));
         }).catch((error) => {
-            setLoginErrors(`Failed to load up-to-date username/email: ${String(error)}`)
+          Sentry.Native.captureException(error);
+          setLoginErrors(`Failed to load up-to-date username/email: ${String(error)}`)
         })
     }
     else {
@@ -373,6 +381,7 @@ const useGoogleAuthForCO2Tracker = () => {
             return handleAsyncStoreResult(maybeJWT, dispatch, setLoginErrors);
         }).catch((error) => {
           setAsyncStoreError(String(error));
+          Sentry.Native.captureException(error);
         })
     }, []);
   

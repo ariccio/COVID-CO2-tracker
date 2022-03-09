@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { PermissionsAndroid, Text, Button, NativeSyntheticEvent, NativeTouchEvent, Linking } from 'react-native';
 import { BleManager, Device, BleError, LogLevel, Service, Characteristic, BleErrorCode, DeviceId, State, BleAndroidErrorCode } from 'react-native-ble-plx';
 import { useDispatch, useSelector } from 'react-redux';
-
+import * as Sentry from 'sentry-expo';
 
 import * as BLUETOOTH from '../../../../co2_client/src/utils/BluetoothConstants';
 import { UserInfoDevice } from '../../../../co2_client/src/utils/DeviceInfoTypes';
@@ -114,15 +114,22 @@ async function dumpServiceDescriptions(services: Service[]) {
 
 const scanCallback = async (error: BleError | null, scannedDevice: Device | null, dispatch: AppDispatch) => {
     if (error) {
-        console.error(`error scanning: ${error}`);
         //TODO: if bluetooth is off, will get BleErrorCode.BluetoothPoweredOff (102);
         // debugger;
         if (error.errorCode === BleErrorCode.BluetoothPoweredOff) {
+            console.log("Bluetooth off.");
             dispatch(setNeedsBluetoothTurnOn(true));
+            dispatch(setScanningStatusString("Please turn bluetooth on."));
 
         }
-        dispatch(setScanningErrorStatusString(`Cannot connect to device: ${error.message}, ${error.reason}`));
-        dispatch(setScanningStatusString("Please turn bluetooth on."));
+        else {
+            const str = `error scanning: ${error}`;
+            console.error(str);
+            Sentry.Native.captureMessage(str);
+        }
+        const str = `Cannot connect to device: ${error.message}, ${error.reason}`;
+        dispatch(setScanningErrorStatusString(str));
+        Sentry.Native.captureMessage(str);
         // Handle error (scanning will be stopped automatically)
         return;
     }
@@ -485,6 +492,9 @@ const headlessForegroundScanConnectRead = async (deviceID: string, supportedDevi
     }
     catch(error) {
         const filtered = headlessFilterBleReadError(error, deviceID);
+        if (!filtered.retry) {
+            Sentry.Native.captureMessage(`NON-RETRYABLE ble error: ${filtered.message}`);
+        }
         const retryable = filtered.retry ? "Retryable " : "Non-retryable ";
         console.log(`${retryable}error: ${filtered.message}`);
         console.log(`\terror fitered: ${JSON.stringify(filtered)}`)
@@ -688,6 +698,14 @@ function headlessFilterBleReadError(error: unknown, deviceID: string | null): Bl
                 retry: true
             }
         }
+        if (error.errorCode === BleErrorCode.BluetoothPoweredOff) {
+            console.log(`Bluetooth is powered off. Will power back on.`);
+            manager.enable();
+            return {
+                message: 'Bluetooth was powered off. Will try again..',
+                retry: true
+            }
+        }
         //0x11 === GATT_INSUF_RESOURCE
         //Need to cast because react-native-ble-plx doesn't enumerate this? :)
         if ((error.androidErrorCode as number) === 0x11) {
@@ -723,11 +741,15 @@ function headlessFilterBleReadError(error: unknown, deviceID: string | null): Bl
                 retry: true
             }
         }
-        console.error(`----UNEXPECTED bluetooth error while reading from device: ${bleErrorToUsefulString(error)}----`)
+        const unexpectedStr = `----UNEXPECTED bluetooth error while reading from device: ${bleErrorToUsefulString(error)}----`;
+        console.error(unexpectedStr);
+        Sentry.Native.captureMessage(unexpectedStr);
         debugger;
         throw error;
     }
-    console.error(`----UNEXPECTED error while reading from device: ${String(error)}----`);
+    const unexpectedStr = `----UNEXPECTED error while reading from device: ${String(error)}----`;
+    console.error(unexpectedStr);
+    Sentry.Native.captureMessage(unexpectedStr);
     debugger;
     throw error;
 }
@@ -758,6 +780,13 @@ function filterBleReadError(error: unknown, dispatch: AppDispatch, deviceID: str
             dispatch(setDeviceStatusString('Read failed, OS reports operation timed out! Will try again..'));
             return true;
         }
+        if (error.errorCode === BleErrorCode.BluetoothPoweredOff) {
+            console.log(`Bluetooth is powered off. Will power back on.`);
+            dispatch(setDeviceStatusString('Read failed, Bluetooth is powered off. Will power back on and try again.'));
+            manager.enable();
+            return true;
+        }
+
         //0x11 === GATT_INSUF_RESOURCE
         //Need to cast because react-native-ble-plx doesn't enumerate this? :)
         if ((error.androidErrorCode as number) === 0x11) {
@@ -786,11 +815,15 @@ function filterBleReadError(error: unknown, dispatch: AppDispatch, deviceID: str
             dispatch(setDeviceStatusString('Read failed, authentication failed or you cancelled it... Will try again..'));
             return true;
         }
-        dispatch(setDeviceStatusString(`Unexpected bluetooth error while reading from device: ${bleErrorToUsefulString(error)}`));
+        const unexpectedStr = `Unexpected bluetooth error while reading from device: ${bleErrorToUsefulString(error)}`;
+        dispatch(setDeviceStatusString(unexpectedStr));
+        Sentry.Native.captureMessage(unexpectedStr);
         debugger;
         throw error;
     }
-    dispatch(setDeviceStatusString(`Unexpected error while reading from device: ${String(error)}`))
+    const unexpectedStr = `Unexpected error while reading from device: ${String(error)}`;
+    dispatch(setDeviceStatusString(unexpectedStr));
+    Sentry.Native.captureMessage(unexpectedStr);
     debugger;
     throw error;
 }
@@ -1003,6 +1036,7 @@ export const useBluetoothConnectAndPollAranet = () => {
 
             // setAranet4SpecificInformation(info.specificInfo);
         }).catch((error) => {
+            Sentry.Native.captureException(error);
             dispatch(setScanningErrorStatusString(`Unexpected error on first bluetooth update: ${String(error)}`));
         })
     }, [deviceID])
@@ -1118,7 +1152,9 @@ const connectOrAlreadyConnected = async (deviceID: string): Promise<Device | boo
     
     const inConnectedDevices = connectedDevices.find((eachDevice) => eachDevice.id === deviceID);
     if (inConnectedDevices === undefined) {
-        console.error("BUG! device is connected, but not in connected devices? Maybe race condition? Maybe try again?");
+        const err = "BUG! device is connected, but not in connected devices? Maybe race condition? Maybe try again?";
+        console.error(err);
+        Sentry.Native.captureMessage(err);
         return true;
     }
     return inConnectedDevices;
@@ -1322,6 +1358,7 @@ const BluetoothMaybeNeedsTurnOn:React.FC<{}> = () => {
             dispatch(setNeedsBluetoothTurnOn(false));
             return dispatch(setScanningErrorStatusString(null))
         }).catch((error) => {
+            Sentry.Native.captureException(error);
             setNativeErrors(String(error));
         })
     }
@@ -1362,7 +1399,7 @@ const MaybeNoSupportedBluetoothDevices: React.FC<{}> = () => {
       return (
         <>
           <Text>You do not have any devices entered into the database. To upload data, please create a device in the web console.</Text>
-          <IfNotOpenable openable={openable}/>
+          <IfNotOpenable openable={openable} url={COVID_CO2_TRACKER_DEVICES_URL}/>
           <MaybeIfValue text="Native errors: " value={nativeErrors}/>
           <Button title="Open web console" onPress={() => openCO2TrackerDevicesPage(setNativeErrors)}/>
         </>

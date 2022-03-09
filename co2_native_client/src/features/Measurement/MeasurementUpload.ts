@@ -1,3 +1,5 @@
+import * as Sentry from 'sentry-expo';
+
 import { postRequestOptions } from "../../../../co2_client/src/utils/DefaultRequestOptions";
 import { formatErrors, withErrors } from "../../../../co2_client/src/utils/ErrorObject";
 import { UserSettings } from "../../../../co2_client/src/utils/UserSettings";
@@ -73,7 +75,9 @@ export function uploadMeasurementHeadless(measurement: MeasurementDataForUpload 
     realtimeUpload(jwt, measurement, userSettings).then((response) => {
         if (response.errors) {
             // debugger;
-            console.error(`Headless upload errors: ${formatErrors(response.errors)}`);
+            const str = `Headless upload errors: ${formatErrors(response.errors)}`;
+            console.error(str);
+            Sentry.Native.captureMessage(str);
             // dispatch(setUploadStatus(`Error uploading measurement: ${formatErrors(response.errors)}`));
             // eslint-disable-next-line no-useless-return
             return;
@@ -85,6 +89,7 @@ export function uploadMeasurementHeadless(measurement: MeasurementDataForUpload 
     //   dispatch(setUploadStatus(`Successful at ${(new Date(Date.now())).toLocaleTimeString()}`));
     //   dispatch(incrementSuccessfulUploads());
     }).catch((error) => {
+        Sentry.Native.captureException(error);
         console.error(`Headless upload error: ${String(error)}`);
     //   dispatch(setUploadStatus(`Error uploading measurement: ${String(error)}`));
         // debugger;
