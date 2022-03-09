@@ -8,8 +8,48 @@ import {EMAIL_URL, LOGIN_URL, REAL_TIME_MEASUREMENT_URL, USER_DEVICES_URL, USER_
 const {manifest} = Constants;
 
 
-//ALSO: https://stackoverflow.com/a/49198103/625687
-export const BASE_EXPO_URL = `http://${manifest?.debuggerHost?.split(':').shift()}:3000`;
+/*
+https://stackoverflow.com/a/49198103/625687
+const api = (typeof manifest.packagerOpts === `object`) && manifest.packagerOpts.dev
+  ? manifest.debuggerHost.split(`:`).shift().concat(`:3000`)
+  : `api.example.com`;
+*/
+
+function apiUrlInDevOrProd(): string {
+    if ((typeof manifest?.packagerOpts === `object`) && manifest.packagerOpts.dev) {
+        const defaultPath = 'http://localhost:3000';
+        if (manifest === undefined) {
+            console.error(`Something is VERY broken - manifest is undefined - can't get local server url... Will try default (${defaultPath})...`);
+            return defaultPath;
+        }
+        if (manifest.debuggerHost === undefined) {
+            console.error(`Something is VERY broken - manifest.debuggerHost is undefined - can't get local server url... Will try default (${defaultPath})...`);
+            return defaultPath;
+        }
+        const splitted = manifest.debuggerHost.split(`:`);
+        const shifted = splitted.shift();
+        if (shifted === undefined) {
+            console.error(`Something is VERY broken - couldn't get the first part of the url by shifting it - can't get local server url... Will try default (${defaultPath})...`);
+            return defaultPath;
+        }
+        const strWithPort = shifted.concat(`:3000`);
+        if (strWithPort === undefined) {
+            console.error(`Something is VERY broken - can't get local server url... Will try default (${defaultPath})...`);
+            return defaultPath;
+        }
+        const final = `http://${strWithPort}`;
+        console.log(`Using (dev) API base: ${final}`);
+        return final;
+    }
+    const prod = `https://covid-co2-tracker.herokuapp.com`;
+    console.log(`Using (prod) API base: ${prod}`);
+    return prod;
+}
+
+export const BASE_EXPO_URL = apiUrlInDevOrProd();
+
+// //ALSO: https://stackoverflow.com/a/49198103/625687
+// export const BASE_EXPO_URL = `http://${manifest?.debuggerHost?.split(':').shift()}:3000`;
 
 
 export const LOGIN_URL_NATIVE = (BASE_EXPO_URL + LOGIN_URL);

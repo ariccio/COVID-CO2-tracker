@@ -43,7 +43,7 @@ import { timeNowAsString } from './src/utils/TimeNow';
 
 Sentry.init({
   dsn: "https://5c72ea76ca204179b35fa8a3eb847ab0@o584271.ingest.sentry.io/5737166",
-  enableInExpoDevelopment: true,
+  enableInExpoDevelopment: false,
   debug: true, // If `true`, Sentry will try to print out useful debugging information if something goes wrong with sending the event. Set it to `false` in production
 });
 
