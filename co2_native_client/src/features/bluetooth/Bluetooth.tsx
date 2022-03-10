@@ -155,26 +155,37 @@ const scanAndIdentify = (dispatch: AppDispatch) => {
     manager.startDeviceScan(aranetService, null, (error, scannedDevice) => scanCallback(error, scannedDevice, dispatch));
 }
 
-const requestLocationPermission = async (dispatch: AppDispatch) => {
+const requestAllBluetoothPermissions = async (dispatch: AppDispatch) => {
     dispatch(setScanningStatusString('Need permission to use bluetooth first.'));
 
     //https://reactnative.dev/docs/permissionsandroid
-    const result = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
+    const fineLocationResult = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
 
-    if (result === PermissionsAndroid.RESULTS.GRANTED) {
+    if (fineLocationResult === PermissionsAndroid.RESULTS.GRANTED) {
         // console.log("good");
-        dispatch(setHasBluetooth(true));
-        dispatch(setScanningStatusString('Bluetooth permission granted!'));
+        // dispatch(setHasBluetooth(true));
+        dispatch(setScanningStatusString('Fine location permission granted! May need scan permission too...'));
         // Do something
     } else {
-        console.log(`no good: ${result}`);
-        dispatch(setScanningStatusString(`Bluetooth permission denied by user: ${result}`));
+        console.log(`no good: ${fineLocationResult}`);
+        dispatch(setScanningStatusString(`Bluetooth (location for bluetooth) permission denied by user: ${fineLocationResult}`));
         dispatch(setHasBluetooth(false));
         debugger;
         // Denied
         // Do something
     }
-
+    
+    const scan = PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN;
+    console.log(`Requesting bluetooth scan permission... ${scan}`);
+    const bluetoothScanResult = await PermissionsAndroid.request(scan);
+    if (bluetoothScanResult === PermissionsAndroid.RESULTS.GRANTED) {
+        dispatch(setHasBluetooth(true));
+        dispatch(setScanningStatusString('Bluetooth scan permission granted!'));
+    }
+    else {
+        dispatch(setScanningStatusString(`Bluetooth scan permission denied by user: ${bluetoothScanResult}`));
+        dispatch(setHasBluetooth(false));
+    }
 }
 
 function parseUTF8StringBuffer(data: Buffer): string {
@@ -980,7 +991,7 @@ export const useBluetoothConnectAndPollAranet = () => {
     const {loggedIn} = useIsLoggedIn();
 
     useEffect(() => {
-        requestLocationPermission(dispatch);
+        requestAllBluetoothPermissions(dispatch);
     }, []);
 
     useEffect(() => {
