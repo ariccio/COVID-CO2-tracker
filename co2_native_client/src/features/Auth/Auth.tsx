@@ -207,7 +207,62 @@ const loginWithIDToken = (id_token: string, setAsyncStoreError: React.Dispatch<R
     })
   };
   
+/*
+  Example exception: 
+  {
+    "nativeStackAndroid": [],
+    "userInfo": null,
+    "message": "Could not encrypt/decrypt the value for SecureStore",
+    "code": "ERR_SECURESTORE_ENCRYPT_FAILURE", 
+    "line": 4772, "column": 45, "sourceURL": "http://192.168.1.21:8081/index.bundle?platform=android&dev=true&minify=false&app=riccio.co2.client&modulesOnly=false&runModule=true" 
+}
 
+*/
+
+function unknownNativeErrorTryFormat(error: unknown): string {
+  let errorString = 'Error as attempted formatting: ';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if ((error as any).message) {
+    errorString += 'Has a message: "';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    errorString += String((error as any).message);
+    errorString += '"';
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if ((error as any).code) {
+    errorString += ' Has a code: "';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    errorString += String((error as any).code);
+    errorString += '"';
+  }
+
+  errorString += '\r\n...All other fields as JSON: ';
+  errorString += JSON.stringify(error);
+  return errorString;
+}
+
+function hasBadStore(error: unknown): boolean {
+  const badStoreMessage = "Could not encrypt/decrypt the value for SecureStore";
+  const badStoreCode = "ERR_SECURESTORE_ENCRYPT_FAILURE";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (!(error as any).message) {
+    return false;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (!(error as any).code) {
+    return false;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if ((error as any).message === badStoreMessage) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ((error as any).code === badStoreCode) {
+      return true;
+    }
+  }
+  return false;
+}
 
 async function queryAsyncStoreForStoredJWT(setAsyncStoreError: React.Dispatch<React.SetStateAction<string | null>>): Promise<string | null> {
     const available = await SecureStore.isAvailableAsync();
@@ -234,7 +289,14 @@ async function queryAsyncStoreForStoredJWT(setAsyncStoreError: React.Dispatch<Re
       return maybeJWT;
     }
     catch (error) {
-      console.error(error);
+      if (hasBadStore(error)) {
+        console.warn("Corrupt store!");
+        setAsyncStoreError(`Store is corrupt, will try and clear? - error: ${String(error)}`);
+        await SecureStore.deleteItemAsync(CO2_TRACKER_JWT_KEY_NAME);
+        console.log("Cleared.");
+        setAsyncStoreError(`Corrupt store cleared... you may need to restart the app!`);
+      }
+      console.error(unknownNativeErrorTryFormat(error));
       setAsyncStoreError(`Error loading login info from secure local storage: ${String(error)}. You will need to login manually.`);
       Sentry.Native.captureException(error);
       // eslint-disable-next-line no-debugger
