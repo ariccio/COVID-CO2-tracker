@@ -3,7 +3,7 @@
 // See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
 import {Buffer} from 'buffer';
 import { useEffect, useState } from 'react';
-import { PermissionsAndroid, Text, Button, NativeSyntheticEvent, NativeTouchEvent, Linking } from 'react-native';
+import { PermissionsAndroid, Text, Button, NativeSyntheticEvent, NativeTouchEvent, Linking, Permission } from 'react-native';
 import { BleManager, Device, BleError, LogLevel, Service, Characteristic, BleErrorCode, DeviceId, State, BleAndroidErrorCode } from 'react-native-ble-plx';
 import { useDispatch, useSelector } from 'react-redux';
 import * as Sentry from 'sentry-expo';
@@ -175,15 +175,24 @@ const requestAllBluetoothPermissions = async (dispatch: AppDispatch) => {
         // Do something
     }
     
-    const scan = PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN;
+    // const scan = PermissionsAndroid.PERMISSIONS.android.permission.BLUETOOTH_SCAN;
+    const scan = 'android.permission.BLUETOOTH_SCAN';
+    // const typeofRequest = ((permission: string, rationale?: any): unknown)
+
     console.log(`Requesting bluetooth scan permission... ${scan}`);
-    const bluetoothScanResult = await PermissionsAndroid.request(scan);
-    if (bluetoothScanResult === PermissionsAndroid.RESULTS.GRANTED) {
+
+    // This worked! It's disgusting enoguh that I don't want to use it, but I'm mildly impressed with myself.
+    // const bluetoothScanResult = await (PermissionsAndroid.request as (permission: string) => Promise<any>)(scan);
+    
+    //Work around android.permission.BLUETOOTH_SCAN not existing in old version of react native...
+    const bluetoothScanPermissionResult = await PermissionsAndroid.request(scan as Permission);
+    console.log(`PermissionsAndroid.request(android.permission.BLUETOOTH_SCAN) result: ${bluetoothScanPermissionResult}`)
+    if (bluetoothScanPermissionResult === PermissionsAndroid.RESULTS.GRANTED) {
         dispatch(setHasBluetooth(true));
         dispatch(setScanningStatusString('Bluetooth scan permission granted!'));
     }
     else {
-        dispatch(setScanningStatusString(`Bluetooth scan permission denied by user: ${bluetoothScanResult}`));
+        dispatch(setScanningStatusString(`Bluetooth scan permission denied by user: ${bluetoothScanPermissionResult}`));
         dispatch(setHasBluetooth(false));
     }
 }
