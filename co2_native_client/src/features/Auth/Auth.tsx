@@ -435,6 +435,7 @@ const useGoogleAuthForCO2Tracker = () => {
       console.log("Log out clicked...");
       dispatch(setJWT(null));
       deleteJWTFromAsyncStore(setAsyncStoreError);
+      alert("Please restart the app.");
     };
 
 
