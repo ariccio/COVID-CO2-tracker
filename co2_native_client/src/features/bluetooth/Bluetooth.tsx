@@ -3,7 +3,7 @@
 // See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
 import {Buffer} from 'buffer';
 import { useEffect, useState } from 'react';
-import { PermissionsAndroid, Text, Button, NativeSyntheticEvent, NativeTouchEvent, Linking, Permission } from 'react-native';
+import { PermissionsAndroid, Text, Button, NativeSyntheticEvent, NativeTouchEvent, Linking, Permission, Rationale } from 'react-native';
 import { BleManager, Device, BleError, LogLevel, Service, Characteristic, BleErrorCode, DeviceId, State, BleAndroidErrorCode } from 'react-native-ble-plx';
 import { useDispatch, useSelector } from 'react-redux';
 import * as Sentry from 'sentry-expo';
@@ -158,23 +158,39 @@ const scanAndIdentify = (dispatch: AppDispatch) => {
 const requestAllBluetoothPermissions = async (dispatch: AppDispatch) => {
     dispatch(setScanningStatusString('Need permission to use bluetooth first.'));
 
+    const locationRationale: Rationale = {
+        title: "COVID CO2 tracker needs location!",
+        message: "While I don't need your precise location, annoying Android limitations mean I need the 'background location' permission to use bluetooth in the background. Measurements uploaded with this app are intended for public viewing - any interested person can use them to guess the location from which the device is uploading.",
+        buttonPositive: "Ok, enable location!"
+    }
     //https://reactnative.dev/docs/permissionsandroid
-    const fineLocationResult = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
+    try {
+        const fineLocationResult = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION, locationRationale);
 
-    if (fineLocationResult === PermissionsAndroid.RESULTS.GRANTED) {
-        // console.log("good");
-        // dispatch(setHasBluetooth(true));
-        dispatch(setScanningStatusString('Fine location permission granted! May need scan permission too...'));
-        // Do something
-    } else {
-        console.log(`no good: ${fineLocationResult}`);
-        dispatch(setScanningStatusString(`Bluetooth (location for bluetooth) permission denied by user: ${fineLocationResult}`));
-        dispatch(setHasBluetooth(false));
-        debugger;
-        // Denied
-        // Do something
+        if (fineLocationResult === PermissionsAndroid.RESULTS.GRANTED) {
+            // console.log("good");
+            // dispatch(setHasBluetooth(true));
+            dispatch(setScanningStatusString('Fine location permission granted! May need scan permission too...'));
+            // Do something
+        } else {
+            console.log(`no good: ${fineLocationResult}`);
+            dispatch(setScanningStatusString(`Bluetooth (location for bluetooth) permission denied by user: ${fineLocationResult}`));
+            dispatch(setHasBluetooth(false));
+            debugger;
+            // Denied
+            // Do something
+        }    
+    }
+    catch(error) {
+        dispatch(setScanningStatusString(`Some kind of unexpected error when requesting location permission: ${String(error)}`));
+        Sentry.Native.captureException(error);
     }
     
+    const bluetoothScanPermission: Rationale = {
+        title: "COVID CO2 tracker needs to use bluetooth to work!",
+        message: "I use bluetooth to scan for and talk to your aranet4. Without bluetooth, I can't read your co2ppm.",
+        buttonPositive: "Ok, enable bluetooth scanning!"
+    }
     // const scan = PermissionsAndroid.PERMISSIONS.android.permission.BLUETOOTH_SCAN;
     const scan = 'android.permission.BLUETOOTH_SCAN';
     // const typeofRequest = ((permission: string, rationale?: any): unknown)
@@ -184,16 +200,24 @@ const requestAllBluetoothPermissions = async (dispatch: AppDispatch) => {
     // This worked! It's disgusting enoguh that I don't want to use it, but I'm mildly impressed with myself.
     // const bluetoothScanResult = await (PermissionsAndroid.request as (permission: string) => Promise<any>)(scan);
     
-    //Work around android.permission.BLUETOOTH_SCAN not existing in old version of react native...
-    const bluetoothScanPermissionResult = await PermissionsAndroid.request(scan as Permission);
-    console.log(`PermissionsAndroid.request(android.permission.BLUETOOTH_SCAN) result: ${bluetoothScanPermissionResult}`)
-    if (bluetoothScanPermissionResult === PermissionsAndroid.RESULTS.GRANTED) {
-        dispatch(setHasBluetooth(true));
-        dispatch(setScanningStatusString('Bluetooth scan permission granted!'));
+    try {
+        //Work around android.permission.BLUETOOTH_SCAN not existing in old version of react native...
+        const bluetoothScanPermissionResult = await PermissionsAndroid.request(scan as Permission, bluetoothScanPermission);
+        console.log(`PermissionsAndroid.request(android.permission.BLUETOOTH_SCAN) result: ${bluetoothScanPermissionResult}`)
+        if (bluetoothScanPermissionResult === PermissionsAndroid.RESULTS.GRANTED) {
+            dispatch(setHasBluetooth(true));
+            dispatch(setScanningStatusString('Bluetooth scan permission granted!'));
+        }
+        else {
+            dispatch(setScanningStatusString(`Bluetooth scan permission denied by user: ${bluetoothScanPermissionResult}`));
+            dispatch(setHasBluetooth(false));
+        }
+
     }
-    else {
-        dispatch(setScanningStatusString(`Bluetooth scan permission denied by user: ${bluetoothScanPermissionResult}`));
-        dispatch(setHasBluetooth(false));
+    catch (error) {
+        dispatch(setScanningStatusString(`Some kind of unexpected error when requesting bluetooth scan permission: ${String(error)}`));
+        Sentry.Native.captureException(error);
+
     }
 }
 

@@ -290,8 +290,8 @@ async function queryAsyncStoreForStoredJWT(setAsyncStoreError: React.Dispatch<Re
     }
     catch (error) {
       if (hasBadStore(error)) {
-        console.warn("Corrupt store!");
-        setAsyncStoreError(`Store is corrupt, will try and clear? - error: ${String(error)}`);
+        console.log("Corrupt store!");
+        setAsyncStoreError(`Store is corrupt, will try and clear. - error: ${String(error)}`);
         await SecureStore.deleteItemAsync(CO2_TRACKER_JWT_KEY_NAME);
         console.log("Cleared.");
         setAsyncStoreError(`Corrupt store cleared... you may need to restart the app!`);
