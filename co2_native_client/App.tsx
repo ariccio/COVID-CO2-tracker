@@ -494,9 +494,11 @@ function App() {
 export default function AppContainer() {
 
   return (
-    <Provider store={store}>
-      <App/>
-    </Provider>
+    <Sentry.Native.ErrorBoundary>
+      <Provider store={store}>
+        <App/>
+      </Provider>
+    </Sentry.Native.ErrorBoundary>
   );
 }
 
