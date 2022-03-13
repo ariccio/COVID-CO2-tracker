@@ -1,4 +1,4 @@
-package riccio.co2.client;
+package ariccio.co2_native_client;
 import expo.modules.updates.UpdatesDevLauncherController;
 import expo.modules.devlauncher.DevLauncherController;
 
@@ -16,8 +16,7 @@ import com.facebook.soloader.SoLoader;
 
 import expo.modules.ApplicationLifecycleDispatcher;
 import expo.modules.ReactNativeHostWrapper;
-
-import com.facebook.react.bridge.JSIModulePackage;
+import ariccio.co2_native_client.BuildConfig;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -85,7 +84,7 @@ public class MainApplication extends Application implements ReactApplication {
          We use reflection here to pick up the class that initializes Flipper,
         since Flipper library is not available in release mode
         */
-        Class<?> aClass = Class.forName("riccio.co2.client.ReactNativeFlipper");
+        Class<?> aClass = Class.forName("ariccio.co2_native_client.ReactNativeFlipper");
         aClass
             .getMethod("initializeFlipper", Context.class, ReactInstanceManager.class)
             .invoke(null, context, reactInstanceManager);

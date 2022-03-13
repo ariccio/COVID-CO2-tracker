@@ -132,7 +132,7 @@ android {
     }
 
     defaultConfig {
-        applicationId 'riccio.co2.client'
+        applicationId 'ariccio.co2_native_client'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

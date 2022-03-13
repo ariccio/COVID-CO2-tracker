@@ -35,12 +35,12 @@ android_library(
 
 android_build_config(
     name = "build_config",
-    package = "riccio.co2.client",
+    package = "ariccio.co2_native_client",
 )
 
 android_resource(
     name = "res",
-    package = "riccio.co2.client",
+    package = "ariccio.co2_native_client",
     res = "src/main/res",
 )
 
