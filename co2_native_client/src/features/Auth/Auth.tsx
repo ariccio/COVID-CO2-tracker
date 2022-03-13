@@ -295,6 +295,7 @@ async function queryAsyncStoreForStoredJWT(setAsyncStoreError: React.Dispatch<Re
         await SecureStore.deleteItemAsync(CO2_TRACKER_JWT_KEY_NAME);
         console.log("Cleared.");
         setAsyncStoreError(`Corrupt store cleared... you may need to restart the app!`);
+        return null;
       }
       console.error(unknownNativeErrorTryFormat(error));
       setAsyncStoreError(`Error loading login info from secure local storage: ${String(error)}. You will need to login manually.`);
