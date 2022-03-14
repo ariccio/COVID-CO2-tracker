@@ -16,4 +16,9 @@ module.exports = {
         updater: require.resolve('standard-version-expo/ios'),
       }
     ],
+    skip: {
+        tag: true,
+        changelog: true
+      },
+
   };
