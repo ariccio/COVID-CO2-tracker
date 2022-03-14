@@ -2,7 +2,7 @@
   "expo": {
     "name": "co2_native_client",
     "slug": "co2_native_client",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -18,7 +18,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "buildNumber": "1.0.3"
+      "buildNumber": "1.0.4"
     },
     "android": {
       "adaptiveIcon": {
@@ -35,7 +35,7 @@
         "android.permission.ACCESS_BACKGROUND_LOCATION",
         "android.hardware.bluetooth_le"
       ],
-      "versionCode": 440010003
+      "versionCode": 440010004
     },
     "web": {
       "favicon": "./assets/favicon.png"
