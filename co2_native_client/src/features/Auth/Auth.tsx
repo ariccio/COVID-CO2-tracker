@@ -3,6 +3,7 @@
 
 import { AuthRequestPromptOptions, AuthSessionResult } from 'expo-auth-session';
 import * as Google from 'expo-auth-session/providers/google';
+import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
 import {useEffect, useState} from 'react';
 import { Button } from 'react-native';
@@ -341,7 +342,19 @@ function setIDTokenIfGoodResponseFromGoogle(setIDToken: React.Dispatch<React.Set
     handleGoogleAuthSuccessResponse(responseFromGoogle, setLoginErrors, setIDToken);
     return;
   }
-  throw new Error(`Unexpected respnseFromGoogle type: "${responseFromGoogle.type}". Full object: ${JSON.stringify(responseFromGoogle)} `);
+  if (responseFromGoogle.type === 'dismiss') {
+    handleGoogleAuthDismissResponse(responseFromGoogle, setLoginErrors, setIDToken);
+    return;
+  }
+  throw new Error(`Unexpected responseFromGoogle type: "${responseFromGoogle.type}". Full object: ${JSON.stringify(responseFromGoogle)} `);
+}
+
+function handleGoogleAuthDismissResponse(responseFromGoogle: AuthSessionResult, setLoginErrors: React.Dispatch<React.SetStateAction<string | null>>, setIDToken: React.Dispatch<React.SetStateAction<string | null>>) {
+  if (responseFromGoogle.type !== "dismiss") {
+    throw new Error("compile time bug. Wrong type passed to handleGoogleAuthDismissResponse, I'm not good enough at typescript to do correctly.");
+  }
+  setIDToken(null);
+  setLoginErrors("You dismissed the login prompt. Try again.");
 }
 
 function handleGoogleAuthSuccessResponse(responseFromGoogle: AuthSessionResult, setLoginErrors: React.Dispatch<React.SetStateAction<string | null>>, setIDToken: React.Dispatch<React.SetStateAction<string | null>>) {
@@ -413,6 +426,38 @@ async function handleAsyncStoreResult(maybeJWT: string | null, dispatch: AppDisp
     }
 
 }
+
+
+/*
+function apiUrlInDevOrProd(): string {
+    if ((typeof manifest?.packagerOpts === `object`) && manifest.packagerOpts.dev) {
+        const defaultPath = 'http://localhost:3000';
+        if (manifest === undefined) {
+            console.error(`Something is VERY broken - manifest is undefined - can't get local server url... Will try default (${defaultPath})...`);
+            return defaultPath;
+        }
+    }
+    const prod = `https://covid-co2-tracker.herokuapp.com`;
+    console.log(`Using (prod) API base: ${prod}`);
+    return prod;
+}
+
+*/
+
+const {manifest} = Constants;
+
+const devAndroidClientID = '460477494607-vslsidjdslivkafohmt992tls0dh6cf5.apps.googleusercontent.com';
+const prodAndroidClientID = '460477494607-m8j9n9k6kbo9cdokdaq243dgn57khkkq.apps.googleusercontent.com'
+function getAndroidClientID(): string {
+  if ((typeof manifest?.packagerOpts === `object`) && manifest.packagerOpts.dev) {
+    if (manifest === undefined) {
+      console.error(`Something is VERY broken - manifest is undefined - Will try default (${devAndroidClientID})...`);
+    }
+    return devAndroidClientID;
+  }
+  return prodAndroidClientID;
+}
+
 const useGoogleAuthForCO2Tracker = () => {
     const [idToken, setIDToken] = useState(null as (string | null));
     // const [jwt, setJWT] = useState(null as (string | null));
@@ -428,7 +473,7 @@ const useGoogleAuthForCO2Tracker = () => {
     const [request, response, promptAsync] = Google.useAuthRequest({
       // expoClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
       // iosClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
-      androidClientId: '460477494607-vslsidjdslivkafohmt992tls0dh6cf5.apps.googleusercontent.com',
+      androidClientId: getAndroidClientID(),
       // webClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
     });
   
