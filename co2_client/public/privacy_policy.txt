@@ -1,25 +1,40 @@
+PRIVACY POLICY (updated 3/15/2022)
+
+This is the privacy policy for the web and native components of this app (The COVID CO2 Tracker website, and the COVID CO2 Tracker uploader).
+
 This app is designed for sharing measurements with the public at large. I may use said measurements and associated data in any legal way that I see fit.
 
 By design, nothing you upload will be kept private. This may change in the future, but this is very much the entire spirit of this app.
+
+
+LOCATION:
+
+While the native client app ("COVID CO2 Tracker uploader") requests background location permission, it does *not* have *direct* use for phone location APIs. Instead, this is because Android requires location permissions to use bluetooth in the background. When used as intended, this app uploads CO2 measurements to a publicly-accessible website, with information connecting those measurements to a user-configured location in Google Maps. 
+
+Therefore, intended use of this app explicitly reveals the users presence at a specific user-configured location. The intention is for the app to be run on a device that rarely leaves this location, but any measurements uploaded while away from the user-configured location will be attributed to the user-configured location. Thus, user location is not "shared" in any way unless the user explicitly opts in to sharing that location. This is an obvious privacy concern: If you wish to keep your CO2 measurements and location completely private and share with nobody else, do not use this app!
+
+
+LOG IN/GOOGLE SIGN IN:
 
 When you log in with google, I store only 3 pieces of the information returned:
     1. The email address associated with your google account, if it's not already stored. I currently do not update on changes. 
     2. The name associated with your google account, if it's not already stored. I currently do not update on changes.
     3. The permanent unique identifier that google produces for identifying you uniquely in this application. (The 'sub' OAuth field).
 
-Items 1 and 2 are not strictly necessary for the basic functioning of the app, but it makes for a nice user experience. These are not currently displayed anywhere publicly in the app, but may be in the future.
+Items 1 and 2 are not strictly necessary for the basic functioning of the app, but it makes for a nice user experience. The email address is never displayed anywhere in the app, but I may use it to contact you for diagnostic/debugging reasons should I recieve an error report through Sentry. The name associated with your google account is displayed alongside the measurement info in the "more info" detailed measurement display. 
 
 Item #3, the unique identifier, is central to the functioning of the app, as it lets me implement login without adding to the infinite misery people already have with passwords. I thus do not need to even store passwords.
 
-I will not sell any of this information. I hate spam.
+I do not sell any of this information for advertising purposes or to advertisers. I hate spam.
 
-Clever hackers and criminals MIGHT be able to use any data you post for malicious activities, as they can with any freely available information; be warned.  
+Clever hackers and criminals MIGHT be able to use any data you post for malicious activities, as they can with any freely available information; be warned. 
 
-For GDPR compliance, I will in the future implement a way to delete all of your data. The app is currently an early prototype, and I simply haven't implemented it yet. You also have a right to copies of your data, though I have not yet implemented automated export functionality. Contact me if you have a need for that. I have a right to charge small, reasonable, fees for that work.
 
-I reserve the right to run ads in the future, even though it's not why I am building this. There may be privacy implications for this, and I will update these terms accordingly.
+For GDPR compliance, I will in the future implement a way to delete all of your data. The app is currently an late stage prototype, and I simply haven't implemented it yet. You also have a right to copies of your data, though I have not yet implemented automated export functionality. Contact me if you have a need for that. I have a right to charge small, reasonable, fees for that work.
 
-If you use geolocation, I do NOT store that data.
+I reserve the right to run ads in the future, even though it's not why I am building this. There may be privacy implications for this, and I will update these terms accordingly. I currently have no plans to run ads.
+
+If you use geolocation in the web console, I do NOT store that data. It is used to pan the map window in the same fashion as if you'd panned with the mouse.
 
 These terms are subject to change.
 

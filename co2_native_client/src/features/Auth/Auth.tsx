@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 // See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
 
-import { AuthRequestPromptOptions, AuthSessionResult } from 'expo-auth-session';
+import { AuthRequestPromptOptions, AuthSessionResult, AuthSessionRedirectUriOptions } from 'expo-auth-session';
 import * as Google from 'expo-auth-session/providers/google';
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
@@ -470,12 +470,25 @@ const useGoogleAuthForCO2Tracker = () => {
   
     const [promptAsyncReady, setPromptAsyncReady] = useState(false);
   
-    const [request, response, promptAsync] = Google.useAuthRequest({
+    const androidClientId = getAndroidClientID()
+
+    const config: Partial<Google.GoogleAuthRequestConfig> = {
       // expoClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
       // iosClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
-      androidClientId: getAndroidClientID(),
+      androidClientId,
       // webClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
-    });
+      redirectUri: "com.ariccio.co2_native_client:/oauthredirect",
+      scopes: [
+        'profile',
+        'email',
+        'openid'
+      ]
+    }
+
+    const redirectUriOptions: AuthSessionRedirectUriOptions = {
+      scheme: 'com.ariccio.co2_native_client:/oauthredirect://'
+    }
+    const [request, response, promptAsync] = Google.useAuthRequest(config, redirectUriOptions);
   
     const logout = () => {
       console.log("Log out clicked...");

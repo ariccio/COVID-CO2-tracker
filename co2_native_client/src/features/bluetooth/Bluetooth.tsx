@@ -157,10 +157,24 @@ const scanAndIdentify = (dispatch: AppDispatch) => {
 
 const requestAllBluetoothPermissions = async (dispatch: AppDispatch) => {
     dispatch(setScanningStatusString('Need permission to use bluetooth first.'));
+    const permissionMessageText = "While I don't need your precise location, annoying Android limitations mean I need the 'background location' permission to use bluetooth in the background. Measurements uploaded with this app are intended for public viewing - any interested person can use them to guess the location from which the device is uploading.";
+    const alertMessageText = "COVID CO2 tracker uploader needs location permissions so that it may continue to collect measurements while the app is in the background or not in use."
 
+
+    try {
+        const hasLocationAlready = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
+        if (!hasLocationAlready) {
+            alert(alertMessageText)
+        }
+    }
+    catch (error) {
+        dispatch(setScanningStatusString(`Some kind of unexpected error when checking location permission: ${String(error)}`));
+        Sentry.Native.captureException(error);
+
+    }
     const locationRationale: Rationale = {
         title: "COVID CO2 tracker needs location!",
-        message: "While I don't need your precise location, annoying Android limitations mean I need the 'background location' permission to use bluetooth in the background. Measurements uploaded with this app are intended for public viewing - any interested person can use them to guess the location from which the device is uploading.",
+        message: permissionMessageText,
         buttonPositive: "Ok, enable location!"
     }
     //https://reactnative.dev/docs/permissionsandroid
