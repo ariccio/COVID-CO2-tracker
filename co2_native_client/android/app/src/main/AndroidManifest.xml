@@ -41,7 +41,6 @@
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="exp+co2nativeclient"/>
         <data android:scheme="com.ariccio.co2_native_client"/>
-        <data android:scheme="com.ariccio.co2_native_client:/oauthredirect"/>
       </intent-filter>
     </activity>
     <activity android:name="com.facebook.react.devsupport.DevSettingsActivity"/>

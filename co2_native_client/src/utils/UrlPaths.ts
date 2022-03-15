@@ -16,30 +16,36 @@ const api = (typeof manifest.packagerOpts === `object`) && manifest.packagerOpts
 */
 
 function apiUrlInDevOrProd(): string {
-    if ((typeof manifest?.packagerOpts === `object`) && manifest.packagerOpts.dev) {
-        const defaultPath = 'http://localhost:3000';
-        if (manifest === undefined) {
-            console.error(`Something is VERY broken - manifest is undefined - can't get local server url... Will try default (${defaultPath})...`);
-            return defaultPath;
+    console.log(`typeof manifest?.packagerOpts: ${typeof manifest?.packagerOpts}`);
+    if ((typeof manifest?.packagerOpts === `object`)) {
+        console.log(`manifest.packagerOpts.dev: ${manifest.packagerOpts.dev}`);
+        console.log(`manifest.packagerOpts: ${String(manifest.packagerOpts)}`);
+        console.log(`manifest.debuggerHost: ${manifest.debuggerHost}`);
+        if ((manifest.packagerOpts.dev) || (__DEV__)) {
+            const defaultPath = 'http://localhost:3000';
+            if (manifest === undefined) {
+                console.error(`Something is VERY broken - manifest is undefined - can't get local server url... Will try default (${defaultPath})...`);
+                return defaultPath;
+            }
+            if (manifest.debuggerHost === undefined) {
+                console.error(`Something is VERY broken - manifest.debuggerHost is undefined - can't get local server url... Will try default (${defaultPath})...`);
+                return defaultPath;
+            }
+            const splitted = manifest.debuggerHost.split(`:`);
+            const shifted = splitted.shift();
+            if (shifted === undefined) {
+                console.error(`Something is VERY broken - couldn't get the first part of the url by shifting it - can't get local server url... Will try default (${defaultPath})...`);
+                return defaultPath;
+            }
+            const strWithPort = shifted.concat(`:3000`);
+            if (strWithPort === undefined) {
+                console.error(`Something is VERY broken - can't get local server url... Will try default (${defaultPath})...`);
+                return defaultPath;
+            }
+            const final = `http://${strWithPort}`;
+            console.log(`Using (dev) API base: ${final}`);
+            return final;
         }
-        if (manifest.debuggerHost === undefined) {
-            console.error(`Something is VERY broken - manifest.debuggerHost is undefined - can't get local server url... Will try default (${defaultPath})...`);
-            return defaultPath;
-        }
-        const splitted = manifest.debuggerHost.split(`:`);
-        const shifted = splitted.shift();
-        if (shifted === undefined) {
-            console.error(`Something is VERY broken - couldn't get the first part of the url by shifting it - can't get local server url... Will try default (${defaultPath})...`);
-            return defaultPath;
-        }
-        const strWithPort = shifted.concat(`:3000`);
-        if (strWithPort === undefined) {
-            console.error(`Something is VERY broken - can't get local server url... Will try default (${defaultPath})...`);
-            return defaultPath;
-        }
-        const final = `http://${strWithPort}`;
-        console.log(`Using (dev) API base: ${final}`);
-        return final;
     }
     const prod = `https://covid-co2-tracker.herokuapp.com`;
     console.log(`Using (prod) API base: ${prod}`);

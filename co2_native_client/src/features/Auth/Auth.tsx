@@ -449,12 +449,16 @@ const {manifest} = Constants;
 const devAndroidClientID = '460477494607-vslsidjdslivkafohmt992tls0dh6cf5.apps.googleusercontent.com';
 const prodAndroidClientID = '460477494607-m8j9n9k6kbo9cdokdaq243dgn57khkkq.apps.googleusercontent.com'
 function getAndroidClientID(): string {
-  if ((typeof manifest?.packagerOpts === `object`) && manifest.packagerOpts.dev) {
-    if (manifest === undefined) {
-      console.error(`Something is VERY broken - manifest is undefined - Will try default (${devAndroidClientID})...`);
+  if ((typeof manifest?.packagerOpts === `object`) ) {
+    if (manifest.packagerOpts.dev || __DEV__ ) {
+      if (manifest === undefined) {
+        console.error(`Something is VERY broken - manifest is undefined - Will try default (${devAndroidClientID})...`);
+      }
+      console.log("using android dev oauth client id");
+      return devAndroidClientID;
     }
-    return devAndroidClientID;
   }
+  console.log("using android prod oauth client id");
   return prodAndroidClientID;
 }
 
@@ -477,7 +481,7 @@ const useGoogleAuthForCO2Tracker = () => {
       // iosClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
       androidClientId,
       // webClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
-      redirectUri: "com.ariccio.co2_native_client:/oauthredirect",
+      // redirectUri: "com.ariccio.co2_native_client",
       scopes: [
         'profile',
         'email',
@@ -486,7 +490,7 @@ const useGoogleAuthForCO2Tracker = () => {
     }
 
     const redirectUriOptions: AuthSessionRedirectUriOptions = {
-      scheme: 'com.ariccio.co2_native_client:/oauthredirect://'
+      scheme: 'com.ariccio.co2_native_client:/fartipelago://'
     }
     const [request, response, promptAsync] = Google.useAuthRequest(config, redirectUriOptions);
   

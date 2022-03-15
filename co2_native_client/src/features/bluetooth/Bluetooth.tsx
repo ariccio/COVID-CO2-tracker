@@ -164,7 +164,12 @@ const requestAllBluetoothPermissions = async (dispatch: AppDispatch) => {
     try {
         const hasLocationAlready = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
         if (!hasLocationAlready) {
-            alert(alertMessageText)
+            // alert(alertMessageText);
+            const ok = confirm(alertMessageText);
+            if (!ok) {
+                dispatch(setScanningStatusString(`User said no.`));
+                return;
+            }
         }
     }
     catch (error) {
