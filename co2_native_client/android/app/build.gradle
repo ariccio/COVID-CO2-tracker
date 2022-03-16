@@ -135,8 +135,8 @@ android {
         applicationId 'riccio.co2.client'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 440010008
-        versionName "1.0.8"
+        versionCode 440010009
+        versionName "1.0.9"
     }
     splits {
         abi {
