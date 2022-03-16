@@ -131,6 +131,8 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+
+// Note to self: https://github.com/ariccio/COVID-CO2-tracker/compare/3b775b2b492c07a776dd71a984b0afad75d32625...main
     defaultConfig {
         applicationId 'riccio.co2.client'
         minSdkVersion rootProject.ext.minSdkVersion

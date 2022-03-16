@@ -215,7 +215,7 @@ const loginWithIDToken = (id_token: string, setAsyncStoreError: React.Dispatch<R
     "userInfo": null,
     "message": "Could not encrypt/decrypt the value for SecureStore",
     "code": "ERR_SECURESTORE_ENCRYPT_FAILURE", 
-    "line": 4772, "column": 45, "sourceURL": "http://192.168.1.21:8081/index.bundle?platform=android&dev=true&minify=false&app=riccio.co2.client&modulesOnly=false&runModule=true" 
+    "line": 4772, "column": 45, "sourceURL": "http://192.168.1.21:8081/index.bundle?...
 }
 
 */

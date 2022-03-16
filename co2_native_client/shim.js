@@ -20,7 +20,6 @@ at node_modules\expo-dev-launcher\build\DevLauncherErrorManager.js:44:19 in erro
 at node_modules\expo-dev-launcher\build\DevLauncherErrorManager.js:49:24 in <anonymous>
 at node_modules\@react-native\polyfills\error-guard.js:49:36 in ErrorUtils.reportFatalError
 at node_modules\metro-runtime\src\polyfills\require.js:204:6 in guardedLoadModule
-at http://192.168.1.21:8081/index.bundle?platform=android&dev=true&minify=false&app=riccio.co2.client&modulesOnly=false&runModule=true:136126:3 in global code
 › Stopped server
 
 ...????
