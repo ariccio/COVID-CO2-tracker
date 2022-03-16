@@ -137,8 +137,8 @@ android {
         applicationId 'com.ariccio.co2_native_client'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 440010009
-        versionName "1.0.9"
+        versionCode 440010010
+        versionName "1.0.10"
     }
     splits {
         abi {
