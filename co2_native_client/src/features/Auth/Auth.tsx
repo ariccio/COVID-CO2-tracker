@@ -446,8 +446,11 @@ function apiUrlInDevOrProd(): string {
 
 const {manifest} = Constants;
 
-const devAndroidClientID = '460477494607-vslsidjdslivkafohmt992tls0dh6cf5.apps.googleusercontent.com';
-const prodAndroidClientID = '460477494607-m8j9n9k6kbo9cdokdaq243dgn57khkkq.apps.googleusercontent.com'
+// const devAndroidClientID = '460477494607-vslsidjdslivkafohmt992tls0dh6cf5.apps.googleusercontent.com';
+
+const devAndroidClientID = '460477494607-lm1oqcabp7aipnudobprb68tjncrj3k3.apps.googleusercontent.com';
+
+const prodAndroidClientID = '460477494607-m8j9n9k6kbo9cdokdaq243dgn57khkkq.apps.googleusercontent.com';
 function getAndroidClientID(): string {
   if ((typeof manifest?.packagerOpts === `object`) ) {
     if (manifest.packagerOpts.dev || __DEV__ ) {

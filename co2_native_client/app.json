@@ -35,7 +35,8 @@
         "android.permission.ACCESS_BACKGROUND_LOCATION",
         "android.hardware.bluetooth_le"
       ],
-      "versionCode": 440010008
+      "versionCode": 440010008,
+      "package": "com.ariccio.co2_native_client"
     },
     "web": {
       "favicon": "./assets/favicon.png"
