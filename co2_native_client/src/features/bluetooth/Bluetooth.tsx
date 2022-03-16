@@ -4,6 +4,7 @@
 import {Buffer} from 'buffer';
 import { useEffect, useState } from 'react';
 import { PermissionsAndroid, Text, Button, NativeSyntheticEvent, NativeTouchEvent, Linking, Permission, Rationale } from 'react-native';
+import AlertAsync from "react-native-alert-async";
 import { BleManager, Device, BleError, LogLevel, Service, Characteristic, BleErrorCode, DeviceId, State, BleAndroidErrorCode } from 'react-native-ble-plx';
 import { useDispatch, useSelector } from 'react-redux';
 import * as Sentry from 'sentry-expo';
@@ -155,19 +156,44 @@ const scanAndIdentify = (dispatch: AppDispatch) => {
     manager.startDeviceScan(aranetService, null, (error, scannedDevice) => scanCallback(error, scannedDevice, dispatch));
 }
 
+const permissionMessageText = "While I don't need your precise location, annoying Android limitations mean I need the 'background location' permission to use bluetooth in the background. Measurements uploaded with this app are intended for public viewing - any interested person can use them to guess the location from which the device is uploading.";
+const alertMessageText = "CO2 tracker uploader needs location permissions so that it may continue to collect measurements while the app is in the background or not in use.";
+const title = "CO2 tracker needs location!";
+
+
+
+const messages = async (dispatch: AppDispatch): Promise<boolean> => {
+    // alert(alertMessageText);
+    const buttons = [
+        {text: "Ok!", onPress: () => 'yes'},
+        {text: "No", onPress: () => 'no'}
+    ];
+    const options = {
+        cancelable: true,
+        onDismiss: () => 'no'
+    }
+
+    const choice = await AlertAsync(title, alertMessageText, buttons, options)
+    if (choice !== "yes") {
+        dispatch(setScanningStatusString(`User said no.`));
+        return true;
+    }
+
+    const choiceTwo = await AlertAsync("More detail:", permissionMessageText, buttons, options);
+    if (choiceTwo !== "yes") {
+        dispatch(setScanningStatusString(`User said no.`));
+        return true;
+    }
+    return false;
+}
+
 const requestAllBluetoothPermissions = async (dispatch: AppDispatch) => {
     dispatch(setScanningStatusString('Need permission to use bluetooth first.'));
-    const permissionMessageText = "While I don't need your precise location, annoying Android limitations mean I need the 'background location' permission to use bluetooth in the background. Measurements uploaded with this app are intended for public viewing - any interested person can use them to guess the location from which the device is uploading.";
-    const alertMessageText = "COVID CO2 tracker uploader needs location permissions so that it may continue to collect measurements while the app is in the background or not in use."
-
-
     try {
         const hasLocationAlready = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
         if (!hasLocationAlready) {
-            // alert(alertMessageText);
-            const ok = confirm(alertMessageText);
-            if (!ok) {
-                dispatch(setScanningStatusString(`User said no.`));
+            const deny = await messages(dispatch);
+            if (deny) {
                 return;
             }
         }
@@ -178,7 +204,7 @@ const requestAllBluetoothPermissions = async (dispatch: AppDispatch) => {
 
     }
     const locationRationale: Rationale = {
-        title: "COVID CO2 tracker needs location!",
+        title,
         message: permissionMessageText,
         buttonPositive: "Ok, enable location!"
     }
@@ -206,7 +232,7 @@ const requestAllBluetoothPermissions = async (dispatch: AppDispatch) => {
     }
     
     const bluetoothScanPermission: Rationale = {
-        title: "COVID CO2 tracker needs to use bluetooth to work!",
+        title: "CO2 tracker needs to use bluetooth to work!",
         message: "I use bluetooth to scan for and talk to your aranet4. Without bluetooth, I can't read your co2ppm.",
         buttonPositive: "Ok, enable bluetooth scanning!"
     }

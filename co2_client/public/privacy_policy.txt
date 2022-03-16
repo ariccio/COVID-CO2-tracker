@@ -1,6 +1,6 @@
 PRIVACY POLICY (updated 3/15/2022)
 
-This is the privacy policy for the web and native components of this app (The COVID CO2 Tracker website, and the COVID CO2 Tracker uploader).
+This is the privacy policy for the web and native components of this app (The COVID CO2 Tracker website, and the CO2 Tracker uploader).
 
 This app is designed for sharing measurements with the public at large. I may use said measurements and associated data in any legal way that I see fit.
 
@@ -9,7 +9,7 @@ By design, nothing you upload will be kept private. This may change in the futur
 
 LOCATION:
 
-While the native client app ("COVID CO2 Tracker uploader") requests background location permission, it does *not* have *direct* use for phone location APIs. Instead, this is because Android requires location permissions to use bluetooth in the background. When used as intended, this app uploads CO2 measurements to a publicly-accessible website, with information connecting those measurements to a user-configured location in Google Maps. 
+While the native client app ("CO2 Tracker uploader") requests background location permission, it does *not* have *direct* use for phone location APIs. Instead, this is because Android requires location permissions to use bluetooth in the background. When used as intended, this app uploads CO2 measurements to a publicly-accessible website, with information connecting those measurements to a user-configured location in Google Maps. 
 
 Therefore, intended use of this app explicitly reveals the users presence at a specific user-configured location. The intention is for the app to be run on a device that rarely leaves this location, but any measurements uploaded while away from the user-configured location will be attributed to the user-configured location. Thus, user location is not "shared" in any way unless the user explicitly opts in to sharing that location. This is an obvious privacy concern: If you wish to keep your CO2 measurements and location completely private and share with nobody else, do not use this app!
 
