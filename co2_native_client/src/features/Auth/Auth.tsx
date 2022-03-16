@@ -476,21 +476,31 @@ const useGoogleAuthForCO2Tracker = () => {
   
     const androidClientId = getAndroidClientID()
 
+
+
+    /*
+      Ok, so this:
+      redirectUri: "riccio.co2.client:/oauthredirect",
+      causes a "redirect_uri_mismatch:"
+    */
     const config: Partial<Google.GoogleAuthRequestConfig> = {
       // expoClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
       // iosClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
       androidClientId,
       // webClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
-      // redirectUri: "com.ariccio.co2_native_client",
-      scopes: [
-        'profile',
-        'email',
-        'openid'
-      ]
+      // redirectUri: "com.ariccio.co2_native_client:/oauth2redirect",
+      // redirectUri: "com.ariccio.co2_native_client:",
+      // redirectUri: "riccio.co2.client",
+      
+      // scopes: [
+      //   'profile',
+      //   'email',
+      //   'openid'
+      // ]
     }
 
     const redirectUriOptions: AuthSessionRedirectUriOptions = {
-      scheme: 'com.ariccio.co2_native_client:/fartipelago://'
+      // scheme: 'com.ariccio.co2_native_client:/fartipelago://'
     }
     const [request, response, promptAsync] = Google.useAuthRequest(config, redirectUriOptions);
   

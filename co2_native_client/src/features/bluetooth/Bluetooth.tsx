@@ -1372,7 +1372,7 @@ function maybeNextMeasurementInOrDefault(measurementInterval: number | null, las
     const maybeNextSeconds = (measurementInterval) + 1;
     // console.log(`maybeNextSeconds: ${maybeNextSeconds}`);
     // console.log("FARTIPELAGOFARTIPELAGOFARTIPELAGOFARTIPELAGOFARTIPELAGOFARTIPELAGOFARTIPELAGOFARTIPELAGO");
-    debugger;
+    // debugger;
     if (maybeNextSeconds < 60) {
         // debugger;
         return atLeastOneMinuteOrDev(maybeNextSeconds);
