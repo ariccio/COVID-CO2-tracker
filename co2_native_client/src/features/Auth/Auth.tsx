@@ -7,6 +7,7 @@ import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
 import {useEffect, useState} from 'react';
 import { Button } from 'react-native';
+import AlertAsync from "react-native-alert-async";
 import { useDispatch, useSelector } from 'react-redux';
 import * as Sentry from 'sentry-expo';
 
@@ -457,11 +458,11 @@ function getAndroidClientID(): string {
       if (manifest === undefined) {
         console.error(`Something is VERY broken - manifest is undefined - Will try default (${devAndroidClientID})...`);
       }
-      console.log("using android dev oauth client id");
+      // console.log("using android dev oauth client id");
       return devAndroidClientID;
     }
   }
-  console.log("using android prod oauth client id");
+  // console.log("using android prod oauth client id");
   return prodAndroidClientID;
 }
 
@@ -477,7 +478,7 @@ const useGoogleAuthForCO2Tracker = () => {
   
     const [promptAsyncReady, setPromptAsyncReady] = useState(false);
   
-    const androidClientId = getAndroidClientID()
+    const androidClientId = getAndroidClientID();
 
 
 
@@ -492,8 +493,11 @@ const useGoogleAuthForCO2Tracker = () => {
       androidClientId,
       // webClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
       // redirectUri: "com.ariccio.co2_native_client:/oauth2redirect",
+      // redirectUri: "com.ariccio.co2_native_client/:oauth2redirect",
       // redirectUri: "com.ariccio.co2_native_client:",
+      // redirectUri: "riccio.co2.client:/oauthredirect",
       // redirectUri: "riccio.co2.client",
+      redirectUri: "fartipelago",
       
       // scopes: [
       //   'profile',
@@ -584,13 +588,27 @@ function userNameValueOrLoading(jwt: string | null, userName?: string | null) {
   return userName;
 }
 
+const debugClientID = async (): Promise<string> => {
+  const androidClientId = getAndroidClientID();
+  const isDevClientID = devAndroidClientID === androidClientId;
+  const buttons = [
+    {text: "Ok!", onPress: () => 'yes'},
+];
+const options = {
+  cancelable: true,
+  onDismiss: () => 'no'
+}
+
+  return await AlertAsync("Debug Client ID:", `oAuth client ID: ${androidClientId} (dev: ${isDevClientID}), mainModuleName: ${manifest?.mainModuleName}`, buttons, options)
+}
+
 const LoginOrLogoutButton: React.FC<{jwt: string | null, promptAsyncReady: boolean, promptAsync: (options?: AuthRequestPromptOptions | undefined) => Promise<AuthSessionResult>, logout: () => void, userName?: string | null}> = ({jwt, promptAsyncReady, promptAsync, logout, userName}) => {
   const buttonDisable = disablePromptAsyncButton(jwt, promptAsyncReady);
   if (!buttonDisable) {
     return (
       <>
           <ValueOrLoading text="username: " value={userNameValueOrLoading(jwt, userName)} suffix=" (this shouldn't show up)"/>
-          <Button disabled={buttonDisable} title="Login" onPress={() => {promptAsync();}}/>
+          <Button disabled={buttonDisable} title="Login" onPress={() => {debugClientID().then((_) => promptAsync())}}/>
       </>
     );
   }
