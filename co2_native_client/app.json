@@ -35,7 +35,7 @@
         "android.hardware.bluetooth_le"
       ],
       "versionCode": 440010015,
-      "package": "com.ariccio.co2_native_client"
+      "package": "riccio.co2.client"
     },
     "web": {
       "favicon": "./assets/favicon.png"
