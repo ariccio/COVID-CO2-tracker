@@ -1,6 +1,6 @@
 {
   "name": "co_native_client",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "scripts": {
     "start": "expo start --dev-client",
     "android": "expo run:android",
