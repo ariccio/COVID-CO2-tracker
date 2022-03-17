@@ -449,7 +449,7 @@ const {manifest} = Constants;
 
 // const devAndroidClientID = '460477494607-vslsidjdslivkafohmt992tls0dh6cf5.apps.googleusercontent.com';
 
-const devAndroidClientID = '460477494607-lm1oqcabp7aipnudobprb68tjncrj3k3.apps.googleusercontent.com';
+const devAndroidClientID = '460477494607-6ur80br687qibpif8qhnll3275rjn2bb.apps.googleusercontent.com';
 
 const prodAndroidClientID = '460477494607-m8j9n9k6kbo9cdokdaq243dgn57khkkq.apps.googleusercontent.com';
 function getAndroidClientID(): string {
@@ -497,7 +497,7 @@ const useGoogleAuthForCO2Tracker = () => {
       // redirectUri: "com.ariccio.co2_native_client:",
       // redirectUri: "riccio.co2.client:/oauthredirect",
       // redirectUri: "riccio.co2.client",
-      redirectUri: "fartipelago",
+      // redirectUri: "fartipelago",
       
       // scopes: [
       //   'profile',
@@ -506,11 +506,16 @@ const useGoogleAuthForCO2Tracker = () => {
       // ]
     }
 
-    const redirectUriOptions: AuthSessionRedirectUriOptions = {
-      // scheme: 'com.ariccio.co2_native_client:/fartipelago://'
-    }
-    const [request, response, promptAsync] = Google.useAuthRequest(config, redirectUriOptions);
-  
+    // const redirectUriOptions: AuthSessionRedirectUriOptions = {
+    //   // scheme: 'com.ariccio.co2_native_client:/fartipelago://'
+    //   // native: 'riccio.co2.client:/oauthredirect'
+    //   native: 'riccio.co2.client'
+    // }
+    const [request, response, promptAsync] = Google.useAuthRequest(config);
+    console.log(String(request?.redirectUri));
+    // console.log(String(request?.extraParams));
+    console.log(String(request?.url));
+
     const logout = () => {
       console.log("Log out clicked...");
       dispatch(setJWT(null));

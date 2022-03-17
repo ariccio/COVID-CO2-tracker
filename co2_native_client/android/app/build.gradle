@@ -134,11 +134,11 @@ android {
 
 // Note to self: https://github.com/ariccio/COVID-CO2-tracker/compare/3b775b2b492c07a776dd71a984b0afad75d32625...main
     defaultConfig {
-        applicationId 'com.ariccio.co2_native_client'
+        applicationId 'riccio.co2.client'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 440010013
-        versionName "1.0.13"
+        versionCode 440010014
+        versionName "1.0.14"
     }
     splits {
         abi {
