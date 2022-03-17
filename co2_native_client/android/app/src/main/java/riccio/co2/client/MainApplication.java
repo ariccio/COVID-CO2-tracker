@@ -1,4 +1,4 @@
-package com.ariccio.co2_native_client;
+package riccio.co2.client;
 import expo.modules.updates.UpdatesDevLauncherController;
 import expo.modules.devlauncher.DevLauncherController;
 
@@ -16,7 +16,7 @@ import com.facebook.soloader.SoLoader;
 
 import expo.modules.ApplicationLifecycleDispatcher;
 import expo.modules.ReactNativeHostWrapper;
-import com.ariccio.co2_native_client.BuildConfig;
+import riccio.co2.client.BuildConfig;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;

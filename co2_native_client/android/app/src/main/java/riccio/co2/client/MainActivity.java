@@ -1,4 +1,4 @@
-package com.ariccio.co2_native_client;
+package riccio.co2.client;
 import expo.modules.devmenu.react.DevMenuAwareReactActivity;
 import android.content.Intent;
 import expo.modules.devlauncher.DevLauncherController;
