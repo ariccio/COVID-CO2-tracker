@@ -609,11 +609,15 @@ const options = {
 
 const LoginOrLogoutButton: React.FC<{jwt: string | null, promptAsyncReady: boolean, promptAsync: (options?: AuthRequestPromptOptions | undefined) => Promise<AuthSessionResult>, logout: () => void, userName?: string | null}> = ({jwt, promptAsyncReady, promptAsync, logout, userName}) => {
   const buttonDisable = disablePromptAsyncButton(jwt, promptAsyncReady);
+  const debugging = async () => {
+    await debugClientID();
+    promptAsync();
+  }
   if (!buttonDisable) {
     return (
       <>
           <ValueOrLoading text="username: " value={userNameValueOrLoading(jwt, userName)} suffix=" (this shouldn't show up)"/>
-          <Button disabled={buttonDisable} title="Login" onPress={() => {debugClientID().then((_) => promptAsync())}}/>
+          <Button disabled={buttonDisable} title="Login" onPress={() => debugging()}/>
       </>
     );
   }
