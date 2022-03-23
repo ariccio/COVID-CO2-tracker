@@ -138,6 +138,7 @@ class ApiController < ::ActionController::API
     # TODO: maybe set sentry user?
     # https://docs.sentry.io/platforms/ruby/guides/rails/enriching-events/identify-user/
     @user = ::User.find(current_user_id)
+    Sentry.set_user(id: @user&.id, email: @user&.email)
     @user
   rescue ::ActiveRecord::RecordNotFound => _e
     # TODO: is this the most specific error?
