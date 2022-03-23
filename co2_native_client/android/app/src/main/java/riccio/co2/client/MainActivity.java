@@ -22,6 +22,9 @@ public class MainActivity extends DevMenuAwareReactActivity {
     if (DevLauncherController.tryToHandleIntent(this, intent)) {
       return;
     }
+    if (DevLauncherController.tryToHandleIntent(this, intent)) {
+      return;
+    }
     super.onNewIntent(intent);
   }
 

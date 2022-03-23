@@ -59,6 +59,9 @@ public class MainApplication extends Application implements ReactApplication {
     if (BuildConfig.DEBUG) {
       DevLauncherController.getInstance().setUpdatesInterface(UpdatesDevLauncherController.initialize(this));
     }
+    if (BuildConfig.DEBUG) {
+      DevLauncherController.getInstance().setUpdatesInterface(UpdatesDevLauncherController.initialize(this));
+    }
     initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
     ApplicationLifecycleDispatcher.onApplicationCreate(this);
   }
@@ -84,7 +87,7 @@ public class MainApplication extends Application implements ReactApplication {
          We use reflection here to pick up the class that initializes Flipper,
         since Flipper library is not available in release mode
         */
-        Class<?> aClass = Class.forName("com.ariccio.co2_native_client.ReactNativeFlipper");
+        Class<?> aClass = Class.forName("riccio.co2.client.ReactNativeFlipper");
         aClass
             .getMethod("initializeFlipper", Context.class, ReactInstanceManager.class)
             .invoke(null, context, reactInstanceManager);
