@@ -610,7 +610,7 @@ const debugClientID = async (): Promise<string> => {
 const LoginOrLogoutButton: React.FC<{jwt: string | null, promptAsyncReady: boolean, promptAsync: (options?: AuthRequestPromptOptions | undefined) => Promise<AuthSessionResult>, logout: () => void, userName?: string | null}> = ({jwt, promptAsyncReady, promptAsync, logout, userName}) => {
   const buttonDisable = disablePromptAsyncButton(jwt, promptAsyncReady);
   const debugging = async () => {
-    await debugClientID();
+    // await debugClientID();
     promptAsync();
   }
   if (!buttonDisable) {
