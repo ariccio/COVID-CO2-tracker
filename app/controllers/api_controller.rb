@@ -133,9 +133,6 @@ class ApiController < ::ActionController::API
   end
 
   def current_user
-    # byebug
-    # TODO: maybe add sentry context? https://docs.sentry.io/platforms/ruby/guides/rails/enriching-events/context/
-    # TODO: maybe set sentry user?
     # https://docs.sentry.io/platforms/ruby/guides/rails/enriching-events/identify-user/
     @user = ::User.find(current_user_id)
     Sentry.set_user(id: @user&.id, email: @user&.email)

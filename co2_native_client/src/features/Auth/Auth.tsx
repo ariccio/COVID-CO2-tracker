@@ -512,9 +512,9 @@ const useGoogleAuthForCO2Tracker = () => {
     //   native: 'riccio.co2.client'
     // }
     const [request, response, promptAsync] = Google.useAuthRequest(config);
-    console.log(String(request?.redirectUri));
+    // console.log(String(request?.redirectUri));
     // console.log(String(request?.extraParams));
-    console.log(String(request?.url));
+    // console.log(String(request?.url));
 
     const logout = () => {
       console.log("Log out clicked...");
@@ -598,11 +598,11 @@ const debugClientID = async (): Promise<string> => {
   const isDevClientID = devAndroidClientID === androidClientId;
   const buttons = [
     {text: "Ok!", onPress: () => 'yes'},
-];
-const options = {
-  cancelable: true,
-  onDismiss: () => 'no'
-}
+  ];
+  const options = {
+    cancelable: true,
+    onDismiss: () => 'no'
+  }
 
   return await AlertAsync("Debug Client ID:", `oAuth client ID: ${androidClientId} (dev: ${isDevClientID}), mainModuleName: ${manifest?.mainModuleName}`, buttons, options)
 }

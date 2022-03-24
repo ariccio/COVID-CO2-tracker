@@ -101,8 +101,8 @@ function handleGeolocationPermissionDenied(error: GeolocationPositionError_) {
         return;
     }
     //do nothing
-    alert(`Location permission denied by user or browser settings. Move map manually. Secure context: ${window.isSecureContext}`);
-    Sentry.captureMessage("GeolocationPositionError.PERMISSION_DENIED, unknown reason?");
+    alert(`Location permission denied by user or browser settings. Move map manually. Secure context: ${window.isSecureContext} Message: ${error?.message}`);
+    Sentry.captureMessage(`GeolocationPositionError.PERMISSION_DENIED, unknown reason? Message: ${error?.message} Full error: ${JSON.stringify(error)}`);
 
 }
 
