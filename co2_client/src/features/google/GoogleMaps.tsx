@@ -613,7 +613,6 @@ const defaultMapOptionsWithDefaultCenterOrWithSelectedPlace = (selectedPlace: pl
     if (selected === null) {
         return defaultMapOptions;
     }
-    debugger;
     console.log(`Using already selected place as center: ${selectedPlace.name} - ${selected.lat}, ${selected.lng}`)
     return options(selected);
 }
@@ -679,7 +678,6 @@ const centerChange = (map: google.maps.Map | null, mapLoaded: boolean, center: g
     }
 
     console.log(`center changed ${center.lat}, ${center.lng}`);
-    debugger;
     map.setCenter(center);
     updateMarkers(map, dispatch);
 }
@@ -914,7 +912,7 @@ export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) =
     })
 
 
-    //Pan to selected place only on first load, should utilize a useRef for selected place.
+    //Pan to selected place only on first load after login, should utilize a useRef for selected place.
     useEffect(() => {
         if (username === '') {
             // debugger;
@@ -938,6 +936,20 @@ export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) =
         }
         console.log("No map to pan.")
     }, [username, map])
+
+
+    //Pan to selected place when place was selected before loading map (like clicking back).
+    // useEffect(() => {
+    //     if (!mapLoaded) {
+    //         return;
+    //     }
+    //     const selected = placeSelectedWithCoords(selectedPlace);
+    //     if (selected === null) {
+    //         return;
+    //     }
+    //     console.log(`Using already selected place as center: ${selectedPlace.name} - ${selected.lat}, ${selected.lng}`)
+    //     // setCenter(selected);
+    // }, [selectedPlace, mapLoaded]);
 
     useEffect(() => {
         centerChange(map, mapLoaded, center, dispatch)
