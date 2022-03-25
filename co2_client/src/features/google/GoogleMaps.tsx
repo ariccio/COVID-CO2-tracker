@@ -161,7 +161,7 @@ const errorPositionCallback = (error: GeolocationPositionError_, geolocationInPr
     throw new Error("never reached!");
 }
 
-const invokeBrowserGeolocation = (setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>, geolocationInProgress: boolean, setGeolocationInProgress: React.Dispatch<React.SetStateAction<boolean>>) => {
+const invokeBrowserGeolocation = (setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral | google.maps.LatLng>>, geolocationInProgress: boolean, setGeolocationInProgress: React.Dispatch<React.SetStateAction<boolean>>) => {
     if ('geolocation' in navigator) {
         const validPositionCallback = (position: /*GeolocationPosition*/ GeolocationPositionShadowType) => {
             // console.assert(geolocationInProgress); //Delayed/stale.
@@ -269,7 +269,7 @@ const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (pr
     );
 }
 
-const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null, dispatch: AppDispatch, map: google.maps.Map | null, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>, setErrorState: React.Dispatch<React.SetStateAction<string>>) => {
+const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null, dispatch: AppDispatch, map: google.maps.Map | null, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral | google.maps.LatLng>>, setErrorState: React.Dispatch<React.SetStateAction<string>>) => {
     if (autocomplete === null) {
         console.log("No autocomplete, but autocomplete place change handler?");
         return;
@@ -286,7 +286,7 @@ const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null
         return;
     }
 
-    console.log(`place_id: ${place.place_id}`);
+    console.log(`place_id from autocomplete: ${place.place_id}`);
     logPlaceGeometry(place);
 
     setPlaceFromAutocompletePlace(place, dispatch);
@@ -309,7 +309,7 @@ const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null
 // IconMouseEvent and ApiMouseEvent are identical, except that IconMouseEvent has the placeId field.
 // The event can always be treated as an ApiMouseEvent when the placeId is not important.
 // The click event is not fired if a Marker or InfoWindow was clicked.
-const onClickMaps = (e: google.maps.MapMouseEvent, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>, dispatch: AppDispatch, service: google.maps.places.PlacesService | null) => {
+const onClickMaps = (e: google.maps.MapMouseEvent, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral | google.maps.LatLng>>, dispatch: AppDispatch, service: google.maps.places.PlacesService | null) => {
     // console.log(`dynamic type of event: ${typeof e}?`)
 
     //ApiMouseEvent appears to just be an IconMouseEvent? Now we have the types for it, yay!
@@ -384,7 +384,7 @@ function setPlaceFromAutocompletePlace(place: google.maps.places.PlaceResult, di
     }
 }
 
-function updateMapCenter(map: google.maps.Map | null, place: google.maps.places.PlaceResult, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>, dispatch: AppDispatch) {
+function updateMapCenter(map: google.maps.Map | null, place: google.maps.places.PlaceResult, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral | google.maps.LatLng>>, dispatch: AppDispatch) {
     if (!map) {
         debugger;
         return;
@@ -406,6 +406,7 @@ function updateMapCenter(map: google.maps.Map | null, place: google.maps.places.
         lat: placeLocation.location.lat(),
         lng: placeLocation.location.lng()
     };
+    console.log("Updating map center...");
     setCenter(loc);
     dispatch(setMapCenter(loc));
     // debugger;
@@ -511,7 +512,7 @@ const Markers = (props: {placeMarkersFromDatabase: placesFromDatabaseForMarker, 
     )
 }
 
-const mapOptions = options(defaultCenter);
+const defaultMapOptions = options(defaultCenter);
 
 const updateMarkers = (map: google.maps.Map | null, dispatch: AppDispatch) => {
     if (!map) {
@@ -607,11 +608,22 @@ const PlaceMarkersDataDebugText = () => {
 }
 
 
+const defaultMapOptionsWithDefaultCenterOrWithSelectedPlace = (selectedPlace: placeResultWithTranslatedType): google.maps.MapOptions => {
+    const selected = placeSelectedWithCoords(selectedPlace);
+    if (selected === null) {
+        return defaultMapOptions;
+    }
+    debugger;
+    console.log(`Using already selected place as center: ${selectedPlace.name} - ${selected.lat}, ${selected.lng}`)
+    return options(selected);
+}
+
+
 const GoogleMapInContainer = (props: {
     onLoad: (map: google.maps.Map) => void,
     onUnmount: (map: google.maps.Map | null) => void,
     map: google.maps.Map | null,
-    setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>,
+    setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral | google.maps.LatLng>>,
     mapLoaded: boolean,
     setMapLoaded: React.Dispatch<React.SetStateAction<boolean>>,
     service: google.maps.places.PlacesService | null
@@ -620,6 +632,20 @@ const GoogleMapInContainer = (props: {
     const dispatch = useDispatch();
     const placeMarkerErrors = useSelector(selectPlacesMarkersErrors);
     const placeMarkersFromDatabase = useSelector(selectPlaceMarkersFromDatabase);
+    const selectedPlace = useSelector(selectSelectedPlace);
+
+    const [options, setOptions] = useState(defaultMapOptions);
+
+    useEffect(() => {
+        const optionsResult = defaultMapOptionsWithDefaultCenterOrWithSelectedPlace(selectedPlace);
+        setOptions(optionsResult);
+        if (optionsResult.center !== defaultMapOptions.center) {
+            if (optionsResult.center) {
+                props.setCenter(optionsResult.center);
+            }
+        }
+    }, []);
+    
 
     if (props.map === null) {
         console.log("map is null as passed to the map container function. Not loaded yet.");
@@ -629,7 +655,7 @@ const GoogleMapInContainer = (props: {
         <div className="map">
             <div className="map-container">
                 <GoogleMap 
-                    mapContainerStyle={containerStyle} onLoad={props.onLoad} onUnmount={props.onUnmount} options={mapOptions}
+                    mapContainerStyle={containerStyle} onLoad={props.onLoad} onUnmount={props.onUnmount} options={options}
                     
                     onClick={(e: google.maps.MapMouseEvent) => {onClickMaps(e, props.setCenter, dispatch, props.service); updateMarkers(props.map, dispatch)}}
                     onIdle={() => onMapIdle(props.map, props.mapLoaded, props.setMapLoaded, dispatch)}
@@ -642,7 +668,7 @@ const GoogleMapInContainer = (props: {
     );
 }
 
-const centerChange = (map: google.maps.Map | null, mapLoaded: boolean, center: google.maps.LatLngLiteral, dispatch: AppDispatch) => {
+const centerChange = (map: google.maps.Map | null, mapLoaded: boolean, center: google.maps.LatLngLiteral | google.maps.LatLng, dispatch: AppDispatch) => {
     if (!map) {
         console.log("map falsy, not setting center");
         return;
@@ -653,13 +679,14 @@ const centerChange = (map: google.maps.Map | null, mapLoaded: boolean, center: g
     }
 
     console.log(`center changed ${center.lat}, ${center.lng}`);
+    debugger;
     map.setCenter(center);
     updateMarkers(map, dispatch);
 }
 
 interface AutocompleteElementProps {
     map: google.maps.Map | null,
-    setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>,
+    setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral | google.maps.LatLng>>,
     mapLoaded: boolean
 }
 
@@ -783,14 +810,14 @@ function placeSelectedWithCoords(selectedPlace: placeResultWithTranslatedType): 
     return latlng;
 }
 
-const geolocationButtonClick = (geolocationInProgress: boolean, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>, setGeolocationInProgress: React.Dispatch<React.SetStateAction<boolean>>) => {
+const geolocationButtonClick = (geolocationInProgress: boolean, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral | google.maps.LatLng>>, setGeolocationInProgress: React.Dispatch<React.SetStateAction<boolean>>) => {
     if (geolocationInProgress) {
         return;
     }
     invokeBrowserGeolocation(setCenter, geolocationInProgress, setGeolocationInProgress);
 }
 
-const GeolocationButton = (props: {setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral>>}) => {
+const GeolocationButton = (props: {setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral | google.maps.LatLng>>}) => {
     const [translate] = useTranslation();
     const [geolocationInProgress, setGeolocationInProgress] = useState(false);
     return (
@@ -810,7 +837,7 @@ const handleMapUnmount = (map: google.maps.Map | null, setMap: React.Dispatch<Re
 };
 
 const handleMapLoaded = (map_: google.maps.Map, setMap: React.Dispatch<React.SetStateAction<google.maps.Map | null>>, setService: React.Dispatch<React.SetStateAction<google.maps.places.PlacesService | null>>) => {
-    // console.log("map load")
+    console.log("map load")
     loadCallback(map_, setMap, setService);
     // debugger;
 }
@@ -857,7 +884,7 @@ export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) =
 
     const dispatch = useDispatch();
 
-    const [center, setCenter] = useState(defaultCenter);
+    const [center, setCenter] = useState(defaultCenter as google.maps.LatLngLiteral | google.maps.LatLng );
     const [map, setMap] = React.useState(null as google.maps.Map | null);
     const [service, setService] = useState(null as google.maps.places.PlacesService | null);
     const [mapLoaded, setMapLoaded] = useState(false);

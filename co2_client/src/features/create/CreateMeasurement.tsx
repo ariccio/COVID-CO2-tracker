@@ -605,9 +605,6 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
 
     const selectedSubLocation = useSelector(selectSublocationSelectedLocationID);
 
-    // const selectedPlacesInfo = useSelector(selectPlacesInfoFromDatabase);
-    // const selectedPlacesInfoErrors = useSelector(selectPlacesInfoErrors);
-
     const [userDevices, setUserDevices] = useState(defaultDevicesInfo);
     const [errorState, setErrorState] = useState('');
     const [invalidField, setInvalidField] = useState([] as (string[]));
@@ -623,8 +620,8 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
     const [showSubmit, setShowSubmit] = useState(true);
     const [submitting, setSubmitting] = useState(false);
 
-    const placeName = selectedPlace.name;    
-    const place_id = selectedPlace.place_id
+    // const placeName = selectedPlace.name;    
+    
     const dispatch = useDispatch();
     useEffect(() => {
         if (username === '') {
@@ -695,14 +692,15 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dispatch, placesInfoFromDatabase]);
 
+    const place_id = selectedPlace.place_id
     console.assert(place_id !== null);
     console.assert(place_id !== undefined);
     if (place_id === undefined) {
         debugger;
         return (null);
     }
-    console.assert(placeName !== undefined);
-    if (placeName === undefined) {
+    console.assert(selectedPlace.name !== undefined);
+    if (selectedPlace.name === undefined) {
         debugger;
         return null;
     }
@@ -730,7 +728,7 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
         <div>
             <Modal show={props.showCreateNewMeasurement} onHide={() => hideHandler(props.setShowCreateNewMeasurement)}>
                 <Suspense fallback="Loading translations...">
-                    <ModalHeader placeName={placeName}/>
+                    <ModalHeader placeName={selectedPlace.name}/>
                 </Suspense>
                 <Modal.Body>
                     <span>
@@ -740,7 +738,7 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
                         <SelectDeviceDropdown userDevices={userDevices} selectedDevice={selectedDevice} selectedModelName={selectedModelName} selectedDeviceSerialNumber={selectedDeviceSerialNumber}/>
                     </Suspense>
                     <Suspense fallback="Loading translations...">
-                        <RenderFormIfReady selectedDevice={selectedDevice} setEnteredCO2Text={setEnteredCO2Text} place_id={place_id} setEnteredCrowding={setEnteredCrowding} placeName={placeName} setEnteredLocationDetails={setEnteredLocationDetails} placesInfoFromDatabase={placesInfoFromDatabase} selected={selected} enteredCO2Text={enteredCO2Text} userTimeRadioValue={userTimeRadioValue} setUserTimeRadioValue={setUserTimeRadioValue} dateTime={dateTime} setDateTime={setDateTime} datePickerError={datePickerError} setDatePickerError={setDatePickerError} invalidField={invalidField} />
+                        <RenderFormIfReady selectedDevice={selectedDevice} setEnteredCO2Text={setEnteredCO2Text} place_id={place_id} setEnteredCrowding={setEnteredCrowding} placeName={selectedPlace.name} setEnteredLocationDetails={setEnteredLocationDetails} placesInfoFromDatabase={placesInfoFromDatabase} selected={selected} enteredCO2Text={enteredCO2Text} userTimeRadioValue={userTimeRadioValue} setUserTimeRadioValue={setUserTimeRadioValue} dateTime={dateTime} setDateTime={setDateTime} datePickerError={datePickerError} setDatePickerError={setDatePickerError} invalidField={invalidField} />
                     </Suspense>
                 </Modal.Body>
                 <Modal.Footer>
