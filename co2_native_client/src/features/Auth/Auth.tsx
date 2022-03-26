@@ -1,13 +1,13 @@
 /* eslint-disable react/prop-types */
 // See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
 
-import { AuthRequestPromptOptions, AuthSessionResult, AuthSessionRedirectUriOptions } from 'expo-auth-session';
+import { AuthRequestPromptOptions, AuthSessionResult } from 'expo-auth-session';
 import * as Google from 'expo-auth-session/providers/google';
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
 import {useEffect, useState} from 'react';
 import { Button } from 'react-native';
-import AlertAsync from "react-native-alert-async";
+// import AlertAsync from "react-native-alert-async";
 import { useDispatch, useSelector } from 'react-redux';
 import * as Sentry from 'sentry-expo';
 
@@ -158,8 +158,8 @@ async function saveJWTToAsyncStore(jwt: string, setAsyncStoreError: React.Dispat
   catch (error) {
     console.error(error);
     setAsyncStoreError(`Error saving login info from secure local storage: '${String(error)}' ...you will need to login again manually!`);
-    // eslint-disable-next-line no-debugger
     setLoginProgress(AuthLoginProgressState.Failed);
+    // eslint-disable-next-line no-debugger
     debugger;
   }
 }
@@ -421,22 +421,24 @@ function handleGoogleAuthErrorResponse(responseFromGoogle: AuthSessionResult, se
 }
 
 async function handleAsyncStoreResult(maybeJWT: string | null, dispatch: AppDispatch, setLoginErrors: React.Dispatch<React.SetStateAction<string | null>>) {
-    if (maybeJWT) {
-        dispatch(setJWT(maybeJWT));
-        // console.log("Set JWT from storage! Will try and get email/username from server...");
-        nativeGetEmail(maybeJWT).then((emailResponse) => {
-            // console.log(`Server responds with email response: ${JSON.stringify(emailResponse)}`);
-            // debugger;
-            return dispatch(setUserName(emailResponse.email));
-        }).catch((error) => {
-          Sentry.Native.captureException(error);
-          setLoginErrors(`Failed to load up-to-date username/email: ${String(error)}`)
-        })
+  if (maybeJWT) {
+    dispatch(setJWT(maybeJWT));
+    // console.log("Set JWT from storage! Will try and get email/username from server...");
+    try {
+      const emailResponse = await nativeGetEmail(maybeJWT);
+      // console.log(`Server responds with email response: ${JSON.stringify(emailResponse)}`);
+      // debugger;
+      return dispatch(setUserName(emailResponse.email));
     }
-    else {
-        console.log("No JWT from storage.");
-    }
+    catch (error) {
+      Sentry.Native.captureException(error);
+      setLoginErrors(`Failed to load up-to-date username/email: ${String(error)}`)
 
+    }
+  }
+  else {
+      console.log("No JWT from storage.");
+  }
 }
 
 
@@ -621,19 +623,19 @@ function userNameValueOrLoading(jwt: string | null, userName?: string | null) {
   return userName;
 }
 
-const debugClientID = async (): Promise<string> => {
-  const androidClientId = getAndroidClientID();
-  const isDevClientID = devAndroidClientID === androidClientId;
-  const buttons = [
-    {text: "Ok!", onPress: () => 'yes'},
-  ];
-  const options = {
-    cancelable: true,
-    onDismiss: () => 'no'
-  }
+// const debugClientID = async (): Promise<string> => {
+//   const androidClientId = getAndroidClientID();
+//   const isDevClientID = devAndroidClientID === androidClientId;
+//   const buttons = [
+//     {text: "Ok!", onPress: () => 'yes'},
+//   ];
+//   const options = {
+//     cancelable: true,
+//     onDismiss: () => 'no'
+//   }
 
-  return await AlertAsync("Debug Client ID:", `oAuth client ID: ${androidClientId} (dev: ${isDevClientID}), mainModuleName: ${manifest?.mainModuleName}`, buttons, options)
-}
+//   return await AlertAsync("Debug Client ID:", `oAuth client ID: ${androidClientId} (dev: ${isDevClientID}), mainModuleName: ${manifest?.mainModuleName}`, buttons, options)
+// }
 
 const LogoutButton: React.FC<{logout: () => void, userName?: string | null}> = ({logout, userName}) => {
   if (userName === null) {
@@ -711,12 +713,10 @@ const LoginOrLogoutButton: React.FC<{jwt: string | null, promptAsyncReady: boole
 }
 
 
-export function AuthContainerWithLogic(props: {auth: AuthState}): JSX.Element {
+export function AuthContainer(props: {auth: AuthState}): JSX.Element {
     const jwt = useSelector(selectJWT);
     const userName = useSelector(selectUserName);
-    
-  
-    
+
     return (
       <>
         <LoginOrLogoutButton jwt={jwt} promptAsyncReady={props.auth.promptAsyncReady} promptAsync={props.auth.promptAsync} logout={() => props.auth.logout()} userName={userName} loginProgress={props.auth.loginProgress} setLoginProgress={props.auth.setLoginProgress}/>

@@ -6,7 +6,7 @@ import * as Device from 'expo-device';
 import { StatusBar } from 'expo-status-bar';
 import * as WebBrowser from 'expo-web-browser';
 import {useEffect, useState} from 'react';
-import { AppState, StyleSheet, Button } from 'react-native';
+import { StyleSheet, Button } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import * as Sentry from 'sentry-expo';
@@ -19,24 +19,24 @@ import {ErrorObjectType, formatErrors, withErrors} from '../co2_client/src/utils
 // import {} from '../co2_client/src/utils/UserInfoTypes';
 import { userSettingsResponseDataAsPlainSettings, userSettingsResponseToStrongType} from '../co2_client/src/utils/QuerySettingsTypes';
 import {UserSettings} from '../co2_client/src/utils/UserSettings';
-import { incrementSuccessfulUploads, selectBatteryOptimizationEnabled, selectJWT, selectShouldUpload, selectSuccessfulUploads, setShouldUpload } from './src/app/globalSlice';
+import { incrementSuccessfulUploads, selectJWT, selectShouldUpload, selectSuccessfulUploads, setShouldUpload } from './src/app/globalSlice';
 import { AppDispatch, store } from './src/app/store';
-import {AuthContainerWithLogic, useGoogleAuthForCO2Tracker} from './src/features/Auth/Auth';
+import {AuthContainer, useGoogleAuthForCO2Tracker} from './src/features/Auth/Auth';
 import { MeasurementDataForUpload } from './src/features/Measurement/MeasurementTypes';
 import { realtimeUpload } from './src/features/Measurement/MeasurementUpload';
 import { selectUploadStatus, setUploadStatus } from './src/features/Uploading/uploadSlice';
 import { UserSettingsMaybeDisplay } from './src/features/UserSettings/UserSettingsDisplay';
 import { BluetoothData, isSupportedDevice, useAranet4NextMeasurementTime, useBluetoothConnectAndPollAranet } from './src/features/bluetooth/Bluetooth';
 import { selectDeviceSerialNumberString } from './src/features/bluetooth/bluetoothSlice';
-import { NotifeeNotificationHookState, useNotifeeNotifications, NotificationInfo } from './src/features/service/Notification';
+import { NotifeeNotificationHookState, useNotifeeNotifications, NotificationInfo, stopServiceAndClearNotifications } from './src/features/service/Notification';
 import { selectSupportedDevices, setSupportedDevices, setUNSupportedDevices } from './src/features/userInfo/devicesSlice';
 import { selectUserName, selectUserSettings, setUserSettings, setUserSettingsErrors } from './src/features/userInfo/userInfoSlice';
 import { withAuthorizationHeader } from './src/utils/NativeDefaultRequestHelpers';
 import {fetchJSONWithChecks} from './src/utils/NativeFetchHelpers';
 import { MaybeIfValue } from './src/utils/RenderValues';
+import { timeNowAsString } from './src/utils/TimeNow';
 import { USER_DEVICES_URL_NATIVE, USER_SETTINGS_URL_NATIVE } from './src/utils/UrlPaths';
 import { isLoggedIn, isNullString, isUndefinedString } from './src/utils/isLoggedIn';
-import { timeNowAsString } from './src/utils/TimeNow';
 
 
 
@@ -407,17 +407,31 @@ const useCheckKnownDevice = (supportedDevices: UserInfoDevice[] | null, serialNu
 }
 
 
+// Bootstrap sequence function
+async function bootstrap() {
+  const initialNotification = await notifee.getInitialNotification();
+
+  if (initialNotification) {
+    console.log('Notification caused application to open', initialNotification.notification);
+    console.log('Press action used to open the app', initialNotification.pressAction);
+    debugger;
+  }
+}
+
+
 function App() {
   const dispatch = useDispatch();
 
   // const [shouldUpload, setShouldUpload] = useState(false);
   const [userDeviceErrors, setUserDeviceErrors] = useState(null as (string | null));
   
+  //https://notifee.app/react-native/docs/events#app-open-events
+  const [loading, setLoading] = useState(true);
   
   const userSettings = useSelector(selectUserSettings);
   const jwt = useSelector(selectJWT);
   const userName = useSelector(selectUserName);
-  const batteryOptimizationEnabled = useSelector(selectBatteryOptimizationEnabled);
+  
   const supportedDevices = useSelector(selectSupportedDevices);
   const serialNumber = useSelector(selectDeviceSerialNumberString);
   const shouldUpload = useSelector(selectShouldUpload);
@@ -427,22 +441,9 @@ function App() {
   const {knownDevice} = useCheckKnownDevice(supportedDevices, serialNumber);
   const {measurement} = useBluetoothConnectAndPollAranet();
   const notificationState: NotifeeNotificationHookState = useNotifeeNotifications();
-
   const authState = useGoogleAuthForCO2Tracker();
 
-  //https://notifee.app/react-native/docs/events#app-open-events
-  const [loading, setLoading] = useState(true);
 
-  // Bootstrap sequence function
-  async function bootstrap() {
-    const initialNotification = await notifee.getInitialNotification();
-
-    if (initialNotification) {
-      console.log('Notification caused application to open', initialNotification.notification);
-      console.log('Press action used to open the app', initialNotification.pressAction);
-      debugger;
-    }
-  }
 
   useEffect(() => {
     console.log(`App starting at ${timeNowAsString()}.`);
@@ -470,9 +471,7 @@ function App() {
 
   useEffect(() => {
     return () => {
-      notifee.cancelAllNotifications();
-      notifee.stopForegroundService();
-      notifee.cancelTriggerNotifications();
+      stopServiceAndClearNotifications();
     }
   }, [])
 
@@ -482,11 +481,11 @@ function App() {
     <SafeAreaProvider style={styles.container}>          
       <BluetoothData knownDevice={knownDevice} nextMeasurement={nextMeasurementTime}/>
       
-      <AuthContainerWithLogic auth={authState}/>
+      <AuthContainer auth={authState}/>
       <RealtimeMeasurementInfo userDeviceErrors={userDeviceErrors}/>
       <UserSettingsMaybeDisplay/>
       
-      <NotificationInfo notificationState={notificationState} batteryOptimizationEnabled={batteryOptimizationEnabled}/>
+      <NotificationInfo notificationState={notificationState} />
       <UploadingButton/>
       <StatusBar style="auto" />
     </SafeAreaProvider>

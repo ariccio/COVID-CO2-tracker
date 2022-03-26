@@ -5,7 +5,7 @@ import {Buffer} from 'buffer';
 import { useEffect, useState } from 'react';
 import { PermissionsAndroid, Text, Button, NativeSyntheticEvent, NativeTouchEvent, Linking, Permission, Rationale } from 'react-native';
 import AlertAsync from "react-native-alert-async";
-import { BleManager, Device, BleError, LogLevel, Service, Characteristic, BleErrorCode, DeviceId, State, BleAndroidErrorCode } from 'react-native-ble-plx';
+import { BleManager, Device, BleError, LogLevel, Service, Characteristic, BleErrorCode, State, BleAndroidErrorCode } from 'react-native-ble-plx';
 import { useDispatch, useSelector } from 'react-redux';
 import * as Sentry from 'sentry-expo';
 
@@ -18,11 +18,11 @@ import { timeNowAsString } from '../../utils/TimeNow';
 import { COVID_CO2_TRACKER_DEVICES_URL } from '../../utils/UrlPaths';
 import { useIsLoggedIn } from '../../utils/UseLoggedIn';
 import { useOpenableLink, IfNotOpenable } from '../Links/OpenLink';
-import { addMeasurement } from '../Measurement/MeasurementSlice';
+// import { addMeasurement } from '../Measurement/MeasurementSlice';
 import { MeasurementDataForUpload } from '../Measurement/MeasurementTypes';
 import { setUploadStatus } from '../Uploading/uploadSlice';
 import { selectSupportedDevices } from '../userInfo/devicesSlice';
-import { Aranet4_1503CO2, incrementUpdates, MeasurementData, selectAranet4SpecificData, selectDeviceBatterylevel, selectDeviceID, selectDeviceName, selectDeviceRSSI, selectDeviceSerialNumberString, selectDeviceStatusString, selectHasBluetooth, selectMeasurementData, selectMeasurementInterval, selectMeasurementTime, selectNeedsBluetoothTurnOn, selectScanningErrorStatusString, selectScanningStatusString, selectUpdateCount, setAranet4Color, setAranet4SecondsSinceLastMeasurement, setDeviceBatteryLevel, setDeviceID, setDeviceName, setDeviceSerialNumber, setDeviceStatusString, setHasBluetooth, setMeasurementDataFromCO2Characteristic, setMeasurementInterval, setNeedsBluetoothTurnOn, setRssi, setScanningErrorStatusString, setScanningStatusString } from './bluetoothSlice';
+import { Aranet4_1503CO2, incrementUpdates, selectAranet4SpecificData, selectDeviceBatterylevel, selectDeviceID, selectDeviceName, selectDeviceRSSI, selectDeviceSerialNumberString, selectDeviceStatusString, selectHasBluetooth, selectMeasurementData, selectMeasurementInterval, selectMeasurementTime, selectNeedsBluetoothTurnOn, selectScanningErrorStatusString, selectScanningStatusString, selectUpdateCount, setAranet4Color, setAranet4SecondsSinceLastMeasurement, setDeviceBatteryLevel, setDeviceID, setDeviceName, setDeviceSerialNumber, setDeviceStatusString, setHasBluetooth, setMeasurementDataFromCO2Characteristic, setMeasurementInterval, setNeedsBluetoothTurnOn, setRssi, setScanningErrorStatusString, setScanningStatusString } from './bluetoothSlice';
 
 
 //https://github.com/thespacemanatee/Smart-Shef-IoT/blob/4782c95f383040f36e4ae7ce063166cce5c76129/smart_shef_app/src/utils/hooks/useMonitorHumidityCharacteristic.ts
@@ -444,19 +444,19 @@ async function readAranet4MeasurementInterval(deviceID: string): Promise<number>
     return readUint16CharacteristicFromDevice(deviceID, BLUETOOTH.ARANET4_SENSOR_SERVICE_UUID, BLUETOOTH.ARANET_MEASUREMENT_INTERVAL_UUID, "BLUETOOTH.ARANET4_SENSOR_SERVICE_UUID", "BLUETOOTH.ARANET_MEASUREMENT_INTERVAL_UUID");
 }
 
-function aranet4Ready(device: Device | null): boolean {
-    if (!device) {
-        return false;
-    }
-    if (!device.serviceUUIDs) {
-        return false;
-    }
-    if (device?.serviceUUIDs?.includes(BLUETOOTH.ARANET4_SENSOR_SERVICE_UUID)) {
-        return true;
-    }
-    console.warn("Device has service UUIDs but not the one we want??");
-    return false;
-}
+// function aranet4Ready(device: Device | null): boolean {
+//     if (!device) {
+//         return false;
+//     }
+//     if (!device.serviceUUIDs) {
+//         return false;
+//     }
+//     if (device?.serviceUUIDs?.includes(BLUETOOTH.ARANET4_SENSOR_SERVICE_UUID)) {
+//         return true;
+//     }
+//     console.warn("Device has service UUIDs but not the one we want??");
+//     return false;
+// }
 
 async function readAranet4SpecificInformation(deviceID: string, dispatch: AppDispatch): Promise<Aranet4SpecificInformation> {
     // if(!device?.serviceUUIDs?.includes(BLUETOOTH.ARANET4_SENSOR_SERVICE_UUID)) {
@@ -1250,20 +1250,19 @@ const connectOrAlreadyConnected = async (deviceID: string): Promise<Device | boo
 }
 
 
-async function attemptConnectScannedDevice(scannedDevice: DeviceId, device: Device | null): Promise<Device | null> {
-    // console.log(`Attempting connection to ${scannedDevice}`);
-    if (device !== null) {
-        const isAlreadyConnected = await device.isConnected();
-        if (isAlreadyConnected) {
-            console.log('ALREADY connected, returning extant device object');
-            return device;
-        }
-    }
-    const connectedDevice = await manager.connectToDevice(scannedDevice);
-    // console.log("Connected!");
-    return connectedDevice;
-
-}
+// async function attemptConnectScannedDevice(scannedDevice: DeviceId, device: Device | null): Promise<Device | null> {
+//     // console.log(`Attempting connection to ${scannedDevice}`);
+//     if (device !== null) {
+//         const isAlreadyConnected = await device.isConnected();
+//         if (isAlreadyConnected) {
+//             console.log('ALREADY connected, returning extant device object');
+//             return device;
+//         }
+//     }
+//     const connectedDevice = await manager.connectToDevice(scannedDevice);
+//     // console.log("Connected!");
+//     return connectedDevice;
+// }
 
 
 async function foundAranet4(scannedDevice: Device, dispatch: AppDispatch) {
@@ -1291,20 +1290,20 @@ async function foundAranet4(scannedDevice: Device, dispatch: AppDispatch) {
     // debugger;
 }
 
-async function headlessFoundAranet4(scannedDevice: Device) {
-    console.log("Connecting to aranet4...");
-    if (scannedDevice.id) {
-        if (scannedDevice.id === '?') {
-            debugger;
-        }
-    }
-    else {
-        //TODO: bubble error up?
-        console.error("No ID?");
-        debugger;
-    }
-    manager.stopDeviceScan();
-}
+// async function headlessFoundAranet4(scannedDevice: Device) {
+//     console.log("Connecting to aranet4...");
+//     if (scannedDevice.id) {
+//         if (scannedDevice.id === '?') {
+//             debugger;
+//         }
+//     }
+//     else {
+//         //TODO: bubble error up?
+//         console.error("No ID?");
+//         debugger;
+//     }
+//     manager.stopDeviceScan();
+// }
 
 
 function dumpNewScannedDeviceInfo(scannedDevice: Device | null) {

@@ -6,9 +6,10 @@ import * as Sentry from 'sentry-expo';
 
 import { UserInfoDevice } from '../../../../co2_client/src/utils/DeviceInfoTypes';
 import { UserSettings } from '../../../../co2_client/src/utils/UserSettings';
-import { selectBackgroundPollingEnabled, selectJWT, selectShouldUpload, setBackgroundPollingEnabled, setBatteryOptimizationEnabled, setShouldUpload } from '../../app/globalSlice';
+import { selectBackgroundPollingEnabled, selectBatteryOptimizationEnabled, selectJWT, selectShouldUpload, setBackgroundPollingEnabled, setBatteryOptimizationEnabled, setShouldUpload } from '../../app/globalSlice';
 import { AppDispatch } from '../../app/store';
 import { MaybeIfValue } from '../../utils/RenderValues';
+import { timeNowAsString } from '../../utils/TimeNow';
 import { useIsLoggedIn } from '../../utils/UseLoggedIn';
 import { MeasurementDataForUpload } from '../Measurement/MeasurementTypes';
 import { uploadMeasurementHeadless } from '../Measurement/MeasurementUpload';
@@ -17,7 +18,6 @@ import { selectDeviceID } from '../bluetooth/bluetoothSlice';
 import { selectSupportedDevices } from '../userInfo/devicesSlice';
 import { selectUserSettings } from '../userInfo/userInfoSlice';
 import {logEvent} from './LogEvent';
-import { timeNowAsString } from '../../utils/TimeNow';
 
 function defaultNotification(channelId: string): Notification {
     const defaultNotificationOptions: Notification = {
@@ -188,9 +188,7 @@ async function handleForegroundServiceEvent({ type, detail }: Event, deviceID: s
         }
         if (detail.pressAction.id === 'stop') {
             console.log("Stopping foreground service...");
-            notifee.stopForegroundService();
-            notifee.cancelAllNotifications();
-            notifee.cancelTriggerNotifications();
+            stopServiceAndClearNotifications();
             return;
         }
         console.log(`...Unexpected pressAction? ${detail.pressAction.id}`);
@@ -347,14 +345,14 @@ const StartOrStopButton = (props: {notificationState: NotifeeNotificationHookSta
     )
 }
 
-export const NotificationInfo = (props: { notificationState: NotifeeNotificationHookState, batteryOptimizationEnabled: boolean | null}) => {
-    
+export const NotificationInfo = (props: { notificationState: NotifeeNotificationHookState}) => {
+    const batteryOptimizationEnabled = useSelector(selectBatteryOptimizationEnabled);
     return (
         <>
             <StartOrStopButton notificationState={props.notificationState}/>
             
             <MaybeIfValue text="Errors from displaying notifications: " value={props.notificationState.displayNotificationErrors} />
-            <MaybeIfValue text="Battery optimization enabled: " value={(props.batteryOptimizationEnabled === null) ? null : String(props.batteryOptimizationEnabled)} />
+            <MaybeIfValue text="Battery optimization enabled: " value={(batteryOptimizationEnabled === null) ? null : String(batteryOptimizationEnabled)} />
             <MaybeIfValue text="Notifee native errors (what?): " value={props.notificationState.nativeErrors} />
             <MaybeIfValue text="Notification ID: " value={props.notificationState.notificationID} />
             <MaybeIfValue text="Trigger notification: " value={props.notificationState.triggerNotification} />
@@ -406,10 +404,15 @@ const init = async (setDisplayNotificationErrors: React.Dispatch<React.SetStateA
 }
 
 
+export async function stopServiceAndClearNotifications() {
+    await notifee.stopForegroundService();
+    await notifee.cancelAllNotifications();
+    await notifee.cancelTriggerNotifications();
+}
+
 export const useNotifeeNotifications = (): NotifeeNotificationHookState => {
     const [displayNotificationErrors, setDisplayNotificationErrors] = useState(null as (string | null));
-    const [nativeErrors, setNativeErrors] = useState(null as (string | null));
-    
+    const [nativeErrors, setNativeErrors] = useState(null as (string | null));    
     const [notificationID, setNotificationID] = useState(null as (string | null));
     const [channelID, setChannelID] = useState(null as (string | null));
     const [triggerNotification, setTriggerNotification] = useState(null as (string | null));
@@ -425,79 +428,27 @@ export const useNotifeeNotifications = (): NotifeeNotificationHookState => {
     const jwt = useSelector(selectJWT);
     const shouldUpload = useSelector(selectShouldUpload);
     const {loggedIn} = useIsLoggedIn();
-    
 
     const dispatch = useDispatch();
 
     const handleClickDisplayNotification = async () => {
-        await notifee.stopForegroundService();
-        await notifee.cancelAllNotifications();
-        await notifee.cancelTriggerNotifications();
-        let channelId_ = channelID;
-        if (channelId_ === null) {
-            console.log("Channel not created yet, creating...");
-            channelId_ = await checkedCreateChannel(setNativeErrors);
-            if (channelId_ === null) {
-                console.error("Channel creation failed! Native errors should be set.");
-                return;
-            }
-            setChannelID(channelId_);
-            // return;
-    
-        }
-        const triggerResult = await createTriggerNotification(setNativeErrors, channelId_);
-        if (triggerResult !== undefined) {
-            setTriggerNotification(triggerResult);
-        }
-        dispatch(setBackgroundPollingEnabled(true));
+        clickDisplayNotification(channelID, setNativeErrors, setChannelID, setTriggerNotification, dispatch);
     }
 
     const handleClickStopNotification = async () => {
-        await notifee.stopForegroundService();
-        await notifee.cancelAllNotifications();
-        await notifee.cancelTriggerNotifications();
-        setChannelID(null);
-        setTriggerNotification(null);
-        dispatch(setBackgroundPollingEnabled(false));
-        setNotificationID(null);
-        dispatch(setShouldUpload(false));
+        await clickStopNotification(setChannelID, setTriggerNotification, dispatch, setNotificationID);
     }
 
     useEffect(() => {
-        if (!backgroundPollingEnabled) {
-            console.log("NOT polling in background.");
-            return;
-        }
-        if (jwt === null) {
-            console.log("Can't start polling, not logged in.");
-            return;
-        }
-        if (userSettings === null) {
-            console.log("Can't start polling yet, no user settings.");
-            return;
-        }
-        if (userSettings === undefined) {
-            console.log("Can't start polling yet, loading user settings.");
-            return;
-        }
-
-        console.log("polling in background.");
-        init(setDisplayNotificationErrors, setNativeErrors, deviceID, supportedDevices, setChannelID, setNotificationID, channelID, loggedIn, userSettings, jwt, shouldUpload);
+        createOrUpdateNotification(setDisplayNotificationErrors, setNativeErrors, deviceID, supportedDevices, setChannelID, setNotificationID, channelID, loggedIn, jwt, shouldUpload, backgroundPollingEnabled, userSettings);
         return (() => {
-            notifee.stopForegroundService();
-            notifee.cancelAllNotifications();
-            notifee.cancelTriggerNotifications();
+            stopServiceAndClearNotifications();
         })
     }, [deviceID, supportedDevices, channelID, backgroundPollingEnabled, loggedIn, userSettings, jwt, shouldUpload])
-
-    // useEffect(() => {
-    //     console.log(appStateVisible);
-    // }, [appStateVisible]);
 
     // https://docs.expo.dev/versions/latest/react-native/appstate/  
     useEffect(() => {
       AppState.addEventListener('change', _handleAppStateChange);
-  
       return () => {
         AppState.removeEventListener('change', _handleAppStateChange);
       };
@@ -514,17 +465,76 @@ export const useNotifeeNotifications = (): NotifeeNotificationHookState => {
     };
 
     useEffect(() => {
-        // debugger;
-        notifee.isBatteryOptimizationEnabled().then((result) => {
-            // console.log(`Battery optimization: ${result}`);
-            return dispatch(setBatteryOptimizationEnabled(result));
-        }).catch((exception) => {
-            Sentry.Native.captureException(exception);
-            // In theory, the native java code can throw exceptions if something is desperatley wrong...
-            setNativeErrors(`Error in isBatteryOptimizationEnabled: '${String(exception)}'`);
-        })
+        checkBatteryOptimization(dispatch, setNativeErrors);
     }, [])
-
 
     return { handleClickDisplayNotification, displayNotificationErrors, nativeErrors, notificationID, channelID, triggerNotification, handleClickStopNotification }
 }
+
+function checkBatteryOptimization(dispatch: AppDispatch, setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>) {
+    notifee.isBatteryOptimizationEnabled().then((result) => {
+        // console.log(`Battery optimization: ${result}`);
+        return dispatch(setBatteryOptimizationEnabled(result));
+    }).catch((exception) => {
+        Sentry.Native.captureException(exception);
+        // In theory, the native java code can throw exceptions if something is desperatley wrong...
+        setNativeErrors(`Error in isBatteryOptimizationEnabled: '${String(exception)}'`);
+    });
+}
+
+async function clickDisplayNotification(channelID: string | null, setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>, setChannelID: React.Dispatch<React.SetStateAction<string | null>>, setTriggerNotification: React.Dispatch<React.SetStateAction<string | null>>, dispatch: AppDispatch) {
+    stopServiceAndClearNotifications();
+    let channelId_ = channelID;
+    if (channelId_ === null) {
+        console.log("Channel not created yet, creating...");
+        channelId_ = await checkedCreateChannel(setNativeErrors);
+        if (channelId_ === null) {
+            console.error("Channel creation failed! Native errors should be set.");
+            return;
+        }
+        setChannelID(channelId_);
+        // return;
+
+    }
+
+    const triggerResult = await createTriggerNotification(setNativeErrors, channelId_);
+    if (triggerResult !== undefined) {
+        setTriggerNotification(triggerResult);
+    }
+    dispatch(setBackgroundPollingEnabled(true));
+
+}
+
+
+async function clickStopNotification(setChannelID: React.Dispatch<React.SetStateAction<string | null>>, setTriggerNotification: React.Dispatch<React.SetStateAction<string | null>>, dispatch: AppDispatch, setNotificationID: React.Dispatch<React.SetStateAction<string | null>>) {
+    stopServiceAndClearNotifications();
+    setChannelID(null);
+    setTriggerNotification(null);
+    dispatch(setBackgroundPollingEnabled(false));
+    setNotificationID(null);
+    dispatch(setShouldUpload(false));
+}
+
+function createOrUpdateNotification(setDisplayNotificationErrors: React.Dispatch<React.SetStateAction<string | null>>, setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>, deviceID: string | null, supportedDevices: UserInfoDevice[] | null, setChannelID: React.Dispatch<React.SetStateAction<string | null>>, setNotificationID: React.Dispatch<React.SetStateAction<string | null>>, channelID: string | null, loggedIn: boolean, jwt: string | null, shouldUpload: boolean, backgroundPollingEnabled: boolean, userSettings?: UserSettings | null) {
+    if (!backgroundPollingEnabled) {
+        console.log("NOT polling in background.");
+        return;
+    }
+    if (jwt === null) {
+        console.log("Can't start polling, not logged in.");
+        return;
+    }
+    if (userSettings === null) {
+        console.log("Can't start polling yet, no user settings.");
+        return;
+    }
+
+    if (userSettings === undefined) {
+        console.log("Can't start polling yet, loading user settings.");
+        return;
+    }
+
+    console.log("polling in background.");
+    init(setDisplayNotificationErrors, setNativeErrors, deviceID, supportedDevices, setChannelID, setNotificationID, channelID, loggedIn, userSettings, jwt, shouldUpload);
+}
+
