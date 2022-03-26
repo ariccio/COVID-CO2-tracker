@@ -466,7 +466,14 @@ function getAndroidClientID(): string {
   return prodAndroidClientID;
 }
 
-const useGoogleAuthForCO2Tracker = () => {
+interface AuthState {
+  promptAsync: (options?: AuthRequestPromptOptions | undefined) => Promise<AuthSessionResult>;
+  promptAsyncReady: boolean;
+  asyncStoreError: string | null;
+  logout: () => void;
+  loginErrors: string | null;
+}
+export const useGoogleAuthForCO2Tracker = (): AuthState => {
     const [idToken, setIDToken] = useState(null as (string | null));
     // const [jwt, setJWT] = useState(null as (string | null));
     const [asyncStoreError, setAsyncStoreError] = useState(null as (string | null));
@@ -643,18 +650,18 @@ const LoginOrLogoutButton: React.FC<{jwt: string | null, promptAsyncReady: boole
 }
 
 
-export function AuthContainerWithLogic(): JSX.Element {
+export function AuthContainerWithLogic(props: {auth: AuthState}): JSX.Element {
     const jwt = useSelector(selectJWT);
     const userName = useSelector(selectUserName);
-    const {promptAsync, promptAsyncReady, asyncStoreError, logout, loginErrors} = useGoogleAuthForCO2Tracker();
+    
   
     
     return (
       <>
-        <LoginOrLogoutButton jwt={jwt} promptAsyncReady={promptAsyncReady} promptAsync={promptAsync} logout={() => logout()} userName={userName}/>
+        <LoginOrLogoutButton jwt={jwt} promptAsyncReady={props.auth.promptAsyncReady} promptAsync={props.auth.promptAsync} logout={() => props.auth.logout()} userName={userName}/>
         
-        <MaybeIfValue text="Errors with automatic login! Details: " value={asyncStoreError}/>
-        <MaybeIfValue text="Login errors: " value={loginErrors}/>
+        <MaybeIfValue text="Errors with automatic login! Details: " value={props.auth.asyncStoreError}/>
+        <MaybeIfValue text="Login errors: " value={props.auth.loginErrors}/>
       </>
     );
   } 

@@ -21,7 +21,7 @@ import { userSettingsResponseDataAsPlainSettings, userSettingsResponseToStrongTy
 import {UserSettings} from '../co2_client/src/utils/UserSettings';
 import { incrementSuccessfulUploads, selectBatteryOptimizationEnabled, selectJWT, selectShouldUpload, selectSuccessfulUploads, setShouldUpload } from './src/app/globalSlice';
 import { AppDispatch, store } from './src/app/store';
-import {AuthContainerWithLogic} from './src/features/Auth/Auth';
+import {AuthContainerWithLogic, useGoogleAuthForCO2Tracker} from './src/features/Auth/Auth';
 import { MeasurementDataForUpload } from './src/features/Measurement/MeasurementTypes';
 import { realtimeUpload } from './src/features/Measurement/MeasurementUpload';
 import { selectUploadStatus, setUploadStatus } from './src/features/Uploading/uploadSlice';
@@ -428,6 +428,8 @@ function App() {
   const {measurement} = useBluetoothConnectAndPollAranet();
   const notificationState: NotifeeNotificationHookState = useNotifeeNotifications();
 
+  const authState = useGoogleAuthForCO2Tracker();
+
   //https://notifee.app/react-native/docs/events#app-open-events
   const [loading, setLoading] = useState(true);
 
@@ -480,7 +482,7 @@ function App() {
     <SafeAreaProvider style={styles.container}>          
       <BluetoothData knownDevice={knownDevice} nextMeasurement={nextMeasurementTime}/>
       
-      <AuthContainerWithLogic/>
+      <AuthContainerWithLogic auth={authState}/>
       <RealtimeMeasurementInfo userDeviceErrors={userDeviceErrors}/>
       <UserSettingsMaybeDisplay/>
       
