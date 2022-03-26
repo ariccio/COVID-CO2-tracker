@@ -26,7 +26,8 @@ function defaultNotification(channelId: string): Notification {
 
         // See also: https://notifee.app/react-native/docs/android/appearance#small-icons
         title: 'CO2 tracker', // "The notification title which appears above the body text."
-        body: 'CO2 tracker service is running.', // "The main body content of a notification."
+        subtitle: 'service is running!',
+        // body: 'Everything is all good!', // "The main body content of a notification."
         android: { // "Android specific notification options. See the [`NotificationAndroid`](/react-native/reference/notificationandroid) interface for more information and default options which are applied to a notification."
             channelId, // "Specifies the `AndroidChannel` which the notification will be delivered on."
             smallIcon: 'ic_small_icon', // optional, defaults to 'ic_launcher'.
@@ -49,7 +50,11 @@ function defaultNotification(channelId: string): Notification {
                         id: 'stop',
                     }
                 }
-            ]
+            ],
+            showTimestamp: true,
+            pressAction: {
+                id: 'default'
+            }
         }
     }
     return defaultNotificationOptions;
@@ -319,15 +324,35 @@ const onClickNotificationButton = (handleClickDisplayNotification: () => Promise
     dispatch(setShouldUpload(false));
     dispatch(setShouldUpload(true));
     handleClickDisplayNotification();
-    dispatch(setBackgroundPollingEnabled(true));
 }
 
 
-export const NotificationInfo = (props: { notificationState: NotifeeNotificationHookState, batteryOptimizationEnabled: boolean | null}) => {
+const onClickStopNotificationButton = (handleClickStopNotification: () => Promise<void>) => {
+    handleClickStopNotification();
+}
+
+const StartOrStopButton = (props: {notificationState: NotifeeNotificationHookState}) => {
     const dispatch = useDispatch();
+    if (props.notificationState.notificationID && props.notificationState.triggerNotification && props.notificationState.channelID) {
+        return (
+            <>
+                <Button title="Stop background polling" onPress={() => {onClickStopNotificationButton(props.notificationState.handleClickStopNotification)}}/>
+            </>
+        )
+    }
     return (
         <>
             <Button title="Start background polling & uploading" onPress={() => { onClickNotificationButton(props.notificationState.handleClickDisplayNotification, dispatch) }} />
+        </>
+    )
+}
+
+export const NotificationInfo = (props: { notificationState: NotifeeNotificationHookState, batteryOptimizationEnabled: boolean | null}) => {
+    
+    return (
+        <>
+            <StartOrStopButton notificationState={props.notificationState}/>
+            
             <MaybeIfValue text="Errors from displaying notifications: " value={props.notificationState.displayNotificationErrors} />
             <MaybeIfValue text="Battery optimization enabled: " value={(props.batteryOptimizationEnabled === null) ? null : String(props.batteryOptimizationEnabled)} />
             <MaybeIfValue text="Notifee native errors (what?): " value={props.notificationState.nativeErrors} />
@@ -346,6 +371,7 @@ export interface NotifeeNotificationHookState {
     notificationID: string | null;
     channelID: string | null;
     triggerNotification: string | null;
+    handleClickStopNotification: () => Promise<void>;
 }
 
 const init = async (setDisplayNotificationErrors: React.Dispatch<React.SetStateAction<string | null>>, setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>, deviceID: string | null, supportedDevices: UserInfoDevice[] | null, setChannelID: React.Dispatch<React.SetStateAction<string | null>>, setNotificationID: React.Dispatch<React.SetStateAction<string | null>>, channelID: string | null, loggedIn: boolean, userSettings: UserSettings, jwt: string, shouldUpload: boolean) => {
@@ -426,6 +452,17 @@ export const useNotifeeNotifications = (): NotifeeNotificationHookState => {
         dispatch(setBackgroundPollingEnabled(true));
     }
 
+    const handleClickStopNotification = async () => {
+        await notifee.stopForegroundService();
+        await notifee.cancelAllNotifications();
+        await notifee.cancelTriggerNotifications();
+        setChannelID(null);
+        setTriggerNotification(null);
+        dispatch(setBackgroundPollingEnabled(false));
+        setNotificationID(null);
+        dispatch(setShouldUpload(false));
+    }
+
     useEffect(() => {
         if (!backgroundPollingEnabled) {
             console.log("NOT polling in background.");
@@ -489,5 +526,5 @@ export const useNotifeeNotifications = (): NotifeeNotificationHookState => {
     }, [])
 
 
-    return { handleClickDisplayNotification, displayNotificationErrors, nativeErrors, notificationID, channelID, triggerNotification }
+    return { handleClickDisplayNotification, displayNotificationErrors, nativeErrors, notificationID, channelID, triggerNotification, handleClickStopNotification }
 }

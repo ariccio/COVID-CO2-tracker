@@ -1007,7 +1007,7 @@ async function pollAranet4(setTimeoutHandle: React.Dispatch<React.SetStateAction
             dispatch(setUploadStatus('Please log in.'));
             return;
         }
-        dispatch(setUploadStatus('Still loading user devices, cannot upload measurement to server. This should go away in a minute or so.'));
+        dispatch(setUploadStatus('Still loading user devices, cannot upload measurement to server yet. This should go away in a minute or so.'));
         return;
     }
     else {

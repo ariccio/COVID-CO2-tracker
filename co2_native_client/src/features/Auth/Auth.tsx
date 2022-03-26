@@ -148,15 +148,18 @@ const fetchLoginSuccessCallback = async (awaitedResponse: Response): Promise<Nat
   
 const CO2_TRACKER_JWT_KEY_NAME = 'riccio-co2-tracker-jwt';
 
-async function saveJWTToAsyncStore(jwt: string, setAsyncStoreError: React.Dispatch<React.SetStateAction<string | null>>): Promise<void> {
+async function saveJWTToAsyncStore(jwt: string, setAsyncStoreError: React.Dispatch<React.SetStateAction<string | null>>, setLoginProgress: React.Dispatch<React.SetStateAction<AuthLoginProgressState>>): Promise<void> {
   console.log(`Saving JWT (${jwt}) to secure storage...`);
   try {
-    return await SecureStore.setItemAsync(CO2_TRACKER_JWT_KEY_NAME, jwt);  
+    await SecureStore.setItemAsync(CO2_TRACKER_JWT_KEY_NAME, jwt);
+    setLoginProgress(AuthLoginProgressState.None);
+    return;
   }
   catch (error) {
     console.error(error);
     setAsyncStoreError(`Error saving login info from secure local storage: '${String(error)}' ...you will need to login again manually!`);
     // eslint-disable-next-line no-debugger
+    setLoginProgress(AuthLoginProgressState.Failed);
     debugger;
   }
 }
@@ -178,9 +181,10 @@ const nativeGetEmail = async (jwt: string) => {
 }
 
 
-const loginWithIDToken = (id_token: string, setAsyncStoreError: React.Dispatch<React.SetStateAction<string | null>>, dispatch: AppDispatch, setLoginErrors: React.Dispatch<React.SetStateAction<string | null>>) => {
+const loginWithIDToken = (id_token: string, setAsyncStoreError: React.Dispatch<React.SetStateAction<string | null>>, dispatch: AppDispatch, setLoginErrors: React.Dispatch<React.SetStateAction<string | null>>, setLoginProgress: React.Dispatch<React.SetStateAction<AuthLoginProgressState>>) => {
     const options = nativeLoginRequestInit(id_token);
-    console.log("logging in to server!")
+    console.log("logging in to server!");
+    setLoginProgress(AuthLoginProgressState.ConnectingToServer)
     // const url = (API_URL + '/google_login_token');
     // debugger;
     const result = fetchJSONWithChecks(LOGIN_URL_NATIVE, options, 200, true, fetchLoginFailedCallback, fetchLoginSuccessCallback) as Promise<NativeLoginResponseType>;
@@ -190,6 +194,7 @@ const loginWithIDToken = (id_token: string, setAsyncStoreError: React.Dispatch<R
         console.error(`Login to server FAILED: ${str}`);
         setLoginErrors(str);
         Sentry.Native.captureMessage(str);
+        setLoginProgress(AuthLoginProgressState.Failed)
         // eslint-disable-next-line no-debugger
         debugger;
         return null;
@@ -198,12 +203,14 @@ const loginWithIDToken = (id_token: string, setAsyncStoreError: React.Dispatch<R
       dispatch(setUserName(response.email));
       dispatch(setJWT(response.jwt));
       console.assert(response.errors === undefined);
-  
-      return saveJWTToAsyncStore(response.jwt, setAsyncStoreError);
+      setLoginProgress(AuthLoginProgressState.AlmostDoneSaving);
+      return saveJWTToAsyncStore(response.jwt, setAsyncStoreError, setLoginProgress);
   
     }).catch((error) => {
       Sentry.Native.captureException(error);
       console.error(error);
+      setLoginProgress(AuthLoginProgressState.Failed);
+      setLoginErrors(`Unexpected error: ${String(error)}`);
       // eslint-disable-next-line no-debugger
       debugger;
     })
@@ -327,7 +334,7 @@ async function queryAsyncStoreForStoredJWT(setAsyncStoreError: React.Dispatch<Re
   
   
 
-function setIDTokenIfGoodResponseFromGoogle(setIDToken: React.Dispatch<React.SetStateAction<string | null>>, responseFromGoogle: AuthSessionResult | null, setLoginErrors: React.Dispatch<React.SetStateAction<string | null>>) {
+function setIDTokenIfGoodResponseFromGoogle(setIDToken: React.Dispatch<React.SetStateAction<string | null>>, responseFromGoogle: AuthSessionResult | null, setLoginErrors: React.Dispatch<React.SetStateAction<string | null>>, setLoginProgress: React.Dispatch<React.SetStateAction<AuthLoginProgressState>>) {
   if (responseFromGoogle === undefined) {
     throw new Error("Response from google (auth) is undefined?");
   }
@@ -336,29 +343,30 @@ function setIDTokenIfGoodResponseFromGoogle(setIDToken: React.Dispatch<React.Set
     return;
   }
   if (responseFromGoogle.type === 'error') {
-    handleGoogleAuthErrorResponse(responseFromGoogle, setLoginErrors);
+    handleGoogleAuthErrorResponse(responseFromGoogle, setLoginErrors, setLoginProgress);
     return;
   }
   if (responseFromGoogle.type === 'success') {
-    handleGoogleAuthSuccessResponse(responseFromGoogle, setLoginErrors, setIDToken);
+    handleGoogleAuthSuccessResponse(responseFromGoogle, setLoginErrors, setIDToken, setLoginProgress);
     return;
   }
   if (responseFromGoogle.type === 'dismiss') {
-    handleGoogleAuthDismissResponse(responseFromGoogle, setLoginErrors, setIDToken);
+    handleGoogleAuthDismissResponse(responseFromGoogle, setLoginErrors, setIDToken, setLoginProgress);
     return;
   }
   throw new Error(`Unexpected responseFromGoogle type: "${responseFromGoogle.type}". Full object: ${JSON.stringify(responseFromGoogle)} `);
 }
 
-function handleGoogleAuthDismissResponse(responseFromGoogle: AuthSessionResult, setLoginErrors: React.Dispatch<React.SetStateAction<string | null>>, setIDToken: React.Dispatch<React.SetStateAction<string | null>>) {
+function handleGoogleAuthDismissResponse(responseFromGoogle: AuthSessionResult, setLoginErrors: React.Dispatch<React.SetStateAction<string | null>>, setIDToken: React.Dispatch<React.SetStateAction<string | null>>, setLoginProgress: React.Dispatch<React.SetStateAction<AuthLoginProgressState>>) {
   if (responseFromGoogle.type !== "dismiss") {
     throw new Error("compile time bug. Wrong type passed to handleGoogleAuthDismissResponse, I'm not good enough at typescript to do correctly.");
   }
   setIDToken(null);
   setLoginErrors("You dismissed the login prompt. Try again.");
+  setLoginProgress(AuthLoginProgressState.None);
 }
 
-function handleGoogleAuthSuccessResponse(responseFromGoogle: AuthSessionResult, setLoginErrors: React.Dispatch<React.SetStateAction<string | null>>, setIDToken: React.Dispatch<React.SetStateAction<string | null>>) {
+function handleGoogleAuthSuccessResponse(responseFromGoogle: AuthSessionResult, setLoginErrors: React.Dispatch<React.SetStateAction<string | null>>, setIDToken: React.Dispatch<React.SetStateAction<string | null>>, setLoginProgress: React.Dispatch<React.SetStateAction<AuthLoginProgressState>>) {
   if (responseFromGoogle.type !== "success") {
     throw new Error("compile time bug. Wrong type passed to handleGoogleAuthSuccessResponse, I'm not good enough at typescript to do correctly.");
   }
@@ -370,6 +378,7 @@ function handleGoogleAuthSuccessResponse(responseFromGoogle: AuthSessionResult, 
     Sentry.Native.captureMessage("Authentication is null?");
     // eslint-disable-next-line no-debugger
     debugger;
+    setLoginProgress(AuthLoginProgressState.Failed);
     return;
   }
   //see also, fields:
@@ -387,10 +396,11 @@ function handleGoogleAuthSuccessResponse(responseFromGoogle: AuthSessionResult, 
   }
   setIDToken(responseFromGoogle.authentication.idToken);
   setLoginErrors(null);
+  setLoginProgress(AuthLoginProgressState.GoogleResponseGood);
 
 }
 
-function handleGoogleAuthErrorResponse(responseFromGoogle: AuthSessionResult, setLoginErrors: React.Dispatch<React.SetStateAction<string | null>>) {
+function handleGoogleAuthErrorResponse(responseFromGoogle: AuthSessionResult, setLoginErrors: React.Dispatch<React.SetStateAction<string | null>>, setLoginProgress: React.Dispatch<React.SetStateAction<AuthLoginProgressState>>) {
   let googleAuthError = `Error logging in with google!`;
   if (responseFromGoogle.type !== "error") {
     throw new Error("compile time bug. Wrong type passed to handleGoogleAuthErrorResponse, I'm not good enough at typescript to do correctly.");
@@ -407,6 +417,7 @@ function handleGoogleAuthErrorResponse(responseFromGoogle: AuthSessionResult, se
   googleAuthError += ` ...full object: ${JSON.stringify(responseFromGoogle)}`;
   setLoginErrors(googleAuthError);
   Sentry.Native.captureMessage(googleAuthError);
+  setLoginProgress(AuthLoginProgressState.None);
 }
 
 async function handleAsyncStoreResult(maybeJWT: string | null, dispatch: AppDispatch, setLoginErrors: React.Dispatch<React.SetStateAction<string | null>>) {
@@ -466,107 +477,117 @@ function getAndroidClientID(): string {
   return prodAndroidClientID;
 }
 
+enum AuthLoginProgressState {
+  None,
+  WaitingForGoogle,
+  ParsingGoogleResponse,
+  GoogleResponseGood,
+  Failed,
+  ConnectingToServer,
+  AlmostDoneSaving
+}
+
 interface AuthState {
   promptAsync: (options?: AuthRequestPromptOptions | undefined) => Promise<AuthSessionResult>;
   promptAsyncReady: boolean;
   asyncStoreError: string | null;
   logout: () => void;
   loginErrors: string | null;
+  loginProgress: AuthLoginProgressState;
+  setLoginProgress: React.Dispatch<React.SetStateAction<AuthLoginProgressState>>;
 }
+
 export const useGoogleAuthForCO2Tracker = (): AuthState => {
-    const [idToken, setIDToken] = useState(null as (string | null));
-    // const [jwt, setJWT] = useState(null as (string | null));
-    const [asyncStoreError, setAsyncStoreError] = useState(null as (string | null));
-    const [loginErrors, setLoginErrors] = useState(null as (string | null));
-    // const [userName, setUsername] = useState('');
-  
-    const dispatch = useDispatch();
-  
-  
-    const [promptAsyncReady, setPromptAsyncReady] = useState(false);
-  
-    const androidClientId = getAndroidClientID();
+  const dispatch = useDispatch();
+  const [idToken, setIDToken] = useState(null as (string | null));
+
+  const [asyncStoreError, setAsyncStoreError] = useState(null as (string | null));
+  const [loginErrors, setLoginErrors] = useState(null as (string | null));
+
+  const [promptAsyncReady, setPromptAsyncReady] = useState(false);
+
+  const [loginProgress, setLoginProgress] = useState(AuthLoginProgressState.None);
 
 
+  const androidClientId = getAndroidClientID();
+  /*
+    Ok, so this:
+    redirectUri: "riccio.co2.client:/oauthredirect",
+    causes a "redirect_uri_mismatch:"
+  */
+  const config: Partial<Google.GoogleAuthRequestConfig> = {
+    // expoClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
+    // iosClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
+    androidClientId,
+    // webClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
+    // redirectUri: "com.ariccio.co2_native_client:/oauth2redirect",
+    // redirectUri: "com.ariccio.co2_native_client/:oauth2redirect",
+    // redirectUri: "com.ariccio.co2_native_client:",
+    // redirectUri: "riccio.co2.client:/oauthredirect",
+    // redirectUri: "riccio.co2.client",
+    // redirectUri: "fartipelago",
+    
+    // scopes: [
+    //   'profile',
+    //   'email',
+    //   'openid'
+    // ]
+  }
 
-    /*
-      Ok, so this:
-      redirectUri: "riccio.co2.client:/oauthredirect",
-      causes a "redirect_uri_mismatch:"
-    */
-    const config: Partial<Google.GoogleAuthRequestConfig> = {
-      // expoClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
-      // iosClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
-      androidClientId,
-      // webClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
-      // redirectUri: "com.ariccio.co2_native_client:/oauth2redirect",
-      // redirectUri: "com.ariccio.co2_native_client/:oauth2redirect",
-      // redirectUri: "com.ariccio.co2_native_client:",
-      // redirectUri: "riccio.co2.client:/oauthredirect",
-      // redirectUri: "riccio.co2.client",
-      // redirectUri: "fartipelago",
-      
-      // scopes: [
-      //   'profile',
-      //   'email',
-      //   'openid'
-      // ]
+  // const redirectUriOptions: AuthSessionRedirectUriOptions = {
+  //   // scheme: 'com.ariccio.co2_native_client:/fartipelago://'
+  //   // native: 'riccio.co2.client:/oauthredirect'
+  //   native: 'riccio.co2.client'
+  // }
+  const [request, response, promptAsync] = Google.useAuthRequest(config);
+  // console.log(String(request?.redirectUri));
+  // console.log(String(request?.extraParams));
+  // console.log(String(request?.url));
+
+  const logout = () => {
+    console.log("Log out clicked...");
+    dispatch(setJWT(null));
+    deleteJWTFromAsyncStore(setAsyncStoreError);
+    alert("Please restart the app.");
+  };
+
+
+  useEffect(() => {
+      queryAsyncStoreForStoredJWT(setAsyncStoreError).then((maybeJWT) => {
+          return handleAsyncStoreResult(maybeJWT, dispatch, setLoginErrors);
+      }).catch((error) => {
+        setAsyncStoreError(String(error));
+        Sentry.Native.captureException(error);
+      })
+  }, []);
+
+  useEffect(() => {
+    // "Be sure to disable the prompt until request is defined."
+    const requestSet = (request !== null);
+    // console.log(`request ready for promptAsync: ${requestSet}`);
+    setPromptAsyncReady(requestSet);
+  }, [request]);
+
+  useEffect(() => {
+    // console.log(request);
+    setIDTokenIfGoodResponseFromGoogle(setIDToken, response, setLoginErrors, setLoginProgress);
+  }, [response]);
+
+  useEffect(() => {
+    if (idToken === null) {
+      // console.log("id token is null, nothing to forward to server.");
+      return;
     }
+    if (idToken.length === 0) {
+      console.error("id token is zero-length? What?");
+      // eslint-disable-next-line no-debugger
+      debugger;
+      return;
+    }
+    loginWithIDToken(idToken, setAsyncStoreError, dispatch, setLoginErrors, setLoginProgress);
+  }, [idToken]);
 
-    // const redirectUriOptions: AuthSessionRedirectUriOptions = {
-    //   // scheme: 'com.ariccio.co2_native_client:/fartipelago://'
-    //   // native: 'riccio.co2.client:/oauthredirect'
-    //   native: 'riccio.co2.client'
-    // }
-    const [request, response, promptAsync] = Google.useAuthRequest(config);
-    // console.log(String(request?.redirectUri));
-    // console.log(String(request?.extraParams));
-    // console.log(String(request?.url));
-
-    const logout = () => {
-      console.log("Log out clicked...");
-      dispatch(setJWT(null));
-      deleteJWTFromAsyncStore(setAsyncStoreError);
-      alert("Please restart the app.");
-    };
-
-
-    useEffect(() => {
-        queryAsyncStoreForStoredJWT(setAsyncStoreError).then((maybeJWT) => {
-            return handleAsyncStoreResult(maybeJWT, dispatch, setLoginErrors);
-        }).catch((error) => {
-          setAsyncStoreError(String(error));
-          Sentry.Native.captureException(error);
-        })
-    }, []);
-  
-    useEffect(() => {
-      // "Be sure to disable the prompt until request is defined."
-      const requestSet = (request !== null);
-      // console.log(`request ready for promptAsync: ${requestSet}`);
-      setPromptAsyncReady(requestSet);
-    }, [request]);
-  
-    useEffect(() => {
-      // console.log(request);
-      setIDTokenIfGoodResponseFromGoogle(setIDToken, response, setLoginErrors);
-    }, [response]);
-  
-    useEffect(() => {
-      if (idToken === null) {
-        // console.log("id token is null, nothing to forward to server.");
-        return;
-      }
-      if (idToken.length === 0) {
-        console.error("id token is zero-length? What?");
-        // eslint-disable-next-line no-debugger
-        debugger;
-        return;
-      }
-      loginWithIDToken(idToken, setAsyncStoreError, dispatch, setLoginErrors);
-    }, [idToken]);
-  
-    return {promptAsync, promptAsyncReady, asyncStoreError, logout, loginErrors};
+  return {promptAsync, promptAsyncReady, asyncStoreError, logout, loginErrors, loginProgress, setLoginProgress};
   };
   
   function disablePromptAsyncButton(jwt: string | null, promptAsyncReady: boolean): boolean {
@@ -614,24 +635,11 @@ const debugClientID = async (): Promise<string> => {
   return await AlertAsync("Debug Client ID:", `oAuth client ID: ${androidClientId} (dev: ${isDevClientID}), mainModuleName: ${manifest?.mainModuleName}`, buttons, options)
 }
 
-const LoginOrLogoutButton: React.FC<{jwt: string | null, promptAsyncReady: boolean, promptAsync: (options?: AuthRequestPromptOptions | undefined) => Promise<AuthSessionResult>, logout: () => void, userName?: string | null}> = ({jwt, promptAsyncReady, promptAsync, logout, userName}) => {
-  const buttonDisable = disablePromptAsyncButton(jwt, promptAsyncReady);
-  const debugging = async () => {
-    // await debugClientID();
-    promptAsync();
-  }
-  if (!buttonDisable) {
-    return (
-      <>
-          <ValueOrLoading text="username: " value={userNameValueOrLoading(jwt, userName)} suffix=" (this shouldn't show up)"/>
-          <Button disabled={buttonDisable} title="Login" onPress={() => debugging()}/>
-      </>
-    );
-  }
+const LogoutButton: React.FC<{logout: () => void, userName?: string | null}> = ({logout, userName}) => {
   if (userName === null) {
     return (
       <>
-        <Button title="Log out" onPress={() => logout()}/>
+        <Button title="Log out (null username?)" onPress={() => logout()}/>
       </>
     );
   }
@@ -650,6 +658,59 @@ const LoginOrLogoutButton: React.FC<{jwt: string | null, promptAsyncReady: boole
 }
 
 
+/*
+  loginProgress: AuthLoginProgressState;
+  setLoginProgress: React.Dispatch<React.SetStateAction<AuthLoginProgressState>>;
+
+*/
+
+function loginButtonTitleText(loginProgress: AuthLoginProgressState): string {
+  switch (loginProgress) {
+    case (AuthLoginProgressState.None): {
+      return "Login"
+    }
+    case (AuthLoginProgressState.WaitingForGoogle): {
+      return "Waiting for google";
+    }
+    case (AuthLoginProgressState.ParsingGoogleResponse): {
+      return "Recieved response, parsing...";
+    }
+    case (AuthLoginProgressState.GoogleResponseGood): {
+      return "Google response good! Ready to connect...";
+    }
+    case (AuthLoginProgressState.ConnectingToServer): {
+      return "Connecting to server...";
+    }
+    case (AuthLoginProgressState.AlmostDoneSaving): {
+      return "Almost ready, saving...";
+    }
+    case (AuthLoginProgressState.Failed): {
+      return "Login (try again)";
+    }
+  }
+}
+
+const LoginOrLogoutButton: React.FC<{jwt: string | null, promptAsyncReady: boolean, promptAsync: (options?: AuthRequestPromptOptions | undefined) => Promise<AuthSessionResult>, logout: () => void, userName?: string | null, loginProgress: AuthLoginProgressState, setLoginProgress: React.Dispatch<React.SetStateAction<AuthLoginProgressState>>}> = ({jwt, promptAsyncReady, promptAsync, logout, userName, loginProgress, setLoginProgress}) => {
+  const buttonDisable = disablePromptAsyncButton(jwt, promptAsyncReady);
+  const pressLogin = async () => {
+    // await debugClientID();
+    setLoginProgress(AuthLoginProgressState.WaitingForGoogle);
+    await promptAsync();
+    setLoginProgress(AuthLoginProgressState.ParsingGoogleResponse);
+  }
+  if (!buttonDisable) {
+    return (
+      <>
+          <ValueOrLoading text="username: " value={userNameValueOrLoading(jwt, userName)} suffix=" (this shouldn't show up)"/>
+          <Button disabled={buttonDisable} title={loginButtonTitleText(loginProgress)} onPress={() => pressLogin()}/>
+      </>
+    );
+  }
+  return LogoutButton({logout, userName});
+
+}
+
+
 export function AuthContainerWithLogic(props: {auth: AuthState}): JSX.Element {
     const jwt = useSelector(selectJWT);
     const userName = useSelector(selectUserName);
@@ -658,7 +719,7 @@ export function AuthContainerWithLogic(props: {auth: AuthState}): JSX.Element {
     
     return (
       <>
-        <LoginOrLogoutButton jwt={jwt} promptAsyncReady={props.auth.promptAsyncReady} promptAsync={props.auth.promptAsync} logout={() => props.auth.logout()} userName={userName}/>
+        <LoginOrLogoutButton jwt={jwt} promptAsyncReady={props.auth.promptAsyncReady} promptAsync={props.auth.promptAsync} logout={() => props.auth.logout()} userName={userName} loginProgress={props.auth.loginProgress} setLoginProgress={props.auth.setLoginProgress}/>
         
         <MaybeIfValue text="Errors with automatic login! Details: " value={props.auth.asyncStoreError}/>
         <MaybeIfValue text="Login errors: " value={props.auth.loginErrors}/>
