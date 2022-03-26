@@ -86,7 +86,7 @@ export const updatePlacesInfoFromBackend = (place_id: string, dispatch: AppDispa
                 dispatch(setPlacesInfoFromDatabase(placeInfo));
             }
         }).catch((error) => {
-            dispatch(setPlacesInfoErrors(error.message));
+            dispatch(setPlacesInfoErrors(`Low level error: ${String(error.message)}`));
         });
     })
 }

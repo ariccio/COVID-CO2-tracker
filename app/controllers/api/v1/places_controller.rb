@@ -20,13 +20,15 @@ module Api
 
       def refresh_latlng_from_google
         # byebug
-        return if @place.nil?
+        return false if @place.nil?
 
-        return unless @place.place_needs_refresh?
+        return false unless @place.place_needs_refresh?
 
         ::Rails.logger.debug("\r\n\tUpdating #{@place.google_place_id}...\r\n")
         # byebug
         @spot = get_spot(@place.google_place_id)
+        return nil if @spot.nil?
+
         @place.place_lat = @spot.lat
         @place.place_lng = @spot.lng
         @place.last_fetched = ::Time.current
@@ -37,11 +39,12 @@ module Api
       # GET /places/1
       def show
         @place = ::Place.find(params.fetch(:id))
-        refresh_latlng_from_google
+        refreshed = refresh_latlng_from_google
         if @place.last_fetched < 30.days.ago
           ::Rails.logger.warn("Last fetched #{time_ago_in_words(@place.last_fetch)} - Need to update to comply with google caching restrictions!")
           ::Sentry.capture_message("Last fetched #{time_ago_in_words(@place.last_fetch)} - Need to update to comply with google caching restrictions!")
         end
+        return if refreshed.nil?
         render(json: @place)
       rescue ::ActiveRecord::RecordNotFound => e
         # TODO: query from the backend too to validate input is correct
@@ -71,8 +74,8 @@ module Api
       def show_by_google_place_id
         # byebug
         @place = ::Place.find_by!(google_place_id: params.fetch(:google_place_id))
-        refresh_latlng_from_google
-
+        refreshed = refresh_latlng_from_google
+        return if refreshed.nil?
         # if Rails.env.development?
         #   # serial = ::PlaceSerializer.new(@place)
         #   # Much faster than current method!
@@ -127,36 +130,42 @@ module Api
             errors: [google_places_error('Too many queries for backend API!', e)]
           }, status: :bad_request
         )
+        return nil
       rescue ::GooglePlaces::RequestDeniedError => e
         render(
           json: {
             errors: [google_places_error('backend request denied', e)]
           }, status: :bad_request
         )
+        return nil
       rescue ::GooglePlaces::InvalidRequestError => e
         render(
           json: {
             errors: [google_places_error('backend invalid request to google places', e)]
           }, status: :bad_request
         )
+        return nil
       rescue ::GooglePlaces::UnknownError => e
         render(
           json: {
             errors: [google_places_error('unknown error on backend querying google', e)]
           }, status: :bad_request
         )
+        return nil
       rescue ::GooglePlaces::NotFoundError => e
         render(
           json: {
             errors: [google_places_error('place not found on backend?', e)]
           }
         )
+        return nil
       rescue ::GooglePlaces::APIConnectionError => e
         render(
           json: {
             errors: [google_places_error('Some kind of lower level API break in google places gem', e)]
           }
         )
+        return nil
       end
 
       # POST /places
@@ -166,6 +175,8 @@ module Api
         # @spot.lat, @spot.lng
         @spot = get_spot(place_params.fetch(:google_place_id))
         # https://discuss.rubyonrails.org/t/time-now-vs-time-current-vs-datetime-now/75183/2
+
+        return nil if @spot.nil?
 
         # TODO: Perhaps I should do a find_or_create because of the possibility that two people try to create a place at the same time? Will need to be debounced to prevent dual measurement creation.
         @place = ::Place.create!(google_place_id: place_params.fetch(:google_place_id), place_lat: @spot.lat, place_lng: @spot.lng, last_fetched: ::Time.current)
