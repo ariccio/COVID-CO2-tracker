@@ -2,6 +2,9 @@
 // See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
 
 import notifee from '@notifee/react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
 import * as Device from 'expo-device';
 import { StatusBar } from 'expo-status-bar';
 import * as WebBrowser from 'expo-web-browser';
@@ -13,13 +16,14 @@ import * as Sentry from 'sentry-expo';
 
 
 
+
 import { userRequestOptions } from '../co2_client/src/utils/DefaultRequestOptions';
 import { UserInfoDevice } from '../co2_client/src/utils/DeviceInfoTypes';
 import {ErrorObjectType, formatErrors, withErrors} from '../co2_client/src/utils/ErrorObject';
 // import {} from '../co2_client/src/utils/UserInfoTypes';
 import { userSettingsResponseDataAsPlainSettings, userSettingsResponseToStrongType} from '../co2_client/src/utils/QuerySettingsTypes';
 import {UserSettings} from '../co2_client/src/utils/UserSettings';
-import { incrementSuccessfulUploads, selectJWT, selectShouldUpload, selectSuccessfulUploads, setShouldUpload } from './src/app/globalSlice';
+import { incrementSuccessfulUploads, selectAuthState, selectJWT, selectNextMeasurementTime, selectNotificationState, selectShouldUpload, selectSuccessfulUploads, selectUserDeviceErrors, setAuthState, setNextMeasurementTime, setNotificationState, setShouldUpload, setUserDeviceErrors } from './src/app/globalSlice';
 import { AppDispatch, store } from './src/app/store';
 import {AuthContainer, useGoogleAuthForCO2Tracker} from './src/features/Auth/Auth';
 import { MeasurementDataForUpload } from './src/features/Measurement/MeasurementTypes';
@@ -251,10 +255,10 @@ function dumpDeviceInfo(devices: UserInfoDevice[]): void {
   }
 }
 
-function handleDevicesResponse(devicesResponse: UserDevicesInfo, setUserDeviceErrors: React.Dispatch<React.SetStateAction<string | null>>, dispatch: AppDispatch) {
+function handleDevicesResponse(devicesResponse: UserDevicesInfo, dispatch: AppDispatch) {
   if (devicesResponse.errors) {
     const str = `Getting devices failed! Reasons: ${formatErrors(devicesResponse.errors)}`;
-    setUserDeviceErrors(str);
+    dispatch(setUserDeviceErrors(str));
     Sentry.Native.captureMessage(str);
     return;
   }
@@ -324,13 +328,13 @@ function measurementChange(measurement: MeasurementDataForUpload | null, userSet
   });
 }
 
-function loadDevices(jwt: string | null, userName: string | null | undefined, setUserDeviceErrors: React.Dispatch<React.SetStateAction<string | null>>, dispatch: AppDispatch) {
+function loadDevices(jwt: string | null, userName: string | null | undefined, dispatch: AppDispatch) {
   // console.log("Getting devices...");
   get_my_devices(jwt, userName)?.then((devicesResponse) => {
-    return handleDevicesResponse(devicesResponse, setUserDeviceErrors, dispatch);
+    return handleDevicesResponse(devicesResponse, dispatch);
   }).catch((error) => {
     const str = `Getting devices failed! Probably a bad network connection. Error: ${String(error)}`;
-    setUserDeviceErrors(str);
+    dispatch(setUserDeviceErrors(str));
     console.warn(error);
     Sentry.Native.captureException(error);
     // eslint-disable-next-line no-debugger
@@ -360,12 +364,13 @@ function loadSettings(jwt: string | null, userName: string | null | undefined, d
 
 
 
-const RealtimeMeasurementInfo = (props: {userDeviceErrors: string | null}) => {
+const RealtimeMeasurementInfo = () => {
   const uploadStatus = useSelector(selectUploadStatus);
   const successfulUploads = useSelector(selectSuccessfulUploads);
+  const userDeviceErrors = useSelector(selectUserDeviceErrors);
   return (
     <>
-      <MaybeIfValue text="Device fetch errors: " value={props.userDeviceErrors}/>
+      <MaybeIfValue text="Device fetch errors: " value={userDeviceErrors}/>
       <MaybeIfValue text="Realtime upload status/errors: " value={uploadStatus}/>
       <MaybeIfValue text="Measurments uploaded: " value={successfulUploads} />
       <MaybeIfValue text="Your phone type: " value={Device.modelName}/>    
@@ -418,12 +423,34 @@ async function bootstrap() {
   }
 }
 
+function HomeScreen() {
+  const nextMeasurementTime = useSelector(selectNextMeasurementTime);
+  const supportedDevices = useSelector(selectSupportedDevices);
+  const serialNumber = useSelector(selectDeviceSerialNumberString);
+  const authState = useSelector(selectAuthState);  
+  const notificationState = useSelector(selectNotificationState);
+  
+  const {knownDevice} = useCheckKnownDevice(supportedDevices, serialNumber);
+  return (
+    <SafeAreaProvider style={styles.container}>
+      <BluetoothData knownDevice={knownDevice} nextMeasurement={nextMeasurementTime}/>
+      
+      <AuthContainer auth={authState}/>
+      <RealtimeMeasurementInfo/>
+      <UserSettingsMaybeDisplay/>
+      
+      <NotificationInfo notificationState={notificationState} />
+      <UploadingButton/>
+      <StatusBar style="auto" />
+    </SafeAreaProvider>
+  );
+}
 
 function App() {
   const dispatch = useDispatch();
 
   // const [shouldUpload, setShouldUpload] = useState(false);
-  const [userDeviceErrors, setUserDeviceErrors] = useState(null as (string | null));
+  // const [userDeviceErrors, setUserDeviceErrors] = useState(null as (string | null));
   
   //https://notifee.app/react-native/docs/events#app-open-events
   const [loading, setLoading] = useState(true);
@@ -431,19 +458,26 @@ function App() {
   const userSettings = useSelector(selectUserSettings);
   const jwt = useSelector(selectJWT);
   const userName = useSelector(selectUserName);
-  
-  const supportedDevices = useSelector(selectSupportedDevices);
-  const serialNumber = useSelector(selectDeviceSerialNumberString);
   const shouldUpload = useSelector(selectShouldUpload);
 
 
   const {nextMeasurementTime} = useAranet4NextMeasurementTime();
-  const {knownDevice} = useCheckKnownDevice(supportedDevices, serialNumber);
+  
   const {measurement} = useBluetoothConnectAndPollAranet();
   const notificationState: NotifeeNotificationHookState = useNotifeeNotifications();
   const authState = useGoogleAuthForCO2Tracker();
 
 
+  useEffect(() => {
+    dispatch(setAuthState(authState));
+  }, [authState])
+  useEffect(() => {
+    dispatch(setNotificationState(notificationState));
+  }, [notificationState])
+
+  useEffect(() => {
+    dispatch(setNextMeasurementTime(nextMeasurementTime));
+  }, [nextMeasurementTime])
 
   useEffect(() => {
     console.log(`App starting at ${timeNowAsString()}.`);
@@ -457,7 +491,7 @@ function App() {
   }, []);
   
   useEffect(() => {
-    loadDevices(jwt, userName, setUserDeviceErrors, dispatch);
+    loadDevices(jwt, userName, dispatch);
   }, [userName, jwt])
 
   useEffect(() => {
@@ -478,20 +512,17 @@ function App() {
   // console.log(batteryOptimizationEnabled);
 
   return (
-    <SafeAreaProvider style={styles.container}>          
-      <BluetoothData knownDevice={knownDevice} nextMeasurement={nextMeasurementTime}/>
-      
-      <AuthContainer auth={authState}/>
-      <RealtimeMeasurementInfo userDeviceErrors={userDeviceErrors}/>
-      <UserSettingsMaybeDisplay/>
-      
-      <NotificationInfo notificationState={notificationState} />
-      <UploadingButton/>
-      <StatusBar style="auto" />
-    </SafeAreaProvider>
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen name="Home" component={HomeScreen}/>
+        {/* <HomeScreen/> */}
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 
+
+const Stack = createNativeStackNavigator();
 export default function AppContainer() {
 
   return (

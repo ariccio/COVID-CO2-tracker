@@ -6,7 +6,7 @@ import * as Google from 'expo-auth-session/providers/google';
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
 import {useEffect, useState} from 'react';
-import { Button } from 'react-native';
+import { Button, View, Text } from 'react-native';
 // import AlertAsync from "react-native-alert-async";
 import { useDispatch, useSelector } from 'react-redux';
 import * as Sentry from 'sentry-expo';
@@ -489,7 +489,7 @@ enum AuthLoginProgressState {
   AlmostDoneSaving
 }
 
-interface AuthState {
+export interface AuthState {
   promptAsync: (options?: AuthRequestPromptOptions | undefined) => Promise<AuthSessionResult>;
   promptAsyncReady: boolean;
   asyncStoreError: string | null;
@@ -713,9 +713,19 @@ const LoginOrLogoutButton: React.FC<{jwt: string | null, promptAsyncReady: boole
 }
 
 
-export function AuthContainer(props: {auth: AuthState}): JSX.Element {
+export function AuthContainer(props: {auth?: AuthState}): JSX.Element {
     const jwt = useSelector(selectJWT);
     const userName = useSelector(selectUserName);
+
+    if (props.auth === undefined) {
+      return (
+        <>
+          <View>
+            <Text>Auth not ready yet!</Text>
+          </View>
+        </>
+      )
+    }
 
     return (
       <>

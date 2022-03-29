@@ -6,7 +6,7 @@ import * as Sentry from 'sentry-expo';
 
 import { UserInfoDevice } from '../../../../co2_client/src/utils/DeviceInfoTypes';
 import { UserSettings } from '../../../../co2_client/src/utils/UserSettings';
-import { selectBackgroundPollingEnabled, selectBatteryOptimizationEnabled, selectJWT, selectShouldUpload, setBackgroundPollingEnabled, setBatteryOptimizationEnabled, setShouldUpload } from '../../app/globalSlice';
+import { selectBackgroundPollingEnabled, selectBatteryOptimizationEnabled, selectJWT, selectShouldUpload, setBackgroundPollingEnabled, setBatteryOptimizationEnabled,  setShouldUpload } from '../../app/globalSlice';
 import { AppDispatch } from '../../app/store';
 import { MaybeIfValue } from '../../utils/RenderValues';
 import { timeNowAsString } from '../../utils/TimeNow';
@@ -18,6 +18,7 @@ import { selectDeviceID } from '../bluetooth/bluetoothSlice';
 import { selectSupportedDevices } from '../userInfo/devicesSlice';
 import { selectUserSettings } from '../userInfo/userInfoSlice';
 import {logEvent} from './LogEvent';
+import { setNotificationChannelID, selectNotificationChannelID, setDisplayNotificationNativeErrors, selectDisplayNotificationNativeErrors } from './serviceSlice';
 
 function defaultNotification(channelId: string): Notification {
     const defaultNotificationOptions: Notification = {
@@ -81,7 +82,7 @@ function defaultTriggerNotification(channelId: string): Notification {
 }
 
 
-async function checkedCreateChannel(setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>): Promise<string | null> {
+async function checkedCreateChannel(dispatch: AppDispatch): Promise<string | null> {
     try {
         return await notifee.createChannel({
             id: 'default',
@@ -93,19 +94,19 @@ async function checkedCreateChannel(setNativeErrors: React.Dispatch<React.SetSta
     catch (exception) {
         //Probably native error.
         Sentry.Native.captureException(exception);
-        setNativeErrors(`Error in createChannel: '${String(exception)}'`);
+        dispatch(setDisplayNotificationNativeErrors(`Error in createChannel: '${String(exception)}'`));
         return null;
     }
 }
 
-async function checkedRequestPermission(setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>): Promise<IOSNotificationSettings | null> {
+async function checkedRequestPermission(dispatch: AppDispatch): Promise<IOSNotificationSettings | null> {
     try {
         return await notifee.requestPermission();
     }
     catch (exception) {
         //Probably native error.
         Sentry.Native.captureException(exception);
-        setNativeErrors(`Error in requestPermission: '${String(exception)}'`);
+        dispatch(setDisplayNotificationNativeErrors(`Error in requestPermission: '${String(exception)}'`));
         return null;
     }
 }
@@ -230,7 +231,7 @@ const foregroundServiceCallback = (notification: Notification, deviceID: string,
     })
 }
 
-async function registerForegroundService(setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>, deviceID: string, supportedDevices: UserInfoDevice[], userSettings: UserSettings, jwt: string, shouldUpload: boolean): Promise<void> {
+async function registerForegroundService(deviceID: string, supportedDevices: UserInfoDevice[], userSettings: UserSettings, jwt: string, shouldUpload: boolean, dispatch: AppDispatch): Promise<void> {
     try {
         console.log("Registering foreground service...");
         notifee.registerForegroundService((notification: Notification) => foregroundServiceCallback(notification, deviceID, supportedDevices, userSettings, jwt, shouldUpload));
@@ -238,12 +239,12 @@ async function registerForegroundService(setNativeErrors: React.Dispatch<React.S
     catch (exception) {
         Sentry.Native.captureException(exception);
         //Probably native error.
-        setNativeErrors(`Error in registerForegroundService: '${String(exception)}'`);
+        dispatch(setDisplayNotificationNativeErrors(`Error in registerForegroundService: '${String(exception)}'`));
     }
 }
 
 //https://notifee.app/react-native/docs/displaying-a-notification
-async function onDisplayNotification(setDisplayNotificationErrors: React.Dispatch<React.SetStateAction<string | null>>, setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>, channelId: string, deviceID: string, supportedDevices: UserInfoDevice[], userSettings: UserSettings, jwt: string, shouldUpload: boolean) {
+async function onDisplayNotification(setDisplayNotificationErrors: React.Dispatch<React.SetStateAction<string | null>>, channelId: string, deviceID: string, supportedDevices: UserInfoDevice[], userSettings: UserSettings, jwt: string, shouldUpload: boolean, dispatch: AppDispatch) {
     // Create a channel
 
     //https://github.com/invertase/notifee/blob/7d03bb4eda27b5d4325473cf155852cef42f5909/docs/react-native/docs/debugging.md
@@ -251,11 +252,11 @@ async function onDisplayNotification(setDisplayNotificationErrors: React.Dispatc
     //   adb logcat '*:S' NOTIFEE:D
 
     console.log("Creating foreground service...");
-    await registerForegroundService(setNativeErrors, deviceID, supportedDevices, userSettings, jwt, shouldUpload);
+    await registerForegroundService(deviceID, supportedDevices, userSettings, jwt, shouldUpload, dispatch);
 
     // Required for iOS
     // See https://notifee.app/react-native/docs/ios/permissions
-    await checkedRequestPermission(setNativeErrors);
+    await checkedRequestPermission(dispatch);
 
 
     const notificationWithChannel = defaultNotification(channelId);
@@ -298,7 +299,7 @@ async function onDisplayNotification(setDisplayNotificationErrors: React.Dispatc
     }
 }
 
-async function createTriggerNotification(setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>, channelId: string) {
+async function createTriggerNotification(dispatch: AppDispatch, channelId: string) {
     const trigger: IntervalTrigger = {
         type: TriggerType.INTERVAL,
         interval: 15,
@@ -313,7 +314,7 @@ async function createTriggerNotification(setNativeErrors: React.Dispatch<React.S
     }
     catch (exception) {
         Sentry.Native.captureException(exception);
-        setNativeErrors(`Error creating trigger notification: ${String(exception)}`);
+        dispatch(setDisplayNotificationNativeErrors(`Error creating trigger notification: ${String(exception)}`));
     }
 }
 
@@ -329,9 +330,15 @@ const onClickStopNotificationButton = (handleClickStopNotification: () => Promis
     handleClickStopNotification();
 }
 
-const StartOrStopButton = (props: {notificationState: NotifeeNotificationHookState}) => {
+const StartOrStopButton = (props: {notificationState: NotifeeNotificationHookState | undefined}) => {
     const dispatch = useDispatch();
-    if (props.notificationState.notificationID && props.notificationState.triggerNotification && props.notificationState.channelID) {
+    if (props.notificationState === undefined) {
+        return null;
+    }
+    // if (props.notificationState)
+    if (
+        (props.notificationState !== undefined ) && 
+        props.notificationState.notificationID && props.notificationState.triggerNotification && props.notificationState.channelID) {
         return (
             <>
                 <Button title="Stop background polling" onPress={() => {onClickStopNotificationButton(props.notificationState.handleClickStopNotification)}}/>
@@ -345,18 +352,19 @@ const StartOrStopButton = (props: {notificationState: NotifeeNotificationHookSta
     )
 }
 
-export const NotificationInfo = (props: { notificationState: NotifeeNotificationHookState}) => {
+export const NotificationInfo = (props: { notificationState?: NotifeeNotificationHookState}) => {
     const batteryOptimizationEnabled = useSelector(selectBatteryOptimizationEnabled);
+    const notificationNativeErrors = useSelector(selectDisplayNotificationNativeErrors);
     return (
         <>
             <StartOrStopButton notificationState={props.notificationState}/>
             
-            <MaybeIfValue text="Errors from displaying notifications: " value={props.notificationState.displayNotificationErrors} />
+            <MaybeIfValue text="Errors from displaying notifications: " value={props.notificationState?.displayNotificationErrors} />
             <MaybeIfValue text="Battery optimization enabled: " value={(batteryOptimizationEnabled === null) ? null : String(batteryOptimizationEnabled)} />
-            <MaybeIfValue text="Notifee native errors (what?): " value={props.notificationState.nativeErrors} />
-            <MaybeIfValue text="Notification ID: " value={props.notificationState.notificationID} />
-            <MaybeIfValue text="Trigger notification: " value={props.notificationState.triggerNotification} />
-            <MaybeIfValue text="Notification channel: " value={props.notificationState.channelID} />
+            <MaybeIfValue text="Notifee native errors (what?): " value={notificationNativeErrors} />
+            <MaybeIfValue text="Notification ID: " value={props.notificationState?.notificationID} />
+            <MaybeIfValue text="Trigger notification: " value={props.notificationState?.triggerNotification} />
+            <MaybeIfValue text="Notification channel: " value={props.notificationState?.channelID} />
         </>
     )
 }
@@ -365,22 +373,21 @@ export const NotificationInfo = (props: { notificationState: NotifeeNotification
 export interface NotifeeNotificationHookState {
     handleClickDisplayNotification: () => Promise<void>;
     displayNotificationErrors: string | null;
-    nativeErrors: string | null;
     notificationID: string | null;
     channelID: string | null;
     triggerNotification: string | null;
     handleClickStopNotification: () => Promise<void>;
 }
 
-const init = async (setDisplayNotificationErrors: React.Dispatch<React.SetStateAction<string | null>>, setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>, deviceID: string | null, supportedDevices: UserInfoDevice[] | null, setChannelID: React.Dispatch<React.SetStateAction<string | null>>, setNotificationID: React.Dispatch<React.SetStateAction<string | null>>, channelID: string | null, loggedIn: boolean, userSettings: UserSettings, jwt: string, shouldUpload: boolean) => {
+const init = async (setDisplayNotificationErrors: React.Dispatch<React.SetStateAction<string | null>>, deviceID: string | null, supportedDevices: UserInfoDevice[] | null, setNotificationID: React.Dispatch<React.SetStateAction<string | null>>, channelID: string | null, loggedIn: boolean, userSettings: UserSettings, jwt: string, shouldUpload: boolean, dispatch: AppDispatch) => {
     if (channelID === null) {
         console.log("Channel not created yet, creating...");
-        const channelId_ = await checkedCreateChannel(setNativeErrors);
+        const channelId_ = await checkedCreateChannel(dispatch);
         if (channelId_ === null) {
             console.error("Channel creation failed! Native errors should be set.");
             return;
         }
-        setChannelID(channelId_);
+        dispatch(setNotificationChannelID(channelId_));
         return;
     }
 
@@ -397,7 +404,7 @@ const init = async (setDisplayNotificationErrors: React.Dispatch<React.SetStateA
         return;
     }
 
-    const result = await onDisplayNotification(setDisplayNotificationErrors, setNativeErrors, channelID, deviceID, supportedDevices, userSettings, jwt, shouldUpload);
+    const result = await onDisplayNotification(setDisplayNotificationErrors, channelID, deviceID, supportedDevices, userSettings, jwt, shouldUpload, dispatch);
     if (result !== undefined) {
         setNotificationID(result);
     }
@@ -412,9 +419,8 @@ export async function stopServiceAndClearNotifications() {
 
 export const useNotifeeNotifications = (): NotifeeNotificationHookState => {
     const [displayNotificationErrors, setDisplayNotificationErrors] = useState(null as (string | null));
-    const [nativeErrors, setNativeErrors] = useState(null as (string | null));    
+    // const [nativeErrors, setNativeErrors] = useState(null as (string | null));    
     const [notificationID, setNotificationID] = useState(null as (string | null));
-    const [channelID, setChannelID] = useState(null as (string | null));
     const [triggerNotification, setTriggerNotification] = useState(null as (string | null));
 
     const appState = useRef(AppState.currentState);
@@ -427,20 +433,22 @@ export const useNotifeeNotifications = (): NotifeeNotificationHookState => {
     const userSettings = useSelector(selectUserSettings);
     const jwt = useSelector(selectJWT);
     const shouldUpload = useSelector(selectShouldUpload);
+    const channelID = useSelector(selectNotificationChannelID);
+
     const {loggedIn} = useIsLoggedIn();
 
     const dispatch = useDispatch();
 
     const handleClickDisplayNotification = async () => {
-        clickDisplayNotification(channelID, setNativeErrors, setChannelID, setTriggerNotification, dispatch);
+        clickDisplayNotification(channelID, setTriggerNotification, dispatch);
     }
 
     const handleClickStopNotification = async () => {
-        await clickStopNotification(setChannelID, setTriggerNotification, dispatch, setNotificationID);
+        await clickStopNotification(setTriggerNotification, dispatch, setNotificationID);
     }
 
     useEffect(() => {
-        createOrUpdateNotification(setDisplayNotificationErrors, setNativeErrors, deviceID, supportedDevices, setChannelID, setNotificationID, channelID, loggedIn, jwt, shouldUpload, backgroundPollingEnabled, userSettings);
+        createOrUpdateNotification(setDisplayNotificationErrors, deviceID, supportedDevices, setNotificationID, channelID, loggedIn, jwt, shouldUpload, backgroundPollingEnabled, dispatch, userSettings);
         return (() => {
             stopServiceAndClearNotifications();
         })
@@ -465,39 +473,39 @@ export const useNotifeeNotifications = (): NotifeeNotificationHookState => {
     };
 
     useEffect(() => {
-        checkBatteryOptimization(dispatch, setNativeErrors);
+        checkBatteryOptimization(dispatch);
     }, [])
 
-    return { handleClickDisplayNotification, displayNotificationErrors, nativeErrors, notificationID, channelID, triggerNotification, handleClickStopNotification }
+    return { handleClickDisplayNotification, displayNotificationErrors, notificationID, channelID, triggerNotification, handleClickStopNotification }
 }
 
-function checkBatteryOptimization(dispatch: AppDispatch, setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>) {
+function checkBatteryOptimization(dispatch: AppDispatch) {
     notifee.isBatteryOptimizationEnabled().then((result) => {
         // console.log(`Battery optimization: ${result}`);
         return dispatch(setBatteryOptimizationEnabled(result));
     }).catch((exception) => {
         Sentry.Native.captureException(exception);
         // In theory, the native java code can throw exceptions if something is desperatley wrong...
-        setNativeErrors(`Error in isBatteryOptimizationEnabled: '${String(exception)}'`);
+        dispatch(setDisplayNotificationNativeErrors(`Error in isBatteryOptimizationEnabled: '${String(exception)}'`));
     });
 }
 
-async function clickDisplayNotification(channelID: string | null, setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>, setChannelID: React.Dispatch<React.SetStateAction<string | null>>, setTriggerNotification: React.Dispatch<React.SetStateAction<string | null>>, dispatch: AppDispatch) {
+async function clickDisplayNotification(channelID: string | null, setTriggerNotification: React.Dispatch<React.SetStateAction<string | null>>, dispatch: AppDispatch) {
     stopServiceAndClearNotifications();
     let channelId_ = channelID;
     if (channelId_ === null) {
         console.log("Channel not created yet, creating...");
-        channelId_ = await checkedCreateChannel(setNativeErrors);
+        channelId_ = await checkedCreateChannel(dispatch);
         if (channelId_ === null) {
             console.error("Channel creation failed! Native errors should be set.");
             return;
         }
-        setChannelID(channelId_);
+        dispatch(setNotificationChannelID(channelId_));
         // return;
 
     }
 
-    const triggerResult = await createTriggerNotification(setNativeErrors, channelId_);
+    const triggerResult = await createTriggerNotification(dispatch, channelId_);
     if (triggerResult !== undefined) {
         setTriggerNotification(triggerResult);
     }
@@ -506,16 +514,16 @@ async function clickDisplayNotification(channelID: string | null, setNativeError
 }
 
 
-async function clickStopNotification(setChannelID: React.Dispatch<React.SetStateAction<string | null>>, setTriggerNotification: React.Dispatch<React.SetStateAction<string | null>>, dispatch: AppDispatch, setNotificationID: React.Dispatch<React.SetStateAction<string | null>>) {
+async function clickStopNotification(setTriggerNotification: React.Dispatch<React.SetStateAction<string | null>>, dispatch: AppDispatch, setNotificationID: React.Dispatch<React.SetStateAction<string | null>>) {
     stopServiceAndClearNotifications();
-    setChannelID(null);
+    dispatch(setNotificationChannelID(null));
     setTriggerNotification(null);
     dispatch(setBackgroundPollingEnabled(false));
     setNotificationID(null);
     dispatch(setShouldUpload(false));
 }
 
-function createOrUpdateNotification(setDisplayNotificationErrors: React.Dispatch<React.SetStateAction<string | null>>, setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>, deviceID: string | null, supportedDevices: UserInfoDevice[] | null, setChannelID: React.Dispatch<React.SetStateAction<string | null>>, setNotificationID: React.Dispatch<React.SetStateAction<string | null>>, channelID: string | null, loggedIn: boolean, jwt: string | null, shouldUpload: boolean, backgroundPollingEnabled: boolean, userSettings?: UserSettings | null) {
+function createOrUpdateNotification(setDisplayNotificationErrors: React.Dispatch<React.SetStateAction<string | null>>, deviceID: string | null, supportedDevices: UserInfoDevice[] | null, setNotificationID: React.Dispatch<React.SetStateAction<string | null>>, channelID: string | null, loggedIn: boolean, jwt: string | null, shouldUpload: boolean, backgroundPollingEnabled: boolean, dispatch: AppDispatch, userSettings?: UserSettings | null) {
     if (!backgroundPollingEnabled) {
         console.log("NOT polling in background.");
         return;
@@ -535,6 +543,6 @@ function createOrUpdateNotification(setDisplayNotificationErrors: React.Dispatch
     }
 
     console.log("polling in background.");
-    init(setDisplayNotificationErrors, setNativeErrors, deviceID, supportedDevices, setChannelID, setNotificationID, channelID, loggedIn, userSettings, jwt, shouldUpload);
+    init(setDisplayNotificationErrors, deviceID, supportedDevices, setNotificationID, channelID, loggedIn, userSettings, jwt, shouldUpload, dispatch);
 }
 

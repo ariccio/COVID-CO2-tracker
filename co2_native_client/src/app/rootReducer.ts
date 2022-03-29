@@ -5,6 +5,7 @@ import { combineReducers } from '@reduxjs/toolkit';
 import { measurementReducer } from '../features/Measurement/measurementSlice';
 import { uploadReducer } from '../features/Uploading/uploadSlice';
 import { bluetoothReducer } from '../features/bluetooth/bluetoothSlice';
+import { serviceReducer } from '../features/service/serviceSlice';
 import { userDevicesReducer } from '../features/userInfo/devicesSlice';
 import {userInfoReducer} from '../features/userInfo/userInfoSlice';
 import { globalsReducer } from './globalSlice';
@@ -15,7 +16,8 @@ export const rootReducer = combineReducers({
     userInfo: userInfoReducer,
     globals: globalsReducer,
     measurements: measurementReducer,
-    upload: uploadReducer
+    upload: uploadReducer,
+    service: serviceReducer
 });
 
 export type RootState = ReturnType<typeof rootReducer>;
