@@ -2,6 +2,7 @@
 import { combineReducers } from '@reduxjs/toolkit';
 
 // import { measurementReducer } from '../features/Measurement/MeasurementSlice';
+import { authReducer } from '../features/Auth/authSlice';
 import { measurementReducer } from '../features/Measurement/measurementSlice';
 import { uploadReducer } from '../features/Uploading/uploadSlice';
 import { bluetoothReducer } from '../features/bluetooth/bluetoothSlice';
@@ -17,7 +18,8 @@ export const rootReducer = combineReducers({
     globals: globalsReducer,
     measurements: measurementReducer,
     upload: uploadReducer,
-    service: serviceReducer
+    service: serviceReducer,
+    auth: authReducer
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

@@ -4,9 +4,10 @@ import { RootState } from '../../app/rootReducer';
 import { NotifeeNotificationHookState } from './Notification';
 
 
-enum NotificationAction {
+export enum NotificationAction {
     StartNotification,
-    StopNotification}
+    StopNotification
+}
 
 interface ServiceSlice {
     notificationState: NotifeeNotificationHookState | undefined;

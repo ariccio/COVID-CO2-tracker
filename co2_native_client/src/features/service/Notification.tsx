@@ -18,7 +18,7 @@ import { selectDeviceID } from '../bluetooth/bluetoothSlice';
 import { selectSupportedDevices } from '../userInfo/devicesSlice';
 import { selectUserSettings } from '../userInfo/userInfoSlice';
 import {logEvent} from './LogEvent';
-import { setNotificationChannelID, selectNotificationChannelID, setDisplayNotificationNativeErrors, selectDisplayNotificationNativeErrors } from './serviceSlice';
+import { setNotificationChannelID, selectNotificationChannelID, setDisplayNotificationNativeErrors, selectDisplayNotificationNativeErrors, setNotificationAction, NotificationAction, selectNotificationAction } from './serviceSlice';
 
 function defaultNotification(channelId: string): Notification {
     const defaultNotificationOptions: Notification = {
@@ -319,15 +319,17 @@ async function createTriggerNotification(dispatch: AppDispatch, channelId: strin
 }
 
 
-const onClickNotificationButton = (handleClickDisplayNotification: () => Promise<void>, dispatch: AppDispatch) => {
+const onClickStartNotificationButton = (dispatch: AppDispatch) => {
     dispatch(setShouldUpload(false));
     dispatch(setShouldUpload(true));
-    handleClickDisplayNotification();
+    dispatch(setNotificationAction(NotificationAction.StartNotification));
+    // handleClickDisplayNotification();
 }
 
 
-const onClickStopNotificationButton = (handleClickStopNotification: () => Promise<void>) => {
-    handleClickStopNotification();
+const onClickStopNotificationButton = (dispatch: AppDispatch) => {
+    dispatch(setNotificationAction(NotificationAction.StopNotification));
+    // handleClickStopNotification();
 }
 
 const StartOrStopButton = (props: {notificationState: NotifeeNotificationHookState | undefined}) => {
@@ -341,13 +343,13 @@ const StartOrStopButton = (props: {notificationState: NotifeeNotificationHookSta
         props.notificationState.notificationID && props.notificationState.triggerNotification && props.notificationState.channelID) {
         return (
             <>
-                <Button title="Stop background polling" onPress={() => {onClickStopNotificationButton(props.notificationState.handleClickStopNotification)}}/>
+                <Button title="Stop background polling" onPress={() => {onClickStopNotificationButton(dispatch)}}/>
             </>
         )
     }
     return (
         <>
-            <Button title="Start background polling & uploading" onPress={() => { onClickNotificationButton(props.notificationState.handleClickDisplayNotification, dispatch) }} />
+            <Button title="Start background polling & uploading" onPress={() => { onClickStartNotificationButton(dispatch) }} />
         </>
     )
 }
@@ -371,12 +373,12 @@ export const NotificationInfo = (props: { notificationState?: NotifeeNotificatio
 
 
 export interface NotifeeNotificationHookState {
-    handleClickDisplayNotification: () => Promise<void>;
+    // handleClickDisplayNotification: () => Promise<void>;
     displayNotificationErrors: string | null;
     notificationID: string | null;
     channelID: string | null;
     triggerNotification: string | null;
-    handleClickStopNotification: () => Promise<void>;
+    // handleClickStopNotification: () => Promise<void>;
 }
 
 const init = async (setDisplayNotificationErrors: React.Dispatch<React.SetStateAction<string | null>>, deviceID: string | null, supportedDevices: UserInfoDevice[] | null, setNotificationID: React.Dispatch<React.SetStateAction<string | null>>, channelID: string | null, loggedIn: boolean, userSettings: UserSettings, jwt: string, shouldUpload: boolean, dispatch: AppDispatch) => {
@@ -434,18 +436,35 @@ export const useNotifeeNotifications = (): NotifeeNotificationHookState => {
     const jwt = useSelector(selectJWT);
     const shouldUpload = useSelector(selectShouldUpload);
     const channelID = useSelector(selectNotificationChannelID);
+    const notificationAction = useSelector(selectNotificationAction);
 
     const {loggedIn} = useIsLoggedIn();
 
     const dispatch = useDispatch();
 
-    const handleClickDisplayNotification = async () => {
-        clickDisplayNotification(channelID, setTriggerNotification, dispatch);
-    }
+    // const handleClickDisplayNotification = async () => {
+        
+    // }
 
-    const handleClickStopNotification = async () => {
-        await clickStopNotification(setTriggerNotification, dispatch, setNotificationID);
-    }
+    // const handleClickStopNotification = async () => {
+        
+    // }
+
+
+    useEffect(() => {
+        switch (notificationAction) {
+            case (NotificationAction.StartNotification): {
+                console.log("notification start requested");
+                clickDisplayNotification(channelID, setTriggerNotification, dispatch);
+                break;
+            }
+            case (NotificationAction.StopNotification): {
+                console.log("notification stop requested");
+                clickStopNotification(setTriggerNotification, dispatch, setNotificationID);
+                break;
+            }
+        }
+    }, [notificationAction])
 
     useEffect(() => {
         createOrUpdateNotification(setDisplayNotificationErrors, deviceID, supportedDevices, setNotificationID, channelID, loggedIn, jwt, shouldUpload, backgroundPollingEnabled, dispatch, userSettings);
@@ -476,7 +495,7 @@ export const useNotifeeNotifications = (): NotifeeNotificationHookState => {
         checkBatteryOptimization(dispatch);
     }, [])
 
-    return { handleClickDisplayNotification, displayNotificationErrors, notificationID, channelID, triggerNotification, handleClickStopNotification }
+    return { displayNotificationErrors, notificationID, channelID, triggerNotification }
 }
 
 function checkBatteryOptimization(dispatch: AppDispatch) {

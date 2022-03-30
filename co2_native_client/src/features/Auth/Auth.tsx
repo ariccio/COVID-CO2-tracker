@@ -6,7 +6,7 @@ import * as Google from 'expo-auth-session/providers/google';
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
 import {useEffect, useState} from 'react';
-import { Button, View, Text } from 'react-native';
+import { Button } from 'react-native';
 // import AlertAsync from "react-native-alert-async";
 import { useDispatch, useSelector } from 'react-redux';
 import * as Sentry from 'sentry-expo';
@@ -22,6 +22,7 @@ import {fetchJSONWithChecks} from '../../utils/NativeFetchHelpers';
 import { MaybeIfValue, ValueOrLoading } from '../../utils/RenderValues';
 import {LOGIN_URL_NATIVE, EMAIL_URL_NATIVE} from '../../utils/UrlPaths';
 import { selectUserName, setUserName } from '../userInfo/userInfoSlice';
+import {AuthLoginProgressState, CallPromptAsyncStateAction, selectAsyncStoreError, selectLoginErrors, selectLoginProgress, selectPromptAsyncError, selectPromptAsyncReady, selectRequestPromptAsync, setAsyncStoreError, setLoginErrors, setLoginProgress, setPromptAsyncError, setPromptAsyncReady, setRequestPromptAsync} from './authSlice';
 
 interface NativeEmailResponse {
     email: string;
@@ -148,17 +149,17 @@ const fetchLoginSuccessCallback = async (awaitedResponse: Response): Promise<Nat
   
 const CO2_TRACKER_JWT_KEY_NAME = 'riccio-co2-tracker-jwt';
 
-async function saveJWTToAsyncStore(jwt: string, setAsyncStoreError: React.Dispatch<React.SetStateAction<string | null>>, setLoginProgress: React.Dispatch<React.SetStateAction<AuthLoginProgressState>>): Promise<void> {
+async function saveJWTToAsyncStore(jwt: string, dispatch: AppDispatch): Promise<void> {
   console.log(`Saving JWT (${jwt}) to secure storage...`);
   try {
     await SecureStore.setItemAsync(CO2_TRACKER_JWT_KEY_NAME, jwt);
-    setLoginProgress(AuthLoginProgressState.None);
+    dispatch(setLoginProgress(AuthLoginProgressState.None));
     return;
   }
   catch (error) {
     console.error(error);
-    setAsyncStoreError(`Error saving login info from secure local storage: '${String(error)}' ...you will need to login again manually!`);
-    setLoginProgress(AuthLoginProgressState.Failed);
+    dispatch(setAsyncStoreError(`Error saving login info from secure local storage: '${String(error)}' ...you will need to login again manually!`));
+    dispatch(setLoginProgress(AuthLoginProgressState.Failed));
     // eslint-disable-next-line no-debugger
     debugger;
   }
@@ -181,10 +182,10 @@ const nativeGetEmail = async (jwt: string) => {
 }
 
 
-const loginWithIDToken = (id_token: string, setAsyncStoreError: React.Dispatch<React.SetStateAction<string | null>>, dispatch: AppDispatch, setLoginErrors: React.Dispatch<React.SetStateAction<string | null>>, setLoginProgress: React.Dispatch<React.SetStateAction<AuthLoginProgressState>>) => {
+const loginWithIDToken = (id_token: string, dispatch: AppDispatch) => {
     const options = nativeLoginRequestInit(id_token);
     console.log("logging in to server!");
-    setLoginProgress(AuthLoginProgressState.ConnectingToServer)
+    dispatch(setLoginProgress(AuthLoginProgressState.ConnectingToServer));
     // const url = (API_URL + '/google_login_token');
     // debugger;
     const result = fetchJSONWithChecks(LOGIN_URL_NATIVE, options, 200, true, fetchLoginFailedCallback, fetchLoginSuccessCallback) as Promise<NativeLoginResponseType>;
@@ -192,9 +193,9 @@ const loginWithIDToken = (id_token: string, setAsyncStoreError: React.Dispatch<R
       if (response.errors !== undefined) {
         const str = formatErrors(response.errors);
         console.error(`Login to server FAILED: ${str}`);
-        setLoginErrors(str);
+        dispatch(setLoginErrors(str));
         Sentry.Native.captureMessage(str);
-        setLoginProgress(AuthLoginProgressState.Failed)
+        dispatch(setLoginProgress(AuthLoginProgressState.Failed));
         // eslint-disable-next-line no-debugger
         debugger;
         return null;
@@ -203,14 +204,14 @@ const loginWithIDToken = (id_token: string, setAsyncStoreError: React.Dispatch<R
       dispatch(setUserName(response.email));
       dispatch(setJWT(response.jwt));
       console.assert(response.errors === undefined);
-      setLoginProgress(AuthLoginProgressState.AlmostDoneSaving);
-      return saveJWTToAsyncStore(response.jwt, setAsyncStoreError, setLoginProgress);
+      dispatch(setLoginProgress(AuthLoginProgressState.AlmostDoneSaving));
+      return saveJWTToAsyncStore(response.jwt, dispatch);
   
     }).catch((error) => {
       Sentry.Native.captureException(error);
       console.error(error);
-      setLoginProgress(AuthLoginProgressState.Failed);
-      setLoginErrors(`Unexpected error: ${String(error)}`);
+      dispatch(setLoginProgress(AuthLoginProgressState.Failed));
+      dispatch(setLoginErrors(`Unexpected error: ${String(error)}`));
       // eslint-disable-next-line no-debugger
       debugger;
     })
@@ -273,12 +274,12 @@ function hasBadStore(error: unknown): boolean {
   return false;
 }
 
-async function queryAsyncStoreForStoredJWT(setAsyncStoreError: React.Dispatch<React.SetStateAction<string | null>>): Promise<string | null> {
+async function queryAsyncStoreForStoredJWT(dispatch: AppDispatch): Promise<string | null> {
     const available = await SecureStore.isAvailableAsync();
     if (!available) {
       // eslint-disable-next-line no-debugger
       debugger;
-      setAsyncStoreError("SecureStore NOT available! Should be available on Android AND iOS. You will need to login manually on each start of the app.");
+      dispatch(setAsyncStoreError("SecureStore NOT available! Should be available on Android AND iOS. You will need to login manually on each start of the app."));
       return null;
     }
     try {
@@ -300,14 +301,14 @@ async function queryAsyncStoreForStoredJWT(setAsyncStoreError: React.Dispatch<Re
     catch (error) {
       if (hasBadStore(error)) {
         console.log("Corrupt store!");
-        setAsyncStoreError(`Store is corrupt, will try and clear. - error: ${String(error)}`);
+        dispatch(setAsyncStoreError(`Store is corrupt, will try and clear. - error: ${String(error)}`));
         await SecureStore.deleteItemAsync(CO2_TRACKER_JWT_KEY_NAME);
         console.log("Cleared.");
-        setAsyncStoreError(`Corrupt store cleared... you may need to restart the app!`);
+        dispatch(setAsyncStoreError(`Corrupt store cleared... you may need to restart the app!`));
         return null;
       }
       console.error(unknownNativeErrorTryFormat(error));
-      setAsyncStoreError(`Error loading login info from secure local storage: ${String(error)}. You will need to login manually.`);
+      dispatch(setAsyncStoreError(`Error loading login info from secure local storage: ${String(error)}. You will need to login manually.`));
       Sentry.Native.captureException(error);
       // eslint-disable-next-line no-debugger
       debugger;
@@ -315,8 +316,8 @@ async function queryAsyncStoreForStoredJWT(setAsyncStoreError: React.Dispatch<Re
     }
   }
   
-  async function deleteJWTFromAsyncStore(setAsyncStoreError: React.Dispatch<React.SetStateAction<string | null>>): Promise<void> {
-    const valueInStore = await queryAsyncStoreForStoredJWT(setAsyncStoreError);
+  async function deleteJWTFromAsyncStore(dispatch: AppDispatch): Promise<void> {
+    const valueInStore = await queryAsyncStoreForStoredJWT(dispatch);
     if (valueInStore === null) {
       return;
     }
@@ -325,7 +326,7 @@ async function queryAsyncStoreForStoredJWT(setAsyncStoreError: React.Dispatch<Re
     }
     catch (error) {
       console.error(error);
-      setAsyncStoreError(`Error clearing login info from secure local storage: ${String(error)}. This is weird. Try clearing app data?`);
+      dispatch(setAsyncStoreError(`Error clearing login info from secure local storage: ${String(error)}. This is weird. Try clearing app data?`));
       Sentry.Native.captureException(error);
       // eslint-disable-next-line no-debugger
       debugger;
@@ -334,7 +335,7 @@ async function queryAsyncStoreForStoredJWT(setAsyncStoreError: React.Dispatch<Re
   
   
 
-function setIDTokenIfGoodResponseFromGoogle(setIDToken: React.Dispatch<React.SetStateAction<string | null>>, responseFromGoogle: AuthSessionResult | null, setLoginErrors: React.Dispatch<React.SetStateAction<string | null>>, setLoginProgress: React.Dispatch<React.SetStateAction<AuthLoginProgressState>>) {
+function setIDTokenIfGoodResponseFromGoogle(setIDToken: React.Dispatch<React.SetStateAction<string | null>>, responseFromGoogle: AuthSessionResult | null, dispatch: AppDispatch) {
   if (responseFromGoogle === undefined) {
     throw new Error("Response from google (auth) is undefined?");
   }
@@ -343,30 +344,30 @@ function setIDTokenIfGoodResponseFromGoogle(setIDToken: React.Dispatch<React.Set
     return;
   }
   if (responseFromGoogle.type === 'error') {
-    handleGoogleAuthErrorResponse(responseFromGoogle, setLoginErrors, setLoginProgress);
+    handleGoogleAuthErrorResponse(responseFromGoogle, dispatch);
     return;
   }
   if (responseFromGoogle.type === 'success') {
-    handleGoogleAuthSuccessResponse(responseFromGoogle, setLoginErrors, setIDToken, setLoginProgress);
+    handleGoogleAuthSuccessResponse(responseFromGoogle, setIDToken, dispatch);
     return;
   }
   if (responseFromGoogle.type === 'dismiss') {
-    handleGoogleAuthDismissResponse(responseFromGoogle, setLoginErrors, setIDToken, setLoginProgress);
+    handleGoogleAuthDismissResponse(responseFromGoogle, setIDToken, dispatch);
     return;
   }
   throw new Error(`Unexpected responseFromGoogle type: "${responseFromGoogle.type}". Full object: ${JSON.stringify(responseFromGoogle)} `);
 }
 
-function handleGoogleAuthDismissResponse(responseFromGoogle: AuthSessionResult, setLoginErrors: React.Dispatch<React.SetStateAction<string | null>>, setIDToken: React.Dispatch<React.SetStateAction<string | null>>, setLoginProgress: React.Dispatch<React.SetStateAction<AuthLoginProgressState>>) {
+function handleGoogleAuthDismissResponse(responseFromGoogle: AuthSessionResult, setIDToken: React.Dispatch<React.SetStateAction<string | null>>, dispatch: AppDispatch) {
   if (responseFromGoogle.type !== "dismiss") {
     throw new Error("compile time bug. Wrong type passed to handleGoogleAuthDismissResponse, I'm not good enough at typescript to do correctly.");
   }
   setIDToken(null);
-  setLoginErrors("You dismissed the login prompt. Try again.");
-  setLoginProgress(AuthLoginProgressState.None);
+  dispatch(setLoginErrors("You dismissed the login prompt. Try again."));
+  dispatch(setLoginProgress(AuthLoginProgressState.None));
 }
 
-function handleGoogleAuthSuccessResponse(responseFromGoogle: AuthSessionResult, setLoginErrors: React.Dispatch<React.SetStateAction<string | null>>, setIDToken: React.Dispatch<React.SetStateAction<string | null>>, setLoginProgress: React.Dispatch<React.SetStateAction<AuthLoginProgressState>>) {
+function handleGoogleAuthSuccessResponse(responseFromGoogle: AuthSessionResult, setIDToken: React.Dispatch<React.SetStateAction<string | null>>, dispatch: AppDispatch) {
   if (responseFromGoogle.type !== "success") {
     throw new Error("compile time bug. Wrong type passed to handleGoogleAuthSuccessResponse, I'm not good enough at typescript to do correctly.");
   }
@@ -378,7 +379,7 @@ function handleGoogleAuthSuccessResponse(responseFromGoogle: AuthSessionResult, 
     Sentry.Native.captureMessage("Authentication is null?");
     // eslint-disable-next-line no-debugger
     debugger;
-    setLoginProgress(AuthLoginProgressState.Failed);
+    dispatch(setLoginProgress(AuthLoginProgressState.Failed));
     return;
   }
   //see also, fields:
@@ -387,7 +388,7 @@ function handleGoogleAuthSuccessResponse(responseFromGoogle: AuthSessionResult, 
   console.log(`expiresIn: ${responseFromGoogle.authentication.expiresIn}`);
   console.log(`refreshToken: ${responseFromGoogle.authentication.refreshToken}`);
   if (responseFromGoogle.authentication.idToken === null) {
-    setLoginErrors('ID token missing from google response. May be a bug?');
+    dispatch(setLoginErrors('ID token missing from google response. May be a bug?'));
     Sentry.Native.captureMessage("responseFromGoogle.authentication.idToken null??!?");
     throw new Error("responseFromGoogle.authentication.idToken null??!?");
   }
@@ -395,12 +396,12 @@ function handleGoogleAuthSuccessResponse(responseFromGoogle: AuthSessionResult, 
     throw new Error("responseFromGoogle.authentication.idToken undefined??!?");
   }
   setIDToken(responseFromGoogle.authentication.idToken);
-  setLoginErrors(null);
-  setLoginProgress(AuthLoginProgressState.GoogleResponseGood);
+  dispatch(setLoginErrors(null));
+  dispatch(setLoginProgress(AuthLoginProgressState.GoogleResponseGood));
 
 }
 
-function handleGoogleAuthErrorResponse(responseFromGoogle: AuthSessionResult, setLoginErrors: React.Dispatch<React.SetStateAction<string | null>>, setLoginProgress: React.Dispatch<React.SetStateAction<AuthLoginProgressState>>) {
+function handleGoogleAuthErrorResponse(responseFromGoogle: AuthSessionResult, dispatch: AppDispatch) {
   let googleAuthError = `Error logging in with google!`;
   if (responseFromGoogle.type !== "error") {
     throw new Error("compile time bug. Wrong type passed to handleGoogleAuthErrorResponse, I'm not good enough at typescript to do correctly.");
@@ -415,12 +416,12 @@ function handleGoogleAuthErrorResponse(responseFromGoogle: AuthSessionResult, se
     googleAuthError += ` Google authentication error code: ${responseFromGoogle.errorCode}.`;
   }
   googleAuthError += ` ...full object: ${JSON.stringify(responseFromGoogle)}`;
-  setLoginErrors(googleAuthError);
+  dispatch(setLoginErrors(googleAuthError));
   Sentry.Native.captureMessage(googleAuthError);
-  setLoginProgress(AuthLoginProgressState.None);
+  dispatch(setLoginProgress(AuthLoginProgressState.None));
 }
 
-async function handleAsyncStoreResult(maybeJWT: string | null, dispatch: AppDispatch, setLoginErrors: React.Dispatch<React.SetStateAction<string | null>>) {
+async function handleAsyncStoreResult(maybeJWT: string | null, dispatch: AppDispatch) {
   if (maybeJWT) {
     dispatch(setJWT(maybeJWT));
     // console.log("Set JWT from storage! Will try and get email/username from server...");
@@ -432,7 +433,7 @@ async function handleAsyncStoreResult(maybeJWT: string | null, dispatch: AppDisp
     }
     catch (error) {
       Sentry.Native.captureException(error);
-      setLoginErrors(`Failed to load up-to-date username/email: ${String(error)}`)
+      dispatch(setLoginErrors(`Failed to load up-to-date username/email: ${String(error)}`));
 
     }
   }
@@ -479,37 +480,23 @@ function getAndroidClientID(): string {
   return prodAndroidClientID;
 }
 
-enum AuthLoginProgressState {
-  None,
-  WaitingForGoogle,
-  ParsingGoogleResponse,
-  GoogleResponseGood,
-  Failed,
-  ConnectingToServer,
-  AlmostDoneSaving
-}
 
-export interface AuthState {
-  promptAsync: (options?: AuthRequestPromptOptions | undefined) => Promise<AuthSessionResult>;
-  promptAsyncReady: boolean;
-  asyncStoreError: string | null;
-  logout: () => void;
-  loginErrors: string | null;
-  loginProgress: AuthLoginProgressState;
-  setLoginProgress: React.Dispatch<React.SetStateAction<AuthLoginProgressState>>;
-}
+// export interface AuthState {
+//   // promptAsync: (options?: AuthRequestPromptOptions | undefined) => Promise<AuthSessionResult>;
+// }
 
-export const useGoogleAuthForCO2Tracker = (): AuthState => {
+export const logout = (dispatch: AppDispatch) => {
+  console.log("Log out clicked...");
+  dispatch(setJWT(null));
+  deleteJWTFromAsyncStore(dispatch);
+  alert("Please restart the app.");
+};
+
+
+export const useGoogleAuthForCO2Tracker = () => {
   const dispatch = useDispatch();
   const [idToken, setIDToken] = useState(null as (string | null));
-
-  const [asyncStoreError, setAsyncStoreError] = useState(null as (string | null));
-  const [loginErrors, setLoginErrors] = useState(null as (string | null));
-
-  const [promptAsyncReady, setPromptAsyncReady] = useState(false);
-
-  const [loginProgress, setLoginProgress] = useState(AuthLoginProgressState.None);
-
+  const requestPromptAsync = useSelector(selectRequestPromptAsync);
 
   const androidClientId = getAndroidClientID();
   /*
@@ -520,45 +507,37 @@ export const useGoogleAuthForCO2Tracker = (): AuthState => {
   const config: Partial<Google.GoogleAuthRequestConfig> = {
     // expoClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
     // iosClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
-    androidClientId,
-    // webClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
-    // redirectUri: "com.ariccio.co2_native_client:/oauth2redirect",
-    // redirectUri: "com.ariccio.co2_native_client/:oauth2redirect",
-    // redirectUri: "com.ariccio.co2_native_client:",
-    // redirectUri: "riccio.co2.client:/oauthredirect",
-    // redirectUri: "riccio.co2.client",
-    // redirectUri: "fartipelago",
-    
-    // scopes: [
-    //   'profile',
-    //   'email',
-    //   'openid'
-    // ]
-  }
+    androidClientId
+    }
 
-  // const redirectUriOptions: AuthSessionRedirectUriOptions = {
-  //   // scheme: 'com.ariccio.co2_native_client:/fartipelago://'
-  //   // native: 'riccio.co2.client:/oauthredirect'
-  //   native: 'riccio.co2.client'
-  // }
   const [request, response, promptAsync] = Google.useAuthRequest(config);
-  // console.log(String(request?.redirectUri));
-  // console.log(String(request?.extraParams));
-  // console.log(String(request?.url));
 
-  const logout = () => {
-    console.log("Log out clicked...");
-    dispatch(setJWT(null));
-    deleteJWTFromAsyncStore(setAsyncStoreError);
-    alert("Please restart the app.");
-  };
+  
+  useEffect(() => {
+    if (requestPromptAsync === CallPromptAsyncStateAction.TriggerCallPromptAsync) {
+      promptAsync().then((result) => {
+        dispatch(setLoginProgress(AuthLoginProgressState.ParsingGoogleResponse));
+        if (result.type === 'success') {
+          return;
+        }
+        handleNonSuccessResults(result, dispatch);
+        dispatch(setRequestPromptAsync(null));
+        return;
+        
+      }).catch((error) => {
+        Sentry.Native.captureException(error);
+        dispatch(setPromptAsyncError(`Unexpected promise rejection when prompting user for login: ${String(error)}`))
+        dispatch(setLoginProgress(AuthLoginProgressState.Failed));
+      })
+    }
+  }, [requestPromptAsync]);
 
 
   useEffect(() => {
-      queryAsyncStoreForStoredJWT(setAsyncStoreError).then((maybeJWT) => {
-          return handleAsyncStoreResult(maybeJWT, dispatch, setLoginErrors);
+      queryAsyncStoreForStoredJWT(dispatch).then((maybeJWT) => {
+          return handleAsyncStoreResult(maybeJWT, dispatch);
       }).catch((error) => {
-        setAsyncStoreError(String(error));
+        dispatch(setAsyncStoreError(String(error)));
         Sentry.Native.captureException(error);
       })
   }, []);
@@ -567,12 +546,12 @@ export const useGoogleAuthForCO2Tracker = (): AuthState => {
     // "Be sure to disable the prompt until request is defined."
     const requestSet = (request !== null);
     // console.log(`request ready for promptAsync: ${requestSet}`);
-    setPromptAsyncReady(requestSet);
+    dispatch(setPromptAsyncReady(requestSet));
   }, [request]);
 
   useEffect(() => {
     // console.log(request);
-    setIDTokenIfGoodResponseFromGoogle(setIDToken, response, setLoginErrors, setLoginProgress);
+    setIDTokenIfGoodResponseFromGoogle(setIDToken, response, dispatch);
   }, [response]);
 
   useEffect(() => {
@@ -586,12 +565,40 @@ export const useGoogleAuthForCO2Tracker = (): AuthState => {
       debugger;
       return;
     }
-    loginWithIDToken(idToken, setAsyncStoreError, dispatch, setLoginErrors, setLoginProgress);
+    loginWithIDToken(idToken, dispatch);
   }, [idToken]);
 
-  return {promptAsync, promptAsyncReady, asyncStoreError, logout, loginErrors, loginProgress, setLoginProgress};
+  return {promptAsync};
   };
   
+function handleNonSuccessResults(result: AuthSessionResult, dispatch: AppDispatch) {
+  switch (result.type) {
+    case ('error'): {
+      dispatch(setPromptAsyncError(`Login failed with an 'error' result. Error name: ${result.error?.name}. Error description: '${result.error?.description}'. code: ${result.errorCode}, url: ${result.url}, params: ${result.params}, info url: ${result.error?.uri} any other info: ${JSON.stringify(result.error?.info)}`));
+      dispatch(setLoginProgress(AuthLoginProgressState.Failed));
+      return;
+    }
+    case ('cancel'): {
+      dispatch(setPromptAsyncError(`You cancelled login.`));
+      dispatch(setLoginProgress(AuthLoginProgressState.Failed));
+      return;
+    }
+    case ('dismiss'): {
+      dispatch(setPromptAsyncError(`You dismissed login.`));
+      dispatch(setLoginProgress(AuthLoginProgressState.Failed));
+      return;
+    }
+    case ('locked'): {
+      dispatch(setPromptAsyncError(`Login was 'locked'. Huh?`));
+      Sentry.Native.captureMessage("Login was 'locked'?");
+      return;
+    }
+    default: {
+      return;
+    }
+  }
+}
+
   function disablePromptAsyncButton(jwt: string | null, promptAsyncReady: boolean): boolean {
     if (jwt !== null) {
       return true;
@@ -637,24 +644,26 @@ function userNameValueOrLoading(jwt: string | null, userName?: string | null) {
 //   return await AlertAsync("Debug Client ID:", `oAuth client ID: ${androidClientId} (dev: ${isDevClientID}), mainModuleName: ${manifest?.mainModuleName}`, buttons, options)
 // }
 
-const LogoutButton: React.FC<{logout: () => void, userName?: string | null}> = ({logout, userName}) => {
+function LogoutButton(): JSX.Element {
+  const dispatch = useDispatch();
+  const userName = useSelector(selectUserName);
   if (userName === null) {
     return (
       <>
-        <Button title="Log out (null username?)" onPress={() => logout()}/>
+        <Button title="Log out (null username?)" onPress={() => logout(dispatch)}/>
       </>
     );
   }
   if (userName === undefined) {
     return (
       <>
-        <Button title="Log out of (username loading...)" onPress={() => logout()}/>
+        <Button title="Log out of (username loading...)" onPress={() => logout(dispatch)}/>
       </>
     );      
   }
   return (
     <>
-      <Button title={`Log out of ${userName}`} onPress={() => {logout()}}/>
+      <Button title={`Log out of ${userName}`} onPress={() => {logout(dispatch)}}/>
     </>
   );
 }
@@ -692,48 +701,57 @@ function loginButtonTitleText(loginProgress: AuthLoginProgressState): string {
   }
 }
 
-const LoginOrLogoutButton: React.FC<{jwt: string | null, promptAsyncReady: boolean, promptAsync: (options?: AuthRequestPromptOptions | undefined) => Promise<AuthSessionResult>, logout: () => void, userName?: string | null, loginProgress: AuthLoginProgressState, setLoginProgress: React.Dispatch<React.SetStateAction<AuthLoginProgressState>>}> = ({jwt, promptAsyncReady, promptAsync, logout, userName, loginProgress, setLoginProgress}) => {
-  const buttonDisable = disablePromptAsyncButton(jwt, promptAsyncReady);
-  const pressLogin = async () => {
-    // await debugClientID();
-    setLoginProgress(AuthLoginProgressState.WaitingForGoogle);
-    await promptAsync();
-    setLoginProgress(AuthLoginProgressState.ParsingGoogleResponse);
-  }
+const pressLogin = async (dispatch: AppDispatch) => {
+  // await debugClientID();
+  dispatch(setLoginProgress(AuthLoginProgressState.WaitingForGoogle));
+  dispatch(setRequestPromptAsync(CallPromptAsyncStateAction.TriggerCallPromptAsync));
+  // await promptAsync();
+  
+}
+
+
+function LoginOrLogoutButton() {
+  const dispatch = useDispatch();
+  const promptAsyncReady = useSelector(selectPromptAsyncReady);
+  const jwt = useSelector(selectJWT);
+  const userName = useSelector(selectUserName);
+  const loginProgress = useSelector(selectLoginProgress);
+
+  const [buttonDisable, setButtonDisable] = useState(disablePromptAsyncButton(jwt, promptAsyncReady));
+
+  useEffect(() => {
+    setButtonDisable(disablePromptAsyncButton(jwt, promptAsyncReady));
+  }, [jwt, promptAsyncReady])
+  
   if (!buttonDisable) {
     return (
       <>
           <ValueOrLoading text="username: " value={userNameValueOrLoading(jwt, userName)} suffix=" (this shouldn't show up)"/>
-          <Button disabled={buttonDisable} title={loginButtonTitleText(loginProgress)} onPress={() => pressLogin()}/>
+          <Button disabled={buttonDisable} title={loginButtonTitleText(loginProgress)} onPress={() => pressLogin(dispatch)}/>
       </>
     );
   }
-  return LogoutButton({logout, userName});
-
+  return (
+    <>
+      <LogoutButton/>
+    </>
+  )
 }
 
 
-export function AuthContainer(props: {auth?: AuthState}): JSX.Element {
-    const jwt = useSelector(selectJWT);
-    const userName = useSelector(selectUserName);
+export function AuthContainer(): JSX.Element {
+  const loginErrors = useSelector(selectLoginErrors);
+  const asyncStoreError = useSelector(selectAsyncStoreError);
+  const promptAsyncErrors = useSelector(selectPromptAsyncError);
 
-    if (props.auth === undefined) {
-      return (
-        <>
-          <View>
-            <Text>Auth not ready yet!</Text>
-          </View>
-        </>
-      )
-    }
-
-    return (
-      <>
-        <LoginOrLogoutButton jwt={jwt} promptAsyncReady={props.auth.promptAsyncReady} promptAsync={props.auth.promptAsync} logout={() => props.auth.logout()} userName={userName} loginProgress={props.auth.loginProgress} setLoginProgress={props.auth.setLoginProgress}/>
-        
-        <MaybeIfValue text="Errors with automatic login! Details: " value={props.auth.asyncStoreError}/>
-        <MaybeIfValue text="Login errors: " value={props.auth.loginErrors}/>
-      </>
-    );
-  } 
+  return (
+    <>
+      <LoginOrLogoutButton/>
+      
+      <MaybeIfValue text="Errors with automatic login! Details: " value={asyncStoreError}/>
+      <MaybeIfValue text="Login errors: " value={loginErrors}/>
+      <MaybeIfValue text="Login PROMPT errors: " value={promptAsyncErrors}/>
+    </>
+  );
+}
   

@@ -672,7 +672,7 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
             }
             setUserDevices(defaultDevicesInfo);
         })
-    }, [username])
+    }, [username, dispatch])
 
     useEffect(() => {
         if (selectedSubLocation === -1) {

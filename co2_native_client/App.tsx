@@ -4,7 +4,6 @@
 import notifee from '@notifee/react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-
 import * as Device from 'expo-device';
 import { StatusBar } from 'expo-status-bar';
 import * as WebBrowser from 'expo-web-browser';
@@ -23,9 +22,10 @@ import {ErrorObjectType, formatErrors, withErrors} from '../co2_client/src/utils
 // import {} from '../co2_client/src/utils/UserInfoTypes';
 import { userSettingsResponseDataAsPlainSettings, userSettingsResponseToStrongType} from '../co2_client/src/utils/QuerySettingsTypes';
 import {UserSettings} from '../co2_client/src/utils/UserSettings';
-import { incrementSuccessfulUploads, selectAuthState, selectJWT, selectNextMeasurementTime, selectNotificationState, selectShouldUpload, selectSuccessfulUploads, selectUserDeviceErrors, setAuthState, setNextMeasurementTime, setNotificationState, setShouldUpload, setUserDeviceErrors } from './src/app/globalSlice';
+import { incrementSuccessfulUploads, selectJWT, selectNextMeasurementTime, selectShouldUpload, selectSuccessfulUploads, selectUserDeviceErrors, setNextMeasurementTime, setShouldUpload, setUserDeviceErrors } from './src/app/globalSlice';
 import { AppDispatch, store } from './src/app/store';
 import {AuthContainer, useGoogleAuthForCO2Tracker} from './src/features/Auth/Auth';
+// import { selectAuthState, setAuthState } from './src/features/Auth/authSlice';
 import { MeasurementDataForUpload } from './src/features/Measurement/MeasurementTypes';
 import { realtimeUpload } from './src/features/Measurement/MeasurementUpload';
 import { selectUploadStatus, setUploadStatus } from './src/features/Uploading/uploadSlice';
@@ -33,6 +33,7 @@ import { UserSettingsMaybeDisplay } from './src/features/UserSettings/UserSettin
 import { BluetoothData, isSupportedDevice, useAranet4NextMeasurementTime, useBluetoothConnectAndPollAranet } from './src/features/bluetooth/Bluetooth';
 import { selectDeviceSerialNumberString } from './src/features/bluetooth/bluetoothSlice';
 import { NotifeeNotificationHookState, useNotifeeNotifications, NotificationInfo, stopServiceAndClearNotifications } from './src/features/service/Notification';
+import { selectNotificationState, setNotificationState } from './src/features/service/serviceSlice';
 import { selectSupportedDevices, setSupportedDevices, setUNSupportedDevices } from './src/features/userInfo/devicesSlice';
 import { selectUserName, selectUserSettings, setUserSettings, setUserSettingsErrors } from './src/features/userInfo/userInfoSlice';
 import { withAuthorizationHeader } from './src/utils/NativeDefaultRequestHelpers';
@@ -427,7 +428,7 @@ function HomeScreen() {
   const nextMeasurementTime = useSelector(selectNextMeasurementTime);
   const supportedDevices = useSelector(selectSupportedDevices);
   const serialNumber = useSelector(selectDeviceSerialNumberString);
-  const authState = useSelector(selectAuthState);  
+  // const authState = useSelector(selectAuthState);  
   const notificationState = useSelector(selectNotificationState);
   
   const {knownDevice} = useCheckKnownDevice(supportedDevices, serialNumber);
@@ -435,7 +436,7 @@ function HomeScreen() {
     <SafeAreaProvider style={styles.container}>
       <BluetoothData knownDevice={knownDevice} nextMeasurement={nextMeasurementTime}/>
       
-      <AuthContainer auth={authState}/>
+      <AuthContainer/>
       <RealtimeMeasurementInfo/>
       <UserSettingsMaybeDisplay/>
       
@@ -468,9 +469,9 @@ function App() {
   const authState = useGoogleAuthForCO2Tracker();
 
 
-  useEffect(() => {
-    dispatch(setAuthState(authState));
-  }, [authState])
+  // useEffect(() => {
+  //   dispatch(setAuthState(authState));
+  // }, [authState])
   useEffect(() => {
     dispatch(setNotificationState(notificationState));
   }, [notificationState])
