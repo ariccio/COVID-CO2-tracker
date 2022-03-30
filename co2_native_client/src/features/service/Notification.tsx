@@ -18,7 +18,7 @@ import { selectDeviceID } from '../bluetooth/bluetoothSlice';
 import { selectSupportedDevices } from '../userInfo/devicesSlice';
 import { selectUserSettings } from '../userInfo/userInfoSlice';
 import {logEvent} from './LogEvent';
-import { setNotificationChannelID, selectNotificationChannelID, setDisplayNotificationNativeErrors, selectDisplayNotificationNativeErrors, setNotificationAction, NotificationAction, selectNotificationAction } from './serviceSlice';
+import { setNotificationChannelID, selectNotificationChannelID, setDisplayNotificationNativeErrors, selectDisplayNotificationNativeErrors, setNotificationAction, NotificationAction, selectNotificationAction, selectNotificationState } from './serviceSlice';
 
 function defaultNotification(channelId: string): Notification {
     const defaultNotificationOptions: Notification = {
@@ -332,15 +332,24 @@ const onClickStopNotificationButton = (dispatch: AppDispatch) => {
     // handleClickStopNotification();
 }
 
-const StartOrStopButton = (props: {notificationState: NotifeeNotificationHookState | undefined}) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const StartOrStopButton = (props: {onPressAction?: () => any}) => {
     const dispatch = useDispatch();
-    if (props.notificationState === undefined) {
+    const notificationState = useSelector(selectNotificationState);
+
+    const callOnPressAction = () => {
+        if (props.onPressAction) {
+            props.onPressAction();
+        }
+    }
+
+    if (notificationState === undefined) {
         return null;
     }
     // if (props.notificationState)
     if (
-        (props.notificationState !== undefined ) && 
-        props.notificationState.notificationID && props.notificationState.triggerNotification && props.notificationState.channelID) {
+        (notificationState !== undefined ) && 
+        notificationState.notificationID && notificationState.triggerNotification && notificationState.channelID) {
         return (
             <>
                 <Button title="Stop background polling" onPress={() => {onClickStopNotificationButton(dispatch)}}/>
@@ -349,24 +358,25 @@ const StartOrStopButton = (props: {notificationState: NotifeeNotificationHookSta
     }
     return (
         <>
-            <Button title="Start background polling & uploading" onPress={() => { onClickStartNotificationButton(dispatch) }} />
+            <Button title="Start background polling & uploading" onPress={() => { onClickStartNotificationButton(dispatch); callOnPressAction() }} />
         </>
     )
 }
 
-export const NotificationInfo = (props: { notificationState?: NotifeeNotificationHookState}) => {
+export const NotificationInfo = () => {
     const batteryOptimizationEnabled = useSelector(selectBatteryOptimizationEnabled);
     const notificationNativeErrors = useSelector(selectDisplayNotificationNativeErrors);
+    const notificationState = useSelector(selectNotificationState);
     return (
         <>
-            <StartOrStopButton notificationState={props.notificationState}/>
+            <StartOrStopButton/>
             
-            <MaybeIfValue text="Errors from displaying notifications: " value={props.notificationState?.displayNotificationErrors} />
+            <MaybeIfValue text="Errors from displaying notifications: " value={notificationState?.displayNotificationErrors} />
             <MaybeIfValue text="Battery optimization enabled: " value={(batteryOptimizationEnabled === null) ? null : String(batteryOptimizationEnabled)} />
             <MaybeIfValue text="Notifee native errors (what?): " value={notificationNativeErrors} />
-            <MaybeIfValue text="Notification ID: " value={props.notificationState?.notificationID} />
-            <MaybeIfValue text="Trigger notification: " value={props.notificationState?.triggerNotification} />
-            <MaybeIfValue text="Notification channel: " value={props.notificationState?.channelID} />
+            <MaybeIfValue text="Notification ID: " value={notificationState?.notificationID} />
+            <MaybeIfValue text="Trigger notification: " value={notificationState?.triggerNotification} />
+            <MaybeIfValue text="Notification channel: " value={notificationState?.channelID} />
         </>
     )
 }

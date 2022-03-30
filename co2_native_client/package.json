@@ -11,6 +11,7 @@
   "dependencies": {
     "@config-plugins/react-native-ble-plx": "^0.0.2",
     "@notifee/react-native": "^4.1.0",
+    "@react-navigation/bottom-tabs": "^6.2.0",
     "@react-navigation/native": "^6.0.8",
     "@react-navigation/native-stack": "^6.5.2",
     "@reduxjs/toolkit": "^1.7.1",

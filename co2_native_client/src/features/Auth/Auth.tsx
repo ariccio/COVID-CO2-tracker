@@ -522,6 +522,7 @@ export const useGoogleAuthForCO2Tracker = () => {
         }
         handleNonSuccessResults(result, dispatch);
         dispatch(setRequestPromptAsync(null));
+        // eslint-disable-next-line no-useless-return
         return;
         
       }).catch((error) => {
@@ -591,9 +592,11 @@ function handleNonSuccessResults(result: AuthSessionResult, dispatch: AppDispatc
     case ('locked'): {
       dispatch(setPromptAsyncError(`Login was 'locked'. Huh?`));
       Sentry.Native.captureMessage("Login was 'locked'?");
+      // eslint-disable-next-line no-useless-return
       return;
     }
     default: {
+      // eslint-disable-next-line no-useless-return
       return;
     }
   }

@@ -2,13 +2,14 @@
 // See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
 
 import notifee from '@notifee/react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Device from 'expo-device';
 import { StatusBar } from 'expo-status-bar';
 import * as WebBrowser from 'expo-web-browser';
 import {useEffect, useState} from 'react';
-import { StyleSheet, Button } from 'react-native';
+import { StyleSheet, Button, Text } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import * as Sentry from 'sentry-expo';
@@ -30,9 +31,9 @@ import { MeasurementDataForUpload } from './src/features/Measurement/Measurement
 import { realtimeUpload } from './src/features/Measurement/MeasurementUpload';
 import { selectUploadStatus, setUploadStatus } from './src/features/Uploading/uploadSlice';
 import { UserSettingsMaybeDisplay } from './src/features/UserSettings/UserSettingsDisplay';
-import { BluetoothData, isSupportedDevice, useAranet4NextMeasurementTime, useBluetoothConnectAndPollAranet } from './src/features/bluetooth/Bluetooth';
+import { BluetoothData, isSupportedDevice, MaybeNoSupportedBluetoothDevices, useAranet4NextMeasurementTime, useBluetoothConnectAndPollAranet } from './src/features/bluetooth/Bluetooth';
 import { selectDeviceSerialNumberString } from './src/features/bluetooth/bluetoothSlice';
-import { NotifeeNotificationHookState, useNotifeeNotifications, NotificationInfo, stopServiceAndClearNotifications } from './src/features/service/Notification';
+import { NotifeeNotificationHookState, useNotifeeNotifications, NotificationInfo, stopServiceAndClearNotifications, StartOrStopButton } from './src/features/service/Notification';
 import { selectNotificationState, setNotificationState } from './src/features/service/serviceSlice';
 import { selectSupportedDevices, setSupportedDevices, setUNSupportedDevices } from './src/features/userInfo/devicesSlice';
 import { selectUserName, selectUserSettings, setUserSettings, setUserSettingsErrors } from './src/features/userInfo/userInfoSlice';
@@ -40,8 +41,10 @@ import { withAuthorizationHeader } from './src/utils/NativeDefaultRequestHelpers
 import {fetchJSONWithChecks} from './src/utils/NativeFetchHelpers';
 import { MaybeIfValue } from './src/utils/RenderValues';
 import { timeNowAsString } from './src/utils/TimeNow';
-import { USER_DEVICES_URL_NATIVE, USER_SETTINGS_URL_NATIVE } from './src/utils/UrlPaths';
+import { COVID_CO2_TRACKER_DEVICES_URL, COVID_CO2_TRACKER_HOME_URL, COVID_CO2_TRACKER_PLACES_URL, USER_DEVICES_URL_NATIVE, USER_SETTINGS_URL_NATIVE } from './src/utils/UrlPaths';
 import { isLoggedIn, isNullString, isUndefinedString } from './src/utils/isLoggedIn';
+import { LinkButton } from './src/features/Links/OpenLink';
+import { useIsLoggedIn } from './src/utils/UseLoggedIn';
 
 
 
@@ -429,7 +432,7 @@ function HomeScreen() {
   const supportedDevices = useSelector(selectSupportedDevices);
   const serialNumber = useSelector(selectDeviceSerialNumberString);
   // const authState = useSelector(selectAuthState);  
-  const notificationState = useSelector(selectNotificationState);
+  
   
   const {knownDevice} = useCheckKnownDevice(supportedDevices, serialNumber);
   return (
@@ -440,12 +443,143 @@ function HomeScreen() {
       <RealtimeMeasurementInfo/>
       <UserSettingsMaybeDisplay/>
       
-      <NotificationInfo notificationState={notificationState} />
+      <NotificationInfo/>
       <UploadingButton/>
       <StatusBar style="auto" />
     </SafeAreaProvider>
   );
 }
+
+
+function LogInIfNot() {
+  const {loggedIn} = useIsLoggedIn();
+  if (!loggedIn) {
+    return (
+      <>
+          <Text>First, log in:</Text>
+          <AuthContainer/>
+      </>
+    );
+  }
+  return null;
+}
+
+
+function useHasSupportedDevices() {
+  const supportedDevices = useSelector(selectSupportedDevices);
+
+  const [hasSupportedDevices, setHasSupportedDevices] = useState(null as (boolean| null));
+
+  useEffect(() => {
+    if (supportedDevices === null) {
+      setHasSupportedDevices(false);
+      return;
+    }
+    if (supportedDevices.length === 0) {
+      setHasSupportedDevices(false);
+      return;
+    }
+    if (supportedDevices.length > 0) {
+      setHasSupportedDevices(true);
+    }
+  }, [supportedDevices]);
+  return {hasSupportedDevices}
+}
+
+
+function CreateDeviceIfNotYet() {
+  const supportedDevices = useSelector(selectSupportedDevices);
+
+  if (supportedDevices === null) {
+    return null;
+  }
+
+  if (supportedDevices.length > 0) {
+    return null;
+  }
+
+  return (
+    <>
+      <Text>Next, create a device if you haven&apos;t yet:</Text>
+      <LinkButton url={COVID_CO2_TRACKER_DEVICES_URL} title="Open web console to create device"/>
+    </>
+  )
+}
+
+function RealtimeUploadSettings() {
+  const userSettings = useSelector(selectUserSettings);
+  const {loggedIn} = useIsLoggedIn();
+  
+
+
+  if (userSettings === undefined) {
+    if (!loggedIn) {
+      return null;
+    }
+    return (
+      <>
+        <Text>Checking if you have created realtime upload settings...</Text>
+      </>
+    )
+  }
+  if (userSettings === null) {
+    return (
+      <>
+        <Text>The last two things you need to do are:</Text>
+        <Text>1. Manually create a single measurement in the web console for the location you want to use</Text>
+        <Text>2. Click &quot;Choose place for realtime upload&quot;</Text>
+        <LinkButton url={COVID_CO2_TRACKER_HOME_URL} title="Open web console"/>
+      </>
+    );
+  }
+  return null;
+}
+
+
+function AllSet() {
+  const {loggedIn} = useIsLoggedIn();
+  const userSettings = useSelector(selectUserSettings);
+  const {hasSupportedDevices} = useHasSupportedDevices();
+  const navigation = useNavigation();
+
+  if (!loggedIn) {
+    return null;
+  }
+  if (!hasSupportedDevices) {
+    return null;
+  }
+  if (userSettings === null) {
+    return null;
+  }
+  if (userSettings === undefined) {
+    return null;
+  }
+
+  return (
+    <>
+      <StartOrStopButton onPressAction={() => {navigation.navigate("Home")}}/>
+    </>
+  )
+}
+
+function GetStartedScreen() {
+
+  return (
+    <>
+      <SafeAreaProvider>
+        <Text>If the &quot;start background polling and uploading&quot; button is the only thing you see, you should be all set!</Text>
+        <LogInIfNot/>
+        <CreateDeviceIfNotYet/>
+        <RealtimeUploadSettings/>
+        <AllSet/>
+
+      </SafeAreaProvider>
+    </>
+  )
+}
+
+
+const Tab = createBottomTabNavigator();
 
 function App() {
   const dispatch = useDispatch();
@@ -514,16 +648,16 @@ function App() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen name="Home" component={HomeScreen}/>
-        {/* <HomeScreen/> */}
-      </Stack.Navigator>
+      <Tab.Navigator>
+        <Tab.Screen name="Get started!" component={GetStartedScreen}/>
+        <Tab.Screen name="Home" component={HomeScreen}/>
+      </Tab.Navigator>
     </NavigationContainer>
   );
 }
 
 
-const Stack = createNativeStackNavigator();
+// const Stack = createNativeStackNavigator();
 export default function AppContainer() {
 
   return (

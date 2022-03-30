@@ -17,7 +17,7 @@ import { MaybeIfValue, MaybeIfValueTrue } from '../../utils/RenderValues';
 import { timeNowAsString } from '../../utils/TimeNow';
 import { COVID_CO2_TRACKER_DEVICES_URL } from '../../utils/UrlPaths';
 import { useIsLoggedIn } from '../../utils/UseLoggedIn';
-import { useOpenableLink, IfNotOpenable } from '../Links/OpenLink';
+import { useOpenableLink, IfNotOpenable, openLink, LinkButton } from '../Links/OpenLink';
 // import { addMeasurement } from '../Measurement/MeasurementSlice';
 import { MeasurementDataForUpload } from '../Measurement/MeasurementTypes';
 import { setUploadStatus } from '../Uploading/uploadSlice';
@@ -1463,22 +1463,19 @@ const BluetoothMaybeNeedsTurnOn:React.FC<{}> = () => {
 }
 
 
-async function openCO2TrackerDevicesPage(setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>) {
-    try {
-        Linking.openURL(COVID_CO2_TRACKER_DEVICES_URL);
-    }
-    catch (exception) {
-        setNativeErrors(`Error opening web console: ${String(exception)}`)
-    }
-}
+// async function openCO2TrackerDevicesPage(setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>) {
+//     try {
+//         Linking.openURL(COVID_CO2_TRACKER_DEVICES_URL);
+//     }
+//     catch (exception) {
+//         setNativeErrors(`Error opening web console: ${String(exception)}`)
+//     }
+// }
 
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-const MaybeNoSupportedBluetoothDevices: React.FC<{}> = () => {
+export const MaybeNoSupportedBluetoothDevices: React.FC<{}> = () => {
     const supportedDevices = useSelector(selectSupportedDevices);
-    const [nativeErrors, setNativeErrors] = useState(null as (string | null));
-    const {openable} = useOpenableLink(COVID_CO2_TRACKER_DEVICES_URL, setNativeErrors);
-
 
     if (supportedDevices === null) {
       return null;
@@ -1487,9 +1484,7 @@ const MaybeNoSupportedBluetoothDevices: React.FC<{}> = () => {
       return (
         <>
           <Text>You do not have any devices entered into the database. To upload data, please create a device in the web console.</Text>
-          <IfNotOpenable openable={openable} url={COVID_CO2_TRACKER_DEVICES_URL}/>
-          <MaybeIfValue text="Native errors: " value={nativeErrors}/>
-          <Button title="Open web console" onPress={() => openCO2TrackerDevicesPage(setNativeErrors)}/>
+          <LinkButton url={COVID_CO2_TRACKER_DEVICES_URL} title="Open web console"/>
         </>
       )
     }

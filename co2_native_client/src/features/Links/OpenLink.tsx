@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Text, Linking } from 'react-native';
+import { Text, Linking, Button } from 'react-native';
 import * as Sentry from 'sentry-expo';
+import { MaybeIfValue, MaybeIfValueTrue } from '../../utils/RenderValues';
 
 export const useOpenableLink = (url: string, setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>): {openable: (boolean | null)} => {
     const [openable, setOpenable] = useState(null as (boolean | null));
@@ -8,6 +9,8 @@ export const useOpenableLink = (url: string, setNativeErrors: React.Dispatch<Rea
     useEffect(() => {
         Linking.canOpenURL(url).then((canOpen) => {
             setOpenable(canOpen);
+            // eslint-disable-next-line no-useless-return
+            return;
         }).catch((errors) => {
             Sentry.Native.captureException(errors);
             setNativeErrors(`canOpenUrl error: ${String(errors)}`);
@@ -34,4 +37,28 @@ export const IfNotOpenable = (props: {openable: (boolean | null), url: string })
         )
     }
     return null;
+}
+
+export async function openLink(url: string, setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>) {
+    try {
+        Linking.openURL(url);
+    }
+    catch (exception) {
+        setNativeErrors(`Error opening URL: ${String(exception)}`)
+    }
+}
+
+
+
+export const LinkButton = (props: {url: string, title: string}) => {
+    const [nativeErrors, setNativeErrors] = useState(null as (string | null));
+    const {openable} = useOpenableLink(props.url, setNativeErrors);
+
+    return (
+        <>
+            <IfNotOpenable openable={openable} url={props.url}/>
+            <MaybeIfValue text="Native errors: " value={nativeErrors}/>
+            <Button title={props.title} onPress={() => openLink(props.url, setNativeErrors)}/>
+        </>
+    )
 }
