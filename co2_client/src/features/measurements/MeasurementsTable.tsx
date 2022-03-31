@@ -203,12 +203,13 @@ const DeviceIDOrSerialWithLink = (props: {id: number | null, deviceSerials?: Arr
         throw new Error("Rendering empty device?");
     }
     if (props.deviceSerials === undefined) {
+        debugger;
         return (
             <TableCellWithIDLink id={props.id}/>
         );    
     }
     if (props.deviceSerials.length === 0) {
-        console.warn("device serials empty?");
+        // Not loaded yet.
         return (
             <TableCellWithIDLink id={props.id}/>
         );
@@ -252,6 +253,7 @@ const MapMeasurementsToTableBody = (props: {measurements: Array<SerializedSingle
         // const maybeDeviceId = (measurement.relationships ?  : '')
         if (measurement.id === null) {
             console.error("Corrupted measurement lacks ID, simply rendering null...");
+            Sentry.captureMessage(`Corrupted measurement? ${JSON.stringify(measurement)}`);
             return (
                 <tr>
                     Bad measurement info!!

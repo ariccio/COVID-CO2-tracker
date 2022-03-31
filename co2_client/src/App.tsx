@@ -135,11 +135,7 @@ export function App(): JSX.Element {
     <div>
       <div className="App">
         <Sentry.ErrorBoundary fallback={TopLevelErrorFallback} showDialog dialogOptions={dialogOptionsForSentry}>
-
-          {/* <LoginContainer/> */}
           <NavBar/>
-          {/* <header className="App-header">
-          </header> */}
           <RoutesContainer/>
           <BottomNav/>
         </Sentry.ErrorBoundary>

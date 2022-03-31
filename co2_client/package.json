@@ -60,5 +60,8 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:3000"
+  "proxy": "http://localhost:3000",
+  "devDependencies": {
+    "eslint-plugin-react-perf": "^3.3.1"
+  }
 }

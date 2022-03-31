@@ -206,6 +206,7 @@ const loginWithIDToken = (id_token: string, dispatch: AppDispatch) => {
       dispatch(setJWT(response.jwt));
       console.assert(response.errors === undefined);
       dispatch(setLoginProgress(AuthLoginProgressState.AlmostDoneSaving));
+      Sentry.Native.setUser({email: response.email});
       return saveJWTToAsyncStore(response.jwt, dispatch);
   
     }).catch((error) => {
@@ -408,14 +409,20 @@ async function handleAsyncStoreResult(maybeJWT: string | null, dispatch: AppDisp
     // console.log("Set JWT from storage! Will try and get email/username from server...");
     try {
       const emailResponse = await nativeGetEmail(maybeJWT);
+      if (emailResponse.errors !== undefined) {
+        dispatch(setLoginErrors(`Failed to get email. May be okay to proceed? Errors: ${formatErrors(emailResponse.errors)}`));
+        Sentry.Native.captureMessage(`Failure getting email: ${formatErrors(emailResponse.errors)}`);
+        return;
+      }
       // console.log(`Server responds with email response: ${JSON.stringify(emailResponse)}`);
       // debugger;
-      return dispatch(setUserName(emailResponse.email));
+      dispatch(setUserName(emailResponse.email));
+      Sentry.Native.setUser({email: emailResponse.email});
+      return 
     }
     catch (error) {
       dispatch(setLoginErrors(`Failed to load up-to-date username/email: ${String(error)}`));
       Sentry.Native.captureException(error);
-
     }
   }
   else {
