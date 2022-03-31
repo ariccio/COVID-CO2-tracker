@@ -19,6 +19,7 @@ import { selectSupportedDevices } from '../userInfo/devicesSlice';
 import { selectUserSettings } from '../userInfo/userInfoSlice';
 import {logEvent} from './LogEvent';
 import { setNotificationChannelID, selectNotificationChannelID, setDisplayNotificationNativeErrors, selectDisplayNotificationNativeErrors, setNotificationAction, NotificationAction, selectNotificationAction, selectNotificationState } from './serviceSlice';
+import { unknownNativeErrorTryFormat } from '../../utils/FormatUnknownNativeError';
 
 function defaultNotification(channelId: string): Notification {
     const defaultNotificationOptions: Notification = {
@@ -93,8 +94,8 @@ async function checkedCreateChannel(dispatch: AppDispatch): Promise<string | nul
     }
     catch (exception) {
         //Probably native error.
+        dispatch(setDisplayNotificationNativeErrors(`Error in createChannel: '${unknownNativeErrorTryFormat(exception)}'`));
         Sentry.Native.captureException(exception);
-        dispatch(setDisplayNotificationNativeErrors(`Error in createChannel: '${String(exception)}'`));
         return null;
     }
 }
@@ -105,8 +106,8 @@ async function checkedRequestPermission(dispatch: AppDispatch): Promise<IOSNotif
     }
     catch (exception) {
         //Probably native error.
+        dispatch(setDisplayNotificationNativeErrors(`Error in requestPermission: '${unknownNativeErrorTryFormat(exception)}'`));
         Sentry.Native.captureException(exception);
-        dispatch(setDisplayNotificationNativeErrors(`Error in requestPermission: '${String(exception)}'`));
         return null;
     }
 }
@@ -237,9 +238,9 @@ async function registerForegroundService(deviceID: string, supportedDevices: Use
         notifee.registerForegroundService((notification: Notification) => foregroundServiceCallback(notification, deviceID, supportedDevices, userSettings, jwt, shouldUpload));
     }
     catch (exception) {
+        dispatch(setDisplayNotificationNativeErrors(`Error in registerForegroundService: '${unknownNativeErrorTryFormat(exception)}'`));
         Sentry.Native.captureException(exception);
         //Probably native error.
-        dispatch(setDisplayNotificationNativeErrors(`Error in registerForegroundService: '${String(exception)}'`));
     }
 }
 
@@ -283,8 +284,8 @@ async function onDisplayNotification(setDisplayNotificationErrors: React.Dispatc
         return result;
     }
     catch (e) {
+        console.error(`Error displaying notification! ${unknownNativeErrorTryFormat(e)}`);
         Sentry.Native.captureException(e);
-        console.error(`Error displaying notification! ${String(e)}`);
         if (e instanceof Error) {
             setDisplayNotificationErrors(String(e));
             return;
@@ -295,7 +296,7 @@ async function onDisplayNotification(setDisplayNotificationErrors: React.Dispatc
         //   'code' (e.g. "EUNSPECIFIED")
         //   'message' (e.g. "Invalid notification (no valid small icon): Notification(channel=default pri=0 contentView=null vibrate=null sound=null defaults=0x0 flags=0x10 color=0x00000000 vis=PRIVATE)")
         //   'nativeStackAndroid' (e.g. ...giant array...)
-        setDisplayNotificationErrors(String(e));
+        setDisplayNotificationErrors(unknownNativeErrorTryFormat(e));
     }
 }
 
@@ -313,8 +314,8 @@ async function createTriggerNotification(dispatch: AppDispatch, channelId: strin
         return result;
     }
     catch (exception) {
+        dispatch(setDisplayNotificationNativeErrors(`Error creating trigger notification: ${unknownNativeErrorTryFormat(exception)}`));
         Sentry.Native.captureException(exception);
-        dispatch(setDisplayNotificationNativeErrors(`Error creating trigger notification: ${String(exception)}`));
     }
 }
 
@@ -513,9 +514,9 @@ function checkBatteryOptimization(dispatch: AppDispatch) {
         // console.log(`Battery optimization: ${result}`);
         return dispatch(setBatteryOptimizationEnabled(result));
     }).catch((exception) => {
+        dispatch(setDisplayNotificationNativeErrors(`Error in isBatteryOptimizationEnabled: '${unknownNativeErrorTryFormat(exception)}'`));
         Sentry.Native.captureException(exception);
         // In theory, the native java code can throw exceptions if something is desperatley wrong...
-        dispatch(setDisplayNotificationNativeErrors(`Error in isBatteryOptimizationEnabled: '${String(exception)}'`));
     });
 }
 

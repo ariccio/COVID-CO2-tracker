@@ -16,6 +16,7 @@ import {formatErrors, withErrors} from '../../../../co2_client/src/utils/ErrorOb
 // import {LOGIN_URL} from '../../../../co2_client/src/utils/UrlPath';
 import { selectJWT, setJWT } from '../../app/globalSlice';
 import { AppDispatch } from '../../app/store';
+import { unknownNativeErrorTryFormat } from '../../utils/FormatUnknownNativeError';
 import { withAuthorizationHeader } from '../../utils/NativeDefaultRequestHelpers';
 // import { withAuthorizationHeader } from '../../utils/NativeDefaultRequestHelpers';
 import {fetchJSONWithChecks} from '../../utils/NativeFetchHelpers';
@@ -208,8 +209,8 @@ const loginWithIDToken = (id_token: string, dispatch: AppDispatch) => {
       return saveJWTToAsyncStore(response.jwt, dispatch);
   
     }).catch((error) => {
+      console.error(unknownNativeErrorTryFormat(error));
       Sentry.Native.captureException(error);
-      console.error(error);
       dispatch(setLoginProgress(AuthLoginProgressState.Failed));
       dispatch(setLoginErrors(`Unexpected error: ${String(error)}`));
       // eslint-disable-next-line no-debugger
@@ -229,27 +230,7 @@ const loginWithIDToken = (id_token: string, dispatch: AppDispatch) => {
 
 */
 
-function unknownNativeErrorTryFormat(error: unknown): string {
-  let errorString = 'Error as attempted formatting: ';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if ((error as any).message) {
-    errorString += 'Has a message: "';
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    errorString += String((error as any).message);
-    errorString += '"';
-  }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if ((error as any).code) {
-    errorString += ' Has a code: "';
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    errorString += String((error as any).code);
-    errorString += '"';
-  }
 
-  errorString += '\r\n...All other fields as JSON: ';
-  errorString += JSON.stringify(error);
-  return errorString;
-}
 
 function hasBadStore(error: unknown): boolean {
   const badStoreMessage = "Could not encrypt/decrypt the value for SecureStore";
@@ -308,7 +289,7 @@ async function queryAsyncStoreForStoredJWT(dispatch: AppDispatch): Promise<strin
         return null;
       }
       console.error(unknownNativeErrorTryFormat(error));
-      dispatch(setAsyncStoreError(`Error loading login info from secure local storage: ${String(error)}. You will need to login manually.`));
+      dispatch(setAsyncStoreError(`Error loading login info from secure local storage: ${unknownNativeErrorTryFormat(error)}. You will need to login manually.`));
       Sentry.Native.captureException(error);
       // eslint-disable-next-line no-debugger
       debugger;
@@ -325,8 +306,8 @@ async function queryAsyncStoreForStoredJWT(dispatch: AppDispatch): Promise<strin
       await SecureStore.deleteItemAsync(CO2_TRACKER_JWT_KEY_NAME);
     }
     catch (error) {
-      console.error(error);
-      dispatch(setAsyncStoreError(`Error clearing login info from secure local storage: ${String(error)}. This is weird. Try clearing app data?`));
+      console.error(unknownNativeErrorTryFormat(error));
+      dispatch(setAsyncStoreError(`Error clearing login info from secure local storage: ${unknownNativeErrorTryFormat(error)}. This is weird. Try clearing app data?`));
       Sentry.Native.captureException(error);
       // eslint-disable-next-line no-debugger
       debugger;
@@ -432,8 +413,8 @@ async function handleAsyncStoreResult(maybeJWT: string | null, dispatch: AppDisp
       return dispatch(setUserName(emailResponse.email));
     }
     catch (error) {
-      Sentry.Native.captureException(error);
       dispatch(setLoginErrors(`Failed to load up-to-date username/email: ${String(error)}`));
+      Sentry.Native.captureException(error);
 
     }
   }
@@ -526,8 +507,8 @@ export const useGoogleAuthForCO2Tracker = () => {
         return;
         
       }).catch((error) => {
+        dispatch(setPromptAsyncError(`Unexpected promise rejection when prompting user for login: ${unknownNativeErrorTryFormat(error)}`))
         Sentry.Native.captureException(error);
-        dispatch(setPromptAsyncError(`Unexpected promise rejection when prompting user for login: ${String(error)}`))
         dispatch(setLoginProgress(AuthLoginProgressState.Failed));
       })
     }
@@ -538,7 +519,7 @@ export const useGoogleAuthForCO2Tracker = () => {
       queryAsyncStoreForStoredJWT(dispatch).then((maybeJWT) => {
           return handleAsyncStoreResult(maybeJWT, dispatch);
       }).catch((error) => {
-        dispatch(setAsyncStoreError(String(error)));
+        dispatch(setAsyncStoreError(unknownNativeErrorTryFormat(error)));
         Sentry.Native.captureException(error);
       })
   }, []);

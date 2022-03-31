@@ -17,8 +17,8 @@ async function openCO2TrackerPlacePage(setNativeErrors: React.Dispatch<React.Set
         Linking.openURL(url);
     }
     catch (exception) {
+        setNativeErrors(`Error opening web console: ${unknownNativeErrorTryFormat(exception)}`)
         Sentry.Native.captureException(exception);
-        setNativeErrors(`Error opening web console: ${String(exception)}`)
     }
 }
 

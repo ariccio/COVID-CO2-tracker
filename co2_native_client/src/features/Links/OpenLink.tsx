@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Text, Linking, Button } from 'react-native';
 import * as Sentry from 'sentry-expo';
+import { unknownNativeErrorTryFormat } from '../../utils/FormatUnknownNativeError';
 import { MaybeIfValue, MaybeIfValueTrue } from '../../utils/RenderValues';
 
 export const useOpenableLink = (url: string, setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>): {openable: (boolean | null)} => {
@@ -12,8 +13,8 @@ export const useOpenableLink = (url: string, setNativeErrors: React.Dispatch<Rea
             // eslint-disable-next-line no-useless-return
             return;
         }).catch((errors) => {
+            setNativeErrors(`canOpenUrl error: ${unknownNativeErrorTryFormat(errors)}`);
             Sentry.Native.captureException(errors);
-            setNativeErrors(`canOpenUrl error: ${String(errors)}`);
         })
     }, [])
 

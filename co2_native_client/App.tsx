@@ -2,14 +2,13 @@
 // See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
 
 import notifee from '@notifee/react-native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Device from 'expo-device';
 import { StatusBar } from 'expo-status-bar';
 import * as WebBrowser from 'expo-web-browser';
 import {useEffect, useState} from 'react';
-import { StyleSheet, Button, Text } from 'react-native';
+import { StyleSheet, Button, Text, ViewStyle } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import * as Sentry from 'sentry-expo';
@@ -27,14 +26,15 @@ import { incrementSuccessfulUploads, selectJWT, selectNextMeasurementTime, selec
 import { AppDispatch, store } from './src/app/store';
 import {AuthContainer, useGoogleAuthForCO2Tracker} from './src/features/Auth/Auth';
 // import { selectAuthState, setAuthState } from './src/features/Auth/authSlice';
+import { LinkButton } from './src/features/Links/OpenLink';
 import { MeasurementDataForUpload } from './src/features/Measurement/MeasurementTypes';
 import { realtimeUpload } from './src/features/Measurement/MeasurementUpload';
 import { selectUploadStatus, setUploadStatus } from './src/features/Uploading/uploadSlice';
 import { UserSettingsMaybeDisplay } from './src/features/UserSettings/UserSettingsDisplay';
-import { BluetoothData, isSupportedDevice, MaybeNoSupportedBluetoothDevices, useAranet4NextMeasurementTime, useBluetoothConnectAndPollAranet } from './src/features/bluetooth/Bluetooth';
+import { BluetoothData, isSupportedDevice, useAranet4NextMeasurementTime, useBluetoothConnectAndPollAranet } from './src/features/bluetooth/Bluetooth';
 import { selectDeviceSerialNumberString } from './src/features/bluetooth/bluetoothSlice';
 import { NotifeeNotificationHookState, useNotifeeNotifications, NotificationInfo, stopServiceAndClearNotifications, StartOrStopButton } from './src/features/service/Notification';
-import { selectNotificationState, setNotificationState } from './src/features/service/serviceSlice';
+import { setNotificationState } from './src/features/service/serviceSlice';
 import { selectSupportedDevices, setSupportedDevices, setUNSupportedDevices } from './src/features/userInfo/devicesSlice';
 import { selectUserName, selectUserSettings, setUserSettings, setUserSettingsErrors } from './src/features/userInfo/userInfoSlice';
 import { withAuthorizationHeader } from './src/utils/NativeDefaultRequestHelpers';
@@ -42,9 +42,9 @@ import {fetchJSONWithChecks} from './src/utils/NativeFetchHelpers';
 import { MaybeIfValue } from './src/utils/RenderValues';
 import { timeNowAsString } from './src/utils/TimeNow';
 import { COVID_CO2_TRACKER_DEVICES_URL, COVID_CO2_TRACKER_HOME_URL, COVID_CO2_TRACKER_PLACES_URL, USER_DEVICES_URL_NATIVE, USER_SETTINGS_URL_NATIVE } from './src/utils/UrlPaths';
-import { isLoggedIn, isNullString, isUndefinedString } from './src/utils/isLoggedIn';
-import { LinkButton } from './src/features/Links/OpenLink';
 import { useIsLoggedIn } from './src/utils/UseLoggedIn';
+import { isLoggedIn, isNullString, isUndefinedString } from './src/utils/isLoggedIn';
+import { unknownNativeErrorTryFormat } from './src/utils/FormatUnknownNativeError';
 
 
 
@@ -417,7 +417,7 @@ const useCheckKnownDevice = (supportedDevices: UserInfoDevice[] | null, serialNu
 
 
 // Bootstrap sequence function
-async function bootstrap() {
+async function checkInitialNotification() {
   const initialNotification = await notifee.getInitialNotification();
 
   if (initialNotification) {
@@ -579,7 +579,15 @@ function GetStartedScreen() {
 }
 
 
-const Tab = createBottomTabNavigator();
+const Tab = createMaterialTopTabNavigator();
+
+const CONTENT_CONTAINER_STYLE: ViewStyle = {
+  borderTopWidth: 9
+}
+
+const NAVIGATOR_SCREEN_OPTIONS = {
+  tabBarContentContainerStyle: CONTENT_CONTAINER_STYLE
+};
 
 function App() {
   const dispatch = useDispatch();
@@ -620,9 +628,12 @@ function App() {
   }, [])
 
   useEffect(() => {
-    bootstrap()
+    checkInitialNotification()
       .then(() => setLoading(false))
-      .catch(console.error);
+      .catch((error) => {
+        console.error(unknownNativeErrorTryFormat(error));
+        Sentry.Native.captureException(error);
+      });
   }, []);
   
   useEffect(() => {
@@ -647,12 +658,14 @@ function App() {
   // console.log(batteryOptimizationEnabled);
 
   return (
-    <NavigationContainer>
-      <Tab.Navigator>
-        <Tab.Screen name="Get started!" component={GetStartedScreen}/>
-        <Tab.Screen name="Home" component={HomeScreen}/>
-      </Tab.Navigator>
-    </NavigationContainer>
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <Tab.Navigator screenOptions={NAVIGATOR_SCREEN_OPTIONS} >
+          <Tab.Screen name="Get started!" component={GetStartedScreen}/>
+          <Tab.Screen name="Home" component={HomeScreen}/>
+        </Tab.Navigator>
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }
 

@@ -13,6 +13,7 @@ import * as BLUETOOTH from '../../../../co2_client/src/utils/BluetoothConstants'
 import { UserInfoDevice } from '../../../../co2_client/src/utils/DeviceInfoTypes';
 import { selectBackgroundPollingEnabled } from '../../app/globalSlice';
 import { AppDispatch } from '../../app/store';
+import { unknownNativeErrorTryFormat } from '../../utils/FormatUnknownNativeError';
 import { MaybeIfValue, MaybeIfValueTrue } from '../../utils/RenderValues';
 import { timeNowAsString } from '../../utils/TimeNow';
 import { COVID_CO2_TRACKER_DEVICES_URL } from '../../utils/UrlPaths';
@@ -199,7 +200,7 @@ const requestAllBluetoothPermissions = async (dispatch: AppDispatch) => {
         }
     }
     catch (error) {
-        dispatch(setScanningStatusString(`Some kind of unexpected error when checking location permission: ${String(error)}`));
+        dispatch(setScanningStatusString(`Some kind of unexpected error when checking location permission: ${unknownNativeErrorTryFormat(error)}`));
         Sentry.Native.captureException(error);
 
     }
@@ -227,7 +228,7 @@ const requestAllBluetoothPermissions = async (dispatch: AppDispatch) => {
         }    
     }
     catch(error) {
-        dispatch(setScanningStatusString(`Some kind of unexpected error when requesting location permission: ${String(error)}`));
+        dispatch(setScanningStatusString(`Some kind of unexpected error when requesting location permission: ${unknownNativeErrorTryFormat(error)}`));
         Sentry.Native.captureException(error);
     }
     
@@ -260,7 +261,7 @@ const requestAllBluetoothPermissions = async (dispatch: AppDispatch) => {
 
     }
     catch (error) {
-        dispatch(setScanningStatusString(`Some kind of unexpected error when requesting bluetooth scan permission: ${String(error)}`));
+        dispatch(setScanningStatusString(`Some kind of unexpected error when requesting bluetooth scan permission: ${unknownNativeErrorTryFormat(error)}`));
         Sentry.Native.captureException(error);
 
     }
@@ -1126,7 +1127,7 @@ export const useBluetoothConnectAndPollAranet = () => {
             // setAranet4SpecificInformation(info.specificInfo);
         }).catch((error) => {
             Sentry.Native.captureException(error);
-            dispatch(setScanningErrorStatusString(`Unexpected error on first bluetooth update: ${String(error)}`));
+            dispatch(setScanningErrorStatusString(`Unexpected error on first bluetooth update: ${unknownNativeErrorTryFormat(error)}`));
         })
     }, [deviceID])
 
@@ -1446,8 +1447,8 @@ const BluetoothMaybeNeedsTurnOn:React.FC<{}> = () => {
             dispatch(setNeedsBluetoothTurnOn(false));
             return dispatch(setScanningErrorStatusString(null))
         }).catch((error) => {
+            setNativeErrors(unknownNativeErrorTryFormat(error));
             Sentry.Native.captureException(error);
-            setNativeErrors(String(error));
         })
     }
     if (needsBluetoothTurnOn) {
