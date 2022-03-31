@@ -628,6 +628,7 @@ const GoogleMapInContainer = (props: {
     service: google.maps.places.PlacesService | null
     }) => {
     // console.log("rerender map")
+    const {setCenter} = props;
     const dispatch = useDispatch();
     const placeMarkerErrors = useSelector(selectPlacesMarkersErrors);
     const placeMarkersFromDatabase = useSelector(selectPlaceMarkersFromDatabase);
@@ -640,10 +641,10 @@ const GoogleMapInContainer = (props: {
         setOptions(optionsResult);
         if (optionsResult.center !== defaultMapOptions.center) {
             if (optionsResult.center) {
-                props.setCenter(optionsResult.center);
+                setCenter(optionsResult.center);
             }
         }
-    }, []);
+    }, [selectedPlace, setCenter]);
     
 
     if (props.map === null) {
@@ -656,7 +657,7 @@ const GoogleMapInContainer = (props: {
                 <GoogleMap 
                     mapContainerStyle={containerStyle} onLoad={props.onLoad} onUnmount={props.onUnmount} options={options}
                     
-                    onClick={(e: google.maps.MapMouseEvent) => {onClickMaps(e, props.setCenter, dispatch, props.service); updateMarkers(props.map, dispatch)}}
+                    onClick={(e: google.maps.MapMouseEvent) => {onClickMaps(e, setCenter, dispatch, props.service); updateMarkers(props.map, dispatch)}}
                     onIdle={() => onMapIdle(props.map, props.mapLoaded, props.setMapLoaded, dispatch)}
                     /*onTilesLoaded={() => {console.log("tiles loaded"); updateMarkers(map, dispatch)}}*/
                     >
