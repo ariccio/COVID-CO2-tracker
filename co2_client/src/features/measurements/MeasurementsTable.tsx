@@ -31,7 +31,6 @@ const MeasurementTableHeader = (props: {withDelete?: boolean, innerLocation?: In
     return (
         <thead>
             <tr>
-                {/* <th>#</th> */}
                 <th>{translate('id-and-details')}</th>
                 {props.withDevice ? (<th>{translate('Device')}</th>) : null}
                 <th>{translate('co2-ppm')}</th>
@@ -41,10 +40,8 @@ const MeasurementTableHeader = (props: {withDelete?: boolean, innerLocation?: In
                 <th>{translate('rebreathed fraction')}</th>
                 {props.innerLocation ? (<th>{translate('inner location')}</th>) : null}
                 {props.withDelete ? (<th>{translate('delete measurement')}</th>) : null}
-                {/* <th>measured at google place:</th> */}
             </tr>
         </thead>
-
     );
 }
 
@@ -116,6 +113,12 @@ const MaybeInnerLocation = (props: {measurement: SerializedSingleMeasurement, in
     return null;
 }
 
+const AboveFiveThousand = () => {
+    return (
+        <td><p style={{color:"red"}}><b><u><i>Abysmal, <a href="https://www.fsis.usda.gov/sites/default/files/media_file/2020-08/Carbon-Dioxide.pdf">violates OSHA, must not remain this high over 8 hours, confirm meter calibration</a></i></u></b></p></td>
+    );
+}
+
 //TODO: extract to some kind of more generic risk stuff
 const RiskRow = (props: {co2ppm: number}) => {
     const [translate] = useTranslation();
@@ -147,7 +150,9 @@ const RiskRow = (props: {co2ppm: number}) => {
         return (<td><p style={{color:"red"}}><b><u>{translate('Extremely high: danger zone')}</u></b></p></td>);
     }
     if (props.co2ppm < 30_000) {
-        return (<td><p style={{color:"red"}}><b><u><i>Abysmal, <a href="https://www.fsis.usda.gov/sites/default/files/media_file/2020-08/Carbon-Dioxide.pdf">violates OSHA, must not remain this high over 8 hours, confirm meter calibration</a></i></u></b></p></td>);
+        return (
+            <AboveFiveThousand/>
+        )
     }
     return (<td><p style={{color:"red"}}><b><u><i>{translate('Immediate death or invalid measurement')}</i></u></b></p></td>);
 }
@@ -248,30 +253,22 @@ const MapMeasurementsToTableBody = (props: {measurements: Array<SerializedSingle
     if (props.measurements === undefined) {
         throw new Error(`measurements is undefined! This is a bug in MeasurementsTable.tsx. deviceSerials: ${props.deviceSerials?.toString()}`);
     }
-    // debugger;
-    const mappedMeasurements = props.measurements.map((measurement) => {
-        // if (measurement.place === undefined) {
-        //     debugger;
-        // }
-        // debugger;
-        // const maybeDeviceId = (measurement.relationships ?  : '')
-        if (measurement.id === null) {
-            console.error("Corrupted measurement lacks ID, simply rendering null...");
-            Sentry.captureMessage(`Corrupted measurement? ${JSON.stringify(measurement)}`);
-            return (
-                <tr>
-                    Bad measurement info!!
-                </tr>
-            );
-        }
-        return singleMeasurementTableRow(measurement, props)
-    });
-    if (mappedMeasurements.length === 0) {
+    if (props.measurements.length === 0) {
+        debugger;
         return null;
     }
+
+    const measurementMapCallback = (measurement: SerializedSingleMeasurement): JSX.Element => {
+        if (measurement.id === null) {
+            return badMeasurement(measurement);
+        }
+        return (
+            <SingleMeasurementTableRow measurement={measurement} setSelectedMeasurement={props.setSelectedMeasurement} setShowMeasurementModal={props.setShowMeasurementModal} deviceSerials={props.deviceSerials} innerLocation={props.innerLocation} withDelete={props.withDelete} withDevice={props.withDevice} />
+        );
+    };
     return (
         <>
-            {mappedMeasurements}
+            {props.measurements.map(measurementMapCallback)}
         </>
     );
 }
@@ -356,23 +353,46 @@ export const MeasurementsTable: React.FC<MeasurementsTableProps> = (props: Measu
         </div>
     )
 }
-function singleMeasurementTableRow(measurement: SerializedSingleMeasurement, props: { measurements: Array<SerializedSingleMeasurement>; setShowMeasurementModal: React.Dispatch<React.SetStateAction<boolean>>; setSelectedMeasurement: React.Dispatch<React.SetStateAction<number | null>>; withDelete?: boolean | undefined; innerLocation?: InnerLocationDetails | undefined; deviceSerials?: SerializedSingleDeviceSerial[] | undefined; withDevice?: boolean | undefined; }): JSX.Element {
-    return <tr key={measurementRowKey(measurement.id!)}>
-        <ShowMeasurementButtonTableData id={measurement.id!} setSelectedMeasurement={props.setSelectedMeasurement} setShowMeasurementModal={props.setShowMeasurementModal} />
-        {props.withDevice ? <DeviceIDOrSerialWithLink id={measurement.relationships.device.data.id} deviceSerials={props.deviceSerials} /> : null}
+function badMeasurement(measurement: SerializedSingleMeasurement) {
+    console.error("Corrupted measurement lacks ID, simply rendering null...");
+    Sentry.captureMessage(`Corrupted measurement? ${JSON.stringify(measurement)}`);
+    return (
+        <tr>
+            Bad measurement info!!
+        </tr>
+    );
+}
 
-        <td>{measurement.attributes.co2ppm}</td>
-        {/* Displays the measurement as if it were taken in the timezone where the user currently is. It's painful to adjust the timezone according to the google places time offset, so this works for now. */}
-        <td>{new Date(measurement.attributes.measurementtime).toString()}</td>
-        <CrowdingOrRealtime measurement={measurement} />
+const DateTimeData = (props: {measurementtime: string}) => {
+    /* Displays the measurement as if it were taken in the timezone where the user currently is. It's painful to adjust the timezone according to the google places time offset, so this works for now. */
+    return (
+        <td>{new Date(props.measurementtime).toString()}</td>
+    );
+}
 
-        <Suspense fallback="loading translations...">
-            <RiskRow co2ppm={measurement.attributes.co2ppm} />
-        </Suspense>
-        <RebreathedFraction co2ppm={measurement.attributes.co2ppm} />
-        <MaybeInnerLocation measurement={measurement} innerLocation={props.innerLocation} />
-        <MaybeDeleteButton measurement={measurement} withDelete={props.withDelete} />
-        {/* <td>{measurement.place.google_place_id}</td> */}
-    </tr>;
+function SingleMeasurementTableRow( props: {
+    measurement: SerializedSingleMeasurement, 
+    setShowMeasurementModal: React.Dispatch<React.SetStateAction<boolean>>,
+    setSelectedMeasurement: React.Dispatch<React.SetStateAction<number | null>>,
+    withDelete?: boolean | undefined,
+    innerLocation?: InnerLocationDetails | undefined,
+    deviceSerials?: SerializedSingleDeviceSerial[] | undefined,
+    withDevice?: boolean | undefined}): JSX.Element {
+    return ( 
+        <tr key={measurementRowKey(props.measurement.id!)}>
+            <ShowMeasurementButtonTableData id={props.measurement.id!} setSelectedMeasurement={props.setSelectedMeasurement} setShowMeasurementModal={props.setShowMeasurementModal} />
+            {props.withDevice ? <DeviceIDOrSerialWithLink id={props.measurement.relationships.device.data.id} deviceSerials={props.deviceSerials} /> : null}
+
+            <td>{props.measurement.attributes.co2ppm}</td>
+            <DateTimeData measurementtime={props.measurement.attributes.measurementtime}/>
+            <CrowdingOrRealtime measurement={props.measurement} />
+            <Suspense fallback="loading translations...">
+                <RiskRow co2ppm={props.measurement.attributes.co2ppm} />
+            </Suspense>
+            <RebreathedFraction co2ppm={props.measurement.attributes.co2ppm} />
+            <MaybeInnerLocation measurement={props.measurement} innerLocation={props.innerLocation} />
+            <MaybeDeleteButton measurement={props.measurement} withDelete={props.withDelete} />
+        </tr>
+    );
 }
 
