@@ -1,4 +1,4 @@
-import React, {Suspense, useState} from 'react';
+import {Suspense, useState} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {Modal, Button, Form, Spinner} from 'react-bootstrap';
 import {useLocation, useNavigate} from 'react-router-dom'
@@ -307,7 +307,7 @@ export const CreateManufacturerModalDialog: React.FC<manufacturerDialogProps> = 
                 <ModalHeader/>
             </Suspense>
             <Modal.Body>
-                (Please reduce administrative burden, don't add nuisance manufacturers.)
+                (Please reduce administrative burden, don&apos;t add nuisance manufacturers.)
                 <Form noValidate onChange={(event) => onChangeEvent(event, dispatch)} onSubmit={(event) => onSubmitEvent(event, enteredManufacturerText, props.setShowAddManufacturer, navigate, setShowSubmit, setSubmitting)}>
                     <Form.Label>
                         {translate('Manufacturer name')}

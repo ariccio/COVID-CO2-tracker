@@ -1,4 +1,4 @@
-import React, {useEffect, useState, Suspense} from 'react';
+import {useEffect, useState, Suspense} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {Dropdown} from 'react-bootstrap';
 import {Link, useLocation} from 'react-router-dom';
@@ -19,9 +19,9 @@ import { selectSelectedModel } from '../deviceModels/deviceModelsSlice';
 import { AppDispatch } from '../../app/store';
 
 
-interface CreateManufacturerOrModelProps {
+// interface CreateManufacturerOrModelProps {
 
-}
+// }
 
 interface EachManufacturer {
     name: string,
@@ -58,7 +58,7 @@ function dropdownItemRowKey(manufacturer: EachManufacturer): string {
 
 function manufacturersToDropdown(manufacturers_: ManufacturersArray) {
     const manufacturers = manufacturers_.manufacturers;
-    return manufacturers.map((manufacturer: EachManufacturer, index: number) => {
+    return manufacturers.map((manufacturer: EachManufacturer) => {
         return (
             <Dropdown.Item eventKey={`${manufacturer.id}`} key={dropdownItemRowKey(manufacturer)}>
                 <span>
@@ -217,8 +217,8 @@ const renderDeviceModelsOrLoading = (selectedManufacturer: number | null, manufa
     );
 }
 
-export const CreateManufacturerOrModel: React.FC<CreateManufacturerOrModelProps> = () => {
-    let location = useLocation();
+export const CreateManufacturerOrModel = () => {
+    const location = useLocation();
     const dispatch = useDispatch();
 
     const [knownManufacturers, setKnownManufacturers] = useState(defaultManufacturersArray);

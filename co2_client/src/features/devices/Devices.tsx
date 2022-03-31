@@ -1,5 +1,5 @@
 
-import React, {useEffect, useState, Suspense}  from 'react';
+import {useEffect, useState, Suspense}  from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {useParams, Link} from 'react-router-dom';
 import {Button} from 'react-bootstrap';
@@ -25,7 +25,6 @@ import {CreateMyDeviceInstance} from '../create/CreateDeviceInstance';
 import { updateUserInfo } from '../profile/Profile';
 import { selectUserInfoErrorState, selectUserInfoState } from '../profile/profileSlice';
 import { deviceModelsPath } from '../../paths/paths';
-import { AppDispatch } from '../../app/store';
 // import { selectSelectedManufacturer } from '../manufacturers/manufacturerSlice';
 
 
@@ -101,7 +100,7 @@ export function Device() {
     console.warn("TODO: change to render more than first two measurements :)")
     return (
         <div>
-            Model: "<Link to={deviceModelsPath + `/${deviceInfo.device_model_id}`}>{deviceInfo.device_model}</Link>" - serial #: "{deviceInfo.serial}" measurements ({deviceInfo.measurements.data.length}):
+            Model: &quot;<Link to={deviceModelsPath + `/${deviceInfo.device_model_id}`}>{deviceInfo.device_model}</Link>&quot; - serial #: &quot;{deviceInfo.serial}&quot; measurements ({deviceInfo.measurements.data.length}):
             {maybeRenderMeasurements(deviceInfo)}
             
         </div>
@@ -151,7 +150,7 @@ const UnselectModelButton = (props: {selectedModelName: string}) => {
 }
 
 
-const selectModelOrUnselectModel = (selectedModelName: string, dispatch: AppDispatch) => {
+const selectModelOrUnselectModel = (selectedModelName: string) => {
     if (selectedModelName === '') {
         return (
             <div>
@@ -175,7 +174,7 @@ const selectModelOrUnselectModel = (selectedModelName: string, dispatch: AppDisp
 }
 
 
-const DevicesContainer: React.FC<{}> = () => {
+const DevicesContainer = () => {
     const [translate] = useTranslation();
 
     // const [userInfo, setUserInfo] = useState(defaultUserInfo);
@@ -223,7 +222,7 @@ const DevicesContainer: React.FC<{}> = () => {
                 {translate('add-devices-view-stats')}
             </h3>
             <br/>
-            {selectModelOrUnselectModel(selectedModelName, dispatch)}
+            {selectModelOrUnselectModel(selectedModelName)}
             {selectedModelName !== '' ?  renderAddDeviceButton(createDeviceClicked, setCreateClicked, setShowAddDeviceInstance, selectedModelName) : null}
 
 

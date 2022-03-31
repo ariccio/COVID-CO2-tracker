@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {useDispatch} from 'react-redux';
 import {useSelector} from 'react-redux';
 
@@ -69,7 +69,7 @@ interface GeolocationPositionError_ {
     readonly PERMISSION_DENIED: number;
     readonly POSITION_UNAVAILABLE: number;
     readonly TIMEOUT: number;
-};
+}
 
 const USER_DENIED_GEOLOCATION_STRING = "User denied Geolocation";
 
@@ -866,7 +866,7 @@ const MapsLoadError = (props: {loadError: Error}) => {
         <div>
             Google maps load failed!<br/>
             Message, if any: {props.loadError.message}<br/>
-            This failure has been reported automatically. There's usually not much I can do about this - something went wrong loading google libraries - but I keep track of it anyways.<br/>
+            This failure has been reported automatically. There&apos;s usually not much I can do about this - something went wrong loading google libraries - but I keep track of it anyways.<br/>
 
             Full error object: {JSON.stringify(props.loadError)}
         </div>
@@ -883,7 +883,7 @@ export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) =
     const dispatch = useDispatch();
 
     const [center, setCenter] = useState(defaultCenter as google.maps.LatLngLiteral | google.maps.LatLng );
-    const [map, setMap] = React.useState(null as google.maps.Map | null);
+    const [map, setMap] = useState(null as google.maps.Map | null);
     const [service, setService] = useState(null as google.maps.places.PlacesService | null);
     const [mapLoaded, setMapLoaded] = useState(false);
 

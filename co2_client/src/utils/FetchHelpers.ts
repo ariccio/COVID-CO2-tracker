@@ -53,6 +53,8 @@ async function checkJSONparsingErrors(awaitedResponseOriginal: Response): Promis
     catch(error) {
         // debugger;
         console.error("bailed checkJSONparsingErrors")
+        //I don't remember if this empty block is tryly needed.
+        // eslint-disable-next-line no-empty
         try {
             
         }

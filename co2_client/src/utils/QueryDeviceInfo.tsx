@@ -63,13 +63,16 @@ export const deviceIDsFromSubLocation = (value: SublocationMeasurements) => {
     const all_IDs = value.measurements.data.map((measurement: SerializedSingleMeasurement) => {
         return measurement.relationships.device.data.id;
     });
+    console.warn("TODO: This will get excessive.");
     const all_IDs_noNulls = all_IDs.filter((id) => {
         if (id === null) {
+            debugger;
             console.log(`Filtering corrupted device id...`);
         }
+        // debugger;
         return id !== null;
     })
-    return all_IDs as number[];
+    return all_IDs_noNulls as number[];
     // const IDsSet = new Set<number>();
     // for (let i = 0; i < value.measurements.data.length; i++) {
     //     IDsSet.add(value.measurements.data[i].relationships.device.data.id);

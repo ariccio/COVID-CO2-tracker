@@ -1,4 +1,4 @@
-import React, {useEffect, Suspense} from 'react'; // suspense is for i18n
+import {useEffect, Suspense} from 'react'; // suspense is for i18n
 import { useSelector, useDispatch } from 'react-redux';
 // import {useLocation} from 'react-router-dom';
 // import {Link, Redirect} from 'react-router-dom';
@@ -27,8 +27,8 @@ import {get_email} from '../../utils/Authentication';
 import { GoogleLoginLogoutContainer } from '../login/Login';
 import { AppDispatch } from '../../app/store';
 
-type NavBarProps = {
-}
+// type NavBarProps = {
+// }
 
 // const renderLoginSignup = (): JSX.Element => 
 // <>
@@ -47,7 +47,7 @@ const LoggedIn = (props: {username: string}) =>
   <NavDropdown title={props.username} id="basic-nav-dropdown" flip={1 as unknown as boolean} align="end" renderMenuOnMount>
     <NavDropdown.Item>
         <LinkContainer to={profilePath}>
-            <NavItem className='nav-item'>{props.username}'s profile</NavItem>
+            <NavItem className='nav-item'>{props.username}&apos;s profile</NavItem>
         </LinkContainer>
     </NavDropdown.Item>
     <NavDropdown.Item>
@@ -98,7 +98,7 @@ interface UserNavProps {
 //     )
 // }
 
-const UserNav: React.FC<UserNavProps> = ({username, googleProfile}) => {
+const UserNav: React.FC<UserNavProps> = ({username}) => {
   const [translate] = useTranslation();
   return (
     <Navbar expand="sm" /*bg="dark" variant="dark"*/ >
@@ -194,7 +194,7 @@ const loadEmail = (dispatch: AppDispatch, username: string) => {
   })
 }
 
-export const NavBar: React.FC<NavBarProps> = (props: NavBarProps) => {
+export const NavBar = () => {
     const username = useSelector(selectUsername);
     const googleProfile = useSelector(selectGoogleProfile);
     // if (googleProfile !== null) {

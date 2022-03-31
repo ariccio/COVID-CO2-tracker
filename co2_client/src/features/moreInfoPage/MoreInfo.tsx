@@ -1,5 +1,4 @@
-import React from 'react';
-import { CardGroup, Col, Row } from 'react-bootstrap';
+import { Col, Row } from 'react-bootstrap';
 import Card from 'react-bootstrap/Card';
 // import Nav from 'react-bootstrap/Nav';
 
@@ -45,17 +44,17 @@ const CovidStraightTalk = () =>
     </Card>
 
 
-interface MoreInfoProps {}
+// interface MoreInfoProps {}
 
 
-export const MoreInfo: React.FC<MoreInfoProps> = (props: MoreInfoProps) => {
+export const MoreInfo = () => {
     return (
         <>
             <h4>
                 All kinds of other info!
             </h4>
             <p>
-                I work with a worldwide group of scientists, experts, engineers, and activists to make the world a safer place from COVID. We're loosely organized, and go by many different names!
+                I work with a worldwide group of scientists, experts, engineers, and activists to make the world a safer place from COVID. We&apos;re loosely organized, and go by many different names!
             </p>
             <Row md={2}>
                 <Col>

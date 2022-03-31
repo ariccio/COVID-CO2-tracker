@@ -1,4 +1,4 @@
-import React, {useEffect, useState, Suspense} from 'react';
+import {useEffect, useState, Suspense} from 'react';
 // import { useSelector, useDispatch } from 'react-redux';
 // import {Dropdown} from 'react-bootstrap';
 import {useLocation} from 'react-router-dom';
@@ -133,7 +133,7 @@ const measurements = (modelMeasurements: ModelMeasurementsResponse | null) => {
 }
 
 
-export const DeviceModels: React.FC<{}> = () => {
+export const DeviceModels = () => {
     const location = useLocation();
     // const dispatch = useDispatch();
     const {deviceModelId} = useParams();

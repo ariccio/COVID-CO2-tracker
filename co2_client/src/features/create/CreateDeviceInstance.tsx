@@ -1,4 +1,4 @@
-import React, {Suspense, useState} from 'react';
+import {Suspense, useState} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 import {Modal, Button, Form, Spinner} from 'react-bootstrap';
 import {useLocation, useNavigate} from 'react-router-dom';
@@ -105,7 +105,7 @@ const onSubmitEvent = (event: React.FormEvent<HTMLFormElement>, enteredDeviceSer
     submitHandler(enteredDeviceSerialNumberText, setShowAddDeviceInstance, navigate, selectedModel, dispatch, location, setShowSubmit, setSubmitting);
 }
 
-const cancelHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, setShowAddDeviceInstance: React.Dispatch<React.SetStateAction<boolean>>, navigate: ReturnType<typeof useNavigate>) => {
+const cancelHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, setShowAddDeviceInstance: React.Dispatch<React.SetStateAction<boolean>>) => {
     setShowAddDeviceInstance(false);
     // history.goBack();
 }
@@ -199,7 +199,7 @@ export const CreateMyDeviceInstance: React.FC<CreateMyDeviceInstanceProps> = (pr
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={(event) => cancelHandler(event, props.setShowAddDeviceInstance, navigate)}>
+                    <Button variant="secondary" onClick={(event) => cancelHandler(event, props.setShowAddDeviceInstance)}>
                         <span>
                             {translate('Cancel')}
                         </span>

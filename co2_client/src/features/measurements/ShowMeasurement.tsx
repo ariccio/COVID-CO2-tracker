@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, Suspense } from 'react';
+import { useEffect, useState, useRef, Suspense } from 'react';
 import {Modal} from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -83,7 +83,7 @@ const renderPlaceDetails = (measurementInfo: ShowMeasurementResponse, elementRef
             return (
                 <div>
                     Error loading google maps/places API key. Error details: {mapsAaaPeeEyeKeyErrorState}
-                    (Can't show place details)
+                    (Can&apos;t show place details)
                 </div>
             )
         }
@@ -103,7 +103,7 @@ const renderPlaceDetails = (measurementInfo: ShowMeasurementResponse, elementRef
     return (
         <div>
             Will have PROPER place data here when I fix the damn bug.
-            In mean time, here's a link to it: <Link to={`${placesPath}/${measurementInfo.place_id}`}>{measurementInfo.place_id}</Link>
+            In mean time, here&apos;s a link to it: <Link to={`${placesPath}/${measurementInfo.place_id}`}>{measurementInfo.place_id}</Link>
             {/* <PlaceDetails placeId={measurementInfo.place_id} divRef={elementRef}/> */}
         </div>
     )

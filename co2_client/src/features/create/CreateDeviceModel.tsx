@@ -1,4 +1,4 @@
-import React, {Suspense, useState} from 'react';
+import {Suspense, useState} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 import {Modal, Button, Form, Spinner} from 'react-bootstrap';
 import {useLocation, useNavigate} from 'react-router-dom'
@@ -196,7 +196,7 @@ export const CreateDeviceModelModalDialog: React.FC<modelDialogProps> = (props: 
                     <ModalHeader/>
                 </Suspense>
                 <Modal.Body>
-                    (Please reduce administrative burden, don't add nuisance models. TODO: styling this text)
+                    (Please reduce administrative burden, don&apos;t add nuisance models. TODO: styling this text)
                     <Form noValidate onChange={(event) => onChangeEvent(event, dispatch)} onSubmit={(event) => onSubmitEvent(event, enteredModelText, props.setShowAddModel, navigate, selectedManufacturer, dispatch, setShowSubmit, setSubmitting)}>
                         <Form.Label>
                             <span>

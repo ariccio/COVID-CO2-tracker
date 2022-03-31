@@ -1,4 +1,4 @@
-import React, {FunctionComponent, useEffect, useState, Suspense} from 'react';
+import {useEffect, useState, Suspense} from 'react';
 import { useTranslation } from 'react-i18next';
 
 
@@ -45,7 +45,7 @@ const AppStats: React.FC<{appStatsResponse: AppStatsResponse, errorState: string
 
 }
 
-export const AppStatsContainer: FunctionComponent<{}> = (props: any) => {
+export const AppStatsContainer = () => {
     const [appStatsResponse, setAppStatsResponse] = useState(defaultAppStatsResponse);
     const [errorState, setErrorState] = useState('');
 

@@ -4,7 +4,6 @@ import {postRequestOptions, userRequestOptions} from './DefaultRequestOptions';
 import {Errors, formatErrors} from './ErrorObject';
 import {SelectedPlaceDatabaseInfo, setPlacesInfoFromDatabase, setPlacesInfoErrors, setPlaceExistsInDatabase, defaultPlaceInfo, setPlaceMarkersFromDatabase, setPlaceMarkersErrors, defaultPlaceMarkers, placesFromDatabaseForMarker, setPlaceMarkersFetchInProgress, setPlaceMarkersFetchFinishMS, setPlaceMarkersFetchStartMS} from '../features/places/placesSlice';
 
-import {useDispatch} from 'react-redux';
 import { AppDispatch } from '../app/store';
 
 

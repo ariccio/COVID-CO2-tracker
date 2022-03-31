@@ -1,6 +1,5 @@
 import {SerializedSingleMeasurement, UserInfoDevice} from './DeviceInfoTypes';
 import {ErrorObjectType} from './ErrorObject';
-import { UserSettings } from './UserSettings';
 
 
 interface UserInfoInternal {

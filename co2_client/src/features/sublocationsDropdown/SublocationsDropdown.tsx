@@ -1,4 +1,3 @@
-import React from 'react';
 import {Dropdown} from 'react-bootstrap';
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../../app/store';

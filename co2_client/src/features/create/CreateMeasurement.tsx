@@ -1,4 +1,4 @@
-import React, {useState, useEffect, Suspense} from 'react';
+import {useState, useEffect, Suspense} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 import {Modal, Button, Form, Dropdown, ToggleButtonGroup, ToggleButton, Spinner} from 'react-bootstrap';
 import DatePicker from 'react-datepicker';
@@ -64,7 +64,7 @@ interface CreateNewMeasurementProps {
 }
 
 const devicesToDropdown = (userDevices: UserDevicesInfo) => {
-    return userDevices.devices.map((value: UserInfoDevice, index: number) => {
+    return userDevices.devices.map((value: UserInfoDevice) => {
         return (
             <Dropdown.Item eventKey={`${value.device_id}`} key={`${value.device_id}-${value.device_model_id}-${value.device_manufacturer_id}-eventKey-dropdown`}>
                 {value.device_model} (#{value.serial})
@@ -94,7 +94,7 @@ const selectDeviceDropdownHandler = (eventKey: string | null, e: React.Synthetic
     }
     const selected = dropdownKeyToDeviceID(eventKey);
     if (selected !== null) {
-        const found = userDevices.devices.find((value: UserInfoDevice, index: number) => {
+        const found = userDevices.devices.find((value: UserInfoDevice) => {
             if (value.device_id === selected) {
                 return true;
             }
@@ -426,8 +426,8 @@ const MaybeMeasurementNote = (props: {enteredCO2Text: string}) => {
                 <br/>
                 <br/>
             </span>
-        )
-    };
+        );
+    }
     return null;
 }
 
@@ -530,7 +530,7 @@ const NotLoggedIn = (props: {showCreateNewMeasurement: boolean, setShowCreateNew
 }
 
 
-const NothingSelectedItem: React.FC<{}> = () => {
+const NothingSelectedItem = () => {
     const [translate] = useTranslation();
     return (
         <div>
@@ -689,7 +689,7 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
         }
 
     // Running this hook whenever selectedSubLocation changed would defeat the purpose, and never let users add new sublocations.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
     }, [dispatch, placesInfoFromDatabase]);
 
     const place_id = selectedPlace.place_id

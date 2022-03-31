@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, Suspense} from 'react';
+import {useEffect, useRef, Suspense} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {useParams} from 'react-router-dom';
 // import {useLocation} from 'react-router-dom';
@@ -19,7 +19,7 @@ const DivElem = (props: {elementRef: React.MutableRefObject<HTMLDivElement | nul
     );
 }
 
-export const Place: React.FC<{}> = () => {
+export const Place = () => {
     // console.log("place")
     // const location = useLocation();
     const dispatch = useDispatch();

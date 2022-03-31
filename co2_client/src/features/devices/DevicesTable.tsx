@@ -1,4 +1,4 @@
-import React, {Suspense} from 'react';
+import {Suspense} from 'react';
 import {Table, Button} from 'react-bootstrap';
 import {Link} from 'react-router-dom';
 import { useTranslation } from 'react-i18next';

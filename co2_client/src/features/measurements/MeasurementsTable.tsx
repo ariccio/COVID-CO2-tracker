@@ -1,4 +1,4 @@
-import React, { useState, Suspense } from 'react';
+import { useState, Suspense } from 'react';
 import {Table, Button} from 'react-bootstrap';
 import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
@@ -238,14 +238,18 @@ const RebreathedFraction = (props: {co2ppm: number}) => {
     )
 }
 
-
+const ShowMeasurementButtonTableData = (props: {setShowMeasurementModal: React.Dispatch<React.SetStateAction<boolean>>, setSelectedMeasurement: React.Dispatch<React.SetStateAction<number | null>>, id: number}) => {
+    return (
+        <td><Button variant="primary" onClick={() => {props.setShowMeasurementModal(true); props.setSelectedMeasurement(props.id)}}>{props.id} details</Button></td>
+    );
+}
 
 const MapMeasurementsToTableBody = (props: {measurements: Array<SerializedSingleMeasurement>, setShowMeasurementModal: React.Dispatch<React.SetStateAction<boolean>>, setSelectedMeasurement: React.Dispatch<React.SetStateAction<number | null>>, withDelete?: boolean, innerLocation?: InnerLocationDetails, deviceSerials?: Array<SerializedSingleDeviceSerial>, withDevice?: boolean})/*: JSX.Element*/ => {
     if (props.measurements === undefined) {
         throw new Error(`measurements is undefined! This is a bug in MeasurementsTable.tsx. deviceSerials: ${props.deviceSerials?.toString()}`);
     }
     // debugger;
-    const mappedMeasurements = props.measurements.map((measurement, index: number) => {
+    const mappedMeasurements = props.measurements.map((measurement) => {
         // if (measurement.place === undefined) {
         //     debugger;
         // }
@@ -260,26 +264,7 @@ const MapMeasurementsToTableBody = (props: {measurements: Array<SerializedSingle
                 </tr>
             );
         }
-        return (
-            <tr key={measurementRowKey(measurement.id)}>
-                {/* <td>{index}</td> */}
-                <td><Button variant="primary" onClick={() => {props.setShowMeasurementModal(true); props.setSelectedMeasurement(measurement.id)}}>{measurement.id} details</Button></td>
-                {props.withDevice ? <DeviceIDOrSerialWithLink id={measurement.relationships.device.data.id} deviceSerials={props.deviceSerials}/> : null}
-                
-                <td>{measurement.attributes.co2ppm}</td>
-                {/* Displays the measurement as if it were taken in the timezone where the user currently is. It's painful to adjust the timezone according to the google places time offset, so this works for now. */}
-                <td>{new Date(measurement.attributes.measurementtime).toString()}</td>
-                <CrowdingOrRealtime measurement={measurement}/>
-                
-                <Suspense fallback="loading translations...">
-                    <RiskRow co2ppm={measurement.attributes.co2ppm}/>
-                </Suspense>
-                <RebreathedFraction co2ppm={measurement.attributes.co2ppm}/>
-                <MaybeInnerLocation measurement={measurement} innerLocation={props.innerLocation}/>
-                <MaybeDeleteButton measurement={measurement} withDelete={props.withDelete}/>
-                {/* <td>{measurement.place.google_place_id}</td> */}
-            </tr>
-        )
+        return singleMeasurementTableRow(measurement, props)
     });
     if (mappedMeasurements.length === 0) {
         return null;
@@ -371,3 +356,23 @@ export const MeasurementsTable: React.FC<MeasurementsTableProps> = (props: Measu
         </div>
     )
 }
+function singleMeasurementTableRow(measurement: SerializedSingleMeasurement, props: { measurements: Array<SerializedSingleMeasurement>; setShowMeasurementModal: React.Dispatch<React.SetStateAction<boolean>>; setSelectedMeasurement: React.Dispatch<React.SetStateAction<number | null>>; withDelete?: boolean | undefined; innerLocation?: InnerLocationDetails | undefined; deviceSerials?: SerializedSingleDeviceSerial[] | undefined; withDevice?: boolean | undefined; }): JSX.Element {
+    return <tr key={measurementRowKey(measurement.id!)}>
+        <ShowMeasurementButtonTableData id={measurement.id!} setSelectedMeasurement={props.setSelectedMeasurement} setShowMeasurementModal={props.setShowMeasurementModal} />
+        {props.withDevice ? <DeviceIDOrSerialWithLink id={measurement.relationships.device.data.id} deviceSerials={props.deviceSerials} /> : null}
+
+        <td>{measurement.attributes.co2ppm}</td>
+        {/* Displays the measurement as if it were taken in the timezone where the user currently is. It's painful to adjust the timezone according to the google places time offset, so this works for now. */}
+        <td>{new Date(measurement.attributes.measurementtime).toString()}</td>
+        <CrowdingOrRealtime measurement={measurement} />
+
+        <Suspense fallback="loading translations...">
+            <RiskRow co2ppm={measurement.attributes.co2ppm} />
+        </Suspense>
+        <RebreathedFraction co2ppm={measurement.attributes.co2ppm} />
+        <MaybeInnerLocation measurement={measurement} innerLocation={props.innerLocation} />
+        <MaybeDeleteButton measurement={measurement} withDelete={props.withDelete} />
+        {/* <td>{measurement.place.google_place_id}</td> */}
+    </tr>;
+}
+

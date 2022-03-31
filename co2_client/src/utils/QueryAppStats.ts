@@ -1,6 +1,6 @@
 import {API_URL} from './UrlPath';
 
-import {formatErrors, withErrors} from './ErrorObject';
+import {withErrors} from './ErrorObject';
 import {userRequestOptions} from './DefaultRequestOptions';
 import {fetchJSONWithChecks} from './FetchHelpers';
 

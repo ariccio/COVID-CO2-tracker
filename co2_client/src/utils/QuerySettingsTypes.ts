@@ -46,111 +46,111 @@ data:
 
 
 export interface UserSettingsResponseData {
-    data: {
-      id: number,
-      // type: string,
-      attributes: {
-        realtime_upload_place: {
-          google_place_id: string,
-          id: number
-          // ...
-          created_at: unknown,
-          last_fetched: unknown,
-          updated_at: unknown,
-          place_lat: number,
-          place_lng: number
-        },
-        realtime_upload_sub_location: {
-          id: number,
-          description: string,
-          // ...
-          place_id: number,
-          created_at: unknown,
-          updated_at: unknown
-        }
+  data: {
+    id: number,
+    // type: string,
+    attributes: {
+      realtime_upload_place: {
+        google_place_id: string,
+        id: number
+        // ...
+        created_at: unknown,
+        last_fetched: unknown,
+        updated_at: unknown,
+        place_lat: number,
+        place_lng: number
+      },
+      realtime_upload_sub_location: {
+        id: number,
+        description: string,
+        // ...
+        place_id: number,
+        created_at: unknown,
+        updated_at: unknown
       }
     }
-  };
+  }
+}
 
 export function userSettingsResponseToStrongType(responseMaybeUserSettings: any): null | UserSettingsResponseData {
-    if (responseMaybeUserSettings === null) {
-      debugger;
-      throw new Error("Missing responseMaybeUserSettings!");
-    }
-    if (responseMaybeUserSettings === undefined) {
-      debugger;
-      throw new Error("Missing responseMaybeUserSettings!");
-    }
-    if (responseMaybeUserSettings.data === null) {
-      // debugger;
-      // throw new Error("Missing responseMaybeUserSettings.data!");
-      console.log("User has no settings.");
-      return (null);
-    }
-    if (responseMaybeUserSettings.data === undefined) {
-      debugger;
-      throw new Error("Missing responseMaybeUserSettings.data!");
-    }
-    if (responseMaybeUserSettings.data.id === null) {
-      debugger;
-      throw new Error("Missing responseMaybeUserSettings.data.id!");
-    }
-    if (responseMaybeUserSettings.data.id === undefined) {
-      debugger;
-      throw new Error("Missing responseMaybeUserSettings.data.id!");
-    }
-  
-    if (responseMaybeUserSettings.data.attributes === null) {
-      debugger;
-      throw new Error("Missing responseMaybeUserSettings.data.attributes!");
-    }
-  
-    if (responseMaybeUserSettings.data.attributes === undefined) {
-      debugger;
-      throw new Error("Missing responseMaybeUserSettings.data.attributes!");
-    }
-  
-    if (responseMaybeUserSettings.data.attributes.realtime_upload_place === null) {
-      debugger;
-      throw new Error("Missing responseMaybeUserSettings.data.attributes.realtime_upload_place!");
-    }
-    if (responseMaybeUserSettings.data.attributes.realtime_upload_place === undefined) {
-      debugger;
-      throw new Error("Missing responseMaybeUserSettings.data.attributes.realtime_upload_place!");
-    }
-    if (responseMaybeUserSettings.data.attributes.realtime_upload_place.google_place_id === null) {
-      debugger;
-      throw new Error("Missing responseMaybeUserSettings.data.attributes.realtime_upload_place.google_place_id!");
-    }
-    if (responseMaybeUserSettings.data.attributes.realtime_upload_place.google_place_id === undefined) {
-      debugger;
-      throw new Error("Missing responseMaybeUserSettings.data.attributes.realtime_upload_place.google_place_id!");
-    }
-    if (responseMaybeUserSettings.data.attributes.realtime_upload_sub_location === null) {
-      debugger;
-      throw new Error("Missing responseMaybeUserSettings.data.attributes.realtime_upload_sub_location!");
-    }
-    if (responseMaybeUserSettings.data.attributes.realtime_upload_sub_location === undefined) {
-      debugger;
-      throw new Error("Missing responseMaybeUserSettings.data.attributes.realtime_upload_sub_location!");
-    }
-    if (responseMaybeUserSettings.data.attributes.realtime_upload_sub_location.id === null) {
-      debugger;
-      throw new Error("Missing responseMaybeUserSettings.data.attributes.id!");
-    }
-    if (responseMaybeUserSettings.data.attributes.realtime_upload_sub_location.id === undefined) {
-      debugger;
-      throw new Error("Missing responseMaybeUserSettings.data.attributes.id!");
-    }
-    if (responseMaybeUserSettings.data.attributes.realtime_upload_sub_location.description === null) {
-      debugger;
-      throw new Error("Missing responseMaybeUserSettings.data.attributes.id!");
-    }
-    if (responseMaybeUserSettings.data.attributes.realtime_upload_sub_location.description === undefined) {
-      debugger;
-      throw new Error("Missing responseMaybeUserSettings.data.attributes.id!");
-    }
-    return responseMaybeUserSettings;
+  if (responseMaybeUserSettings === null) {
+    debugger;
+    throw new Error("Missing responseMaybeUserSettings!");
+  }
+  if (responseMaybeUserSettings === undefined) {
+    debugger;
+    throw new Error("Missing responseMaybeUserSettings!");
+  }
+  if (responseMaybeUserSettings.data === null) {
+    // debugger;
+    // throw new Error("Missing responseMaybeUserSettings.data!");
+    console.log("User has no settings.");
+    return (null);
+  }
+  if (responseMaybeUserSettings.data === undefined) {
+    debugger;
+    throw new Error("Missing responseMaybeUserSettings.data!");
+  }
+  if (responseMaybeUserSettings.data.id === null) {
+    debugger;
+    throw new Error("Missing responseMaybeUserSettings.data.id!");
+  }
+  if (responseMaybeUserSettings.data.id === undefined) {
+    debugger;
+    throw new Error("Missing responseMaybeUserSettings.data.id!");
+  }
+
+  if (responseMaybeUserSettings.data.attributes === null) {
+    debugger;
+    throw new Error("Missing responseMaybeUserSettings.data.attributes!");
+  }
+
+  if (responseMaybeUserSettings.data.attributes === undefined) {
+    debugger;
+    throw new Error("Missing responseMaybeUserSettings.data.attributes!");
+  }
+
+  if (responseMaybeUserSettings.data.attributes.realtime_upload_place === null) {
+    debugger;
+    throw new Error("Missing responseMaybeUserSettings.data.attributes.realtime_upload_place!");
+  }
+  if (responseMaybeUserSettings.data.attributes.realtime_upload_place === undefined) {
+    debugger;
+    throw new Error("Missing responseMaybeUserSettings.data.attributes.realtime_upload_place!");
+  }
+  if (responseMaybeUserSettings.data.attributes.realtime_upload_place.google_place_id === null) {
+    debugger;
+    throw new Error("Missing responseMaybeUserSettings.data.attributes.realtime_upload_place.google_place_id!");
+  }
+  if (responseMaybeUserSettings.data.attributes.realtime_upload_place.google_place_id === undefined) {
+    debugger;
+    throw new Error("Missing responseMaybeUserSettings.data.attributes.realtime_upload_place.google_place_id!");
+  }
+  if (responseMaybeUserSettings.data.attributes.realtime_upload_sub_location === null) {
+    debugger;
+    throw new Error("Missing responseMaybeUserSettings.data.attributes.realtime_upload_sub_location!");
+  }
+  if (responseMaybeUserSettings.data.attributes.realtime_upload_sub_location === undefined) {
+    debugger;
+    throw new Error("Missing responseMaybeUserSettings.data.attributes.realtime_upload_sub_location!");
+  }
+  if (responseMaybeUserSettings.data.attributes.realtime_upload_sub_location.id === null) {
+    debugger;
+    throw new Error("Missing responseMaybeUserSettings.data.attributes.id!");
+  }
+  if (responseMaybeUserSettings.data.attributes.realtime_upload_sub_location.id === undefined) {
+    debugger;
+    throw new Error("Missing responseMaybeUserSettings.data.attributes.id!");
+  }
+  if (responseMaybeUserSettings.data.attributes.realtime_upload_sub_location.description === null) {
+    debugger;
+    throw new Error("Missing responseMaybeUserSettings.data.attributes.id!");
+  }
+  if (responseMaybeUserSettings.data.attributes.realtime_upload_sub_location.description === undefined) {
+    debugger;
+    throw new Error("Missing responseMaybeUserSettings.data.attributes.id!");
+  }
+  return responseMaybeUserSettings;
 }
 
 export function userSettingsResponseDataAsPlainSettings(response: UserSettingsResponseData | null): UserSettings | null {

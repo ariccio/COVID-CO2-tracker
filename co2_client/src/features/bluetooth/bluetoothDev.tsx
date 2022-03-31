@@ -10,12 +10,10 @@ import * as Sentry from "@sentry/react";
 
 import Bowser from "bowser"; 
 
-import { setSelectedDevice } from "../deviceModels/deviceModelsSlice";
-
 import {isMobileSafari} from '../../utils/Browsers';
 import * as BLUETOOTH from '../../utils/BluetoothConstants';
 
-import { selectDebugText, selectBluetoothAvailableError, setCO2, setBluetoothAvailableError, selectBluetoothAvailable, setBluetoothAvailable, setTemperature, setBarometricPressure, setHumidity, selectBattery, setBattery, setDeviceNameFromCharacteristic, setDeviceID, selectDeviceID, setDeviceName, selectDeviceName, selectDeviceNameFromCharacteristic, setAranet4MeasurementInterval, setAranet4TotalMeasurements, setModelNumber, setFirmwareRevision, setHardwareRevision, setSoftwareRevision, setManufacturerName, selectGattDeviceInformation, setAranet4SecondsSinceLastMeasurement, appendDebugText, setAranet4Color, setAranet4Calibration, selectMeasurementData, selectAranet4SpecificData, setRFData, selectRFData, RFData, setSupportsGetDevices, setSupportsBluetooth, selectSupportsBluetooth, selectSupportsGetDevices, selectDeviceServer, setDeviceServer } from "./bluetoothSlice";
+import { selectDebugText, selectBluetoothAvailableError, setCO2, setBluetoothAvailableError, selectBluetoothAvailable, setBluetoothAvailable, setTemperature, setBarometricPressure, setHumidity, selectBattery, setBattery, setDeviceNameFromCharacteristic, setDeviceID, setDeviceName, selectDeviceName, selectDeviceNameFromCharacteristic, setAranet4MeasurementInterval, setAranet4TotalMeasurements, setModelNumber, setFirmwareRevision, setHardwareRevision, setSoftwareRevision, setManufacturerName, selectGattDeviceInformation, setAranet4SecondsSinceLastMeasurement, appendDebugText, setAranet4Color, setAranet4Calibration, selectMeasurementData, selectAranet4SpecificData, setRFData, selectRFData, RFData, setSupportsGetDevices, setSupportsBluetooth, selectSupportsBluetooth, selectSupportsGetDevices, selectDeviceServer, setDeviceServer } from "./bluetoothSlice";
 import { AppDispatch } from "../../app/store";
 
 // declare module BluetoothUUID {
@@ -239,26 +237,29 @@ function switchOverCharacteristics(data: DataView, dispatch: AppDispatch, charac
             parse_ARANET_CO2_MEASUREMENT_CHARACTERISTIC_UUID(data, dispatch);
             messages(`\t\tAranet4 CO2 measurement parsed.`, dispatch);
             break;
-        case (BLUETOOTH.ARANET_SECONDS_LAST_UPDATE_UUID):
+        case (BLUETOOTH.ARANET_SECONDS_LAST_UPDATE_UUID): {
             console.assert(data.byteLength === 2);
             const secondsSinceLastUpdate = data.getUint16(0, true);
             messages(`\t\tAranet4 seconds since last update: ${secondsSinceLastUpdate}`, dispatch);
             dispatch(setAranet4SecondsSinceLastMeasurement(secondsSinceLastUpdate))
             // debugger;
             break;
-        case (BLUETOOTH.ARANET_MEASUREMENT_INTERVAL_UUID):
+        }
+        case (BLUETOOTH.ARANET_MEASUREMENT_INTERVAL_UUID): {
             console.assert(data.byteLength === 2);
             const interval = data.getUint16(0, true);
             messages(`\t\tAranet4 measurement interval: ${interval}`, dispatch);
             dispatch(setAranet4MeasurementInterval(interval));
             break;
-        case (BLUETOOTH.ARANET_TOTAL_MEASUREMENTS_UUID):
+        }
+        case (BLUETOOTH.ARANET_TOTAL_MEASUREMENTS_UUID): {
             console.assert(data.byteLength === 2);
             const total = data.getUint16(0, true);
             messages(`\t\tAranet4 total measurements: ${total}`, dispatch);
             dispatch(setAranet4TotalMeasurements(total));
             break;
-        case (BLUETOOTH.GENERIC_GATT_DEVICE_INFORMATION_SYSTEM_ID_UUID):
+        }
+        case (BLUETOOTH.GENERIC_GATT_DEVICE_INFORMATION_SYSTEM_ID_UUID): {
             //e.g. https://www.bosch-connectivity.com/media/product_detail_scd/scd-ble-communication-protocol.pdf
             messages(`\t\tBluetooth device_information System ID, has variable structures (I think), let's try parsing...`, dispatch);
             console.assert(data.byteLength === 8);
@@ -270,41 +271,49 @@ function switchOverCharacteristics(data: DataView, dispatch: AppDispatch, charac
             const MI = [data.getUint8(3), data.getUint8(4), data.getUint8(5), data.getUint8(6), data.getUint8(7)];
             messages(`\t\t\tManufacturer Identifier: ${MI[0]} ${MI[1]} ${MI[2]} ${MI[3]} ${MI[4]} (NOTE: needs to be displayed as hex, not dec)`, dispatch);
             break;
-        case (BLUETOOTH.GENERIC_GATT_DEVICE_MODEL_NUMBER_STRING_UUID):
+        }
+        case (BLUETOOTH.GENERIC_GATT_DEVICE_MODEL_NUMBER_STRING_UUID): {
             const modelNumberString = parseUTF8StringDataView(data);
             messages(`\t\tBluetooth model number string: ${modelNumberString}`, dispatch);
             dispatch(setModelNumber(modelNumberString));
             break;
-        case (BLUETOOTH.GENERIC_GATT_FIRMWARE_REVISION_STRING_UUID):
+        }
+        case (BLUETOOTH.GENERIC_GATT_FIRMWARE_REVISION_STRING_UUID): {
             const firmwareRevisionString = parseUTF8StringDataView(data);
             messages(`\t\tBluetooth firmware revision string: ${firmwareRevisionString}`, dispatch);
             dispatch(setFirmwareRevision(firmwareRevisionString));
             break;
-        case (BLUETOOTH.GENERIC_GATT_HARDWARE_REVISION_STRING_UUID):
+        }
+        case (BLUETOOTH.GENERIC_GATT_HARDWARE_REVISION_STRING_UUID): {
             const hardwareRevisionString = parseUTF8StringDataView(data);
             messages(`\t\tBluetooth hardware revision string: ${hardwareRevisionString}`, dispatch);
             dispatch(setHardwareRevision(hardwareRevisionString));
             break;
-        case (BLUETOOTH.GENERIC_GATT_SOFTWARE_REVISION_STRING_UUID):
+        }
+        case (BLUETOOTH.GENERIC_GATT_SOFTWARE_REVISION_STRING_UUID): {
             const softwareRevisionString = parseUTF8StringDataView(data);
             messages(`\t\tBluetooth software revision string: ${softwareRevisionString}`, dispatch);
             dispatch(setSoftwareRevision(softwareRevisionString));
             break;
-        case (BLUETOOTH.GENERIC_GATT_MANUFACTURER_NAME_STRING_UUID):
+        }
+        case (BLUETOOTH.GENERIC_GATT_MANUFACTURER_NAME_STRING_UUID): {
             const manufacturerName = parseUTF8StringDataView(data);
             messages(`\t\tBluetooth manufacturer name string: ${manufacturerName}`, dispatch);
             dispatch(setManufacturerName(manufacturerName));
             break;
-        case (BLUETOOTH.GENERIC_GATT_DEVICE_NAME_UUID):
+        }
+        case (BLUETOOTH.GENERIC_GATT_DEVICE_NAME_UUID): {
             const name = parseUTF8StringDataView(data);
             messages(`\t\tBluetooth device name string (from GATT characteristic): ${name}`, dispatch);
             dispatch(setDeviceNameFromCharacteristic(name))
             break;
-        case (BLUETOOTH.GENERIC_GATT_DEVICE_BATTERY_LEVEL_UUID):
+        }
+        case (BLUETOOTH.GENERIC_GATT_DEVICE_BATTERY_LEVEL_UUID): {
             const batteryLevel = data.getUint8(0);
             messages(`\t\tBluetooth device battery level: ${batteryLevel}`, dispatch);
             break;
-        case (BLUETOOTH.ARANET_SENSOR_CALIBRATION_DATA_UUID):
+        }
+        case (BLUETOOTH.ARANET_SENSOR_CALIBRATION_DATA_UUID): {
             const rawSensorCalibrationValue = data.getBigUint64(0, true);
 
             if (rawSensorCalibrationValue === BLUETOOTH.ARANET4_MINIMUM_FACTORY_CALIBRATION_VALUE) {
@@ -326,7 +335,8 @@ function switchOverCharacteristics(data: DataView, dispatch: AppDispatch, charac
                 messages(`\t\tLikely NON-Factory calibration (${rawSensorCalibrationValue})`, dispatch);
             }
             break;
-        case (BLUETOOTH.GENERIC_GATT_PREFERRED_PERIPHERAL_CONNECTION_PARAMETERS):
+        }
+        case (BLUETOOTH.GENERIC_GATT_PREFERRED_PERIPHERAL_CONNECTION_PARAMETERS): {
             const minimumConnectionInterval = data.getUint16(0, true);
             const maximumConnectionInterval = data.getUint16(2, true);
             const slaveLatency = data.getUint16(4,true);
@@ -334,9 +344,10 @@ function switchOverCharacteristics(data: DataView, dispatch: AppDispatch, charac
             messages(`\t\tMinimum Connection Interval: ${minimumConnectionInterval}, Maximum Connection Interval: ${maximumConnectionInterval}, Slave Latency: ${slaveLatency}, Connection Supervision Timeout Multiplier: ${connectionSupervisionTimeoutMultiplier}`, dispatch);
 
             break;
-        case (BLUETOOTH.ARANET_UNSED_GATT_UUID):
+        }
+        case (BLUETOOTH.ARANET_UNSED_GATT_UUID): {
             messages(`\t\tAranet4 UNUSED characteristic. Should be all zeros!`, dispatch);
-            let dataLoaded = [];
+            const dataLoaded = [];
             for (let i = 0; i < data.byteLength; i++) {
                 dataLoaded.push(data.getUint8(i));
             }
@@ -350,6 +361,7 @@ function switchOverCharacteristics(data: DataView, dispatch: AppDispatch, charac
                 messages(`\t\t...yes, it's all zeros.`, dispatch)
             }
             break;
+        }
         default:
             dumpUnknownGatt(data, dispatch);
         }
@@ -485,7 +497,7 @@ function checkKnownFunctionDescription(characteristics: BluetoothRemoteGATTChara
 }
 
 function parseAsUint8Numbers(data: DataView): string {
-    let uint8Numbers = new Array(data.byteLength);
+    const uint8Numbers = new Array(data.byteLength);
     for (let i = 0; i < (data.byteLength); i++) {
         uint8Numbers[i] = data.getUint8(i);
     }
@@ -499,7 +511,7 @@ function parseAsUint16Numbers(data: DataView): string {
     if (data.byteLength < 2) {
         return "";
     }
-    let uint16Numbers = [];
+    const uint16Numbers = [];
     for (let i = 0; i < (data.byteLength/2); i++) {
         if ((i*2) > data.byteLength) {
             debugger;
@@ -517,7 +529,7 @@ function parseAsUint16NumbersLittleEndian(data: DataView): string {
     if (data.byteLength < 2) {
         return "";
     }
-    let uint16Numbers = [];
+    const uint16Numbers = [];
     for (let i = 0; i < (data.byteLength/2); i++) {
         if ((i*2) > data.byteLength) {
             debugger;
@@ -536,7 +548,7 @@ function parseAsUint32Numbers(data: DataView): string {
     if (data.byteLength < 4) {
         return "";
     }
-    let uint32Numbers = [];
+    const uint32Numbers = [];
     for (let i = 0; i < (data.byteLength/4); i++) {
         if ((i*4) > data.byteLength) {
             debugger;
@@ -557,7 +569,7 @@ function parseAsUint32NumbersLittleEndian(data: DataView): string {
     if (data.byteLength < 4) {
         return "";
     }
-    let uint32Numbers = [];
+    const uint32Numbers = [];
     for (let i = 0; i < (data.byteLength/4); i++) {
         if ((i*4) > data.byteLength) {
             debugger;
@@ -579,7 +591,7 @@ function parseAsUint64Numbers(data: DataView): string {
     if (data.byteLength < 8) {
         return "";
     }
-    let uint64Numbers = [];
+    const uint64Numbers = [];
     for (let i = 0; i < (data.byteLength/8); i++) {
         if ((i*8) > data.byteLength) {
             debugger;
@@ -601,7 +613,7 @@ function parseAsUint64NumbersLittleEndian(data: DataView): string {
     if (data.byteLength < 8) {
         return "";
     }
-    let uint64Numbers = [];
+    const uint64Numbers = [];
     for (let i = 0; i < (data.byteLength/8); i++) {
         if ((i*8) > data.byteLength) {
             debugger;
@@ -621,7 +633,7 @@ function parseAsUint64NumbersLittleEndian(data: DataView): string {
 
 
 function parseUTF8StringDataView(data: DataView): string {
-    let chars = new Array(data.byteLength);
+    const chars = new Array(data.byteLength);
     for (let i = 0; i < (data.byteLength); i++) {
         chars[i] = data.getUint8(i);
     }
@@ -1066,7 +1078,7 @@ type watchAdvertisements = (options: WatchAdvertisementsOptions) => Promise<unde
 
 
 function rfDataFromEvent(event: BluetoothAdvertisingEvent) {
-    let rfData: RFData = {
+    const rfData: RFData = {
         txPower: null,
         rssi: null
     };
@@ -1382,7 +1394,7 @@ function Compatibility(): JSX.Element {
 
 // }
 
-const polling = async (seamlesslyConnectedDeviceServer: BluetoothRemoteGATTServer | null, timerHandle: number | null, setTimerHandle: React.Dispatch<React.SetStateAction<number | null>>, dispatch: AppDispatch, pollingInterval: number) => {
+const polling = async (seamlesslyConnectedDeviceServer: BluetoothRemoteGATTServer | null, timerHandle: number | null, setTimerHandle: React.Dispatch<React.SetStateAction<number | null>>, dispatch: AppDispatch) => {
     // debugger;
     if (seamlesslyConnectedDeviceServer === null) {
         console.log('no device server to poll...');
@@ -1448,7 +1460,7 @@ const usePolling = (seamlesslyConnectedDeviceServer: BluetoothRemoteGATTServer |
             messages(`(${now.toLocaleDateString()} ${now.toLocaleTimeString()}): Requesting aranet4 polling (in ${POLLING_INTERVAL/1000} seconds)...`, dispatch);
             const handle: number = setTimeout(() => {
                 try {
-                    polling(seamlesslyConnectedDeviceServer, timingHandle, setTimingHandle, dispatch, POLLING_INTERVAL)
+                    polling(seamlesslyConnectedDeviceServer, timingHandle, setTimingHandle, dispatch)
                 }
                 catch(e) {
                     debugger;
@@ -1539,8 +1551,8 @@ export function BluetoothTesting(): JSX.Element {
     const connectDevice = () => {
         maybeConnectDevice(dispatch, seamlesslyConnectedDeviceServer);
     }
-    useEffect(() => {
-    }, [seamlesslyConnectedDeviceServer, dispatch]);
+    // useEffect(() => {
+    // }, [seamlesslyConnectedDeviceServer, dispatch]);
 
 
     return (

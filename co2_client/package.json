@@ -45,9 +45,6 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
-  "eslintConfig": {
-    "extends": "react-app"
-  },
   "browserslist": {
     "production": [
       ">0.2%",
@@ -62,6 +59,10 @@
   },
   "proxy": "http://localhost:3000",
   "devDependencies": {
+    "@eslint/create-config": "^0.1.2",
+    "@typescript-eslint/eslint-plugin": "^5.17.0",
+    "@typescript-eslint/parser": "^5.17.0",
+    "eslint": "^8.12.0",
     "eslint-plugin-react-perf": "^3.3.1"
   }
 }

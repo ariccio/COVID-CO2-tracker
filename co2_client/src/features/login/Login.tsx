@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { GoogleLogin, GoogleLogout, GoogleLoginResponse, GoogleLoginResponseOffline } from 'react-google-login';
 
@@ -12,7 +12,7 @@ import { postRequestOptions } from '../../utils/DefaultRequestOptions';
 import { getGoogleLoginClientAaaPeeeEyeKey } from '../../utils/GoogleAPIKeys';
 
 // import { profilePath } from '../../paths/paths';
-import { API_URL, LOGIN_URL } from '../../utils/UrlPath';
+import { LOGIN_URL } from '../../utils/UrlPath';
 
 import { setGoogleAuthResponse, setGoogleProfile } from './loginSlice';
 import { AppDispatch } from '../../app/store';
@@ -300,10 +300,10 @@ const googleLogoutSuccessCallback = (dispatch: AppDispatch) => {
     // debugger;
 }
 
-export interface LoginContainerProps {
-}
+// export interface LoginContainerProps {
+// }
 
-export const GoogleLoginLogoutContainer: React.FC<LoginContainerProps> = () => {
+export const GoogleLoginLogoutContainer = () => {
     const [googleLoginErrorState, setGoogleLoginErrorState] = useState("");
     const aapeeEyeKeyErrorState = useSelector(selectAaaPeeeEyeKeyErrorState);
     const loginAaaPeeEyeKey = useSelector(selectLoginAaaPeeEyeKey);
@@ -322,8 +322,7 @@ export const GoogleLoginLogoutContainer: React.FC<LoginContainerProps> = () => {
             debugger;
             dispatch(setAaaPeeEyeKeyErrorState(error.message));
         });
-    //Only run once on purpose
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     }, [dispatch])
 
     // https://developers.google.com/identity/sign-in/web/sign-in

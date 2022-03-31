@@ -1,4 +1,4 @@
-import React, {Suspense} from 'react';
+import {Suspense} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 import {Table, Button} from 'react-bootstrap';
 // import {UserInfoDevice} from '../../utils/QueryDeviceInfo';

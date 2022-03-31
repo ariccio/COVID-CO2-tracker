@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 import { Link } from 'react-router-dom';
 import {Button} from 'react-bootstrap';
 
@@ -22,9 +22,6 @@ import { USER_SETTINGS_URL } from '../../utils/UrlPath';
 import { queryUserSettings } from '../../utils/QuerySettings';
 import { UserSettings } from '../../utils/UserSettings';
 
-interface ProfileProps {
-
-}
 
 export const updateUserInfo = (dispatch: AppDispatch) => {
     //TODO: should be in redux?
@@ -257,7 +254,7 @@ const Settings: React.FC<{userSettings?: UserSettings | null, errors: string | n
     return (
         <>
             <MaybeSettingsFetchErrors errors={errors}/>
-            <span>You're currently uploading to this place: <Link to={userSettingsPlaceLink}>{userSettings.setting_place_google_place_id}</Link> - {userSettings.sublocation_description}</span><br/>
+            <span>You&apos;re currently uploading to this place: <Link to={userSettingsPlaceLink}>{userSettings.setting_place_google_place_id}</Link> - {userSettings.sublocation_description}</span><br/>
             <Button variant="secondary" onClick={(event) => handleClearSettings(event, setLoading, setDeleteErrors, dispatch)}>
                 Clear upload settings
             </Button><br/>
@@ -266,7 +263,7 @@ const Settings: React.FC<{userSettings?: UserSettings | null, errors: string | n
     )
 }
 
-export const Profile: React.FC<ProfileProps> = () => {
+export const Profile = () => {
     // debugger;
     const username = useSelector(selectUsername);
 
@@ -317,7 +314,7 @@ export const Profile: React.FC<ProfileProps> = () => {
     return (
         <div>
             <h1>
-                {username}'s profile
+                {username}&apos;s profile
                 
             </h1>
             <Settings userSettings={settings} errors={settingsErrors}/><br/>

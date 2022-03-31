@@ -1,6 +1,3 @@
-// import React from 'react';
-
-// import {useSelector, useDispatch} from 'react-redux';
 import {Route, Routes, Link, Navigate, useParams} from 'react-router-dom';
 // import {ErrorBoundary, FallbackProps} from 'react-error-boundary';
 import * as Sentry from "@sentry/react";
@@ -18,7 +15,7 @@ import {DeviceModels} from './features/deviceModels/DeviceModels';
 import {Place} from './features/places/Place';
 import {MoreInfo} from './features/moreInfoPage/MoreInfo';
 
-import {placesPath, homePath, devicesPath, profilePath, deviceModelsPath, moreInfoPath, bluetoothPath} from './paths/paths';
+import {placesPath, homePath, devicesPath, profilePath, deviceModelsPath, moreInfoPath, bluetoothPath, devicesPathWithParam, deviceModelsPathWithParam, placesPathWithParam} from './paths/paths';
 
 import './App.css';
 import { BottomNav } from './features/nav/BottomNav';
@@ -29,7 +26,7 @@ const NotFound = () => {
   const params = useParams();
   return (
     <div>
-      <h1>404 route/URL <i>'/{params['*']}'</i> not found.</h1>
+      <h1>404 route/URL <i>&apos;/{params['*']}&apos;</i> not found.</h1>
       <Link to={'/'} className="btn btn-primary">Back to home</Link>
     </div>
   );
@@ -42,11 +39,9 @@ const RoutesContainer = () =>
   <Routes>
     <Route path={homePath} element={<HomePageContainer/>}/>
     <Route  path={profilePath} element={<Profile/>}/>
-    {/* <Route exact path={loginPath} component={LoginComponent} /> */}
-    {/* <Route exact path={signupPath} component={SignupComponent}/> */}
-    <Route path={`${placesPath}/:placeId`} element={<Place/>}/>
-    <Route path={`${deviceModelsPath}/:deviceModelId`} element={<DeviceModels/>}/>
-    <Route path={`${devicesPath}/:deviceId`} element={<Device/>}/>
+    <Route path={placesPathWithParam} element={<Place/>}/>
+    <Route path={deviceModelsPathWithParam} element={<DeviceModels/>}/>
+    <Route path={devicesPathWithParam} element={<Device/>}/>
     <Route path={devicesPath} element={<Devices/>}/>
     <Route path={placesPath} element={<Place/>}/>
     <Route path={deviceModelsPath} element={<DeviceModels/>}/>
@@ -69,7 +64,7 @@ function TopLevelErrorFallback(errorData: {
         Covid CO2 tracker crashed!
       </h1>
       <p>
-        Sorry, this is a bug of some kind. I missed something! If you're seeing this, the issue has probably already been automatically reported!
+        Sorry, this is a bug of some kind. I missed something! If you&apos;re seeing this, the issue has probably already been automatically reported!
         <br/>
         More details:
       </p>
@@ -85,7 +80,7 @@ function TopLevelErrorFallback(errorData: {
       </pre>
       <p>
         Try reloading the page in the mean time.
-        If you've encountered this error multiple times, please consider providing details.
+        If you&apos;ve encountered this error multiple times, please consider providing details.
         If you were logged in when the app crashed, I may email you when I fix it to let you know :) 
       </p>
     </div>
@@ -121,8 +116,8 @@ function checkLanguages(): void {
     Sentry.captureMessage(navigator.language);
   }
 
-  for(let i = 0; i < navigator.languages.length; ++i) {
-  }
+  // for(let i = 0; i < navigator.languages.length; ++i) {
+  // }
 }
 
 // TODO: how to display network errors? some component to render above it?

@@ -1,4 +1,4 @@
-import React, {FunctionComponent, useEffect, useState, useRef, Suspense} from 'react';
+import {useEffect, useState, useRef, Suspense} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {useLocation} from 'react-router-dom';
 import Button from 'react-bootstrap/Button';
@@ -151,7 +151,7 @@ function renderWelcomeLoading() {
     );
 }
 
-const HomePage: FunctionComponent<{}> = (props: any) => {
+const HomePage = () => {
     // TODO: when navigating BACK to home page from place, pan map to that place.
     const location = useLocation();
     const dispatch = useDispatch();
