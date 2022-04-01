@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Text, Linking, Button } from 'react-native';
 import * as Sentry from 'sentry-expo';
+
 import { unknownNativeErrorTryFormat } from '../../utils/FormatUnknownNativeError';
-import { MaybeIfValue, MaybeIfValueTrue } from '../../utils/RenderValues';
+import { MaybeIfValue } from '../../utils/RenderValues';
 
 export const useOpenableLink = (url: string, setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>): {openable: (boolean | null)} => {
     const [openable, setOpenable] = useState(null as (boolean | null));

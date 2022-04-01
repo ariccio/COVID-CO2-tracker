@@ -152,6 +152,7 @@ function renderWelcomeLoading() {
 }
 
 const HomePage = () => {
+    
     // TODO: when navigating BACK to home page from place, pan map to that place.
     const location = useLocation();
     const dispatch = useDispatch();

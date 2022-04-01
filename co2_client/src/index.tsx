@@ -1,6 +1,6 @@
 /// <reference types="@types/google.maps" />
 import React from 'react';
-import ReactDOM from 'react-dom';
+import * as ReactDOMClient from 'react-dom/client';
 import './index.css';
 import {App} from './App';
 import { store } from './app/store';
@@ -27,8 +27,17 @@ Sentry.init({
   tracesSampleRate: 0.1,
 });
 
+const rootElement = document.getElementById('root');
 
-ReactDOM.render(
+if (rootElement === null) {
+  Sentry.captureMessage("Null root? The fuck?");
+  throw new Error("missing root!");
+}
+
+const root = ReactDOMClient.createRoot(rootElement);
+
+
+root.render(
   <React.StrictMode>
     <Provider store={store}>
       <BrowserRouter>
@@ -36,7 +45,6 @@ ReactDOM.render(
       </BrowserRouter>
     </Provider>
   </React.StrictMode>,
-  document.getElementById('root')
 );
 
 // If you want your app to work offline and load faster, you can change

@@ -233,7 +233,7 @@ export const ChoosePlaceAsDefault: React.FC<{place_id?: string | undefined}> = (
             // updateUserInfo(dispatch);
             updateUserSettings(dispatch);
         }
-    }, [settings]);
+    }, [settings, dispatch]);
 
 
     if (place_id === undefined) {

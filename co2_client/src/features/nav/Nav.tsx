@@ -178,7 +178,8 @@ const loadEmail = (dispatch: AppDispatch, username: string) => {
         console.log(`Not setting username in redux, since username is currently ${username}. Sometimes that returns faster.`);
       }
       Sentry.setContext("user_info", {
-        email: email.email
+        email: email.email,
+        username
       });
     }
     else {
@@ -203,7 +204,7 @@ export const NavBar = () => {
     const dispatch = useDispatch();
 
     
-    useEffect(() => {loadEmail(dispatch, username)}, [dispatch]);
+    useEffect(() => {loadEmail(dispatch, username)}, [dispatch, username]);
     
     // Force reload of page after 59 minutes to avoid login timeout. Ugly hack but whatevs.
     useEffect(() => {

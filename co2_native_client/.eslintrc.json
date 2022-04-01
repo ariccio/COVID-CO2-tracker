@@ -27,7 +27,9 @@
         "promise",
         "react-native",
         "react-native-globals",
-        "react-perf"
+        "react-perf",
+        "jsx-a11y"
+
     ],
     "rules": {
         "prettier/prettier": 0,

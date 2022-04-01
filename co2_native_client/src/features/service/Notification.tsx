@@ -8,6 +8,7 @@ import { UserInfoDevice } from '../../../../co2_client/src/utils/DeviceInfoTypes
 import { UserSettings } from '../../../../co2_client/src/utils/UserSettings';
 import { selectBackgroundPollingEnabled, selectBatteryOptimizationEnabled, selectJWT, selectShouldUpload, setBackgroundPollingEnabled, setBatteryOptimizationEnabled,  setShouldUpload } from '../../app/globalSlice';
 import { AppDispatch } from '../../app/store';
+import { unknownNativeErrorTryFormat } from '../../utils/FormatUnknownNativeError';
 import { MaybeIfValue } from '../../utils/RenderValues';
 import { timeNowAsString } from '../../utils/TimeNow';
 import { useIsLoggedIn } from '../../utils/UseLoggedIn';
@@ -19,7 +20,7 @@ import { selectSupportedDevices } from '../userInfo/devicesSlice';
 import { selectUserSettings } from '../userInfo/userInfoSlice';
 import {logEvent} from './LogEvent';
 import { setNotificationChannelID, selectNotificationChannelID, setDisplayNotificationNativeErrors, selectDisplayNotificationNativeErrors, setNotificationAction, NotificationAction, selectNotificationAction, selectNotificationState } from './serviceSlice';
-import { unknownNativeErrorTryFormat } from '../../utils/FormatUnknownNativeError';
+
 
 function defaultNotification(channelId: string): Notification {
     const defaultNotificationOptions: Notification = {

@@ -323,7 +323,7 @@ export const GoogleLoginLogoutContainer = () => {
             dispatch(setAaaPeeEyeKeyErrorState(error.message));
         });
 
-    }, [dispatch])
+    }, [dispatch, loginAaaPeeEyeKey])
 
     // https://developers.google.com/identity/sign-in/web/sign-in
     if (loginAaaPeeEyeKey === '') {

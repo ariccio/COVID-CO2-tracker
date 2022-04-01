@@ -3,7 +3,7 @@
 // See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
 import {Buffer} from 'buffer';
 import { useEffect, useState } from 'react';
-import { PermissionsAndroid, Text, Button, NativeSyntheticEvent, NativeTouchEvent, Linking, Permission, Rationale } from 'react-native';
+import { PermissionsAndroid, Text, Button, NativeSyntheticEvent, NativeTouchEvent, Permission, Rationale } from 'react-native';
 import AlertAsync from "react-native-alert-async";
 import { BleManager, Device, BleError, LogLevel, Service, Characteristic, BleErrorCode, State, BleAndroidErrorCode } from 'react-native-ble-plx';
 import { useDispatch, useSelector } from 'react-redux';
@@ -18,7 +18,7 @@ import { MaybeIfValue, MaybeIfValueTrue } from '../../utils/RenderValues';
 import { timeNowAsString } from '../../utils/TimeNow';
 import { COVID_CO2_TRACKER_DEVICES_URL } from '../../utils/UrlPaths';
 import { useIsLoggedIn } from '../../utils/UseLoggedIn';
-import { useOpenableLink, IfNotOpenable, openLink, LinkButton } from '../Links/OpenLink';
+import { LinkButton } from '../Links/OpenLink';
 // import { addMeasurement } from '../Measurement/MeasurementSlice';
 import { MeasurementDataForUpload } from '../Measurement/MeasurementTypes';
 import { setUploadStatus } from '../Uploading/uploadSlice';

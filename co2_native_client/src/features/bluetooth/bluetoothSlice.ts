@@ -1,6 +1,7 @@
 // See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { DeviceId, Base64, UUID, State } from 'react-native-ble-plx';
+// import { DeviceId, Base64, UUID, State } from 'react-native-ble-plx';
+
 import { RootState } from '../../app/rootReducer';
 
 interface GenericDeviceInformation {
