@@ -10,7 +10,10 @@
         "universe/native",
         "prettier",
         "plugin:promise/recommended",
-        "plugin:react-perf/recommended"
+        "plugin:react-perf/recommended",
+        "plugin:jsx-a11y/recommended",
+        "plugin:react-hooks/recommended",
+        "plugin:react-native-a11y/basic"
     ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {

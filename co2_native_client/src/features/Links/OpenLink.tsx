@@ -17,7 +17,7 @@ export const useOpenableLink = (url: string, setNativeErrors: React.Dispatch<Rea
             setNativeErrors(`canOpenUrl error: ${unknownNativeErrorTryFormat(errors)}`);
             Sentry.Native.captureException(errors);
         })
-    }, [])
+    }, [setNativeErrors, url])
 
     return {openable};
 }

@@ -519,7 +519,7 @@ export const useGoogleAuthForCO2Tracker = () => {
         dispatch(setLoginProgress(AuthLoginProgressState.Failed));
       })
     }
-  }, [requestPromptAsync]);
+  }, [requestPromptAsync, dispatch]);
 
 
   useEffect(() => {
@@ -536,12 +536,12 @@ export const useGoogleAuthForCO2Tracker = () => {
     const requestSet = (request !== null);
     // console.log(`request ready for promptAsync: ${requestSet}`);
     dispatch(setPromptAsyncReady(requestSet));
-  }, [request]);
+  }, [request, dispatch]);
 
   useEffect(() => {
     // console.log(request);
     setIDTokenIfGoodResponseFromGoogle(setIDToken, response, dispatch);
-  }, [response]);
+  }, [response, dispatch]);
 
   useEffect(() => {
     if (idToken === null) {
@@ -555,7 +555,7 @@ export const useGoogleAuthForCO2Tracker = () => {
       return;
     }
     loginWithIDToken(idToken, dispatch);
-  }, [idToken]);
+  }, [idToken, dispatch]);
 
   return {promptAsync};
   };

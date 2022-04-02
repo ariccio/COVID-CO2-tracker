@@ -476,14 +476,14 @@ export const useNotifeeNotifications = (): NotifeeNotificationHookState => {
                 break;
             }
         }
-    }, [notificationAction])
+    }, [notificationAction, channelID, dispatch])
 
     useEffect(() => {
         createOrUpdateNotification(setDisplayNotificationErrors, deviceID, supportedDevices, setNotificationID, channelID, loggedIn, jwt, shouldUpload, backgroundPollingEnabled, dispatch, userSettings);
         return (() => {
             stopServiceAndClearNotifications();
         })
-    }, [deviceID, supportedDevices, channelID, backgroundPollingEnabled, loggedIn, userSettings, jwt, shouldUpload])
+    }, [deviceID, supportedDevices, channelID, backgroundPollingEnabled, loggedIn, userSettings, jwt, shouldUpload, dispatch])
 
     // https://docs.expo.dev/versions/latest/react-native/appstate/  
     useEffect(() => {

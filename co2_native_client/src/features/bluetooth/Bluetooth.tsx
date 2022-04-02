@@ -1081,7 +1081,7 @@ export const useBluetoothConnectAndPollAranet = () => {
             return;
         }
         scanAndIdentify(dispatch);
-    }, [hasBluetooth, needsBluetoothTurnOn]);
+    }, [hasBluetooth, needsBluetoothTurnOn, dispatch]);
 
 
 
@@ -1101,7 +1101,7 @@ export const useBluetoothConnectAndPollAranet = () => {
         }
         console.log(`Device ${serialNumberString} is NOT known to bluetooth hook!`);
         dispatch(setUploadStatus(`Device ${serialNumberString} is NOT a known device. Please add in the web console.`));
-    }, [supportedDevices, serialNumberString])
+    }, [supportedDevices, serialNumberString, dispatch])
 
     useEffect(() => {
         if (deviceID === null) {
@@ -1129,7 +1129,7 @@ export const useBluetoothConnectAndPollAranet = () => {
             Sentry.Native.captureException(error);
             dispatch(setScanningErrorStatusString(`Unexpected error on first bluetooth update: ${unknownNativeErrorTryFormat(error)}`));
         })
-    }, [deviceID])
+    }, [deviceID, dispatch, hasBluetooth, knownDeviceBluetooth])
 
 
     useEffect(() => {
@@ -1164,7 +1164,7 @@ export const useBluetoothConnectAndPollAranet = () => {
                 clearTimeout(handle);
             }
         }
-    }, [deviceID, timeoutHandle, knownDeviceBluetooth, backgroundPollingEnabled, supportedDevices])
+    }, [deviceID, timeoutHandle, knownDeviceBluetooth, backgroundPollingEnabled, supportedDevices, dispatch, lastMeasurementTime, loggedIn, measurementInterval])
 
 
 
