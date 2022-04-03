@@ -516,8 +516,8 @@ const defaultMapOptions = options(defaultCenter);
 
 const updateMarkers = (map: google.maps.Map | null, dispatch: AppDispatch) => {
     if (!map) {
-        console.log("no map to get center from for markers yet?");
-        debugger;
+        console.log("no map to get center from for markers yet? May occur now with concurrent React.");
+        // debugger;
         return;
     }
     const center = map?.getCenter();
@@ -541,8 +541,8 @@ const updateMarkers = (map: google.maps.Map | null, dispatch: AppDispatch) => {
 
 const onMapIdle = (map: google.maps.Map | null, mapLoaded: boolean, setMapLoaded: React.Dispatch<React.SetStateAction<boolean>>, dispatch: AppDispatch) => {
     if (map === null) {
-        console.error("null map is idle?");
-        debugger;
+        console.warn("null map is idle? May occur now with concurrent react.");
+        // debugger;
     }
     //map onLoad isn't really ready. There are no bounds yet. Thus, autocomplete will fail to load. Wait until idle.
     if (!mapLoaded) {

@@ -11,7 +11,7 @@ import { selectSelectedPlace } from '../google/googleSlice';
 
 
 import {SelectedPlaceDatabaseInfo, defaultPlaceInfo, SublocationMeasurements} from '../places/placesSlice';
-import { SublocationsDropdown } from '../sublocationsDropdown/SublocationsDropdown';
+import { SelectedSublocationForDropdownDisplay, SublocationsDropdown } from '../sublocationsDropdown/SublocationsDropdown';
 import { selectSublocationSelectedLocationID } from '../sublocationsDropdown/sublocationSlice';
 
 
@@ -96,7 +96,7 @@ const measurements = (sublocations: Array<SublocationMeasurements>, selected: nu
     return singleLocation(foundSelected, false, deviceSerials);
 }
 
-const nothingSelectedItem = () => {
+const NothingSelectedItem = () => {
     return (
         <div>
             <Dropdown.Item eventKey={'-1'}>
@@ -106,15 +106,56 @@ const nothingSelectedItem = () => {
     )
 }
 
-const findSelected = (measurements_by_sublocation: Array<SublocationMeasurements>, selectedSubLocation: number): SublocationMeasurements | null => {
-    const selected_ = findByID(measurements_by_sublocation, selectedSubLocation);
+
+/**
+ function findByID(sublocations: Array<SublocationMeasurements>, selected: number): SublocationMeasurements | undefined {
+    return sublocations.find((value) => {
+        return (value.sub_location_id === selected);
+    });
+}
+
+ */
+
+function findByIDForSelectedDisplay(sublocations: Array<SublocationMeasurements>, selected: number): SelectedSublocationForDropdownDisplay | undefined {
+    const found = sublocations.find((value) => {
+        return (value.sub_location_id === selected);
+    });
+
+    if (found === undefined) {
+        return undefined;
+    }
+    const dataForDropdownDisplay: SelectedSublocationForDropdownDisplay = {
+        description: found.description,
+        sub_location_id: found.sub_location_id
+    }
+    return dataForDropdownDisplay
+}
+
+export const findSelected = (measurements_by_sublocation: Array<SublocationMeasurements>, selectedSubLocation: number): SelectedSublocationForDropdownDisplay | null => {
+    /*
+    if (props.selectedPlaceInfoFromDatabase === defaultPlaceInfo) {
+        // debugger;
+        console.log('unlikely to hit this path.')
+        return (
+            <div>
+                <span>
+                    {translate('no-place-selected-no-measurements')}
+                </span>
+            </div>
+        );
+    }
+
+    */
+    
+    
+    const selected_ = findByIDForSelectedDisplay(measurements_by_sublocation, selectedSubLocation);
     if (selected_ === undefined) {
         return null;
     }
     return selected_;
 }
 
-
+const ALL_MEASUREMENTS_STR = "All measurements:";
 export const MeasurementsByDropdown: React.FC<MeasurementsByDropdownProps> = (props: MeasurementsByDropdownProps): JSX.Element => {
     const [translate] = useTranslation();
 
@@ -125,18 +166,25 @@ export const MeasurementsByDropdown: React.FC<MeasurementsByDropdownProps> = (pr
     //     debugger;
     // }
     console.assert(props.selectedPlaceInfoFromDatabase.measurements_by_sublocation.length > 0);
+
+    const {measurements_by_sublocation} = props.selectedPlaceInfoFromDatabase;
+
     // const [selectedSubLocation, setSelectedSubLocation] = useState(-1);
     const selectedSubLocation = useSelector(selectSublocationSelectedLocationID);
     const selectedPlace = useSelector(selectSelectedPlace);
     const [deviceSerialsErrorState, setDeviceSerialsErrorState] = useState('');
     const [deviceSerials, setDeviceSerials] = useState([] as Array<SerializedSingleDeviceSerial>);
+    const [selected, setSelected] = useState(findSelected(measurements_by_sublocation, selectedSubLocation));
+
+    
+
     useEffect(() => {
-        if (props.selectedPlaceInfoFromDatabase.measurements_by_sublocation === undefined) {
+        if (measurements_by_sublocation === undefined) {
             //Seen in sentry, was undefined.
-            console.warn(`"props.selectedPlaceInfoFromDatabase.measurements_by_sublocation" === undefined. No measurements to fetch. Rest of object: ${JSON.stringify(props.selectedPlaceInfoFromDatabase)}`);
+            console.warn(`"props.selectedPlaceInfoFromDatabase.measurements_by_sublocation" === undefined. No device names to fetch. Rest of object: ${JSON.stringify(props.selectedPlaceInfoFromDatabase)}`);
             return;
         }
-        const promise = fetchDeviceNamesForMeasurementsBySublocation(props.selectedPlaceInfoFromDatabase.measurements_by_sublocation);
+        const promise = fetchDeviceNamesForMeasurementsBySublocation(measurements_by_sublocation);
         promise.then((result) => {
             if (result.errors !== undefined) {
                 setDeviceSerialsErrorState(formatErrors(result.errors));
@@ -148,8 +196,13 @@ export const MeasurementsByDropdown: React.FC<MeasurementsByDropdownProps> = (pr
         promise.catch((error) => {
             setDeviceSerialsErrorState(error)
         })
-    }, [props.selectedPlaceInfoFromDatabase.measurements_by_sublocation])
+    }, [measurements_by_sublocation])
 
+    useEffect(() => {
+        const selected_= findSelected(measurements_by_sublocation, selectedSubLocation);
+        // console.log(`Changing selected: ${JSON.stringify(selected_)}`);
+        setSelected(selected_);
+    }, [measurements_by_sublocation, selectedSubLocation])
 
 
     if (props.selectedPlaceInfoFromDatabase === defaultPlaceInfo) {
@@ -181,11 +234,11 @@ export const MeasurementsByDropdown: React.FC<MeasurementsByDropdownProps> = (pr
     //new Date(new Date(props.selectedPlaceInfoFromDatabase.measurements_by_sublocation[0].measurements[0].measurementtime)-(selectedPlace.utc_offset_minutes*1000*60))
     //14:46:33.674 
     // debugger;
-    const selected = findSelected(props.selectedPlaceInfoFromDatabase.measurements_by_sublocation, selectedSubLocation);
+    // const selected = findSelected(measurements_by_sublocation, selectedSubLocation);
     return (
         <div>
-            <SublocationsDropdown selected={selected} measurements_by_sublocation={props.selectedPlaceInfoFromDatabase.measurements_by_sublocation} nothingSelectedText={"All measurements:"} nothingSelectedItem={nothingSelectedItem()}/>
-            {measurements(props.selectedPlaceInfoFromDatabase.measurements_by_sublocation, selectedSubLocation, deviceSerials)}
+            <SublocationsDropdown measurements_by_sublocation={measurements_by_sublocation} nothingSelectedText={ALL_MEASUREMENTS_STR} nothingSelectedItem={<NothingSelectedItem/>} selectedSublocationDisplayData={selected} setGlobal={true}/>
+            {measurements(measurements_by_sublocation, selectedSubLocation, deviceSerials)}
             {/* <MeasurementsTable measurements={props.selectedPlaceInfoFromDatabase}/> */}
         </div>
     );

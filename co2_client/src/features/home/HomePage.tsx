@@ -158,7 +158,7 @@ const HomePage = () => {
     const dispatch = useDispatch();
     const [translate] = useTranslation();
 
-    const [showCreateNewMeasurement, setShowCreateNewMeasurement] = useState(false);
+    
     const [localitySelectedWarningString, setLocalitySelectedWarningString] = useState('');
 
     //Transparently uses placeResultWithTranslatedType
@@ -218,7 +218,7 @@ const HomePage = () => {
                         {mapsAaPeeEyeKeyErrorState}
                         <br/><br/>
                     </Col>
-                    <PlaceContainer infoRef={infoRef} location={location} setShowCreateNewMeasurement={setShowCreateNewMeasurement} showCreateNewMeasurement={showCreateNewMeasurement} localitySelectedWarningString={localitySelectedWarningString}/>
+                    <PlaceContainer infoRef={infoRef} location={location} localitySelectedWarningString={localitySelectedWarningString}/>
                 </Row>
                 <Row className="show-grid">
                     <Col md={6} xs={12}>
@@ -243,12 +243,13 @@ export const HomePageContainer = () => {
 interface PlaceContainerProps {
     infoRef: React.MutableRefObject<HTMLDivElement | null>;
     location: ReturnType<typeof useLocation>;
-    setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>;
-    showCreateNewMeasurement: boolean;
+    // setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>;
+    // showCreateNewMeasurement: boolean;
     localitySelectedWarningString: string;
 }
 
 const PlaceContainer: React.FC<PlaceContainerProps> = (props: PlaceContainerProps) => {
+    const [showCreateNewMeasurement, setShowCreateNewMeasurement] = useState(false);
     const currentPlace = useSelector(selectSelectedPlace);
     const selectedPlaceInfoFromDatabase = useSelector(selectPlacesInfoFromDatabase);
     const selectedPlaceInfoFromDatabaseErrors = useSelector(selectPlacesInfoErrors);
@@ -256,11 +257,11 @@ const PlaceContainer: React.FC<PlaceContainerProps> = (props: PlaceContainerProp
     const selectedPlaceExistsInDatabase = useSelector(selectPlaceExistsInDatabase);
     return <Col md={6} xs={12} ref={props.infoRef}>
         <div>
-            <RenderPlace currentPlace={currentPlace} location={props.location} setShowCreateNewMeasurement={props.setShowCreateNewMeasurement} showCreateNewMeasurement={props.showCreateNewMeasurement} selectedPlaceInfoFromDatabase={selectedPlaceInfoFromDatabase} selectedPlaceInfoFromDatabaseErrors={selectedPlaceInfoFromDatabaseErrors} placesServiceStatus={placesServiceStatus} selectedPlaceExistsInDatabase={selectedPlaceExistsInDatabase} localitySelectedWarningString={props.localitySelectedWarningString}/>
+            <RenderPlace currentPlace={currentPlace} location={props.location} setShowCreateNewMeasurement={setShowCreateNewMeasurement} showCreateNewMeasurement={showCreateNewMeasurement} selectedPlaceInfoFromDatabase={selectedPlaceInfoFromDatabase} selectedPlaceInfoFromDatabaseErrors={selectedPlaceInfoFromDatabaseErrors} placesServiceStatus={placesServiceStatus} selectedPlaceExistsInDatabase={selectedPlaceExistsInDatabase} localitySelectedWarningString={props.localitySelectedWarningString}/>
             <br />
             <br />
             <Suspense fallback="Loading translations...">
-                {props.showCreateNewMeasurement ? <CreateNewMeasurementModal showCreateNewMeasurement={props.showCreateNewMeasurement} setShowCreateNewMeasurement={props.setShowCreateNewMeasurement} /> : null}
+                {showCreateNewMeasurement ? <CreateNewMeasurementModal showCreateNewMeasurement={showCreateNewMeasurement} setShowCreateNewMeasurement={setShowCreateNewMeasurement} selectedPlace={currentPlace} selectedPlaceExistsInDatabase={selectedPlaceExistsInDatabase} placesInfoFromDatabase={selectedPlaceInfoFromDatabase}/> : null}
             </Suspense>
         </div>
     </Col>;

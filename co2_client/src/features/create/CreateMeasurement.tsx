@@ -13,7 +13,7 @@ import "react-datepicker/dist/react-datepicker.css";
 
 
 import {selectSelectedDevice, selectSelectedDeviceSerialNumber, selectSelectedModelName, setSelectedDevice, setSelectedDeviceSerialNumber, setSelectedModel, setSelectedModelName} from '../deviceModels/deviceModelsSlice';
-import {selectSelectedPlace} from '../google/googleSlice';
+import {placeResultWithTranslatedType, selectSelectedPlace} from '../google/googleSlice';
 import { queryUserDevices } from '../../utils/QueryUserInfo';
 import {UserInfoDevice} from '../../utils/DeviceInfoTypes';
 import {defaultDevicesInfo, UserDevicesInfo } from '../../utils/UserInfoTypes';
@@ -28,11 +28,12 @@ import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
 import { API_URL, CREATE_PLACE_PATH } from '../../utils/UrlPath';
 import { updatePlacesInfoFromBackend } from '../../utils/QueryPlacesInfo';
 import { selectUsername } from '../login/loginSlice';
-import { SublocationsDropdown } from '../sublocationsDropdown/SublocationsDropdown';
+import { SelectedSublocationForDropdownDisplay, SublocationsDropdown } from '../sublocationsDropdown/SublocationsDropdown';
 import { selectSublocationSelectedLocationID, setSublocationSelectedLocationID } from '../sublocationsDropdown/sublocationSlice';
 import { Link } from 'react-router-dom';
 import { devicesPath } from '../../paths/paths';
 import { AppDispatch } from '../../app/store';
+import { findSelected } from '../measurements/MeasurementsByDropdown';
 
 enum ToggleButtonUserRadios {
     Now = 1,
@@ -60,7 +61,10 @@ const ModalHeaderNotLoggedIn = () => {
 
 interface CreateNewMeasurementProps {
     showCreateNewMeasurement: boolean,
-    setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>
+    setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>,
+    selectedPlace: placeResultWithTranslatedType,
+    selectedPlaceExistsInDatabase: boolean | null,
+    placesInfoFromDatabase: SelectedPlaceDatabaseInfo
 }
 
 const devicesToDropdown = (userDevices: UserDevicesInfo) => {
@@ -302,7 +306,7 @@ const createPlaceIfNotExist = (placeExistsInDatabase: boolean, place_id: string)
     return result;
 }
 
-const createMeasurementHandler = (selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, enteredCrowding: string, enteredLocationDetails: string, selectedSubLocation: number, userTimeRadioValue: ToggleButtonUserRadios, dateTime: Date, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>, setInvalidField: React.Dispatch<React.SetStateAction<string[]>>) => {
+const createMeasurementHandler = (selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, enteredCrowding: string, enteredLocationDetails: string, selectedSubLocation: number, userTimeRadioValue: ToggleButtonUserRadios, dateTime: Date, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>, setInvalidField: React.Dispatch<React.SetStateAction<string[]>>, dispatch: AppDispatch) => {
     // debugger;
     const init = newMeasurementRequestInit(selectedDevice, enteredCO2Text, place_id, enteredCrowding, enteredLocationDetails, selectedSubLocation, userTimeRadioValue, dateTime);
     
@@ -325,6 +329,7 @@ const createMeasurementHandler = (selectedDevice: number, enteredCO2Text: string
             console.log("to use it, please remove this message.");
             console.log("here it is anyways:");
             console.log(result);
+            dispatch(setSublocationSelectedLocationID(selectedSubLocation));
             return;
         }
         if (result.errors.length > 0) {
@@ -340,6 +345,7 @@ const createMeasurementHandler = (selectedDevice: number, enteredCO2Text: string
         // console.log("TODO: set form invalid.");
         setShowSubmit(true);
         setSubmitting(false);
+        
         // debugger;
     })
 }
@@ -347,10 +353,11 @@ const createMeasurementHandler = (selectedDevice: number, enteredCO2Text: string
 const submitHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, placeExistsInDatabase: boolean, dispatch: AppDispatch, setErrorState: React.Dispatch<React.SetStateAction<string>>, enteredCrowding: string, enteredLocationDetails: string, selectedSubLocation: number, userTimeRadioValue: ToggleButtonUserRadios, dateTime: Date, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>, setInvalidField: React.Dispatch<React.SetStateAction<string[]>>) => {
     setShowSubmit(false);
     setSubmitting(true);
+    debugger;
     const placeExistsPromiseOrNull = createPlaceIfNotExist(placeExistsInDatabase, place_id);
     if (placeExistsPromiseOrNull === null) {
         // debugger;
-        createMeasurementHandler(selectedDevice, enteredCO2Text, place_id, setShowCreateNewMeasurement, enteredCrowding, enteredLocationDetails, selectedSubLocation, userTimeRadioValue, dateTime, setShowSubmit, setSubmitting, setInvalidField);
+        createMeasurementHandler(selectedDevice, enteredCO2Text, place_id, setShowCreateNewMeasurement, enteredCrowding, enteredLocationDetails, selectedSubLocation, userTimeRadioValue, dateTime, setShowSubmit, setSubmitting, setInvalidField, dispatch);
         updatePlacesInfoFromBackend(place_id, dispatch);
         return;
     }
@@ -361,7 +368,7 @@ const submitHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, selecte
             setErrorState(formatErrors(existsPromise.errors));
             return;
         }
-        createMeasurementHandler(selectedDevice, enteredCO2Text, place_id, setShowCreateNewMeasurement, enteredCrowding, enteredLocationDetails, selectedSubLocation, userTimeRadioValue, dateTime, setShowSubmit, setSubmitting,  setInvalidField);
+        createMeasurementHandler(selectedDevice, enteredCO2Text, place_id, setShowCreateNewMeasurement, enteredCrowding, enteredLocationDetails, selectedSubLocation, userTimeRadioValue, dateTime, setShowSubmit, setSubmitting,  setInvalidField, dispatch);
         updatePlacesInfoFromBackend(place_id, dispatch);
     }).catch((errors) => {
         setErrorState(errors.message);
@@ -376,7 +383,7 @@ function ignoreDefault(event: React.FormEvent<HTMLFormElement>): void {
     event.stopPropagation();
 }
 
-const InnerLocationFormIfNewLocation = (props: {setEnteredLocationDetails: React.Dispatch<React.SetStateAction<string>>, placeName: string, selected: SublocationMeasurements | null}) => {
+const InnerLocationFormIfNewLocation = (props: {setEnteredLocationDetails: React.Dispatch<React.SetStateAction<string>>, placeName: string, selected: SelectedSublocationForDropdownDisplay  | null}) => {
     const [translate] = useTranslation();
     if (props.selected === null) {
         return (
@@ -464,7 +471,33 @@ const maybeRenderTimeInput = (userTimeRadioValue: ToggleButtonUserRadios, dateTi
     )
 }
 
-const RenderFormIfReady = (props: {selectedDevice: number, setEnteredCO2Text: React.Dispatch<React.SetStateAction<string>>, place_id: string, setEnteredCrowding: React.Dispatch<React.SetStateAction<string>>, placeName: string, setEnteredLocationDetails: React.Dispatch<React.SetStateAction<string>>, placesInfoFromDatabase: SelectedPlaceDatabaseInfo, selected: SublocationMeasurements | null, enteredCO2Text: string, userTimeRadioValue: ToggleButtonUserRadios, setUserTimeRadioValue: React.Dispatch<React.SetStateAction<ToggleButtonUserRadios>>, dateTime: Date, setDateTime: React.Dispatch<React.SetStateAction<Date>>, datePickerError: string | null, setDatePickerError: React.Dispatch<React.SetStateAction<string | null>>, invalidField: string[]}) => {
+const DefaultNothingSelectedItem = () => {
+    return (
+        <Suspense fallback="Loading translations...">
+            <NothingSelectedItem/>
+        </Suspense>
+    );
+}
+
+const RenderFormIfReady = (props: {
+    selectedDevice: number,
+    setEnteredCO2Text: React.Dispatch<React.SetStateAction<string>>,
+    place_id: string,
+    setEnteredCrowding: React.Dispatch<React.SetStateAction<string>>,
+    placeName: string,
+    setEnteredLocationDetails: React.Dispatch<React.SetStateAction<string>>,
+    placesInfoFromDatabase: SelectedPlaceDatabaseInfo,
+    selected: SelectedSublocationForDropdownDisplay | null,
+    enteredCO2Text: string,
+    userTimeRadioValue: ToggleButtonUserRadios,
+    setUserTimeRadioValue: React.Dispatch<React.SetStateAction<ToggleButtonUserRadios>>,
+    dateTime: Date,
+    setDateTime: React.Dispatch<React.SetStateAction<Date>>,
+    datePickerError: string | null,
+    setDatePickerError: React.Dispatch<React.SetStateAction<string | null>>,
+    invalidField: string[],
+    setSelectedSubLocationIDModalOnly: React.Dispatch<React.SetStateAction<number>>
+} ) => {
     const [translate] = useTranslation();
     if (props.selectedDevice === -1) {
         return null;
@@ -500,11 +533,7 @@ const RenderFormIfReady = (props: {selectedDevice: number, setEnteredCO2Text: Re
                 </Form.Label>
                 <Form.Control type="number" min={1} max={5} name={"crowding"} isInvalid={props.invalidField.includes('crowding')}/>
             </Form>
-            <SublocationsDropdown selected={props.selected} measurements_by_sublocation={measurementsOrEmptyArray} nothingSelectedText={"New inner location"} nothingSelectedItem={
-                <Suspense fallback="Loading translations...">
-                    <NothingSelectedItem/>
-                </Suspense>
-                }/>
+            <SublocationsDropdown selectedSublocationDisplayData={props.selected} measurements_by_sublocation={measurementsOrEmptyArray} nothingSelectedText={"New inner location"} nothingSelectedItem={<DefaultNothingSelectedItem/>} setGlobal={false} setSelectedSubLocationIDModalOnly={props.setSelectedSubLocationIDModalOnly}/>
             <Suspense fallback="Loading translations...">
                 <InnerLocationFormIfNewLocation setEnteredLocationDetails={props.setEnteredLocationDetails} placeName={props.placeName} selected={props.selected}/>
             </Suspense>
@@ -543,19 +572,19 @@ const NothingSelectedItem = () => {
     )
 }
 
-const findSelected = (measurements_by_sublocation: Array<SublocationMeasurements>, selectedSubLocation: number): SublocationMeasurements | null => {
-    const selected_ = measurements_by_sublocation.find((value) => {
-        // debugger;
-        return (value.sub_location_id === selectedSubLocation);
-    })
-    if (selected_ === undefined) {
-        // console.log("not in measurements_by_sublocations");
-        // debugger;
-        return null;
-    }
-    // debugger;
-    return selected_;
-}
+// const findSelected = (measurements_by_sublocation: Array<SublocationMeasurements>, selectedSubLocation: number): SublocationMeasurements | null => {
+//     const selected_ = measurements_by_sublocation.find((value) => {
+//         // debugger;
+//         return (value.sub_location_id === selectedSubLocation);
+//     })
+//     if (selected_ === undefined) {
+//         // console.log("not in measurements_by_sublocations");
+//         // debugger;
+//         return null;
+//     }
+//     // debugger;
+//     return selected_;
+// }
 
 /*
 Note to self, on selecting datetime pickers:
@@ -594,17 +623,19 @@ const submitOrSpinning = (submitting: boolean, translate: any) => {
 export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (props: CreateNewMeasurementProps) => {
     const [translate] = useTranslation();
 
-    const selectedPlace = useSelector(selectSelectedPlace);
+    const username = useSelector(selectUsername);
+
+    // const selectedPlace = useSelector(selectSelectedPlace);
     // const selectedModel = useSelector(selectSelectedModel);
     const selectedModelName = useSelector(selectSelectedModelName);
     const selectedDevice = useSelector(selectSelectedDevice);
     const selectedDeviceSerialNumber = useSelector(selectSelectedDeviceSerialNumber);
-    const placeExistsInDatabase = useSelector(selectPlaceExistsInDatabase);
-    const placesInfoFromDatabase = useSelector(selectPlacesInfoFromDatabase);
-    const username = useSelector(selectUsername);
+    // const placeExistsInDatabase = useSelector(selectPlaceExistsInDatabase);
+    // const placesInfoFromDatabase = useSelector(selectPlacesInfoFromDatabase);
 
-    const selectedSubLocation = useSelector(selectSublocationSelectedLocationID);
-
+    const selectedSubLocationID_ = useSelector(selectSublocationSelectedLocationID);
+    
+    const [selectedSubLocationIDModalOnly, setSelectedSubLocationIDModalOnly] = useState(selectedSubLocationID_);
     const [userDevices, setUserDevices] = useState(defaultDevicesInfo);
     const [errorState, setErrorState] = useState('');
     const [invalidField, setInvalidField] = useState([] as (string[]));
@@ -620,10 +651,28 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
     const [showSubmit, setShowSubmit] = useState(true);
     const [submitting, setSubmitting] = useState(false);
 
+    const placesInfoFromDatabase = props.placesInfoFromDatabase;
+    const {measurements_by_sublocation} = placesInfoFromDatabase;
+
+    const [selected, setSelected] = useState(findSelected(measurements_by_sublocation, selectedSubLocationID_));
+    // const selected = findSelected(measurements_by_sublocation, selectedSubLocation);
+
+
     // const placeName = selectedPlace.name;    
     
     const dispatch = useDispatch();
+
+    const selectedPlaceExistsInDatabase = props.selectedPlaceExistsInDatabase;
+
     useEffect(() => {
+        const selected_ = findSelected(measurements_by_sublocation, selectedSubLocationIDModalOnly);
+        setSelected(selected_);
+    }, [measurements_by_sublocation, selectedSubLocationIDModalOnly])
+
+
+    useEffect(() => {
+
+        //TODO: 4/2/2022: The fuck is this so crazy?
         if (username === '') {
             setErrorState("Not logged in, must be logged in to create measurements!");
             return;
@@ -665,7 +714,6 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
             console.warn(error);
             console.warn(error.message);
             setErrorState(error.message);
-
             // Some users are seeing weird errors in safari in spanish. Force report them.
             if (error.message.includes("webkit")) {
                 Sentry.captureException(error);
@@ -675,39 +723,36 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
     }, [username, dispatch])
 
     useEffect(() => {
-        if (selectedSubLocation === -1) {
-            // console.log(placesInfoFromDatabase.measurements_by_sublocation);
+        if (selectedSubLocationIDModalOnly === -1) {
             if (placesInfoFromDatabase === defaultPlaceInfo) {
                 console.log("stil loading place info?");
                 return;
             }
-            if (placesInfoFromDatabase.measurements_by_sublocation.length > 0) {
+            if (measurements_by_sublocation.length > 0) {
                 // debugger;
-                dispatch(setSublocationSelectedLocationID(placesInfoFromDatabase.measurements_by_sublocation[0].sub_location_id));
+                setSelectedSubLocationIDModalOnly(measurements_by_sublocation[0].sub_location_id);
             }
             // debugger;
         }
-
-
     // TODO: 3/31/2022: Refactor so not ridiculous.
     // Running this hook whenever selectedSubLocation changed would defeat the purpose, and never let users add new sublocations.
     
     }, [dispatch, placesInfoFromDatabase]);
 
-    const place_id = selectedPlace.place_id
+    const {place_id} = props.selectedPlace;
     console.assert(place_id !== null);
     console.assert(place_id !== undefined);
     if (place_id === undefined) {
         debugger;
         return (null);
     }
-    console.assert(selectedPlace.name !== undefined);
-    if (selectedPlace.name === undefined) {
+    console.assert(props.selectedPlace.name !== undefined);
+    if (props.selectedPlace.name === undefined) {
         debugger;
         return null;
     }
     // console.assert(placeExistsInDatabase !== null);
-    if (placeExistsInDatabase === null) {
+    if (selectedPlaceExistsInDatabase === null) {
         console.warn("placeExistsInDatabase not loaded yet?")
         // debugger;
         return null;
@@ -725,12 +770,12 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
     if (placesInfoFromDatabase === defaultPlaceInfo) {
         dispatch(setSublocationSelectedLocationID(-1))
     }
-    const selected = findSelected(placesInfoFromDatabase.measurements_by_sublocation, selectedSubLocation);
+    
     return (
         <div>
             <Modal show={props.showCreateNewMeasurement} onHide={() => hideHandler(props.setShowCreateNewMeasurement)}>
                 <Suspense fallback="Loading translations...">
-                    <ModalHeader placeName={selectedPlace.name}/>
+                    <ModalHeader placeName={props.selectedPlace.name}/>
                 </Suspense>
                 <Modal.Body>
                     <span>
@@ -740,7 +785,7 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
                         <SelectDeviceDropdown userDevices={userDevices} selectedDevice={selectedDevice} selectedModelName={selectedModelName} selectedDeviceSerialNumber={selectedDeviceSerialNumber}/>
                     </Suspense>
                     <Suspense fallback="Loading translations...">
-                        <RenderFormIfReady selectedDevice={selectedDevice} setEnteredCO2Text={setEnteredCO2Text} place_id={place_id} setEnteredCrowding={setEnteredCrowding} placeName={selectedPlace.name} setEnteredLocationDetails={setEnteredLocationDetails} placesInfoFromDatabase={placesInfoFromDatabase} selected={selected} enteredCO2Text={enteredCO2Text} userTimeRadioValue={userTimeRadioValue} setUserTimeRadioValue={setUserTimeRadioValue} dateTime={dateTime} setDateTime={setDateTime} datePickerError={datePickerError} setDatePickerError={setDatePickerError} invalidField={invalidField} />
+                        <RenderFormIfReady selectedDevice={selectedDevice} setEnteredCO2Text={setEnteredCO2Text} place_id={place_id} setEnteredCrowding={setEnteredCrowding} placeName={props.selectedPlace.name} setEnteredLocationDetails={setEnteredLocationDetails} placesInfoFromDatabase={placesInfoFromDatabase} selected={selected} enteredCO2Text={enteredCO2Text} userTimeRadioValue={userTimeRadioValue} setUserTimeRadioValue={setUserTimeRadioValue} dateTime={dateTime} setDateTime={setDateTime} datePickerError={datePickerError} setDatePickerError={setDatePickerError} invalidField={invalidField} setSelectedSubLocationIDModalOnly={setSelectedSubLocationIDModalOnly}/>
                     </Suspense>
                 </Modal.Body>
                 <Modal.Footer>
@@ -751,7 +796,7 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
                     </Button>
                     <Button variant="primary" disabled={!showSubmit} onClick={(event) => {
                             // setShowSubmit(!showSubmit);
-                            submitHandler(event, selectedDevice, enteredCO2Text, place_id, props.setShowCreateNewMeasurement, placeExistsInDatabase, dispatch, setErrorState, enteredCrowding, enteredLocationDetails, selectedSubLocation, userTimeRadioValue, dateTime, setShowSubmit, setSubmitting, setInvalidField);
+                            submitHandler(event, selectedDevice, enteredCO2Text, place_id, props.setShowCreateNewMeasurement, selectedPlaceExistsInDatabase, dispatch, setErrorState, enteredCrowding, enteredLocationDetails, selectedSubLocationIDModalOnly, userTimeRadioValue, dateTime, setShowSubmit, setSubmitting, setInvalidField);
                         }}>
                         {submitOrSpinning(submitting, translate)}
                     </Button>
