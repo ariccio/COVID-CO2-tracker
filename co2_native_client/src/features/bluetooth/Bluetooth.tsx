@@ -122,13 +122,14 @@ const scanCallback = async (error: BleError | null, scannedDevice: Device | null
             console.log("Bluetooth off.");
             dispatch(setNeedsBluetoothTurnOn(true));
             dispatch(setScanningStatusString("Please turn bluetooth on."));
+            return;
+        }
 
-        }
-        else {
-            const str = `error scanning: ${error}`;
-            console.error(str);
-            Sentry.Native.captureMessage(str);
-        }
+        const str_1 = `error scanning: ${bleErrorToUsefulString(error)}`;
+        console.error(str_1);
+        Sentry.Native.captureMessage(str_1);
+
+
         const str = `Cannot connect to device: ${error.message}, ${error.reason}`;
         dispatch(setScanningErrorStatusString(str));
         Sentry.Native.captureMessage(str);
@@ -152,7 +153,6 @@ const scanCallback = async (error: BleError | null, scannedDevice: Device | null
 const aranetService = [BLUETOOTH.ARANET4_SENSOR_SERVICE_UUID];
 
 const scanAndIdentify = (dispatch: AppDispatch) => {
-    
     dispatch(setScanningStatusString(`Beginning scan for devices with services: ${aranetService}...`));
     manager.startDeviceScan(aranetService, null, (error, scannedDevice) => scanCallback(error, scannedDevice, dispatch));
 }
@@ -202,7 +202,7 @@ const requestAllBluetoothPermissions = async (dispatch: AppDispatch) => {
     catch (error) {
         dispatch(setScanningStatusString(`Some kind of unexpected error when checking location permission: ${unknownNativeErrorTryFormat(error)}`));
         Sentry.Native.captureException(error);
-
+        return;
     }
     const locationRationale: Rationale = {
         title,
@@ -225,11 +225,13 @@ const requestAllBluetoothPermissions = async (dispatch: AppDispatch) => {
             debugger;
             // Denied
             // Do something
+            return;
         }    
     }
     catch(error) {
         dispatch(setScanningStatusString(`Some kind of unexpected error when requesting location permission: ${unknownNativeErrorTryFormat(error)}`));
         Sentry.Native.captureException(error);
+        return;
     }
     
     const bluetoothScanPermission: Rationale = {
@@ -257,13 +259,14 @@ const requestAllBluetoothPermissions = async (dispatch: AppDispatch) => {
         else {
             dispatch(setScanningStatusString(`Bluetooth scan permission denied by user: ${bluetoothScanPermissionResult}`));
             dispatch(setHasBluetooth(false));
+            return;
         }
 
     }
     catch (error) {
         dispatch(setScanningStatusString(`Some kind of unexpected error when requesting bluetooth scan permission: ${unknownNativeErrorTryFormat(error)}`));
         Sentry.Native.captureException(error);
-
+        return;
     }
 }
 
