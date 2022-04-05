@@ -73,7 +73,7 @@ module Api
         ::Sentry.capture_exception(e)
         render(
           json: {
-            errors: [create_error('invalid parameter combination: this is a bug', e)]
+            errors: [create_error('invalid parameter combination: this is a bug. Automatically reported.', e)]
           },
           status: :bad_request
         )
