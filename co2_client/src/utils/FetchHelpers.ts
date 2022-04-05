@@ -269,6 +269,11 @@ export function fetchFilter(error: any): never {
         else if (error.message === 'Failed to fetch') {
             console.error("fetch itself failed, likely a network issue.");
         }
+        else if (error.message === 'NetworkError when attempting to fetch resource.') {
+            // Firefox.
+            // https://searchfox.org/mozilla-central/source/dom/bindings/Errors.msg#62
+            console.error("fetch itself failed, likely a network issue on chrome, not sure about firefox.");
+        }
         else {
             console.error("fetch itself failed, likely a network issue.");
     
