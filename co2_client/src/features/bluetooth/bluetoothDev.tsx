@@ -1326,7 +1326,7 @@ function trySeamlessConnectionOnceAvailable(dispatch: AppDispatch, seamlesslyCon
 
 //
 function DisplayAppleNotSupported(): JSX.Element {
-    const [runningOnMobileSafari, _] = useState(isMobileSafari());
+    const [runningOnMobileSafari, ] = useState(isMobileSafari());
 
     if (runningOnMobileSafari) {
         return (
@@ -1344,7 +1344,7 @@ function DisplayAppleNotSupported(): JSX.Element {
 
 function DisplayChromeSupported(): JSX.Element {
     const supportsGetDevices = useSelector(selectSupportsGetDevices);
-    const [browser, _setBrowser] = useState(Bowser.getParser(window.navigator.userAgent).getBrowser());
+    const [browser, ] = useState(Bowser.getParser(window.navigator.userAgent).getBrowser());
     console.warn(`A page or script is accessing at least one of navigator.userAgent, navigator.appVersion, and navigator.platform. Starting in Chrome 101, the amount of information available in the User Agent string will be reduced.
     To fix this issue, replace the usage of navigator.userAgent, navigator.appVersion, and navigator.platform with feature detection, progressive enhancement, or migrate to navigator.userAgentData.
     Note that for performance reasons, only the first access to one of the properties is shown.`);
@@ -1352,7 +1352,7 @@ function DisplayChromeSupported(): JSX.Element {
     console.log("https://blog.chromium.org/2021/09/user-agent-reduction-origin-trial-and-dates.html");
     console.log("https://web.dev/migrate-to-ua-ch/");
     console.log("https://www.chromium.org/updates/ua-reduction/");
-    const [os, _setOS] = useState(Bowser.getParser(window.navigator.userAgent).getOS());
+    const [os, ] = useState(Bowser.getParser(window.navigator.userAgent).getOS());
     if (browser.name === 'Chrome') {
         if ((os.name === 'Android')|| (os.name === 'Windows') || (os.name === 'macOS')) {
             if (!supportsGetDevices)

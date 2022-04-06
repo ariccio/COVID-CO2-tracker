@@ -350,7 +350,116 @@ const createMeasurementHandler = (selectedDevice: number, enteredCO2Text: string
     })
 }
 
-const submitHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, placeExistsInDatabase: boolean, dispatch: AppDispatch, setErrorState: React.Dispatch<React.SetStateAction<string>>, enteredCrowding: string, enteredLocationDetails: string, selectedSubLocation: number, userTimeRadioValue: ToggleButtonUserRadios, dateTime: Date, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>, setInvalidField: React.Dispatch<React.SetStateAction<string[]>>) => {
+function checkLocationSelectedValid(setInvalidField: React.Dispatch<React.SetStateAction<string[]>>, enteredLocationDetails: string, selectedSubLocation: number, invalidField: string[]): boolean {
+    if (selectedSubLocation === -1) {
+        console.assert(enteredLocationDetails !== '');
+        if (enteredLocationDetails === '') {
+            // setInvalidField([INNER_LOCATION_FIELD_ID, ...invalidField]);
+            return false;
+
+        }
+    }
+    if (enteredLocationDetails === '') {
+        console.assert(selectedSubLocation !== -1);
+        if (selectedSubLocation === -1) {
+            // setInvalidField([INNER_LOCATION_FIELD_ID, ...invalidField])
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function checkEnteredCo2Text(enteredCO2Text: string, setInvalidField: React.Dispatch<React.SetStateAction<string[]>>, invalidField: string[]): boolean {
+    if (enteredCO2Text.length === 0) {
+        // setInvalidField([CO2_FIELD_ID, ...invalidField]);
+        return false;
+    }
+
+    const parsedCO2 = parseInt(enteredCO2Text, 10);
+    if (Number.isNaN(parsedCO2)) {
+        // setInvalidField([CO2_FIELD_ID, ...invalidField]);
+        return false;
+    }
+    if (parsedCO2 < 350) {
+        // setInvalidField([CO2_FIELD_ID, ...invalidField]);
+        return false;
+    }
+    if (parsedCO2 > 30_000) {
+        // setInvalidField([CO2_FIELD_ID, ...invalidField]);
+        return false;
+
+    }
+
+    debugger;
+    return true;
+}
+
+
+function checkEnteredCrowding(enteredCrowding: string, setInvalidField: React.Dispatch<React.SetStateAction<string[]>>, invalidField: string[]): boolean {
+    if (enteredCrowding.length === 0) {
+        // setInvalidField([CROWDING_FIELD_ID, ...invalidField]);
+        return false;
+    }
+
+    const parsedCrowding = parseInt(enteredCrowding, 10);
+    if (Number.isNaN(parsedCrowding)) {
+        // setInvalidField([CROWDING_FIELD_ID, ...invalidField]);
+        return false;        
+    }
+    if (parsedCrowding < 1) {
+        // setInvalidField([CROWDING_FIELD_ID, ...invalidField]);
+        return false;
+    }
+    if (parsedCrowding > 5) {
+        // setInvalidField([CROWDING_FIELD_ID, ...invalidField]);
+        return false;
+    }
+    return true;
+}
+
+
+function checkFields(setInvalidField: React.Dispatch<React.SetStateAction<string[]>>, invalidField: string[], enteredLocationDetails: string, selectedSubLocation: number, setErrorState: React.Dispatch<React.SetStateAction<string>>, enteredCO2Text: string, enteredCrowding: string): boolean {
+    const invalidFields = [];
+    const selectedLocationDetailsValid = checkLocationSelectedValid(setInvalidField, enteredLocationDetails, selectedSubLocation, invalidField);
+
+    if (!selectedLocationDetailsValid) {
+        setErrorState("You must enter the name of a new location OR choose one from the dropdown.");
+        invalidFields.push(INNER_LOCATION_FIELD_ID);
+    }
+
+
+    const enteredCO2Valid = checkEnteredCo2Text(enteredCO2Text, setInvalidField, invalidField);
+    if (!enteredCO2Valid) {
+        setErrorState("You must enter a reasonable CO2 measurement.");
+        invalidFields.push(CO2_FIELD_ID);
+        // return;
+    }
+
+    const enteredCrowdingValid = checkEnteredCrowding(enteredCrowding, setInvalidField, invalidField);
+    if (!enteredCrowdingValid) {
+        setErrorState("You must enter a valid number for crowding.");
+        invalidFields.push(CROWDING_FIELD_ID);
+    }
+
+    if ((!selectedLocationDetailsValid) || (!enteredCO2Valid) || (!enteredCrowdingValid)) {
+        setInvalidField(invalidFields);
+        return false;
+    }
+
+
+    return true;
+}
+
+const submitHandler = (event: React.MouseEvent<HTMLElement, MouseEvent>, selectedDevice: number, enteredCO2Text: string, place_id: string, setShowCreateNewMeasurement: React.Dispatch<React.SetStateAction<boolean>>, placeExistsInDatabase: boolean, dispatch: AppDispatch, setErrorState: React.Dispatch<React.SetStateAction<string>>, enteredCrowding: string, enteredLocationDetails: string, selectedSubLocation: number, userTimeRadioValue: ToggleButtonUserRadios, dateTime: Date, setShowSubmit: React.Dispatch<React.SetStateAction<boolean>>, setSubmitting: React.Dispatch<React.SetStateAction<boolean>>, setInvalidField: React.Dispatch<React.SetStateAction<string[]>>, invalidField: string[]) => {
+    
+    
+    const fieldsValid = checkFields(setInvalidField, invalidField, enteredLocationDetails, selectedSubLocation, setErrorState, enteredCO2Text, enteredCrowding);
+    if (!fieldsValid) {
+        return;
+    }
+
+
     setShowSubmit(false);
     setSubmitting(true);
     debugger;
@@ -383,7 +492,12 @@ function ignoreDefault(event: React.FormEvent<HTMLFormElement>): void {
     event.stopPropagation();
 }
 
-const InnerLocationFormIfNewLocation = (props: {setEnteredLocationDetails: React.Dispatch<React.SetStateAction<string>>, placeName: string, selected: SelectedSublocationForDropdownDisplay  | null}) => {
+const INNER_LOCATION_FIELD_ID = "location_where_inside_info";
+const CO2_FIELD_ID = 'co2ppm';
+
+const CROWDING_FIELD_ID = "crowding";
+
+const InnerLocationFormIfNewLocation = (props: {setEnteredLocationDetails: React.Dispatch<React.SetStateAction<string>>, placeName: string, selected: SelectedSublocationForDropdownDisplay  | null, invalidField: string[]}) => {
     const [translate] = useTranslation();
     if (props.selected === null) {
         return (
@@ -394,7 +508,7 @@ const InnerLocationFormIfNewLocation = (props: {setEnteredLocationDetails: React
                             {translate("Where inside")} {props.placeName} {translate("did you take the measurement?")}
                         </span>
                     </Form.Label>
-                    <Form.Control type="text" name={"where"}/>
+                    <Form.Control type="text" name={INNER_LOCATION_FIELD_ID} isInvalid={props.invalidField.includes(INNER_LOCATION_FIELD_ID)}/>
                 </Form>
             </div>
         )
@@ -512,7 +626,7 @@ const RenderFormIfReady = (props: {
                         {translate("co2-level")}
                     </span>
                 </Form.Label>
-                <Form.Control type="number" placeholder="400" min={0} max={80000} name={"co2ppm"} isInvalid={props.invalidField.includes('co2ppm')}/> <Suspense fallback="Loading translations..."><MaybeMeasurementNote enteredCO2Text={props.enteredCO2Text} /></Suspense>
+                <Form.Control type="number" placeholder="400" min={350} max={15000} name={CO2_FIELD_ID} isInvalid={props.invalidField.includes(CO2_FIELD_ID)}/> <Suspense fallback="Loading translations..."><MaybeMeasurementNote enteredCO2Text={props.enteredCO2Text} /></Suspense>
             </Form>
             <label className="form-label">
                 <span>
@@ -531,11 +645,11 @@ const RenderFormIfReady = (props: {
                         {translate("crowding-level")}
                     </span>
                 </Form.Label>
-                <Form.Control type="number" min={1} max={5} name={"crowding"} isInvalid={props.invalidField.includes('crowding')}/>
+                <Form.Control type="number" min={1} max={5} name={CROWDING_FIELD_ID} isInvalid={props.invalidField.includes(CROWDING_FIELD_ID)}/>
             </Form>
             <SublocationsDropdown selectedSublocationDisplayData={props.selected} measurements_by_sublocation={measurementsOrEmptyArray} nothingSelectedText={"New inner location"} nothingSelectedItem={<DefaultNothingSelectedItem/>} setGlobal={false} setSelectedSubLocationIDModalOnly={props.setSelectedSubLocationIDModalOnly}/>
             <Suspense fallback="Loading translations...">
-                <InnerLocationFormIfNewLocation setEnteredLocationDetails={props.setEnteredLocationDetails} placeName={props.placeName} selected={props.selected}/>
+                <InnerLocationFormIfNewLocation setEnteredLocationDetails={props.setEnteredLocationDetails} placeName={props.placeName} selected={props.selected} invalidField={props.invalidField}/>
             </Suspense>
         </div>
     )
@@ -739,6 +853,10 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
     
     }, [dispatch, placesInfoFromDatabase]);
 
+
+    // useEffect(() => {
+    // }, []);
+
     const {place_id} = props.selectedPlace;
     console.assert(place_id !== null);
     console.assert(place_id !== undefined);
@@ -796,7 +914,7 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
                     </Button>
                     <Button variant="primary" disabled={!showSubmit} onClick={(event) => {
                             // setShowSubmit(!showSubmit);
-                            submitHandler(event, selectedDevice, enteredCO2Text, place_id, props.setShowCreateNewMeasurement, selectedPlaceExistsInDatabase, dispatch, setErrorState, enteredCrowding, enteredLocationDetails, selectedSubLocationIDModalOnly, userTimeRadioValue, dateTime, setShowSubmit, setSubmitting, setInvalidField);
+                            submitHandler(event, selectedDevice, enteredCO2Text, place_id, props.setShowCreateNewMeasurement, selectedPlaceExistsInDatabase, dispatch, setErrorState, enteredCrowding, enteredLocationDetails, selectedSubLocationIDModalOnly, userTimeRadioValue, dateTime, setShowSubmit, setSubmitting, setInvalidField, invalidField);
                         }}>
                         {submitOrSpinning(submitting, translate)}
                     </Button>
