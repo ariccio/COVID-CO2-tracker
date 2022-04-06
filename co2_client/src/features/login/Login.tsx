@@ -284,7 +284,12 @@ const googleLoginFailedCallback = (error: any, setGoogleLoginErrorState: React.D
         return;
     }
 
-    alert(`Login failed for unexpected reason! Error object: ${JSON.stringify(error)}. This is probably Google's fault.`);
+    if (error.isTrusted !== undefined) {
+        alert(`Login failed for unexpected reason! I've been seeing this error a lot, and it's probably Google's fault. I can't fix it. Try clearing cookies if it happens again.`);
+        Sentry.captureMessage(`unhandled google login error! Error object: ${String(error.error) + ', ' + String(error.details)}. Full JSON of error object: ${googleLoginErrorStringified}`);
+        return;
+    }
+    alert(`Login failed for unexpected reason! Error object: ${JSON.stringify(error)}. This is probably Google's fault. Try clearing cookies if it happens again.`);
     Sentry.captureMessage(`unhandled google login error! Error object: ${String(error.error) + ', ' + String(error.details)}. Full JSON of error object: ${googleLoginErrorStringified}`);
 }
 
