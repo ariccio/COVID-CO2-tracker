@@ -443,7 +443,7 @@ const renderEachMarker = (place: EachPlaceFromDatabaseForMarker, index: number, 
         lat: parseFloat(place.attributes.place_lat),
         lng: parseFloat(place.attributes.place_lng)
     }
-    const clickHandler = (e: google.maps.MapMouseEvent) => {
+    const clickHandler = () => {
         // debugger;
         // dispatch(setSelectedPlaceIdString(place.attributes.google_place_id));
         if (service === null) {
@@ -631,6 +631,9 @@ const GoogleMapInContainer = (props: {
     const {setCenter} = props;
     const dispatch = useDispatch();
     const placeMarkerErrors = useSelector(selectPlacesMarkersErrors);
+
+
+    //TODO: Does this really need to be in redux?
     const placeMarkersFromDatabase = useSelector(selectPlaceMarkersFromDatabase);
     const selectedPlace = useSelector(selectSelectedPlace);
 
@@ -781,7 +784,7 @@ const loadAndPanToLastMeasurement = (map: google.maps.Map) => {
         //     console.warn("Last used device missing.");
         // }
     }).catch((reason) => {
-        console.error("Failed to get last location for some reason. Failure in promise itself.")
+        console.error(`Failed to get last location for some reason. Failure in promise itself. More details: ${JSON.stringify(reason)}`)
     })
 
 }
@@ -897,7 +900,6 @@ export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) =
     // Displayed on HomePage.
     // const selectedPlaceInfoFromDatabaseErrors = useSelector(selectPlacesInfoErrors);
 
-    // const placeMarkersFromDatabase = useSelector(selectPlaceMarkersFromDatabase);
     // const [placesServiceStatus, setPlacesServiceStatus] = useState(null as google.maps.places.PlacesServiceStatus | null);
     // const selectedPlaceIdString = useSelector(selectSelectedPlaceIdString);
     // const selectedPlaceInfoFromDatabase = useSelector(selectPlacesInfoFromDatabase);
