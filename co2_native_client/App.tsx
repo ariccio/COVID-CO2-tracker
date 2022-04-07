@@ -37,6 +37,7 @@ import { NotifeeNotificationHookState, useNotifeeNotifications, NotificationInfo
 import { setNotificationState } from './src/features/service/serviceSlice';
 import { selectSupportedDevices, setSupportedDevices, setUNSupportedDevices } from './src/features/userInfo/devicesSlice';
 import { selectUserName, selectUserSettings, setUserSettings, setUserSettingsErrors } from './src/features/userInfo/userInfoSlice';
+import { unknownNativeErrorTryFormat } from './src/utils/FormatUnknownNativeError';
 import { withAuthorizationHeader } from './src/utils/NativeDefaultRequestHelpers';
 import {fetchJSONWithChecks} from './src/utils/NativeFetchHelpers';
 import { MaybeIfValue } from './src/utils/RenderValues';
@@ -44,7 +45,6 @@ import { timeNowAsString } from './src/utils/TimeNow';
 import { COVID_CO2_TRACKER_DEVICES_URL, COVID_CO2_TRACKER_HOME_URL, COVID_CO2_TRACKER_PLACES_URL, USER_DEVICES_URL_NATIVE, USER_SETTINGS_URL_NATIVE } from './src/utils/UrlPaths';
 import { useIsLoggedIn } from './src/utils/UseLoggedIn';
 import { isLoggedIn, isNullString, isUndefinedString } from './src/utils/isLoggedIn';
-import { unknownNativeErrorTryFormat } from './src/utils/FormatUnknownNativeError';
 
 
 
@@ -616,11 +616,11 @@ function App() {
   // }, [authState])
   useEffect(() => {
     dispatch(setNotificationState(notificationState));
-  }, [notificationState])
+  }, [notificationState, dispatch])
 
   useEffect(() => {
     dispatch(setNextMeasurementTime(nextMeasurementTime));
-  }, [nextMeasurementTime])
+  }, [nextMeasurementTime, dispatch])
 
   useEffect(() => {
     console.log(`App starting at ${timeNowAsString()}.`);
@@ -638,16 +638,16 @@ function App() {
   
   useEffect(() => {
     loadDevices(jwt, userName, dispatch);
-  }, [userName, jwt])
+  }, [userName, jwt, dispatch])
 
   useEffect(() => {
     loadSettings(jwt, userName, dispatch);
-  }, [userName, jwt])
+  }, [userName, jwt, dispatch])
 
 
   useEffect(() => {
     measurementChange(measurement, userSettings, jwt, dispatch, shouldUpload);
-  }, [measurement, userSettings, jwt, shouldUpload])
+  }, [measurement, userSettings, jwt, shouldUpload, dispatch])
 
   useEffect(() => {
     return () => {
