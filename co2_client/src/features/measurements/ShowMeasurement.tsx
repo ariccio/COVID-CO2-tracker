@@ -77,12 +77,12 @@ const DivElem = (props: {elementRef: React.MutableRefObject<HTMLDivElement | nul
     );
 }
 
-const renderPlaceDetails = (measurementInfo: ShowMeasurementResponse, elementRef: React.MutableRefObject<HTMLDivElement | null>, mapsAaaPeeEyeKey: string, mapsAaaPeeEyeKeyErrorState: string) => {
-    if (mapsAaaPeeEyeKey === '') {
-        if (mapsAaaPeeEyeKeyErrorState !== '') {
+function MaybeApiKeyError(props: {mapsAaaPeeEyeKey: string, mapsAaaPeeEyeKeyErrorState: string}) {
+    if (props.mapsAaaPeeEyeKey === '') {
+        if (props.mapsAaaPeeEyeKeyErrorState !== '') {
             return (
                 <div>
-                    Error loading google maps/places API key. Error details: {mapsAaaPeeEyeKeyErrorState}
+                    Error loading google maps/places API key. Error details: {props.mapsAaaPeeEyeKeyErrorState}
                     (Can&apos;t show place details)
                 </div>
             )
@@ -93,6 +93,10 @@ const renderPlaceDetails = (measurementInfo: ShowMeasurementResponse, elementRef
             </div>
         )
     }
+    return null;
+}
+
+const renderPlaceDetails = (measurementInfo: ShowMeasurementResponse, elementRef: React.MutableRefObject<HTMLDivElement | null>, mapsAaaPeeEyeKey: string, mapsAaaPeeEyeKeyErrorState: string) => {
     if (elementRef === null) {
         return (
             <div>
@@ -104,6 +108,7 @@ const renderPlaceDetails = (measurementInfo: ShowMeasurementResponse, elementRef
         <div>
             Will have PROPER place data here when I fix the damn bug.
             In mean time, here&apos;s a link to it: <Link to={`${placesPath}/${measurementInfo.place_id}`}>{measurementInfo.place_id}</Link>
+            <MaybeApiKeyError mapsAaaPeeEyeKey={mapsAaaPeeEyeKey} mapsAaaPeeEyeKeyErrorState={mapsAaaPeeEyeKeyErrorState}/>
             {/* <PlaceDetails placeId={measurementInfo.place_id} divRef={elementRef}/> */}
         </div>
     )
