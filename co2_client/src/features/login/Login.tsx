@@ -294,13 +294,14 @@ const googleLoginFailedCallback = (error: any, setGoogleLoginErrorState: React.D
 }
 
 const googleLogoutSuccessCallback = (dispatch: AppDispatch) => {
-    console.log("logged out via google.");
+    console.warn("logged out via google.");
     logout();
     console.log("TODO: some kind of memory leak here, on setUsername. It must dispatch an update here.");
     debugger;
     dispatch(setUsername(''));
     dispatch(setGoogleProfile(null));
     dispatch(setGoogleAuthResponse(null));
+    alert("Logged out. Page will reload.");
     window.location.reload();
     // debugger;
 }
