@@ -98,13 +98,18 @@ interface UserNavProps {
 //     )
 // }
 
+const USER_NAV_LEFT_STYLE: React.CSSProperties = {display:"flex", flexDirection:"row", float: "left"};
+
+
+const USER_NAV_RIGHT_STYLE: React.CSSProperties = {display:"flex", flexDirection:"row", float: "right"};
+
 const UserNav: React.FC<UserNavProps> = ({username}) => {
   const [translate] = useTranslation();
   return (
     <Navbar expand="sm" /*bg="dark" variant="dark"*/ >
         <Navbar.Toggle aria-controls="basic-navbar-nav"/>
         <Navbar.Collapse  id="basic-navbar-nav">
-            <Nav justify={true} fill={false} variant="tabs" style={{display:"flex", flexDirection:"row", float: "left"}}>
+            <Nav justify={true} fill={false} variant="tabs" style={USER_NAV_LEFT_STYLE}>
                 <LinkContainer to={homePath}>
                   <Nav.Link>{translate('Home')}</Nav.Link>
                 </LinkContainer>
@@ -125,7 +130,7 @@ const UserNav: React.FC<UserNavProps> = ({username}) => {
                 </LinkContainer>
 
             </Nav>
-            <Nav className="container-fluid justify-content-end" variant="tabs" style={{display:"flex", flexDirection:"row", float: "right"}}>
+            <Nav className="container-fluid justify-content-end" variant="tabs" style={USER_NAV_RIGHT_STYLE}>
                 {/* {profileIfLoggedIn(username)} */}
                 <Nav.Link href="https://github.com/ariccio/COVID-CO2-tracker">Github/{translate('sponsor')}</Nav.Link>
                 <LoginOrSignupMaybe username={username}/>

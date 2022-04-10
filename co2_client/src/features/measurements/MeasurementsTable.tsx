@@ -113,9 +113,12 @@ const MaybeInnerLocation = (props: {measurement: SerializedSingleMeasurement, in
     return null;
 }
 
+const RED_COLOR_OBJECT_STYLE = {color: 'red'};
+const GREEN_COLOR_OBJECT_STYLE = {color:"green"};
+
 const AboveFiveThousand = () => {
     return (
-        <td><p style={{color:"red"}}><b><u><i>Abysmal, <a href="https://www.fsis.usda.gov/sites/default/files/media_file/2020-08/Carbon-Dioxide.pdf">violates OSHA, must not remain this high over 8 hours, confirm meter calibration</a></i></u></b></p></td>
+        <td><p style={RED_COLOR_OBJECT_STYLE}><b><u><i>Abysmal, <a href="https://www.fsis.usda.gov/sites/default/files/media_file/2020-08/Carbon-Dioxide.pdf">violates OSHA, must not remain this high over 8 hours, confirm meter calibration</a></i></u></b></p></td>
     );
 }
 
@@ -126,13 +129,13 @@ const RiskRow = (props: {co2ppm: number}) => {
         return (<td><i>{translate('Unreasonably low measurement')}</i></td>);
     }
     if (props.co2ppm < 500) {
-        return (<td><p style={{color:"green"}}><b>{translate('Very low!')}</b></p></td>);
+        return (<td><p style={GREEN_COLOR_OBJECT_STYLE}><b>{translate('Very low!')}</b></p></td>);
     }
     if (props.co2ppm < 600) {
-        return (<td><p style={{color:"green"}}>{translate('Low')}</p></td>);
+        return (<td><p style={GREEN_COLOR_OBJECT_STYLE}>{translate('Low')}</p></td>);
     }
     if (props.co2ppm < 700) {
-        return (<td><p style={{color:"green"}}>{translate('Fairly low')}</p></td>);
+        return (<td><p style={GREEN_COLOR_OBJECT_STYLE}>{translate('Fairly low')}</p></td>);
     }
     if (props.co2ppm < 800) {
         return (<td><p>{translate('Acceptable')}</p></td>);
@@ -141,20 +144,20 @@ const RiskRow = (props: {co2ppm: number}) => {
         return (<td><p>{translate('Marginal/Warning')}</p></td>)
     }
     if (props.co2ppm < 1200) {
-        return (<td><p style={{color:"red"}}><b>{translate('Bad')}</b></p></td>);
+        return (<td><p style={RED_COLOR_OBJECT_STYLE}><b>{translate('Bad')}</b></p></td>);
     }
     if (props.co2ppm < 2000) {
-        return (<td><p style={{color:"red"}}><b><u>{translate('High: Danger zone')}</u></b></p></td>);
+        return (<td><p style={RED_COLOR_OBJECT_STYLE}><b><u>{translate('High: Danger zone')}</u></b></p></td>);
     }
     if (props.co2ppm < 5000) {
-        return (<td><p style={{color:"red"}}><b><u>{translate('Extremely high: danger zone')}</u></b></p></td>);
+        return (<td><p style={RED_COLOR_OBJECT_STYLE}><b><u>{translate('Extremely high: danger zone')}</u></b></p></td>);
     }
     if (props.co2ppm < 30_000) {
         return (
             <AboveFiveThousand/>
         )
     }
-    return (<td><p style={{color:"red"}}><b><u><i>{translate('Immediate death or invalid measurement')}</i></u></b></p></td>);
+    return (<td><p style={RED_COLOR_OBJECT_STYLE}><b><u><i>{translate('Immediate death or invalid measurement')}</i></u></b></p></td>);
 }
 
 const CrowdingOrRealtime = (props: {measurement: SerializedSingleMeasurement}) => {
@@ -171,7 +174,7 @@ const CrowdingOrRealtime = (props: {measurement: SerializedSingleMeasurement}) =
     if (props.measurement.attributes.extra_measurement_info === undefined) {
         //NOTE TO SELF: right now, serializing the extra measurement info is getting super slow. So Just assume FOR NOW that anything without crowding is realtime.
         return (
-            <td><p style={{color:"red"}}>Realtime measurement!</p></td>
+            <td><p style={RED_COLOR_OBJECT_STYLE}>Realtime measurement!</p></td>
         );
     }
     debugger;
@@ -187,7 +190,7 @@ const CrowdingOrRealtime = (props: {measurement: SerializedSingleMeasurement}) =
                 )
             }
             return (
-                <td><p style={{color:"red"}}>Realtime measurement!</p></td>
+                <td><p style={RED_COLOR_OBJECT_STYLE}>Realtime measurement!</p></td>
             );
         }
         throw new Error("Missing realtime?");

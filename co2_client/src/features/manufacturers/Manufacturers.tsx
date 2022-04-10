@@ -1,4 +1,4 @@
-import {useEffect, useState, Suspense} from 'react';
+import {useEffect, useState, Suspense, useRef} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {Dropdown} from 'react-bootstrap';
 import {Link, useLocation} from 'react-router-dom';
@@ -150,6 +150,8 @@ const RenderDropdown = (props: {manufacturerModels: SingleManufacturerInfoRespon
 
 const NewModelForManufacturer = (props: {manufacturerModels: SingleManufacturerInfoResponse, selectedModel: number}) => {
     const [translate] = useTranslation();
+
+    const to = useRef({pathname:`/devicemodels/create`});
     if (props.selectedModel !== -1) {
         return null;
     }
@@ -161,7 +163,7 @@ const NewModelForManufacturer = (props: {manufacturerModels: SingleManufacturerI
         return null;
     }
     return (
-        <Link to={{pathname:`/devicemodels/create`}} className="btn btn-primary">
+        <Link to={to.current.pathname} className="btn btn-primary">
             {translate('create-new-model-manufacturer')} {props.manufacturerModels.name}
         </Link>
     );

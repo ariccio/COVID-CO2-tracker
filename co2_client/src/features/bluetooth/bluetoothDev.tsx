@@ -1035,6 +1035,8 @@ function maybeCO2(co2: number | null) {
     )
 }
 
+const RED_COLOR_OBJECT_STYLE = {color: 'red'};
+
 function maybeBluetoothAvailableError(bluetoothAvailableError: string | null) {
     if (bluetoothAvailableError === null) {
         return (
@@ -1042,7 +1044,7 @@ function maybeBluetoothAvailableError(bluetoothAvailableError: string | null) {
         );
     }
     return (
-        <div style={{color: 'red'}}>
+        <div style={RED_COLOR_OBJECT_STYLE}>
             Bluetooth might not be available. Error: {bluetoothAvailableError}
         </div>
     )
@@ -1062,7 +1064,7 @@ function maybeBluetoothAvailable(bluetoothAvailable: boolean | null) {
         );
     }
     return (
-        <div style={{color: 'red'}}>
+        <div style={RED_COLOR_OBJECT_STYLE}>
             Bluetooth not available.
         </div>
     );

@@ -439,10 +439,12 @@ function markerKey(lat: number, lng: number, index: number): string {
 }
 
 const renderEachMarker = (place: EachPlaceFromDatabaseForMarker, index: number, clusterer: /*clusterType*/ any, dispatch: AppDispatch, service: google.maps.places.PlacesService | null, placesSize: number) => {
+    // eslint-disable-next-line react-perf/jsx-no-new-object-as-prop
     const pos: google.maps.LatLngLiteral = {
         lat: parseFloat(place.attributes.place_lat),
         lng: parseFloat(place.attributes.place_lng)
-    }
+    };
+    
     const clickHandler = () => {
         // debugger;
         // dispatch(setSelectedPlaceIdString(place.attributes.google_place_id));

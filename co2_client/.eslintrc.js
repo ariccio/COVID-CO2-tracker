@@ -11,7 +11,8 @@ module.exports = {
         "plugin:@typescript-eslint/recommended",
         "plugin:react/jsx-runtime",
         "plugin:jsx-a11y/recommended",
-        "plugin:react-hooks/recommended"
+        "plugin:react-hooks/recommended",
+        "plugin:react-perf/recommended"
     ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
@@ -33,7 +34,9 @@ module.exports = {
         "@typescript-eslint/no-explicit-any": "off",
 
         // Shh. I'm a C++ guy at heart!
-        "@typescript-eslint/no-inferrable-types": "off"
+        "@typescript-eslint/no-inferrable-types": "off",
+        "react-perf/jsx-no-new-function-as-prop": "off",
+        "react-perf/jsx-no-new-object-as-prop": "warn"
     },
     "reportUnusedDisableDirectives": true
 };
