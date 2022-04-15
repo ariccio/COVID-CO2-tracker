@@ -13,7 +13,7 @@ class UsersControllerTest < ::ActionDispatch::IntegrationTest
   #   assert_response :success
   # end
 
-  test 'should create new user' do
+  # test 'should create new user' do
 
-  end
+  # end
 end

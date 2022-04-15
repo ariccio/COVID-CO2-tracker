@@ -158,7 +158,8 @@ module Api
         if Rails.env === 'test'
           ::Rails.logger.warn("test auth path")
           # No encryption for test env
-          @decoded_token = {sub: user_login_google_params[:id_token]}
+          # byebug
+          @decoded_token = params['user']
         else
           @decoded_token = token_from_google
         end

@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-
+puts "Start of config/application.rb: #{Time.now}"
 require_relative 'boot'
 
 require 'rails'
@@ -7,13 +7,13 @@ require 'rails'
 require 'active_model/railtie'
 require 'active_job/railtie'
 require 'active_record/railtie'
-require 'active_storage/engine'
+# require 'active_storage/engine'
 require 'action_controller/railtie'
-require 'action_mailer/railtie'
-require 'action_mailbox/engine'
-require 'action_text/engine'
+# require 'action_mailer/railtie'
+# require 'action_mailbox/engine'
+# require 'action_text/engine'
 require 'action_view/railtie'
-require 'action_cable/engine'
+# require 'action_cable/engine'
 require 'sprockets/railtie'
 require 'rails/test_unit/railtie'
 
@@ -23,6 +23,7 @@ require 'rails/test_unit/railtie'
 
 module COVIDCo2Tracker
   class Application < ::Rails::Application
+    puts "Start Application class: #{Time.now}"
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults(6.1)
 
@@ -42,15 +43,19 @@ module COVIDCo2Tracker
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
 
+    # puts "Starting middleware: #{Time.now}"
     config.middleware.use(::ActionDispatch::Cookies)
 
     # Middleware for ActiveAdmin
     config.middleware.use(::Rack::MethodOverride)
     config.middleware.use(::ActionDispatch::Flash)
     config.middleware.use(::ActionDispatch::Session::CookieStore)
+    # puts "End      middleware: #{Time.now}"
 
     # Fix rails g scaffold for ActiveAdmin
     # As per https://blog.heroku.com/a-rock-solid-modern-web-stack
     config.app_generators.scaffold_controller = :scaffold_controller
+    puts "End   Application class: #{Time.now}\r\n"
   end
 end
+puts "end   of config/application.rb: #{Time.now}\r\n"
