@@ -155,7 +155,13 @@ module Api
 
       # Note to self: https://philna.sh/blog/2020/01/15/test-signed-cookies-in-rails/
       def create
-        @decoded_token = token_from_google
+        if Rails.env === 'test'
+          ::Rails.logger.warn("test auth path")
+          # No encryption for test env
+          @decoded_token = {sub: user_login_google_params[:id_token]}
+        else
+          @decoded_token = token_from_google
+        end
         # byebug
         @user = ::User.find_by!(sub_google_uid: @decoded_token['sub'])
         if @user.email != @decoded_token['email']

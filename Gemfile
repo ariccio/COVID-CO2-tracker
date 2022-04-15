@@ -29,6 +29,9 @@ gem 'rack-cors'
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug', platforms: [:mri, :mingw, :x64_mingw, :mswin]
+  gem 'rspec-rails'
+  gem 'factory_bot_rails'
+  gem 'jsonapi-rspec'
 end
 
 group :development do
@@ -39,6 +42,7 @@ group :development do
 
   gem 'bullet'
   gem 'brakeman', require: false
+
 end
 
 # group :production do
