@@ -23,7 +23,7 @@ require 'rails/test_unit/railtie'
 
 module COVIDCo2Tracker
   class Application < ::Rails::Application
-    puts "Start Application class: #{Time.now}"
+    puts "\tStart Application class: #{Time.now}"
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults(6.1)
 
@@ -55,7 +55,9 @@ module COVIDCo2Tracker
     # Fix rails g scaffold for ActiveAdmin
     # As per https://blog.heroku.com/a-rock-solid-modern-web-stack
     config.app_generators.scaffold_controller = :scaffold_controller
-    puts "End   Application class: #{Time.now}\r\n"
+    puts "\tEnd   Application class: #{Time.now}"
+    puts ""
   end
 end
-puts "end   of config/application.rb: #{Time.now}\r\n"
+puts "end   of config/application.rb: #{Time.now}"
+puts ""

@@ -42,7 +42,7 @@ import { withAuthorizationHeader } from './src/utils/NativeDefaultRequestHelpers
 import {fetchJSONWithChecks} from './src/utils/NativeFetchHelpers';
 import { MaybeIfValue } from './src/utils/RenderValues';
 import { timeNowAsString } from './src/utils/TimeNow';
-import { COVID_CO2_TRACKER_DEVICES_URL, COVID_CO2_TRACKER_HOME_URL, COVID_CO2_TRACKER_PLACES_URL, USER_DEVICES_URL_NATIVE, USER_SETTINGS_URL_NATIVE } from './src/utils/UrlPaths';
+import { COVID_CO2_TRACKER_DEVICES_URL, COVID_CO2_TRACKER_HOME_URL, USER_DEVICES_URL_NATIVE, USER_SETTINGS_URL_NATIVE } from './src/utils/UrlPaths';
 import { useIsLoggedIn } from './src/utils/UseLoggedIn';
 import { isLoggedIn, isNullString, isUndefinedString } from './src/utils/isLoggedIn';
 
