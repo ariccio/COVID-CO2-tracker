@@ -21,7 +21,8 @@ RSpec.describe "Users", type: :request do
       # pp json_response
       headers = with_jwt(json_response["jwt"])
       # pp headers
-      get(api_v1_user_path, headers: headers)
+      # TODO: why does api_v1_user_path not work here?
+      get('/api/v1/users/show', headers: headers)
       # pp json_response
       expect(json_response).to include("user_info")
       expect(json_response["user_info"]).to(eq(new_user[:user][:email]))
