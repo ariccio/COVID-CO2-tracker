@@ -7,8 +7,9 @@ RSpec.describe "Users", type: :request do
 
   describe "create users (via auth), show new empty user" do
     let(:new_user) {{user: {email: Faker::Internet.safe_email, name: Faker::Name.name, sub: Faker::Alphanumeric.alpha(number: 5), email_verified: true, needs_jwt_value_for_js: true}}}
-    before { post('/api/v1/auth', params: new_user)}
+    before { post(api_v1_auth_index_path, params: new_user)}
     it "creates a new user" do
+      # pp api_v1_auth_index_path
       # pp response
       # byebug
       # pp json_response
@@ -20,7 +21,7 @@ RSpec.describe "Users", type: :request do
       # pp json_response
       headers = with_jwt(json_response["jwt"])
       # pp headers
-      get('/api/v1/users/show', headers: headers)
+      get(api_v1_user_path, headers: headers)
       # pp json_response
       expect(json_response).to include("user_info")
       expect(json_response["user_info"]).to(eq(new_user[:user][:email]))
@@ -30,6 +31,13 @@ RSpec.describe "Users", type: :request do
       expect(json_response["measurements"]).to(eq(nil))
       expect(json_response).to include("setting_place_google_place_id")
       expect(json_response["setting_place_google_place_id"]).to(eq(nil))
+
+      get(api_v1_my_devices_path, headers: headers)
+      expect(json_response).to include("devices")
+      expect(json_response["devices"]).to(eq([]))
+      expect(json_response).to include("last_device_id")
+      expect(json_response["last_device_id"]).to(eq(nil))
+
     end
   end
 end
