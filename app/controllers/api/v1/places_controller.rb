@@ -117,14 +117,15 @@ module Api
       end
 
       def get_spot(place_id)
+        # Note: basic data (geometry) is free!
+        # https://developers.google.com/maps/documentation/places/web-service/usage-and-billing?hl=en_US#basic-data
         options = {
           fields: 'geometry'
         }
         @setup_places_client.spot(place_id, options)
-      # TODO: maybe explicitly report these through sentry?
-      # https://docs.sentry.io/platforms/ruby/guides/rails/usage/#capturing-errors
       # From: C:\Ruby30-x64\lib\ruby\gems\3.0.0\gems\google_places-2.0.0\lib\google_places\request.rb
       rescue ::GooglePlaces::OverQueryLimitError => e
+        Sentry.capture_exception(e)
         render(
           json: {
             errors: [google_places_error('Too many queries for backend API!', e)]
@@ -132,6 +133,7 @@ module Api
         )
         return nil
       rescue ::GooglePlaces::RequestDeniedError => e
+        Sentry.capture_exception(e)
         render(
           json: {
             errors: [google_places_error('backend request denied', e)]
@@ -139,6 +141,7 @@ module Api
         )
         return nil
       rescue ::GooglePlaces::InvalidRequestError => e
+        Sentry.capture_exception(e)
         render(
           json: {
             errors: [google_places_error('backend invalid request to google places', e)]
@@ -146,6 +149,7 @@ module Api
         )
         return nil
       rescue ::GooglePlaces::UnknownError => e
+        Sentry.capture_exception(e)
         render(
           json: {
             errors: [google_places_error('unknown error on backend querying google', e)]
@@ -153,6 +157,7 @@ module Api
         )
         return nil
       rescue ::GooglePlaces::NotFoundError => e
+        Sentry.capture_exception(e)
         render(
           json: {
             errors: [google_places_error('place not found on backend?', e)]
@@ -160,6 +165,7 @@ module Api
         )
         return nil
       rescue ::GooglePlaces::APIConnectionError => e
+        Sentry.capture_exception(e)
         render(
           json: {
             errors: [google_places_error('Some kind of lower level API break in google places gem', e)]
@@ -187,6 +193,7 @@ module Api
         )
       rescue ::ActiveRecord::RecordNotUnique => e
         # TODO: perhaps I should simply ignore this in the future, if I debounce the measurement creation this may be harmless?
+        ::Sentry.capture_exception(e)
         render(
           json: {
             errors: [create_error('place already created! Did you click twice?', e)]
@@ -205,20 +212,12 @@ module Api
         @sw = ::Geokit::LatLng.new(place_bounds_params.fetch(:south), place_bounds_params.fetch(:west))
         @ne = ::Geokit::LatLng.new(place_bounds_params.fetch(:north), place_bounds_params.fetch(:east))
         
-        
-        
-
         # (byebug) pp ::Place.in_bounds([@sw, @ne]).to_sql
         # nil
         # (byebug) "SELECT \"places\".* FROM \"places\" WHERE places.place_lat > 40.75877119144174 AND places.place_lat < 40.77716753537969 AND places.place_lng > -73.97284707946775 AND places.place_lng < -73.94555292053221"
 
         # Can I do this in RAW SQL with PG? https://josh.mn/2020/05/01/serializing-one-million-records/
         found = ::Place.in_bounds([@sw, @ne]).select(:id, :google_place_id, :place_lat, :place_lng)
-        # byebug
-        # places_as_json =
-        #   found.each.map do |place|
-        #     PlaceMarkerSerializer.new(place).serializable_hash
-        #   end
         pms = ::PlaceMarkerSerializer.new(found).serializable_hash
         render(
           json: {
@@ -243,11 +242,6 @@ module Api
 
       private
 
-      # # Use callbacks to share common setup or constraints between actions.
-      # def set_place
-      #   @place = Place.find(params[:id])
-      # end
-
       # Only allow a list of trusted parameters through.
       def place_params
         params.require(:place).permit(:google_place_id, :last_fetched, :lat, :lng)
@@ -258,6 +252,8 @@ module Api
       end
 
       def setup_places_client
+        # Note: basic data (geometry) is free!
+        # https://developers.google.com/maps/documentation/places/web-service/usage-and-billing?hl=en_US#basic-data
         options = {
           fields: 'geometry'
         }

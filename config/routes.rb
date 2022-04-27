@@ -10,6 +10,8 @@
   namespace :api do
     namespace :v1 do
       resources :user_settings, only: [:create]
+
+      # TODO: this isn't actually correct, no param for users show route, but this requires a user id. User is described by the encrypted JWT
       resources :users, only: [:show]
       resources :auth, only: [:create]
       resources :device, only: [:create, :show, :destroy]

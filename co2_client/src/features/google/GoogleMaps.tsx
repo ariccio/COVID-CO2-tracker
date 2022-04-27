@@ -605,7 +605,7 @@ const PlaceMarkersDataDebugText = () => {
     }
     const duration = durationFromNumbersOrNull(placeMarkersFetchStartMS, placeMarkersFetchFinishMS);
     return (
-        <div>{placeMarkersFromDatabase.places.length} places loaded in {duration}ms.</div>
+        <div>{placeMarkersFromDatabase.places.length} places loaded & rendered in {duration}ms.</div>
     );
 }
 
