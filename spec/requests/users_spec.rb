@@ -12,43 +12,71 @@ RSpec.describe "Users", type: :request do
 
   describe "create users (via auth), show new empty user" do
     let(:new_user) {{user: {email: Faker::Internet.safe_email, name: Faker::Name.name, sub: Faker::Alphanumeric.alpha(number: 5), email_verified: true, needs_jwt_value_for_js: true}}}
-    before { post(api_v1_auth_index_path, params: new_user)}
-    it "creates a new user" do
-      # pp api_v1_auth_index_path
-      # pp response
-      # byebug
-      # pp json_response
-      # pp new_user
-      expect(json_response['email']).to(eq(new_user[:user][:email]))
+
+    let(:new_user_invalid_nil) {{user: {email: Faker::Internet.safe_email, name: Faker::Name.name, sub: nil, email_verified: true, needs_jwt_value_for_js: true}}}
+
+    let(:new_user_invalid_blank) {{user: {email: Faker::Internet.safe_email, name: Faker::Name.name, sub: nil, email_verified: true, needs_jwt_value_for_js: true}}}
+
+
+    context "bad user create params failures" do 
+      it "fails to create a user with nil sub" do
+        post(api_v1_auth_index_path, params: new_user_invalid_nil)
+        # pp json_response
+        formatted_error_check(response, json_response, :unauthorized, "parameter sub not valid")
+      end
+      it "fails to create a user with blank sub" do
+        post(api_v1_auth_index_path, params: new_user_invalid_blank)
+        # pp json_response
+        formatted_error_check(response, json_response, :unauthorized, "parameter sub not valid")
+      end
     end
 
-    it "can show the user" do 
-      # pp json_response
-      headers = with_jwt(json_response["jwt"])
-      # pp headers
-      # TODO: why does api_v1_user_path not work here?
-      get('/api/v1/users/show', headers: headers)
-      result = response
-      # pp json_response
-      # puts "result: #{result.body}"
-      expect(json_response).to include("user_info")
-      expect(json_response["user_info"]).to(eq(new_user[:user][:email]))
-      expect(json_response).to include("devices")
-      expect(json_response["devices"]).to(eq([]))
-      expect(json_response).to include("measurements")
-      expect(json_response["measurements"]).to(eq(nil))
-      expect(json_response).to include("setting_place_google_place_id")
-      expect(json_response["setting_place_google_place_id"]).to(eq(nil))
+    context "success path" do
 
-      get(api_v1_my_devices_path, headers: headers)
-      result2 = response
-      # puts "result 2: #{result2.body}"
+      before (:each) do 
+        post(api_v1_auth_index_path, params: new_user)
+      end
+      # before { post(api_v1_auth_index_path, params: new_user)}
+      it "creates a new user" do
+        expect(json_response['email']).to(eq(new_user[:user][:email]))
+      end
+  
+      it "can show the user" do 
+        # pp json_response
+        headers_with_auth = with_jwt(json_response["jwt"])
+        # pp headers
+        # TODO: why does api_v1_user_path not work here?
+        get('/api/v1/users/show', headers: headers_with_auth)
+        # result = response
+        # pp json_response
+        # puts "result: #{result.body}"
+        expect(json_response).to include("user_info")
+        expect(json_response["user_info"]).to(eq(new_user[:user][:email]))
+        expect(json_response).to include("devices")
+        expect(json_response["devices"]).to(eq([]))
+        expect(json_response).to include("measurements")
+        expect(json_response["measurements"]).to(eq(nil))
+        expect(json_response).to include("setting_place_google_place_id")
+        expect(json_response["setting_place_google_place_id"]).to(eq(nil))
+  
+  
+      end
 
-      expect(json_response).to include("devices")
-      expect(json_response["devices"]).to(eq([]))
-      expect(json_response).to include("last_device_id")
-      expect(json_response["last_device_id"]).to(eq(nil))
-
+      it "can show my_devices" do
+        # pp json_response
+        # pp headers
+        headers_with_auth = with_jwt(json_response["jwt"])
+        # pp headers
+        get(api_v1_my_devices_path, headers: headers_with_auth)
+        # result2 = response
+        # puts "result 2: #{result2.body}"
+  
+        expect(json_response).to include("devices")
+        expect(json_response["devices"]).to(eq([]))
+        expect(json_response).to include("last_device_id")
+        expect(json_response["last_device_id"]).to(eq(nil))
+        # pp json_response
+      end
     end
   end
 end

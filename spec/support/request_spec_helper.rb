@@ -7,6 +7,8 @@ module RequestSpecHelper
     #     JSON.parse(response_input.body)
     # end
     def with_jwt(jwt)
+        raise Error if jwt.nil?
+        raise Error if jwt.blank?
         {
             "Authorization": "Bearer #{jwt}"
         }

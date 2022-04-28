@@ -23,12 +23,6 @@ RSpec.describe "Places", type: :request do
       it "fails to create a nonsense place" do
         user_headers = new_valid_empty_user_req
         post(api_v1_places_path, headers: user_headers, params: invalid_place_params)
-        # expect(response).to(have_http_status(:bad_request))
-        # pp json_response
-        # expect(json_response).to(include("errors"))
-        # expect(json_response["errors"][0]).to(include("message"))
-        # expect(json_response["errors"][0]["message"]).to(eq(["backend invalid request to google places"]))
-        # expect(json_response["errors"][0]).to(include("error"))
 
         formatted_error_check(response, json_response, :bad_request, "backend invalid request to google places")
       end
