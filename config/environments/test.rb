@@ -59,5 +59,13 @@ require 'active_support/core_ext/integer/time'
 
   # Annotate rendered view with file names.
   # config.action_view.annotate_rendered_view_with_filenames = true
+
+
+  # pp "turning ActiveRecord SQL query logs on"
+  # # config.active_record.verbose_query_logs = true
+  # config.log_level = :warn
+  
+  # Rails.logger = Logger.new(STDOUT)
+  # Rails.logger.level = Logger::INFO
 end
 # puts "end   of config/environments/test.rb: #{Time.now}\r\n"

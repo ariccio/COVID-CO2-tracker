@@ -13,6 +13,12 @@ module RequestSpecHelper
             "Authorization": "Bearer #{jwt}"
         }
     end
+    def invalid_jwt_header
+        {:Authorization=>"Bearer fartipelago"}
+    end
+    def new_user_params
+        {user: {email: Faker::Internet.safe_email, name: Faker::Name.name, sub: Faker::Alphanumeric.alpha(number: 5), email_verified: true, needs_jwt_value_for_js: true}}
+    end
     def new_valid_empty_user_req
         new_user = {user: {email: Faker::Internet.safe_email, name: Faker::Name.name, sub: Faker::Alphanumeric.alpha(number: 5), email_verified: true, needs_jwt_value_for_js: true}}
         post(api_v1_auth_index_path, params: new_user)
@@ -21,14 +27,19 @@ module RequestSpecHelper
         return new_valid_empty_user_jwt_headers
     end
 
-    def formatted_error_check(response, json_response, status, message_str)
+    def check_no_error(response, json_response, status)
+        expect(response).to(be_successful)
+        expect(response).to(have_http_status(status))
+    end
+    def formatted_error_check(response, json_response, status, message_str, error_object_str)
         expect(response).to(have_http_status(status))
         # pp json_response
-        pp "in error check helper! checking for '#{message_str}'"
+        # pp "in error check helper! checking for '#{message_str}'"
         expect(json_response).to(include("errors"))
         expect(json_response["errors"][0]).to(include("message"))
         expect(json_response["errors"][0]["message"]).to(eq([message_str]))
         expect(json_response["errors"][0]).to(include("error"))
-
+        expect(json_response["errors"][0]["error"]).to(include(error_object_str))
+        pp "expected message_str: '#{message_str}', error: '#{json_response["errors"][0]["error"]}'"
     end
 end
