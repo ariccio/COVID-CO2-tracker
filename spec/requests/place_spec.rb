@@ -5,6 +5,7 @@ RSpec.describe("Places", type: :request) do
     let (:my_home) {"ChIJbVog-MFYwokRDS9_fOijV2U"}
     let (:new_place_params) {{place: {google_place_id: my_home}}}
     let (:invalid_place_params) {{place: {google_place_id: 'fartipelago'}}}
+    let (:invalid_request_google_places) {{"status" => "INVALID_REQUEST"}}
 
     # https://dev.to/isalevine/intro-to-rspec-in-rails-part-2-improving-tests-with-let-and-context-241n
     context("success") do 
@@ -24,7 +25,11 @@ RSpec.describe("Places", type: :request) do
         user_headers = new_valid_empty_user_req
         post(api_v1_places_path, headers: user_headers, params: invalid_place_params)
 
-        formatted_error_check(response, json_response, :bad_request, "backend invalid request to google places", "INVALID_REQUEST")
+        # pp response
+        # pp json_response["errors"][0]["error"]
+        # parsed = JSON.parse(json_response["errors"][0]["error"][0])
+        # expect(parsed).to(include({"status" => "INVALID_REQUEST"}))
+        formatted_error_check_with_json(response, json_response, :bad_request, "backend invalid request to google places", invalid_request_google_places)
       end
     end
   end

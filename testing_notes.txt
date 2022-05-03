@@ -1,0 +1,3 @@
+The tests use rspec.
+
+Running rspec can take a minute with very few tests on my machine because ruby is wildly slow. 

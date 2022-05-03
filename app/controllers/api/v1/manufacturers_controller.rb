@@ -39,6 +39,9 @@ module Api
           },
           status: :bad_request
         )
+      rescue ::ActionController::ParameterMissing => e
+        Sentry.capture_exception(e)
+        raise
       end
 
       def show
