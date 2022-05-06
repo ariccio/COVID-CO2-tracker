@@ -26,6 +26,7 @@ RSpec.describe("Manufacturers", type: :request) do
     context("Fails to create manufacturer") do
       
       let(:null_manufacturer_params) {{manufacturer: {name: nil}}}
+      let(:blank_manufacturer_params) {{manufacturer: {name: ""}}}
       let(:empty_manufacturer_params) {{manufacturer: nil}}
       let(:empty_params) {nil}
       before(:each) do
@@ -43,6 +44,10 @@ RSpec.describe("Manufacturers", type: :request) do
       end
       it("Cannot create null manufacturer with valid user") do
         post(api_v1_manufacturers_path, headers: @user_headers, params: null_manufacturer_params)
+        formatted_error_check(response, json_response, :bad_request, "manufacturer creation failed!", "Name can't be blank")
+      end
+      it("Cannot create blank manufacturer with valid user") do
+        post(api_v1_manufacturers_path, headers: @user_headers, params: blank_manufacturer_params)
         formatted_error_check(response, json_response, :bad_request, "manufacturer creation failed!", "Name can't be blank")
       end
       it("Cannot create empty manufacturer with valid user") do
