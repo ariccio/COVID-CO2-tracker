@@ -41,7 +41,8 @@ RSpec.describe("Models", type: :request) do
 
         post(api_v1_model_index_path, headers: @user_headers, params: {model: {name: nil, manufacturer_id: @manufacturer_create_response["manufacturer_id"]}})
         model_response = json_response
-        check_no_error(response, model_response, :created)
+        # pp model_response
+        formatted_error_check(response, model_response, :bad_request, "device model creation failed!", "Name can't be blank")
 
       end
     end
