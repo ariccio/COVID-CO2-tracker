@@ -17,10 +17,16 @@ module RequestSpecHelper
         {:Authorization=>"Bearer fartipelago"}
     end
     def new_user_params
-        {user: {email: Faker::Internet.safe_email, name: Faker::Name.name, sub: Faker::Alphanumeric.alpha(number: 5), email_verified: true, needs_jwt_value_for_js: true}}
+        f = Faker::Omniauth.google
+
+        # pp f[:extra][:id_info][:sub]
+        # https://github.com/faker-ruby/faker/blob/master/doc/default/omniauth.md
+        {user: {email: f[:info][:email], name: f[:info][:name], sub: f[:extra][:id_info][:sub], email_verified: true, needs_jwt_value_for_js: true}}
     end
     def new_valid_empty_user_req
-        new_user = {user: {email: Faker::Internet.safe_email, name: Faker::Name.name, sub: Faker::Alphanumeric.alpha(number: 5), email_verified: true, needs_jwt_value_for_js: true}}
+        f = Faker::Omniauth.google
+
+        new_user = {user: {email: f[:info][:email], name: f[:info][:name], sub: f[:extra][:id_info][:sub], email_verified: true, needs_jwt_value_for_js: true}}
         post(api_v1_auth_index_path, params: new_user)
         new_valid_empty_user = json_response["jwt"]
         new_valid_empty_user_jwt_headers = with_jwt(new_valid_empty_user)

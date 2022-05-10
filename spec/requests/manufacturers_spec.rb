@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe("Manufacturers", type: :request) do
   describe("GET /manufacturers") do
-    let(:reasonable_manufacturer_params) {{manufacturer: {name: Faker::Name.name}}}
+    let(:reasonable_manufacturer_params) {{manufacturer: {name: Faker::Company.name}}}
     context("Succesfully creates manufacturer") do
       before(:each) do
         @user_headers = new_valid_empty_user_req

@@ -5,7 +5,7 @@ RSpec.describe("WholeDeviceCreationPaths", type: :request) do
 
     context("successfully create all things") do
       # This uses a person name, but IDGAF
-      let(:reasonable_manufacturer_params) {{manufacturer: {name: Faker::Name.name}}}
+      let(:reasonable_manufacturer_params) {{manufacturer: {name: Faker::Company.name}}}
       it("can create user, then manufacturer, then model, then device") do
         user_headers = new_valid_empty_user_req
         post(api_v1_manufacturers_path, headers: user_headers, params: reasonable_manufacturer_params)
@@ -16,7 +16,7 @@ RSpec.describe("WholeDeviceCreationPaths", type: :request) do
 
         check_no_error(response, json_response, :ok)
 
-        new_model_name = Faker::Name.name
+        new_model_name = Faker::Device.model_name
         post(api_v1_model_index_path, headers: user_headers, params: {model: {name: new_model_name, manufacturer_id: manufacturer_create_response["manufacturer_id"]}})
 
         model_response = json_response

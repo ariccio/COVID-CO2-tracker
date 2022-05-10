@@ -2,8 +2,8 @@ require 'rails_helper'
 
 RSpec.describe("Models", type: :request) do
   describe("GET /models") do
-    let(:reasonable_manufacturer_params) {{manufacturer: {name: Faker::Name.name}}}
-    let(:new_model_name) {Faker::Name.name}
+    let(:reasonable_manufacturer_params) {{manufacturer: {name: Faker::Company.name}}}
+    let(:new_model_name) {Faker::Device.model_name}
     context("Sucessfully create model") do
       before(:each) do
         @user_headers = new_valid_empty_user_req
@@ -17,7 +17,7 @@ RSpec.describe("Models", type: :request) do
         post(api_v1_model_index_path, headers: @user_headers, params: {model: {name: new_model_name, manufacturer_id: manufacturer_create_response["manufacturer_id"]}})
         model_response = json_response
         check_no_error(response, model_response, :created)
-        pp model_response
+        # pp model_response
 
         get(api_v1_manufacturer_path(manufacturer_create_response["manufacturer_id"]), headers: @user_headers)
         
