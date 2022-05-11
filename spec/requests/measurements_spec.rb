@@ -76,6 +76,7 @@ RSpec.describe("Measurements", type: :request) do
     end
 
     context("Failure to create measurement") do
+      let(:max_id) {9223372036854775807}
       it("Cannot create measurement without logged in user") do
         new_measurement_1 = {
           measurement: {
@@ -88,9 +89,125 @@ RSpec.describe("Measurements", type: :request) do
           }
         }
         post(api_v1_measurement_index_path, headers: nil, params: new_measurement_1)
-        pp json_response
+        formatted_error_check(response, json_response, :unauthorized, "Please log in", "unauthorized")
+        # pp json_response
       end
       
+      it("Cannot create measurement without device") do
+        new_measurement_1 = {
+          measurement: {
+            device_id: nil,
+            co2ppm: Faker::Number.between(from: 400, to: 9999),
+            google_place_id: my_home,
+            crowding: Faker::Number.between(from: 1, to: 5),
+            location_where_inside_info: Faker::Hipster.sentence(word_count: 3),
+            sub_location_id: -1
+          }
+        }
+        post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement_1)
+        # pp json_response
+        formatted_error_check(response, json_response, :bad_request, "measurement creation failed!", "Device must exist")
+        formatted_error_check(response, json_response, :bad_request, "measurement creation failed!", "Device can't be blank")
+      end
+
+      it("Cannot create measurement with invalid device") do
+        minimum_invalid_id = (@created_device_id + 1)
+        new_measurement_1 = {
+          measurement: {
+            device_id: Faker::Number.between(from: minimum_invalid_id, to: max_id),
+            co2ppm: Faker::Number.between(from: 400, to: 9999),
+            google_place_id: my_home,
+            crowding: Faker::Number.between(from: 1, to: 5),
+            location_where_inside_info: Faker::Hipster.sentence(word_count: 3),
+            sub_location_id: -1
+          }
+        }
+        post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement_1)
+        # pp json_response
+        formatted_error_check(response, json_response, :bad_request, "measurement creation failed!", "Device must exist")
+      end
+
+      it("Cannot create measurement with negative co2") do
+        new_measurement_1 = {
+          measurement: {
+            device_id: @created_device_id,
+            co2ppm: Faker::Number.between(from: -1000, to: -1),
+            google_place_id: my_home,
+            crowding: Faker::Number.between(from: 1, to: 5),
+            location_where_inside_info: Faker::Hipster.sentence(word_count: 3),
+            sub_location_id: -1
+          }
+        }
+        post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement_1)
+        # pp json_response
+        formatted_error_check(response, json_response, :bad_request, "measurement creation failed!", "Co2ppm must be greater than or equal to 0")
+      end
+
+      it("Cannot create measurement with excessive co2") do
+        new_measurement_1 = {
+          measurement: {
+            device_id: @created_device_id,
+            co2ppm: Faker::Number.between(from: 30_000, to: 1_000_000),
+            google_place_id: my_home,
+            crowding: Faker::Number.between(from: 1, to: 5),
+            location_where_inside_info: Faker::Hipster.sentence(word_count: 3),
+            sub_location_id: -1
+          }
+        }
+        post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement_1)
+        # pp json_response
+        formatted_error_check(response, json_response, :bad_request, "measurement creation failed!", nil)
+      end
+
+      it("Cannot create measurement with nonsense place") do
+        new_measurement_1 = {
+          measurement: {
+            device_id: @created_device_id,
+            co2ppm: Faker::Number.between(from: 400, to: 9999),
+            google_place_id: 'fartipelago',
+            crowding: Faker::Number.between(from: 1, to: 5),
+            location_where_inside_info: Faker::Hipster.sentence(word_count: 3),
+            sub_location_id: -1
+          }
+        }
+        post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement_1)
+        # pp json_response
+
+        formatted_error_check(response, json_response, :bad_request, "couldn't find google_place_id: fartipelago to create measurement for. Possible bug.", nil)
+      end
+
+      it("Cannot create measurement with negative crowding") do
+        new_measurement_1 = {
+          measurement: {
+            device_id: @created_device_id,
+            co2ppm: Faker::Number.between(from: 400, to: 9999),
+            google_place_id: my_home,
+            crowding: Faker::Number.between(from: -1000, to: 0),
+            location_where_inside_info: Faker::Hipster.sentence(word_count: 3),
+            sub_location_id: -1
+          }
+        }
+        post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement_1)
+        # pp json_response
+        formatted_error_check(response, json_response, :bad_request, "measurement creation failed!", "Crowding must be greater than or equal to 1")
+      end
+
+      it("Cannot create measurement with excessive crowding") do
+        new_measurement_1 = {
+          measurement: {
+            device_id: @created_device_id,
+            co2ppm: Faker::Number.between(from: 400, to: 9999),
+            google_place_id: my_home,
+            crowding: Faker::Number.between(from: 6, to: 1_000_000),
+            location_where_inside_info: Faker::Hipster.sentence(word_count: 3),
+            sub_location_id: -1
+          }
+        }
+        post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement_1)
+        # pp json_response
+        formatted_error_check(response, json_response, :bad_request, "measurement creation failed!", "Crowding must be less than or equal to 5")
+      end
+
     end
   end
 end
