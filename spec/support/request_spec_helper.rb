@@ -48,6 +48,18 @@ module RequestSpecHelper
         expect(json_response["errors"][0]["error"]).to(include(error_object_str)) unless error_object_str.nil?
         # pp "expected message_str: '#{message_str}', error: '#{json_response["errors"][0]["error"]}'"
     end
+    def formatted_error_check_array(response, json_response, status, message_str, error_object_array)
+        expect(response).to(have_http_status(status))
+        # pp json_response
+        # pp "in error check helper! checking for '#{message_str}'"
+        expect(json_response).to(include("errors"))
+        expect(json_response["errors"][0]).to(include("message"))
+        expect(json_response["errors"][0]["message"]).to(eq([message_str]))
+        expect(json_response["errors"][0]).to(include("error"))
+        expect(json_response["errors"][0]["error"]).to(eq(error_object_array)) unless error_object_array.nil?
+        # pp "expected message_str: '#{message_str}', error: '#{json_response["errors"][0]["error"]}'"
+    end
+    
     def formatted_error_check_with_json(response, json_response, status, message_str, error_object)
         formatted_error_check(response, json_response, status, message_str, nil)
         parsed = JSON.parse(json_response["errors"][0]["error"][0])

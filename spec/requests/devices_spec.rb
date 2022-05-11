@@ -71,6 +71,19 @@ RSpec.describe("Devices", type: :request) do
         @created_model_id = @model_response["model_id"]
       end
 
+      it("fails to create a duplicate device instance") do 
+        post(api_v1_device_index_path, headers: @user_headers, params: {device: {serial: new_serial_name, model_id: @created_model_id}})
+        device_create_response_1 = json_response
+        check_no_error(response, device_create_response_1, :created)
+
+        post(api_v1_device_index_path, headers: @user_headers, params: {device: {serial: new_serial_name, model_id: @created_model_id}})
+        device_create_response_2 = json_response
+        # pp json_response
+        expected_error_str = "You already uploaded a #{new_model_name} to your account with the serial # '#{new_serial_name}'! Use that to add measurements."
+        formatted_error_check(response, device_create_response_2, :bad_request, expected_error_str, nil)
+        # 
+      end
+
       it("fails with a nil serial name") do
         post(api_v1_device_index_path, headers: @user_headers, params: {device: {serial: nil, model_id: @created_model_id}})
         device_create_response = json_response
@@ -86,7 +99,7 @@ RSpec.describe("Devices", type: :request) do
       it("fails with a nil model_id") do
         post(api_v1_device_index_path, headers: @user_headers, params: {device: {serial: new_serial_name, model_id: nil}})
         device_create_response = json_response
-        formatted_error_check(response, device_create_response, :bad_request, "device creation failed!", "Serial can't be blank")
+        formatted_error_check_array(response, device_create_response, :bad_request, "Invalid model_id.", [nil, "Model"])
       end
 
       it("fails with an invalid model_id") do
@@ -94,7 +107,8 @@ RSpec.describe("Devices", type: :request) do
         10.times do
           invalid_id = Faker::Number.between(from: minimum_invalid_id, to: max_id)
           post(api_v1_device_index_path, headers: @user_headers, params: {device: {serial: new_serial_name, model_id: invalid_id}})
-          formatted_error_check(response, json_response, :bad_request, "device creation failed!", "Model must exist")
+          # pp json_response
+          formatted_error_check_array(response, json_response, :bad_request, "Invalid model_id.", ["#{invalid_id}", "Model"])
         end
       end
 
