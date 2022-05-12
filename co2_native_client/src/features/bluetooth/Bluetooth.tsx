@@ -298,6 +298,8 @@ const maybeNeedPromptUserAboutLocationPermissions = async (dispatch: AppDispatch
     return false;
 }
 
+
+// NOTE TO SELF: if the string is invalid, like 'fartipelago', it will return NEVER_ASK_AGAIN. Possibly because react-native gets a 'false' when it calls shouldShowRequestPermissionRationale.
 // const scan = PermissionsAndroid.PERMISSIONS.android.permission.BLUETOOTH_SCAN;
 const SCAN_PERMISSION_STRING = 'android.permission.BLUETOOTH_SCAN';
 // const typeofRequest = ((permission: string, rationale?: any): unknown)
@@ -350,30 +352,8 @@ const requestFineLocationPermission = async(dispatch: AppDispatch): Promise<bool
     return false;
 }
 
-const requestAllBluetoothPermissions = async (dispatch: AppDispatch) => {
-    const shouldReturnBecauseErrorOrDenyInLocationPermissionsCheck = await maybeNeedPromptUserAboutLocationPermissions(dispatch);
-    if (shouldReturnBecauseErrorOrDenyInLocationPermissionsCheck) {
-        return;
-    }
-    
-    
-    const shouldReturnBecauseErrorOrDenyInRequestingFineLocationPermission = await requestFineLocationPermission(dispatch);
-    if (shouldReturnBecauseErrorOrDenyInRequestingFineLocationPermission) {
-        return;
-    }
 
-    const shouldReturnBecauseErrorOrOtherIssueInBluetoothPermissionsCheck = await checkBluetoothScanPermissions(dispatch);
-
-    if (shouldReturnBecauseErrorOrOtherIssueInBluetoothPermissionsCheck) {
-        return;
-    }
-
-
-    console.log(`Requesting bluetooth scan permission... ${SCAN_PERMISSION_STRING as Permission}`);
-    dispatch(setScanningStatusString('Requesting permission to scan bluetooth...'));
-    // This worked! It's disgusting enoguh that I don't want to use it, but I'm mildly impressed with myself.
-    // const bluetoothScanResult = await (PermissionsAndroid.request as (permission: string) => Promise<any>)(scan);
-    
+const requestBluetoothScanPermission = async(dispatch: AppDispatch) => {
     try {
         //Work around android.permission.BLUETOOTH_SCAN not existing in old version of react native...
         const bluetoothScanPermissionResult = await PermissionsAndroid.request(SCAN_PERMISSION_STRING as Permission, BLUETOOTH_SCAN_PERMISSION_RATIONALE);
@@ -417,6 +397,32 @@ const requestAllBluetoothPermissions = async (dispatch: AppDispatch) => {
         Sentry.Native.captureException(error);
         return;
     }
+}
+
+const requestAllBluetoothPermissions = async (dispatch: AppDispatch) => {
+    const shouldReturnBecauseErrorOrDenyInLocationPermissionsCheck = await maybeNeedPromptUserAboutLocationPermissions(dispatch);
+    if (shouldReturnBecauseErrorOrDenyInLocationPermissionsCheck) {
+        return;
+    }
+    
+    
+    const shouldReturnBecauseErrorOrDenyInRequestingFineLocationPermission = await requestFineLocationPermission(dispatch);
+    if (shouldReturnBecauseErrorOrDenyInRequestingFineLocationPermission) {
+        return;
+    }
+
+    const shouldReturnBecauseErrorOrOtherIssueInBluetoothPermissionsCheck = await checkBluetoothScanPermissions(dispatch);
+
+    if (shouldReturnBecauseErrorOrOtherIssueInBluetoothPermissionsCheck) {
+        return;
+    }
+
+
+    console.log(`Requesting bluetooth scan permission... ${SCAN_PERMISSION_STRING as Permission}`);
+    dispatch(setScanningStatusString('Requesting permission to scan bluetooth...'));
+    // This worked! It's disgusting enoguh that I don't want to use it, but I'm mildly impressed with myself.
+    // const bluetoothScanResult = await (PermissionsAndroid.request as (permission: string) => Promise<any>)(scan);
+    await requestBluetoothScanPermission(dispatch);
 }
 
 function parseUTF8StringBuffer(data: Buffer): string {
