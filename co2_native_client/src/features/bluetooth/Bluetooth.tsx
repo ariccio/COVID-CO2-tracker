@@ -1,13 +1,16 @@
 /* eslint-disable no-debugger */
 /* eslint-disable react/prop-types */
 // See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
-import {Buffer} from 'buffer';
+import {Buffer, constants} from 'buffer';
+import Constants from 'expo-constants';
+import { startActivityAsync, ActivityAction, IntentLauncherResult, IntentLauncherParams } from 'expo-intent-launcher';
 import { useEffect, useState } from 'react';
 import { PermissionsAndroid, Text, Button, NativeSyntheticEvent, NativeTouchEvent, Permission, Rationale } from 'react-native';
 import AlertAsync from "react-native-alert-async";
 import { BleManager, Device, BleError, LogLevel, Service, Characteristic, BleErrorCode, State, BleAndroidErrorCode } from 'react-native-ble-plx';
 import { useDispatch, useSelector } from 'react-redux';
 import * as Sentry from 'sentry-expo';
+
 
 import * as BLUETOOTH from '../../../../co2_client/src/utils/BluetoothConstants';
 import { UserInfoDevice } from '../../../../co2_client/src/utils/DeviceInfoTypes';
@@ -157,36 +160,117 @@ const scanAndIdentify = (dispatch: AppDispatch) => {
     manager.startDeviceScan(aranetService, null, (error, scannedDevice) => scanCallback(error, scannedDevice, dispatch));
 }
 
-const permissionMessageText = "While I don't need your precise location, annoying Android limitations mean I need the 'background location' permission to use bluetooth in the background. Measurements uploaded with this app are intended for public viewing - any interested person can use them to guess the location from which the device is uploading.";
-const alertMessageText = "CO2 tracker uploader needs location permissions so that it may continue to collect measurements while the app is in the background or not in use.";
-const title = "CO2 tracker needs location!";
+const PERMISSION_MESSAGE_TEXT = "While I don't need your precise location, annoying Android limitations mean I need the 'background location' permission to use bluetooth in the background. Measurements uploaded with this app are intended for public viewing - any interested person can use them to guess the location from which the device is uploading.";
+const ALERT_MESSAGE_TEXT = "CO2 tracker uploader needs location permissions so that it may continue to collect measurements while the app is in the background or not in use.";
+const ALERT_TITLE = "CO2 tracker needs location!";
 
+const YES_STRING = 'yes';
+const NO = 'no';
+
+const CANCEL_DISMISS_OPTIONS = {
+    cancelable: true,
+    onDismiss: () => NO
+};
 
 
 const messages = async (dispatch: AppDispatch): Promise<boolean> => {
     // alert(alertMessageText);
     const buttons = [
-        {text: "Ok!", onPress: () => 'yes'},
-        {text: "No", onPress: () => 'no'}
+        {text: "Ok!", onPress: () => YES_STRING},
+        {text: "No", onPress: () => NO}
     ];
-    const options = {
-        cancelable: true,
-        onDismiss: () => 'no'
-    }
 
-    const choice = await AlertAsync(title, alertMessageText, buttons, options)
-    if (choice !== "yes") {
+    const choice = await AlertAsync(ALERT_TITLE, ALERT_MESSAGE_TEXT, buttons, CANCEL_DISMISS_OPTIONS)
+    if (choice !== YES_STRING) {
         dispatch(setScanningStatusString(`User said no.`));
         return true;
     }
 
-    const choiceTwo = await AlertAsync("More detail:", permissionMessageText, buttons, options);
-    if (choiceTwo !== "yes") {
+    const choiceTwo = await AlertAsync("More detail:", PERMISSION_MESSAGE_TEXT, buttons, CANCEL_DISMISS_OPTIONS);
+    if (choiceTwo !== YES_STRING) {
         dispatch(setScanningStatusString(`User said no.`));
         return true;
     }
     return false;
 }
+
+function androidPackageName(): string {
+    // https://medium.com/toprakio/react-native-how-to-open-app-settings-page-d30d918a7f55
+    if (Constants.manifest === null) {
+        console.error("Manifest null!");
+        throw new Error("Manifest null!");
+    }
+    if (Constants.manifest.releaseChannel === undefined) {
+        console.error("Release channel is undefined");
+        console.log(Constants.manifest);
+        debugger;
+        return 'riccio.co2.client';
+        // return 'co2_native_client';
+        // return 'host.exp.exponent';
+    }
+    
+    if (Constants.manifest.android === undefined) {
+        console.error("Not android.");
+        throw new Error("Not android");
+    }
+
+    if (Constants.manifest.android.package === undefined) {
+        console.error("Package undefined?");
+        throw new Error("Package undefined?");
+    }
+    console.log(`Using package: ${Constants.manifest.android.package }`);
+    return Constants.manifest.android.package;
+    // const pkg = Constants.manifest.releaseChannel
+    // ? Constants.manifest.android.package
+    // : 'host.exp.exponent'
+
+}
+
+
+const bluetoothNeverAskAgainDialogMaybeSettings = async(dispatch: AppDispatch): Promise<void> => {
+    const settingsButtons = [
+        {text: "Open settings", onPress: () => YES_STRING},
+        {text: "Cancel", onPress: () => NO}
+    ];
+    
+    const title = "You said no bluetooth, ever!";
+    const messageText = `You did not allow this app to bluetooth, and you told android to "never ask again"! You can change this in the app settings.`
+    const choice = await AlertAsync(title, messageText, settingsButtons, CANCEL_DISMISS_OPTIONS);
+    console.log(`Choice: ${choice}`);
+    if (choice === YES_STRING) {
+        try {
+            const intentLauncherParams: IntentLauncherParams = {
+                data: `package:${androidPackageName()}`
+            }
+            const settingsActionResult: IntentLauncherResult = await startActivityAsync(ActivityAction.APPLICATION_DETAILS_SETTINGS, intentLauncherParams);
+            console.log(`Bluetooth settings intent returned resultCode: "${settingsActionResult.resultCode}", "data: "${settingsActionResult.data}, extra: "${settingsActionResult.extra}"`);
+            // if (settingsActionResult === )
+            return;
+    
+        }
+        catch(error) {
+            dispatch(setScanningStatusString(`Some kind of unexpected error when trying to open settings: ${unknownNativeErrorTryFormat(error, true)}`));
+            Sentry.Native.captureException(error);
+            return;
+        }
+    
+    }
+    return;
+}
+
+const BLUETOOTH_SCAN_PERMISSION_RATIONALE: Rationale = {
+    title: "CO2 tracker needs to use bluetooth to work!",
+    message: "I use bluetooth to scan for and talk to your aranet4. Without bluetooth, I can't read your co2ppm.",
+    buttonPositive: "Ok, enable bluetooth scanning!"
+}
+
+const LOCATION_PERMISSION_RATIONALE: Rationale = {
+    title: ALERT_TITLE,
+    message: PERMISSION_MESSAGE_TEXT,
+    buttonPositive: "Ok, enable location!"
+}
+
+
 
 const requestAllBluetoothPermissions = async (dispatch: AppDispatch) => {
     dispatch(setScanningStatusString('Need permission to use bluetooth first.'));
@@ -204,14 +288,9 @@ const requestAllBluetoothPermissions = async (dispatch: AppDispatch) => {
         Sentry.Native.captureException(error);
         return;
     }
-    const locationRationale: Rationale = {
-        title,
-        message: permissionMessageText,
-        buttonPositive: "Ok, enable location!"
-    }
     //https://reactnative.dev/docs/permissionsandroid
     try {
-        const fineLocationResult = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION, locationRationale);
+        const fineLocationResult = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION, LOCATION_PERMISSION_RATIONALE);
 
         if (fineLocationResult === PermissionsAndroid.RESULTS.GRANTED) {
             // console.log("good");
@@ -234,11 +313,6 @@ const requestAllBluetoothPermissions = async (dispatch: AppDispatch) => {
         return;
     }
     
-    const bluetoothScanPermission: Rationale = {
-        title: "CO2 tracker needs to use bluetooth to work!",
-        message: "I use bluetooth to scan for and talk to your aranet4. Without bluetooth, I can't read your co2ppm.",
-        buttonPositive: "Ok, enable bluetooth scanning!"
-    }
     // const scan = PermissionsAndroid.PERMISSIONS.android.permission.BLUETOOTH_SCAN;
     const scan = 'android.permission.BLUETOOTH_SCAN';
     // const typeofRequest = ((permission: string, rationale?: any): unknown)
@@ -250,15 +324,31 @@ const requestAllBluetoothPermissions = async (dispatch: AppDispatch) => {
     
     try {
         //Work around android.permission.BLUETOOTH_SCAN not existing in old version of react native...
-        const bluetoothScanPermissionResult = await PermissionsAndroid.request(scan as Permission, bluetoothScanPermission);
+        const bluetoothScanPermissionResult = await PermissionsAndroid.request(scan as Permission, BLUETOOTH_SCAN_PERMISSION_RATIONALE);
         console.log(`PermissionsAndroid.request(android.permission.BLUETOOTH_SCAN) result: ${bluetoothScanPermissionResult}`)
+
+        // see: https://reactnative.dev/docs/permissionsandroid#result-strings-for-requesting-permissions
         if (bluetoothScanPermissionResult === PermissionsAndroid.RESULTS.GRANTED) {
             dispatch(setHasBluetooth(true));
             dispatch(setScanningStatusString('Bluetooth scan permission granted!'));
+            return;
         }
-        else {
+        else if (bluetoothScanPermissionResult === PermissionsAndroid.RESULTS.DENIED) {
             dispatch(setScanningStatusString(`Bluetooth scan permission denied by user: ${bluetoothScanPermissionResult}`));
             dispatch(setHasBluetooth(false));
+            return;
+        }
+        else if (bluetoothScanPermissionResult === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
+            await bluetoothNeverAskAgainDialogMaybeSettings(dispatch);
+            // IF this was IOS, we could call Linking.openSettings: https://docs.expo.dev/versions/latest/sdk/linking/#linkingopensettings
+            dispatch(setScanningStatusString(`Bluetooth scan permission denied by user PERMANENTLY: ${bluetoothScanPermissionResult}`));
+            dispatch(setHasBluetooth(false));
+            return;
+        }
+        else {
+            dispatch(setScanningStatusString(`Bluetooth scan permission denied by user (other reason): ${bluetoothScanPermissionResult}`));
+            dispatch(setHasBluetooth(false));
+            Sentry.Native.captureMessage(`Unexpected scan permission result: '${bluetoothScanPermissionResult}'`);
             return;
         }
 
