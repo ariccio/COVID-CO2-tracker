@@ -308,7 +308,7 @@ const checkBluetoothScanPermissions = async(dispatch: AppDispatch): Promise<bool
         console.log("Checking if bluetooth scan permission is available already...");
         const hasBluetoothScanAlready = await PermissionsAndroid.check(SCAN_PERMISSION_STRING as Permission);
         console.log(`hasBluetoothScanAlready: ${hasBluetoothScanAlready}`);
-
+        console.warn("I've seen some kind of weird bug when this is false, it may be worth trying anyways.");
     }
     catch (error) {
         dispatch(setScanningStatusString(`Some kind of unexpected error when checking bluetooth scan permission: ${unknownNativeErrorTryFormat(error)}`));
@@ -369,7 +369,7 @@ const requestAllBluetoothPermissions = async (dispatch: AppDispatch) => {
     }
 
 
-    console.log(`Requesting bluetooth scan permission... ${SCAN_PERMISSION_STRING}`);
+    console.log(`Requesting bluetooth scan permission... ${SCAN_PERMISSION_STRING as Permission}`);
     dispatch(setScanningStatusString('Requesting permission to scan bluetooth...'));
     // This worked! It's disgusting enoguh that I don't want to use it, but I'm mildly impressed with myself.
     // const bluetoothScanResult = await (PermissionsAndroid.request as (permission: string) => Promise<any>)(scan);
@@ -391,11 +391,18 @@ const requestAllBluetoothPermissions = async (dispatch: AppDispatch) => {
             return;
         }
         else if (bluetoothScanPermissionResult === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
-            await bluetoothNeverAskAgainDialogMaybeSettings(dispatch);
-            // IF this was IOS, we could call Linking.openSettings: https://docs.expo.dev/versions/latest/sdk/linking/#linkingopensettings
-            dispatch(setScanningStatusString(`Bluetooth scan permission denied by user PERMANENTLY: ${bluetoothScanPermissionResult}`));
-            dispatch(setHasBluetooth(false));
-            return;
+            console.warn("NOTE TO SELF: I've seen a strange issue where BLUETOOTH_SCAN was NEVER_ASK_AGAIN but everything still seemed to work fine, and I even got the NEVER_ASK_AGAIN for nonsense permissions like 'fartipelago'. So, uh, continue anyways? ");
+            dispatch(setScanningStatusString(`Bluetooth scan permission supposedly denied by user PERMANENTLY, may be a bug, will try anyways.`));
+            dispatch(setHasBluetooth(true));
+            if (!__DEV__) {
+                // Shut up sentry warning for now.
+                Sentry.Native.captureMessage(`NEVER_ASK_AGAIN seen.`);
+            }
+            // await bluetoothNeverAskAgainDialogMaybeSettings(dispatch);
+            // // IF this was IOS, we could call Linking.openSettings: https://docs.expo.dev/versions/latest/sdk/linking/#linkingopensettings
+            // dispatch(setScanningStatusString(`Bluetooth scan permission denied by user PERMANENTLY: ${bluetoothScanPermissionResult}`));
+            // dispatch(setHasBluetooth(false));
+            // return;
         }
         else {
             dispatch(setScanningStatusString(`Bluetooth scan permission denied by user (other reason): ${bluetoothScanPermissionResult}`));
