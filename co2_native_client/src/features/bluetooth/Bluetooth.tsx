@@ -200,9 +200,10 @@ function androidPackageName(): string {
         console.error("Manifest null!");
         throw new Error("Manifest null!");
     }
+    console.log(Constants.manifest);
     if (Constants.manifest.releaseChannel === undefined) {
-        console.error("Release channel is undefined");
-        console.log(Constants.manifest);
+        console.log("Release channel is undefined");
+        
         debugger;
         return 'riccio.co2.client';
         // return 'co2_native_client';
@@ -234,7 +235,7 @@ const bluetoothNeverAskAgainDialogMaybeSettings = async(dispatch: AppDispatch): 
     ];
     
     const title = "You said no bluetooth, ever!";
-    const messageText = `You did not allow this app to bluetooth, and you told android to "never ask again"! You can change this in the app settings.`
+    const messageText = `You did not allow this app to bluetooth, and you told android to "never ask again"! You can change this in the app settings, then restart the app.`
     const choice = await AlertAsync(title, messageText, settingsButtons, CANCEL_DISMISS_OPTIONS);
     console.log(`Choice: ${choice}`);
     if (choice === YES_STRING) {
@@ -244,6 +245,9 @@ const bluetoothNeverAskAgainDialogMaybeSettings = async(dispatch: AppDispatch): 
             }
             const settingsActionResult: IntentLauncherResult = await startActivityAsync(ActivityAction.APPLICATION_DETAILS_SETTINGS, intentLauncherParams);
             console.log(`Bluetooth settings intent returned resultCode: "${settingsActionResult.resultCode}", "data: "${settingsActionResult.data}, extra: "${settingsActionResult.extra}"`);
+            if (settingsActionResult.resultCode !== 0) {
+                Sentry.Native.captureMessage(`Unexpected IntentLauncherResult: '${JSON.stringify(settingsActionResult)}'`);
+            }
             // if (settingsActionResult === )
             return;
     
@@ -270,24 +274,54 @@ const LOCATION_PERMISSION_RATIONALE: Rationale = {
     buttonPositive: "Ok, enable location!"
 }
 
-
-
-const requestAllBluetoothPermissions = async (dispatch: AppDispatch) => {
+const maybeNeedPromptUserAboutLocationPermissions = async (dispatch: AppDispatch): Promise<boolean> => {
     dispatch(setScanningStatusString('Need permission to use bluetooth first.'));
     try {
+        console.log("Checking if location is available already...");
         const hasLocationAlready = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
+        console.log(`Location available: ${hasLocationAlready}`);
         if (!hasLocationAlready) {
             const deny = await messages(dispatch);
             if (deny) {
-                return;
+                console.log("User denied?");
+                return true;
             }
+            console.log("User allowed?");
         }
     }
     catch (error) {
         dispatch(setScanningStatusString(`Some kind of unexpected error when checking location permission: ${unknownNativeErrorTryFormat(error)}`));
         Sentry.Native.captureException(error);
-        return;
+        return true;
     }
+
+    return false;
+}
+
+// const scan = PermissionsAndroid.PERMISSIONS.android.permission.BLUETOOTH_SCAN;
+const SCAN_PERMISSION_STRING = 'android.permission.BLUETOOTH_SCAN';
+// const typeofRequest = ((permission: string, rationale?: any): unknown)
+
+
+const checkBluetoothScanPermissions = async(dispatch: AppDispatch): Promise<boolean> => {
+    try {
+        console.log("Checking if bluetooth scan permission is available already...");
+        const hasBluetoothScanAlready = await PermissionsAndroid.check(SCAN_PERMISSION_STRING as Permission);
+        console.log(`hasBluetoothScanAlready: ${hasBluetoothScanAlready}`);
+
+    }
+    catch (error) {
+        dispatch(setScanningStatusString(`Some kind of unexpected error when checking bluetooth scan permission: ${unknownNativeErrorTryFormat(error)}`));
+        Sentry.Native.captureException(error);
+        return true;
+    }
+
+    return false;
+}
+
+
+const requestFineLocationPermission = async(dispatch: AppDispatch): Promise<boolean> => {
+    dispatch(setScanningStatusString('Requesting fine location permission (needed for bluetooth low energy)...'));
     //https://reactnative.dev/docs/permissionsandroid
     try {
         const fineLocationResult = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION, LOCATION_PERMISSION_RATIONALE);
@@ -304,27 +338,45 @@ const requestAllBluetoothPermissions = async (dispatch: AppDispatch) => {
             debugger;
             // Denied
             // Do something
-            return;
+            return true;
         }    
     }
     catch(error) {
         dispatch(setScanningStatusString(`Some kind of unexpected error when requesting location permission: ${unknownNativeErrorTryFormat(error)}`));
         Sentry.Native.captureException(error);
+        return true;
+    }
+
+    return false;
+}
+
+const requestAllBluetoothPermissions = async (dispatch: AppDispatch) => {
+    const shouldReturnBecauseErrorOrDenyInLocationPermissionsCheck = await maybeNeedPromptUserAboutLocationPermissions(dispatch);
+    if (shouldReturnBecauseErrorOrDenyInLocationPermissionsCheck) {
         return;
     }
     
-    // const scan = PermissionsAndroid.PERMISSIONS.android.permission.BLUETOOTH_SCAN;
-    const scan = 'android.permission.BLUETOOTH_SCAN';
-    // const typeofRequest = ((permission: string, rationale?: any): unknown)
+    
+    const shouldReturnBecauseErrorOrDenyInRequestingFineLocationPermission = await requestFineLocationPermission(dispatch);
+    if (shouldReturnBecauseErrorOrDenyInRequestingFineLocationPermission) {
+        return;
+    }
 
-    console.log(`Requesting bluetooth scan permission... ${scan}`);
+    const shouldReturnBecauseErrorOrOtherIssueInBluetoothPermissionsCheck = await checkBluetoothScanPermissions(dispatch);
 
+    if (shouldReturnBecauseErrorOrOtherIssueInBluetoothPermissionsCheck) {
+        return;
+    }
+
+
+    console.log(`Requesting bluetooth scan permission... ${SCAN_PERMISSION_STRING}`);
+    dispatch(setScanningStatusString('Requesting permission to scan bluetooth...'));
     // This worked! It's disgusting enoguh that I don't want to use it, but I'm mildly impressed with myself.
     // const bluetoothScanResult = await (PermissionsAndroid.request as (permission: string) => Promise<any>)(scan);
     
     try {
         //Work around android.permission.BLUETOOTH_SCAN not existing in old version of react native...
-        const bluetoothScanPermissionResult = await PermissionsAndroid.request(scan as Permission, BLUETOOTH_SCAN_PERMISSION_RATIONALE);
+        const bluetoothScanPermissionResult = await PermissionsAndroid.request(SCAN_PERMISSION_STRING as Permission, BLUETOOTH_SCAN_PERMISSION_RATIONALE);
         console.log(`PermissionsAndroid.request(android.permission.BLUETOOTH_SCAN) result: ${bluetoothScanPermissionResult}`)
 
         // see: https://reactnative.dev/docs/permissionsandroid#result-strings-for-requesting-permissions
