@@ -15,11 +15,12 @@ import { useIsLoggedIn } from '../../utils/UseLoggedIn';
 import { MeasurementDataForUpload } from '../Measurement/MeasurementTypes';
 import { uploadMeasurementHeadless } from '../Measurement/MeasurementUpload';
 import { onHeadlessTaskTriggerBluetooth } from '../bluetooth/Bluetooth';
-import { selectDeviceID } from '../bluetooth/bluetoothSlice';
+import { selectDeviceID, setScanningStatusString } from '../bluetooth/bluetoothSlice';
 import { selectSupportedDevices } from '../userInfo/devicesSlice';
 import { selectUserSettings } from '../userInfo/userInfoSlice';
 import {logEvent} from './LogEvent';
 import { setNotificationChannelID, selectNotificationChannelID, setDisplayNotificationNativeErrors, selectDisplayNotificationNativeErrors, setNotificationAction, NotificationAction, selectNotificationAction, selectNotificationState } from './serviceSlice';
+import { ActivityAction, IntentLauncherParams, IntentLauncherResult, startActivityAsync } from 'expo-intent-launcher';
 
 
 function defaultNotification(channelId: string): Notification {
@@ -320,6 +321,27 @@ async function createTriggerNotification(dispatch: AppDispatch, channelId: strin
     }
 }
 
+
+// async function sendToBackgroundByNavigatingHome(dispatch: AppDispatch) {
+//     try {
+//         const intentLauncherParams: IntentLauncherParams = {
+//             data: `package:${androidPackageName()}`
+//         }
+//         const settingsActionResult: IntentLauncherResult = await startActivityAsync(ActivityAction.HOME_SETTINGS, intentLauncherParams);
+//         console.log(`Bluetooth settings intent returned resultCode: "${settingsActionResult.resultCode}", "data: "${settingsActionResult.data}, extra: "${settingsActionResult.extra}"`);
+//         if (settingsActionResult.resultCode !== 0) {
+//             Sentry.Native.captureMessage(`Unexpected IntentLauncherResult: '${JSON.stringify(settingsActionResult)}'`);
+//         }
+//         // if (settingsActionResult === )
+//         return;
+
+//     }
+//     catch(error) {
+//         dispatch(setScanningStatusString(`Some kind of unexpected error when trying to open settings: ${unknownNativeErrorTryFormat(error, true)}`));
+//         Sentry.Native.captureException(error);
+//         return;
+//     }
+// }
 
 const onClickStartNotificationButton = (dispatch: AppDispatch) => {
     dispatch(setShouldUpload(false));

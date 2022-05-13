@@ -273,24 +273,32 @@ const googleLoginFailedCallback = (error: any, setGoogleLoginErrorState: React.D
     const googleLoginErrorStringified = stringifyGoogleLoginError(error);
     if (String(error.error).includes("popup_blocked_by_browser")) {
         alert(`Pop up blocked by browser! Try allowing popups.`);
+        Sentry.captureMessage("User browser blocked login popup.");
         return;
     }
     if (String(error.error).includes("popup_closed_by_user")) {
         alert(`Looks like you closed the signin window. Reload to try again.`);
+        Sentry.captureMessage("User closed login window?");
         return;
     }
     if (String(error.error).includes("idpiframe_initialization_failed")) {
         alert(`Cookies are disabled in this environment. Google Login does not work in incognito mode, or with cookie blockers.`);
+        Sentry.captureMessage("User environemnt has disabled cookies.");
         return;
     }
 
     if (error.isTrusted !== undefined) {
         alert(`Login failed for unexpected reason! I've been seeing this error a lot, and it's probably Google's fault. I can't fix it. Try clearing cookies if it happens again.`);
-        Sentry.captureMessage(`unhandled google login error! Error object: ${String(error.error) + ', ' + String(error.details)}. Full JSON of error object: ${googleLoginErrorStringified}`);
+        Sentry.captureMessage(`unhandled google login error! Error object: '${String(error.error)}', '${String(error.details)}'. Full JSON of error object: ${googleLoginErrorStringified}`);
+        return;
+    }
+    if ((error.error === undefined) && (error.details === undefined)) {
+        alert(`Login failed for unexpected reason! Error object: ${JSON.stringify(error)}. This is may be Google's fault. Try clearing cookies if it happens again.`);
+        Sentry.captureMessage(`unhandled google login error! Full JSON of error object: ${googleLoginErrorStringified}`);
         return;
     }
     alert(`Login failed for unexpected reason! Error object: ${JSON.stringify(error)}. This is probably Google's fault. Try clearing cookies if it happens again.`);
-    Sentry.captureMessage(`unhandled google login error! Error object: ${String(error.error) + ', ' + String(error.details)}. Full JSON of error object: ${googleLoginErrorStringified}`);
+    Sentry.captureMessage(`unhandled google login error! Error object, error.error: '${String(error.error)}', error.details: '${String(error.details)}'. Full JSON of error object: ${googleLoginErrorStringified}`);
 }
 
 const googleLogoutSuccessCallback = (dispatch: AppDispatch) => {

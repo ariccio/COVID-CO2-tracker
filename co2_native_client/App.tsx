@@ -390,7 +390,7 @@ const UploadingButton = (props: object) => {
   const shouldUpload = useSelector(selectShouldUpload);
   const dispatch = useDispatch();
 
-  const text = (shouldUpload ? "Stop uploading" : "Start uploading"); 
+  const text = (shouldUpload ? "Stop uploading" : "Start uploading from foreground"); 
 
   return (
     <Button title={text} onPress={() => {dispatch(setShouldUpload(!shouldUpload))}}/>

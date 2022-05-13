@@ -114,7 +114,7 @@ function handlePositionUnavailable(error: GeolocationPositionError_) {
         }
     console.error("The position of the device could not be determined. For instance, one or more of the location providers used in the location acquisition process reported an internal error that caused the process to fail entirely.");
     console.error("perusing the chromium sources suggests failed network location provider requests are one example.");
-    alert(`Some kind of internal error getting the position. Message given by your browser: ${error.message}. Move map manually. Sorry!`);
+    alert(`Some kind of internal error (in your browser) getting the position. Message given by your browser: ${error.message}. Move map manually. Nothing I can do. Sorry!`);
     Sentry.captureMessage("GeolocationPositionError.POSITION_UNAVAILABLE");
 }
 

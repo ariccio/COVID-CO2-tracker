@@ -236,6 +236,7 @@ const bluetoothNeverAskAgainDialogMaybeSettings = async(dispatch: AppDispatch): 
     
     const title = "You said no bluetooth, ever!";
     const messageText = `You did not allow this app to bluetooth, and you told android to "never ask again"! You can change this in the app settings, then restart the app.`
+    
     const choice = await AlertAsync(title, messageText, settingsButtons, CANCEL_DISMISS_OPTIONS);
     console.log(`Choice: ${choice}`);
     if (choice === YES_STRING) {
