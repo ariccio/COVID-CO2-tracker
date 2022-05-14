@@ -57,7 +57,7 @@ require 'active_support/core_ext/integer/time'
   # config.active_job.queue_adapter     = :resque
   # config.active_job.queue_name_prefix = "COVID_CO2_TRACKER_production"
 
-  # config.action_mailer.perform_caching = false
+  config.action_mailer.perform_caching = false
 
   # Ignore bad email addresses and do not raise email delivery errors.
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
