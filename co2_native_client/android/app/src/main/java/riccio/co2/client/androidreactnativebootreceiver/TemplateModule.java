@@ -1,6 +1,6 @@
 //  Created by react-native-create-bridge
 
-package com.{{app}}.{{packageName}};
+package riccio.co2.client;
 
 import android.support.annotation.Nullable;
 
@@ -13,11 +13,11 @@ import com.facebook.react.modules.core.DeviceEventManagerModule;
 import java.util.HashMap;
 import java.util.Map;
 
-public class {{template}}Module extends ReactContextBaseJavaModule {
-    public static final String REACT_CLASS = "{{template}}";
+public class AndroidReactNativeBootReceiverModule extends ReactContextBaseJavaModule {
+    public static final String REACT_CLASS = "AndroidReactNativeBootReceiver";
     private static ReactApplicationContext reactContext = null;
 
-    public {{template}}Module(ReactApplicationContext context) {
+    public AndroidReactNativeBootReceiverModule(ReactApplicationContext context) {
         // Pass in the context to the constructor and save it so you can emit events
         // https://facebook.github.io/react-native/docs/native-modules-android.html#the-toast-module
         super(context);
