@@ -1,6 +1,6 @@
 {
   "name": "co2_native_client",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "scripts": {
     "start": "expo start --dev-client",
     "android": "expo run:android",

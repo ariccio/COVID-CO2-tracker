@@ -2,7 +2,7 @@
   "expo": {
     "name": "co2_native_client",
     "slug": "co2_native_client",
-    "version": "1.0.17",
+    "version": "1.0.18",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -18,7 +18,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "buildNumber": "1.0.17"
+      "buildNumber": "1.0.18"
     },
     "android": {
       "adaptiveIcon": {
@@ -34,7 +34,7 @@
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.hardware.bluetooth_le"
       ],
-      "versionCode": 440010017,
+      "versionCode": 440010018,
       "package": "riccio.co2.client"
     },
     "web": {
