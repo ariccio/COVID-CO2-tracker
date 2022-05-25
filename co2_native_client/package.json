@@ -35,6 +35,7 @@
     "react-native": "0.64.3",
     "react-native-alert-async": "^1.0.5",
     "react-native-ble-plx": "^2.0.3",
+    "react-native-create-bridge": "^2.0.1",
     "react-native-pager-view": "^5.4.15",
     "react-native-safe-area-context": "3.3.2",
     "react-native-screens": "~3.10.1",
