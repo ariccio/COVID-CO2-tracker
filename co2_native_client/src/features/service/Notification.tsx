@@ -587,11 +587,13 @@ function createOrUpdateNotification(setDisplayNotificationErrors: React.Dispatch
     }
     if (userSettings === null) {
         console.log("Can't start polling yet, no user settings.");
+        alert("You need to create settings in the web console first!");
         return;
     }
 
     if (userSettings === undefined) {
         console.log("Can't start polling yet, loading user settings.");
+        alert("Still loading user settings, are you logged in?");
         return;
     }
 
