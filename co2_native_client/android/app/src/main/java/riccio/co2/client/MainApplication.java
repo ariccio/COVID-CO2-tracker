@@ -17,6 +17,7 @@ import com.facebook.soloader.SoLoader;
 import expo.modules.ApplicationLifecycleDispatcher;
 import expo.modules.ReactNativeHostWrapper;
 import riccio.co2.client.BuildConfig;
+import riccio.co2.client.AndroidReactNativeBootReceiverPackage;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -36,6 +37,9 @@ public class MainApplication extends Application implements ReactApplication {
       List<ReactPackage> packages = new PackageList(this).getPackages();
       // Packages that cannot be autolinked yet can be added manually here, for example:
       // packages.add(new MyReactNativePackage());
+      
+      //boot receiver
+      packages.add(new AndroidReactNativeBootReceiverPackage());
       return packages;
     }
 
