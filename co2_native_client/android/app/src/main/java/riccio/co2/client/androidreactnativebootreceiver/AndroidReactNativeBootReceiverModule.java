@@ -2,7 +2,7 @@
 
 package riccio.co2.client;
 
-import android.support.annotation.Nullable;
+// import android.support.annotation.Nullable;
 
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -48,7 +48,7 @@ public class AndroidReactNativeBootReceiverModule extends ReactContextBaseJavaMo
         // https://facebook.github.io/react-native/docs/native-modules-android.html#the-toast-module
     }
 
-    private static void emitDeviceEvent(String eventName, @Nullable WritableMap eventData) {
+    private static void emitDeviceEvent(String eventName, WritableMap eventData) {
         // A method for emitting from the native side to JS
         // https://facebook.github.io/react-native/docs/native-modules-android.html#sending-events-to-javascript
         reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(eventName, eventData);
