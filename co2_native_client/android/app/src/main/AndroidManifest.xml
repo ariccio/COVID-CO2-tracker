@@ -31,15 +31,10 @@
     <service android:name="riccio.co2.client.foregroundservice" android:label="CO2 tracker background uploader" android:foregroundServiceType="connectedDevice|dataSync|location"/>
     <service android:name="riccio.co2.client.foregroundservicetask" android:foregroundServiceType="connectedDevice|dataSync|location"/>
     <service android:name="riccio.co2.client.BootUpHandlerService"/>
-    <receiver
-      android:name="riccio.co2.client.BootUpReceiver" 
-      android:enabled="true"
-      android:exported="true"
-      android:permission="android.permission.RECEIVE_BOOT_COMPLETED"
-      >
+    <receiver android:name="riccio.co2.client.BootUpReceiver" android:enabled="true" android:exported="true" android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
       <intent-filter>
-          <action android:name="android.intent.action.BOOT_COMPLETED" />
-          <category android:name="android.intent.category.DEFAULT" />
+        <action android:name="android.intent.action.BOOT_COMPLETED"/>
+        <category android:name="android.intent.category.DEFAULT"/>
       </intent-filter>
     </receiver>
     <activity android:name=".MainActivity" android:label="@string/app_name" android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode" android:launchMode="singleTask" android:windowSoftInputMode="adjustResize" android:theme="@style/Theme.App.SplashScreen" android:screenOrientation="portrait">

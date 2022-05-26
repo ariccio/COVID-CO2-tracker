@@ -1,3 +1,8 @@
+// https://stackoverflow.com/a/29983737/625687
+import org.gradle.logging.ShowStacktrace
+gradle.startParameter.showStacktrace = ShowStacktrace.ALWAYS
+throw new RuntimeException('lol')
+
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
