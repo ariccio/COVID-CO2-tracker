@@ -1,5 +1,5 @@
 // https://stackoverflow.com/questions/29977196/how-can-i-make-gradle-stacktrace-the-default#comment63547830_29983737
-gradle.startParameter.showStacktrace = org.gradle.api.logging.configuration.ShowStacktrace.ALWAYS_FULL
+gradle.startParameter.showStacktrace = gradle.api.logging.configuration.ShowStacktrace.ALWAYS_FULL
 gradle.logging.level=debug
 gradle.warning.mode=all
 gradle.console=verbose
