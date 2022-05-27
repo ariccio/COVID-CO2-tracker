@@ -171,10 +171,10 @@ android {
             minifyEnabled 
             enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
-            ndk {
-                debugSymbolLevel 'full'
-                jobs 4
-            }
+            // ndk {
+            //     debugSymbolLevel 'full'
+            //     jobs 4
+            // }
         }
     }
 
