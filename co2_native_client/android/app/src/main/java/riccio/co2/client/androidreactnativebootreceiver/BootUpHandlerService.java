@@ -1,5 +1,6 @@
 
 // https://medium.com/reactbrasil/how-to-create-an-unstoppable-service-in-react-native-using-headless-js-93656b6fd5d1
+package riccio.co2.client.androidreactnativebootreceiver;
 import android.content.Intent;
 import android.content.Context;
 import android.app.Service;

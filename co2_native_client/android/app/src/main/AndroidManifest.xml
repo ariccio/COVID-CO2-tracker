@@ -30,8 +30,8 @@
     <meta-data android:name="expo.modules.updates.EXPO_UPDATE_URL" android:value="https://exp.host/@ariccio/co2_native_client"/>
     <service android:name="riccio.co2.client.foregroundservice" android:label="CO2 tracker background uploader" android:foregroundServiceType="connectedDevice|dataSync|location"/>
     <service android:name="riccio.co2.client.foregroundservicetask" android:foregroundServiceType="connectedDevice|dataSync|location"/>
-    <service android:name="riccio.co2.client.BootUpHandlerService"/>
-    <receiver android:name="riccio.co2.client.BootUpReceiver" android:enabled="true" android:exported="true" android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
+    <service android:name="riccio.co2.client.androidreactnativebootreceiver.BootUpHandlerService"/>
+    <receiver android:name="riccio.co2.client.androidreactnativebootreceiver.BootUpReceiver" android:enabled="true" android:exported="true" android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
       <intent-filter>
         <action android:name="android.intent.action.BOOT_COMPLETED"/>
         <category android:name="android.intent.category.DEFAULT"/>

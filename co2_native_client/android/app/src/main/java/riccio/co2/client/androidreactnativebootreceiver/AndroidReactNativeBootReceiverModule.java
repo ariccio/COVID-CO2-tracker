@@ -1,6 +1,6 @@
 //  Created by react-native-create-bridge, manually modified because the package is broken!!
 
-package riccio.co2.client;
+package riccio.co2.client.androidreactnativebootreceiver;
 
 // import android.support.annotation.Nullable;
 
