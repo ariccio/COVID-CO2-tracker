@@ -105,7 +105,7 @@ const getDetailsCallback = (result: google.maps.places.PlaceResult | null, statu
 }
 
 
-export const updateOnNewPlace = (service: google.maps.places.PlacesService | null, dispatch: AppDispatch, place_id?: string) => {
+export const updatePlacesServiceDetailsOnNewPlace = (service: google.maps.places.PlacesService | null, dispatch: AppDispatch, place_id?: string) => {
     if (service === null) {
         // debugger;
         console.log("places service not ready yet");

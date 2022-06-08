@@ -19,7 +19,7 @@ import {setSelectedPlace, INTERESTING_FIELDS, setMapCenter} from './googleSlice'
 import {updatePlacesInfoFromBackend, queryPlacesInBoundsFromBackend} from '../../utils/QueryPlacesInfo';
 import { defaultPlaceMarkers, EachPlaceFromDatabaseForMarker, placesFromDatabaseForMarker, selectPlaceMarkersFromDatabase, selectPlacesMarkersErrors, selectPlaceMarkersFetchInProgress, setPlaceMarkersFetchInProgress, selectPlaceMarkersFetchStartMS, selectPlaceMarkersFetchFinishMS } from '../places/placesSlice';
 import { setSublocationSelectedLocationID } from '../sublocationsDropdown/sublocationSlice';
-import { updateOnNewPlace } from './googlePlacesServiceUtils';
+import { updatePlacesServiceDetailsOnNewPlace } from './googlePlacesServiceUtils';
 import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
 import { userRequestOptions } from '../../utils/DefaultRequestOptions';
 import { API_URL } from '../../utils/UrlPath';
@@ -229,6 +229,14 @@ const formFieldSubmitHandler = (event: React.FormEvent<HTMLInputElement>) => {
 const formSubmitHandler = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     event.stopPropagation();
+    // debugger;
+    try {
+        console.log(`User submitted autocomplete form (hit enter with text '${(event as any).currentTarget[0].value}'?)`);
+    }
+    catch (e) {
+        debugger;
+        Sentry.captureException(e);
+    }
 }
 
 
@@ -269,7 +277,7 @@ const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (pr
     );
 }
 
-const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null, dispatch: AppDispatch, map: google.maps.Map | null, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral | google.maps.LatLng>>, setErrorState: React.Dispatch<React.SetStateAction<string>>) => {
+const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null, dispatch: AppDispatch, map: google.maps.Map | null, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral | google.maps.LatLng>>, setAutocompleteErrorState: React.Dispatch<React.SetStateAction<string>>, service: google.maps.places.PlacesService | null) => {
     if (autocomplete === null) {
         console.log("No autocomplete, but autocomplete place change handler?");
         return;
@@ -282,7 +290,7 @@ const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null
     // console.table(place);
     if (place.place_id === undefined) {
         console.log("autocomplete likely returned a stub object, place probably not found!");
-        setErrorState(`'${place.name}' not found. Try picking from dropdown list.`);
+        setAutocompleteErrorState(`'${place.name}' not found. Try picking from dropdown list.`);
         return;
     }
 
@@ -300,8 +308,9 @@ const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null
         console.log('no place to query');
         return;
     }
-    setErrorState('');
     updatePlacesInfoFromBackend(placeId, dispatch);
+    updatePlacesServiceDetailsOnNewPlace(service, dispatch, placeId);
+    setAutocompleteErrorState('');
 }
 
 // This event is fired when the user clicks on the map.
@@ -348,7 +357,7 @@ const onClickMaps = (e: google.maps.MapMouseEvent, setCenter: React.Dispatch<Rea
         return;
     }
     console.log("Maps clicked, updating for new place?");
-    updateOnNewPlace(service, dispatch, (e as any).placeId);
+    updatePlacesServiceDetailsOnNewPlace(service, dispatch, (e as any).placeId);
 }
 
 const containerStyle = {
@@ -377,6 +386,7 @@ const autoCompleteLoadThunk = (autocompleteEvent: google.maps.places.Autocomplet
 
 function setPlaceFromAutocompletePlace(place: google.maps.places.PlaceResult, dispatch: AppDispatch) {
     const placeForAction = autocompleteSelectedPlaceToAction(place);
+    console.log(`Setting ${placeForAction.name} as place from autocomplete...`);
     dispatch(setSelectedPlace(placeForAction));
     if (placeForAction.place_id === undefined) {
         debugger;
@@ -453,7 +463,7 @@ const renderEachMarker = (place: EachPlaceFromDatabaseForMarker, index: number, 
             return;
         }
         console.log("Marker click handler: updating on new place?");
-        updateOnNewPlace(service, dispatch, place.attributes.google_place_id);
+        updatePlacesServiceDetailsOnNewPlace(service, dispatch, place.attributes.google_place_id);
     }
     // debugger;
     let noClustererRedraw = undefined;
@@ -691,17 +701,18 @@ const centerChange = (map: google.maps.Map | null, mapLoaded: boolean, center: g
 interface AutocompleteElementProps {
     map: google.maps.Map | null,
     setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral | google.maps.LatLng>>,
-    mapLoaded: boolean
+    mapLoaded: boolean,
+    service: google.maps.places.PlacesService | null
 }
 
-const renderErrorsAutocomplete = (errorState: string) => {
-    if (errorState === '') {
+const renderErrorsAutocomplete = (autocompleteErrorState: string) => {
+    if (autocompleteErrorState === '') {
         return null;
     }
 
     return (
         <div>
-            Autocomplete message: {errorState}
+            Autocomplete message: {autocompleteErrorState}
         </div>
     )
 }
@@ -709,12 +720,12 @@ const renderErrorsAutocomplete = (errorState: string) => {
 const AutocompleteElement: React.FC<AutocompleteElementProps> = (props) => {
     // debugger;
     const [autocomplete, setAutocomplete] = useState(null as google.maps.places.Autocomplete | null);
-    const [errorState, setErrorState] = useState('');
+    const [autocompleteErrorState, setAutocompleteErrorState] = useState('');
     const dispatch = useDispatch();
     return (
         <div>
-            {renderErrorsAutocomplete(errorState)}
-            <RenderAutoComplete autoCompleteLoad={(event) => autoCompleteLoadThunk(event, setAutocomplete)} placeChange={() => placeChangeHandler(autocomplete, dispatch, props.map, props.setCenter, setErrorState)} map={props.map} mapLoaded={props.mapLoaded} />
+            {renderErrorsAutocomplete(autocompleteErrorState)}
+            <RenderAutoComplete autoCompleteLoad={(event) => autoCompleteLoadThunk(event, setAutocomplete)} placeChange={() => placeChangeHandler(autocomplete, dispatch, props.map, props.setCenter, setAutocompleteErrorState, props.service)} map={props.map} mapLoaded={props.mapLoaded} />
         </div>
     );
 }
@@ -993,7 +1004,7 @@ export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) =
                 <GoogleMapInContainer onLoad={(mapLoaded) => handleMapLoaded(mapLoaded, setMap, setService)} onUnmount={() => handleMapUnmount(map, setMap, setMapLoaded)} map={map} setCenter={setCenter} mapLoaded={mapLoaded} setMapLoaded={setMapLoaded} service={service}/>
                 <PlaceMarkersDataDebugText/>
                 <br/>
-                <AutocompleteElement map={map} setCenter={setCenter} mapLoaded={mapLoaded}/>
+                <AutocompleteElement map={map} setCenter={setCenter} mapLoaded={mapLoaded} service={service}/>
                 <GeolocationButton setCenter={setCenter} /><br/>
                 <PlacesServiceStatus/>
             </div>

@@ -1,7 +1,7 @@
 import {useEffect, useState} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RenderSelectedPlaceInfo } from './RenderPlaceInfo';
-import { updateOnNewPlace } from '../google/googlePlacesServiceUtils';
+import { updatePlacesServiceDetailsOnNewPlace } from '../google/googlePlacesServiceUtils';
 import { useJsApiLoader } from '@react-google-maps/api';
 import { GOOGLE_LIBRARIES } from '../google/GoogleMaps';
 
@@ -54,7 +54,7 @@ export const PlaceDetails: React.FC<PlaceDetailsProps> = (props) => {
         }
         console.log("Place details component: updating for new place...");
         // debugger;
-        updateOnNewPlace(service, dispatch, props.placeId);    
+        updatePlacesServiceDetailsOnNewPlace(service, dispatch, props.placeId);    
         
     }, [dispatch, props.placeId, service])
 
