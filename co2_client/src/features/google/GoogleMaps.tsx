@@ -483,13 +483,21 @@ const renderEachMarker = (place: EachPlaceFromDatabaseForMarker, index: number, 
 const clustererCallback = (placeMarkersFromDatabase: placesFromDatabaseForMarker, dispatch: AppDispatch, clusterer: /*Clusterer*/ any, service: google.maps.places.PlacesService | null) => {
     console.assert(placeMarkersFromDatabase.places !== null);
     if (placeMarkersFromDatabase.places === null) {
-        return null;
+        return (
+            <>
+            </>
+        );
     }
     // debugger;
     // interface clusterType = typeof clusterer;
     const placesSize = placeMarkersFromDatabase.places.length;
 
-    return placeMarkersFromDatabase.places.map((place, index) => {return renderEachMarker(place, index, clusterer, dispatch, service, placesSize)})
+    return (
+        <>
+            {placeMarkersFromDatabase.places.map((place, index) => {return renderEachMarker(place, index, clusterer, dispatch, service, placesSize)})}
+        </>
+    );
+    
 
 }
 
