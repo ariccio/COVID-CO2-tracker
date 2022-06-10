@@ -313,6 +313,7 @@ async function createTriggerNotification(dispatch: AppDispatch, channelId: strin
     console.log(`Creating trigger notification at ${timeNowAsString()}...`);
     try {
         const result = await notifee.createTriggerNotification(triggerNotif, trigger);
+        console.log(`Created trigger notification ${result}`);
         return result;
     }
     catch (exception) {
@@ -344,6 +345,7 @@ async function createTriggerNotification(dispatch: AppDispatch, channelId: strin
 // }
 
 const onClickStartNotificationButton = (dispatch: AppDispatch) => {
+    console.log("Setting notification action to StartNotification");
     dispatch(setShouldUpload(false));
     dispatch(setShouldUpload(true));
     dispatch(setNotificationAction(NotificationAction.StartNotification));
@@ -444,10 +446,12 @@ const init = async (setDisplayNotificationErrors: React.Dispatch<React.SetStateA
     if (result !== undefined) {
         setNotificationID(result);
     }
+    console.warn("TODO: create trigger here?")
 }
 
 
 export async function stopServiceAndClearNotifications() {
+    console.log("Stopping service, cancelling notifications...");
     await notifee.stopForegroundService();
     await notifee.cancelAllNotifications();
     await notifee.cancelTriggerNotifications();
@@ -489,6 +493,9 @@ export const useNotifeeNotifications = (): NotifeeNotificationHookState => {
         switch (notificationAction) {
             case (NotificationAction.StartNotification): {
                 console.log("notification start requested");
+                if (triggerNotification !== null) {
+                    console.warn(`triggerNotification !== null (triggerNotification), do I need to delete?`);
+                }
                 clickDisplayNotification(channelID, setTriggerNotification, dispatch);
                 break;
             }
@@ -503,6 +510,7 @@ export const useNotifeeNotifications = (): NotifeeNotificationHookState => {
     useEffect(() => {
         createOrUpdateNotification(setDisplayNotificationErrors, deviceID, supportedDevices, setNotificationID, channelID, loggedIn, jwt, shouldUpload, backgroundPollingEnabled, dispatch, userSettings);
         return (() => {
+            console.log("(cleanup)")
             stopServiceAndClearNotifications();
         })
     }, [deviceID, supportedDevices, channelID, backgroundPollingEnabled, loggedIn, userSettings, jwt, shouldUpload, dispatch])
@@ -561,6 +569,9 @@ async function clickDisplayNotification(channelID: string | null, setTriggerNoti
     const triggerResult = await createTriggerNotification(dispatch, channelId_);
     if (triggerResult !== undefined) {
         setTriggerNotification(triggerResult);
+    }
+    else {
+        console.error(`Unexpected error creating trigger notification?`);
     }
     dispatch(setBackgroundPollingEnabled(true));
 

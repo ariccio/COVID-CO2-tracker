@@ -17,7 +17,7 @@ import com.facebook.soloader.SoLoader;
 import expo.modules.ApplicationLifecycleDispatcher;
 import expo.modules.ReactNativeHostWrapper;
 import riccio.co2.client.BuildConfig;
-import riccio.co2.client.AndroidReactNativeBootReceiverPackage;
+import riccio.co2.client.androidreactnativebootreceiver.AndroidReactNativeBootReceiverPackage;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
