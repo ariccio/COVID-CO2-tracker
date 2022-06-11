@@ -8,11 +8,11 @@ module.exports = {
         "react-app",
         "eslint:recommended",
         "plugin:react/recommended",
-        "plugin:@typescript-eslint/recommended",
         "plugin:react/jsx-runtime",
         "plugin:jsx-a11y/recommended",
         "plugin:react-hooks/recommended",
-        "plugin:react-perf/recommended"
+        "plugin:react-perf/recommended",
+        "plugin:@typescript-eslint/recommended"
     ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
