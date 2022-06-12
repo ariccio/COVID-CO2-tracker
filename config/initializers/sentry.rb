@@ -14,8 +14,8 @@
   #   true
   # end
 
-  # https://docs.sentry.io/platforms/ruby/guides/rails/configuration/options/
-  config.async = lambda do |event, hint|
-    ::Sentry::SendEventJob.perform_later(event, hint)
-  end
+  # https://github.com/getsentry/sentry-ruby/issues/1522#issuecomment-1140223492
+  # config.async = lambda do |event, hint|
+  #   ::Sentry::SendEventJob.perform_later(event, hint)
+  # end
 end
