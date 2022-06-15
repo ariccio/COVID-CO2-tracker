@@ -38,6 +38,8 @@ require 'rails/test_unit/railtie'
 puts "requiring gems listed in gemfile: #{Time.now}"
 ::Bundler.require(*::Rails.groups)
 
+puts "DONE requiring gems listed in gemfile: #{Time.now}"
+
 module COVIDCo2Tracker
   class Application < ::Rails::Application
     puts "\tStart Application class: #{Time.now}"
