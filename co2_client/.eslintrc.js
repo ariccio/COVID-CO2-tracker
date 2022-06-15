@@ -5,10 +5,10 @@ module.exports = {
         "es2021": true
     },
     "extends": [
-        "react-app",
+        // "react-app",
         "eslint:recommended",
-        "plugin:react/recommended",
-        "plugin:react/jsx-runtime",
+        // "plugin:react/recommended",
+        // "plugin:react/jsx-runtime",
         "plugin:jsx-a11y/recommended",
         "plugin:react-hooks/recommended",
         "plugin:react-perf/recommended",
@@ -23,7 +23,7 @@ module.exports = {
         "sourceType": "module"
     },
     "plugins": [
-        "react",
+        // "react",
         "@typescript-eslint",
         "react-perf",
         "jsx-a11y"

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@babel/plugin-syntax-flow": "^7.17.12",
     "@babel/plugin-transform-react-jsx": "^7.17.12",
     "@react-google-maps/api": "^2.7.0",
     "@reduxjs/toolkit": "^1.6.2",
