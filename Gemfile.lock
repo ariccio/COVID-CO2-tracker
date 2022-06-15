@@ -183,7 +183,7 @@ GEM
     mime-types-data (3.2022.0105)
     mini_mime (1.1.2)
     mini_portile2 (2.8.0)
-    minitest (5.15.0)
+    minitest (5.16.0)
     msgpack (1.5.2)
     multi_json (1.15.0)
     multi_xml (0.6.0)
@@ -249,9 +249,9 @@ GEM
       rake (>= 12.2)
       thor (~> 1.0)
     rake (13.0.6)
-    ransack (2.6.0)
-      activerecord (>= 6.0.4)
-      activesupport (>= 6.0.4)
+    ransack (3.2.1)
+      activerecord (>= 6.1.5)
+      activesupport (>= 6.1.5)
       i18n
     rbnacl (7.1.1)
       ffi
