@@ -2,19 +2,35 @@
 puts "Start of config/application.rb: #{Time.now}"
 require_relative 'boot'
 
+puts "require 'rails': #{Time.now}"
 require 'rails'
 # Pick the frameworks you want:
+puts "require 'active_model/railtie': #{Time.now}"
 require 'active_model/railtie'
+
+puts "require 'active_job/railtie' #{Time.now}"
 require 'active_job/railtie'
+
+puts "require 'active_record/railtie' #{Time.now}"
 require 'active_record/railtie'
+
 # require 'active_storage/engine'
+puts "require 'action_controller/railtie' #{Time.now}"
 require 'action_controller/railtie'
+
+puts "require 'action_mailer/railtie' #{Time.now}"
 require 'action_mailer/railtie'
 # require 'action_mailbox/engine'
 # require 'action_text/engine'
+
+puts "require 'action_view/railtie' #{Time.now}"
 require 'action_view/railtie'
+
 # require 'action_cable/engine'
+puts "require 'sprockets/railtie' #{Time.now}"
 require 'sprockets/railtie'
+
+puts "require 'rails/test_unit/railtie' #{Time.now}"
 require 'rails/test_unit/railtie'
 
 # Require the gems listed in Gemfile, including any gems
