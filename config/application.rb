@@ -1,48 +1,48 @@
 # frozen_string_literal: true
-puts "Start of config/application.rb: #{Time.now}"
+puts "Start of config/application.rb: #{Time.now.strftime("%H:%M:%S:%L")}"
 require_relative 'boot'
 
-puts "require 'rails': #{Time.now}"
+puts "require 'rails': #{Time.now.strftime("%H:%M:%S:%L")}"
 require 'rails'
 # Pick the frameworks you want:
-puts "require 'active_model/railtie': #{Time.now}"
+puts "require 'active_model/railtie': #{Time.now.strftime("%H:%M:%S:%L")}"
 require 'active_model/railtie'
 
-puts "require 'active_job/railtie': #{Time.now}"
+puts "require 'active_job/railtie': #{Time.now.strftime("%H:%M:%S:%L")}"
 require 'active_job/railtie'
 
-puts "require 'active_record/railtie': #{Time.now}"
+puts "require 'active_record/railtie': #{Time.now.strftime("%H:%M:%S:%L")}"
 require 'active_record/railtie'
 
 # require 'active_storage/engine'
-puts "require 'action_controller/railtie': #{Time.now}"
+puts "require 'action_controller/railtie': #{Time.now.strftime("%H:%M:%S:%L")}"
 require 'action_controller/railtie'
 
-puts "require 'action_mailer/railtie': #{Time.now}"
+puts "require 'action_mailer/railtie': #{Time.now.strftime("%H:%M:%S:%L")}"
 require 'action_mailer/railtie'
 # require 'action_mailbox/engine'
 # require 'action_text/engine'
 
-puts "require 'action_view/railtie': #{Time.now}"
+puts "require 'action_view/railtie': #{Time.now.strftime("%H:%M:%S:%L")}"
 require 'action_view/railtie'
 
 # require 'action_cable/engine'
-puts "require 'sprockets/railtie': #{Time.now}"
+puts "require 'sprockets/railtie': #{Time.now.strftime("%H:%M:%S:%L")}"
 require 'sprockets/railtie'
 
-puts "require 'rails/test_unit/railtie': #{Time.now}"
+puts "require 'rails/test_unit/railtie': #{Time.now.strftime("%H:%M:%S:%L")}"
 require 'rails/test_unit/railtie'
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
-puts "requiring gems listed in gemfile: #{Time.now}"
+puts "requiring gems listed in gemfile: #{Time.now.strftime("%H:%M:%S:%L")}"
 ::Bundler.require(*::Rails.groups)
 
-puts "DONE requiring gems listed in gemfile: #{Time.now}"
+puts "DONE requiring gems listed in gemfile: #{Time.now.strftime("%H:%M:%S:%L")}"
 
 module COVIDCo2Tracker
   class Application < ::Rails::Application
-    puts "\tStart Application class: #{Time.now}"
+    puts "\tStart Application class: #{Time.now.strftime("%H:%M:%S:%L")}"
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults(6.1)
 
@@ -62,21 +62,21 @@ module COVIDCo2Tracker
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
 
-    # puts "Starting middleware: #{Time.now}"
+    puts "Starting middleware: #{Time.now.strftime("%H:%M:%S:%L")}"
     config.middleware.use(::ActionDispatch::Cookies)
 
     # Middleware for ActiveAdmin
     config.middleware.use(::Rack::MethodOverride)
     config.middleware.use(::ActionDispatch::Flash)
     config.middleware.use(::ActionDispatch::Session::CookieStore)
-    # puts "End      middleware: #{Time.now}"
+    puts "End      middleware: #{Time.now.strftime("%H:%M:%S:%L")}"
 
     # Fix rails g scaffold for ActiveAdmin
     # As per https://blog.heroku.com/a-rock-solid-modern-web-stack
     config.app_generators.scaffold_controller = :scaffold_controller
-    puts "\tEnd   Application class: #{Time.now}"
+    puts "\tEnd   Application class: #{Time.now.strftime("%H:%M:%S:%L")}"
     puts ""
   end
 end
-puts "end   of config/application.rb: #{Time.now}"
+puts "end   of config/application.rb: #{Time.now.strftime("%H:%M:%S:%L")}"
 puts ""
