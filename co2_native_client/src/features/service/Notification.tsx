@@ -417,7 +417,7 @@ export interface NotifeeNotificationHookState {
     // handleClickStopNotification: () => Promise<void>;
 }
 
-const init = async (setDisplayNotificationErrors: React.Dispatch<React.SetStateAction<string | null>>, deviceID: string | null, supportedDevices: UserInfoDevice[] | null, setNotificationID: React.Dispatch<React.SetStateAction<string | null>>, channelID: string | null, loggedIn: boolean, userSettings: UserSettings, jwt: string, shouldUpload: boolean, dispatch: AppDispatch) => {
+const init = async (setDisplayNotificationErrors: React.Dispatch<React.SetStateAction<string | null>>, deviceID: string | null, supportedDevices: UserInfoDevice[] | null, setNotificationID: React.Dispatch<React.SetStateAction<string | null>>, channelID: string | null, loggedIn: boolean, userSettings: UserSettings, jwt: string, shouldUpload: boolean, dispatch: AppDispatch, setTriggerNotification: React.Dispatch<React.SetStateAction<string | null>>) => {
     if (channelID === null) {
         console.log("Channel not created yet, creating...");
         const channelId_ = await checkedCreateChannel(dispatch);
@@ -446,7 +446,16 @@ const init = async (setDisplayNotificationErrors: React.Dispatch<React.SetStateA
     if (result !== undefined) {
         setNotificationID(result);
     }
-    console.warn("TODO: create trigger here?")
+    // console.warn("TODO: create trigger here?")
+    const triggerResult = await createTriggerNotification(dispatch, channelID);
+    if (triggerResult !== undefined) {
+        setTriggerNotification(triggerResult);
+    }
+    else {
+        console.error(`Unexpected error creating trigger notification?`);
+    }
+    dispatch(setBackgroundPollingEnabled(true));
+
 }
 
 
@@ -508,7 +517,7 @@ export const useNotifeeNotifications = (): NotifeeNotificationHookState => {
     }, [notificationAction, channelID, dispatch])
 
     useEffect(() => {
-        createOrUpdateNotification(setDisplayNotificationErrors, deviceID, supportedDevices, setNotificationID, channelID, loggedIn, jwt, shouldUpload, backgroundPollingEnabled, dispatch, userSettings);
+        createOrUpdateNotification(setDisplayNotificationErrors, deviceID, supportedDevices, setNotificationID, channelID, loggedIn, jwt, shouldUpload, backgroundPollingEnabled, dispatch, userSettings, setTriggerNotification);
         return (() => {
             console.log("(cleanup)")
             stopServiceAndClearNotifications();
@@ -587,7 +596,7 @@ async function clickStopNotification(setTriggerNotification: React.Dispatch<Reac
     dispatch(setShouldUpload(false));
 }
 
-function createOrUpdateNotification(setDisplayNotificationErrors: React.Dispatch<React.SetStateAction<string | null>>, deviceID: string | null, supportedDevices: UserInfoDevice[] | null, setNotificationID: React.Dispatch<React.SetStateAction<string | null>>, channelID: string | null, loggedIn: boolean, jwt: string | null, shouldUpload: boolean, backgroundPollingEnabled: boolean, dispatch: AppDispatch, userSettings?: UserSettings | null) {
+function createOrUpdateNotification(setDisplayNotificationErrors: React.Dispatch<React.SetStateAction<string | null>>, deviceID: string | null, supportedDevices: UserInfoDevice[] | null, setNotificationID: React.Dispatch<React.SetStateAction<string | null>>, channelID: string | null, loggedIn: boolean, jwt: string | null, shouldUpload: boolean, backgroundPollingEnabled: boolean, dispatch: AppDispatch, setTriggerNotification: React.Dispatch<React.SetStateAction<string | null>>, userSettings?: UserSettings | null) {
     if (!backgroundPollingEnabled) {
         console.log("NOT polling in background.");
         return;
@@ -609,6 +618,6 @@ function createOrUpdateNotification(setDisplayNotificationErrors: React.Dispatch
     }
 
     console.log("polling in background.");
-    init(setDisplayNotificationErrors, deviceID, supportedDevices, setNotificationID, channelID, loggedIn, userSettings, jwt, shouldUpload, dispatch);
+    init(setDisplayNotificationErrors, deviceID, supportedDevices, setNotificationID, channelID, loggedIn, userSettings, jwt, shouldUpload, dispatch, setTriggerNotification);
 }
 

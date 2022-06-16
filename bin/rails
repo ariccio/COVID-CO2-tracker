@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby.exe
-puts "Start of bin/rails: #{Time.now}"
+puts "Start of bin/rails: #{Time.now.strftime("%H:%M:%S:%L")}"
 APP_PATH = File.expand_path('../config/application', __dir__)
 require_relative '../config/boot'
 require 'rails/commands'
