@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-# puts "Start of config/environments/test.rb: #{Time.now.strftime("%H:%M:%S:%L")}"
+# puts "#{Time.now.strftime("%H:%M:%S:%L")}: Start of config/environments/test.rb"
 
 require 'active_support/core_ext/integer/time'
 
@@ -68,4 +68,4 @@ require 'active_support/core_ext/integer/time'
   # Rails.logger = Logger.new(STDOUT)
   # Rails.logger.level = Logger::INFO
 end
-# puts "end   of config/environments/test.rb: #{Time.now.strftime("%H:%M:%S:%L")}\r\n"
+# puts "#{Time.now.strftime("%H:%M:%S:%L")}: end   of config/environments/test.rb\r\n"

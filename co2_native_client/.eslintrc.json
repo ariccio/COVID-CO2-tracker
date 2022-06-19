@@ -38,6 +38,7 @@
         "prettier/prettier": 0,
         // "quotes": [0, "single"],
         "react/react-in-jsx-scope": "off",
-        "react-perf/jsx-no-new-function-as-prop": "off"
+        "react-perf/jsx-no-new-function-as-prop": "off",
+        "no-useless-return": "off"
     }
 }
