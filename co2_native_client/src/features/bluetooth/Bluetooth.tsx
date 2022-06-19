@@ -5,7 +5,7 @@ import {Buffer, constants} from 'buffer';
 import Constants from 'expo-constants';
 import { startActivityAsync, ActivityAction, IntentLauncherResult, IntentLauncherParams } from 'expo-intent-launcher';
 import { useEffect, useState } from 'react';
-import { PermissionsAndroid, Text, Button, NativeSyntheticEvent, NativeTouchEvent, Permission, Rationale } from 'react-native';
+import { PermissionsAndroid, Text, Button, NativeSyntheticEvent, NativeTouchEvent, Permission, Rationale, Platform } from 'react-native';
 import AlertAsync from "react-native-alert-async";
 import { BleManager, Device, BleError, LogLevel, Service, Characteristic, BleErrorCode, State, BleAndroidErrorCode } from 'react-native-ble-plx';
 import { useDispatch, useSelector } from 'react-redux';
@@ -305,13 +305,21 @@ const maybeNeedPromptUserAboutLocationPermissions = async (dispatch: AppDispatch
 const SCAN_PERMISSION_STRING = 'android.permission.BLUETOOTH_SCAN';
 // const typeofRequest = ((permission: string, rationale?: any): unknown)
 
+function logBluetoothScanPermissionProbablyNotAvailable(): void {
+    console.log(`On Platform.Version ${Platform.Version}, BLUETOOTH_SCAN may not be a permission yet. So, NEVER_ASK_AGAIN isn't a problem, it's just the default that react native on android returns for a non-extant permission. This is also a limitation in android itself.`);
+}
 
 const checkBluetoothScanPermissions = async(dispatch: AppDispatch): Promise<boolean> => {
     try {
         console.log("Checking if bluetooth scan permission is available already...");
         const hasBluetoothScanAlready = await PermissionsAndroid.check(SCAN_PERMISSION_STRING as Permission);
         console.log(`hasBluetoothScanAlready: ${hasBluetoothScanAlready}`);
-        console.warn("I've seen some kind of weird bug when this is false, it may be worth trying anyways.");
+        console.log(`Platform.version: ${Platform.Version}`);
+        if (Platform.Version <= 29) {
+            logBluetoothScanPermissionProbablyNotAvailable();
+            return false;
+        }
+        console.warn(`Android has returned ${hasBluetoothScanAlready} for PermissionsAndroid.check(${SCAN_PERMISSION_STRING}). I've seen some kind of weird bug when this is false, and that may be because it doesn't exist on some platforms, so it may be worth trying anyways.`);
     }
     catch (error) {
         dispatch(setScanningStatusString(`Some kind of unexpected error when checking bluetooth scan permission: ${unknownNativeErrorTryFormat(error)}`));
@@ -372,9 +380,18 @@ const requestBluetoothScanPermission = async(dispatch: AppDispatch) => {
             return;
         }
         else if (bluetoothScanPermissionResult === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
-            console.warn("NOTE TO SELF: I've seen a strange issue where BLUETOOTH_SCAN was NEVER_ASK_AGAIN but everything still seemed to work fine, and I even got the NEVER_ASK_AGAIN for nonsense permissions like 'fartipelago'. So, uh, continue anyways? ");
-            dispatch(setScanningStatusString(`Bluetooth scan permission supposedly denied by user PERMANENTLY, may be a bug, will try anyways.`));
-            dispatch(setHasBluetooth(true));
+            console.log(`Platform.version: ${Platform.Version}`);
+            if (Platform.Version <= 29) {
+                logBluetoothScanPermissionProbablyNotAvailable();
+                dispatch(setScanningStatusString(null));
+                dispatch(setHasBluetooth(true));
+
+            }
+            else {
+                console.warn(`Android has returned ${bluetoothScanPermissionResult} for PermissionsAndroid.request(${SCAN_PERMISSION_STRING}). I've seen some kind of weird bug when this is false, and that may be because it doesn't exist on some platforms, so it may be worth trying anyways.`);
+                dispatch(setScanningStatusString(`Bluetooth scan permission supposedly denied by user PERMANENTLY, may be a bug, will try anyways.`));
+                dispatch(setHasBluetooth(true));
+            }
             if (!__DEV__) {
                 // Shut up sentry warning for now.
                 Sentry.Native.captureMessage(`NEVER_ASK_AGAIN seen.`);

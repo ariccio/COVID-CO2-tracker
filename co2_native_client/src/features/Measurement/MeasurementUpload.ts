@@ -83,7 +83,7 @@ export function uploadMeasurementHeadless(measurement: MeasurementDataForUpload 
             return;
         }
         // eslint-disable-next-line no-useless-return
-        console.log('SUCESSFULL MEASUREMENT UPLOAD!');
+        console.log('SUCESSFUL MEASUREMENT UPLOAD!');
         // eslint-disable-next-line no-useless-return
         return;
     //   dispatch(setUploadStatus(`Successful at ${(new Date(Date.now())).toLocaleTimeString()}`));
