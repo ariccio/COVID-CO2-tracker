@@ -18,6 +18,7 @@ public class MainActivity extends DevMenuAwareReactActivity {
 
   @Override
   public void onNewIntent(Intent intent) {
+    Log.d("riccio.co2.client", "MainActivity onNewIntent");
     // isOnNewIntent = true;
     if (DevLauncherController.tryToHandleIntent(this, intent)) {
       return;

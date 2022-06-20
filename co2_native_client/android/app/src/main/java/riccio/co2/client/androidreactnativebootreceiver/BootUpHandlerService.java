@@ -22,6 +22,7 @@ public class BootUpHandlerService extends Service {
     private Runnable runnableCode = new Runnable() {
         @Override
         public void run() {
+            Log.d("riccio.co2.client", "BootUpHandlerService run");
             // context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("Bootup",
             // null);
 
@@ -35,6 +36,11 @@ public class BootUpHandlerService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if (intent.action != Intent.ACTION_BOOT_COMPLETED) {
+            Log.d("riccio.co2.client", "BootUpHandlerService onStartCommand: NOT an ACTION_BOOT_COMPLETED");
+            return START_STICKY;
+        }
+        Log.d("riccio.co2.client", "BootUpHandlerService onStartCommand ACTION_BOOT_COMPLETED");
         this.handler.post(this.runnableCode); // Starting the interval
         // Turning into a foreground service
         createNotificationChannel(); // Creating channel for API 26+
@@ -57,7 +63,7 @@ public class BootUpHandlerService extends Service {
         it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(it);
 
-        return START_STICKY;
+        return START_NOT_STICKY;
     }
 
     // https://developer.android.com/guide/components/bound-services
@@ -80,6 +86,7 @@ public class BootUpHandlerService extends Service {
     private static final String CHANNEL_ID = "Bootup";
 
     private void createNotificationChannel() {
+        Log.d("riccio.co2.client", "BootUpHandlerService createNotificationChannel");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             int importance = NotificationManager.IMPORTANCE_DEFAULT;
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Bootup", importance);
