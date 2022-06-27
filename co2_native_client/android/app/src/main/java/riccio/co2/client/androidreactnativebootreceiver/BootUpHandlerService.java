@@ -14,6 +14,8 @@ import android.os.Build;
 import android.os.Binder;
 import android.os.IBinder;
 
+import android.util.Log;
+
 import riccio.co2.client.MainActivity;
 
 public class BootUpHandlerService extends Service {
@@ -36,7 +38,8 @@ public class BootUpHandlerService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent.action != Intent.ACTION_BOOT_COMPLETED) {
+        Log.d("riccio.co2.client", intent.toString());
+        if (intent.getAction() != Intent.ACTION_BOOT_COMPLETED) {
             Log.d("riccio.co2.client", "BootUpHandlerService onStartCommand: NOT an ACTION_BOOT_COMPLETED");
             return START_STICKY;
         }

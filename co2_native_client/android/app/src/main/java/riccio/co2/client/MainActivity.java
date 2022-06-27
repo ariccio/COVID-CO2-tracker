@@ -5,6 +5,7 @@ import expo.modules.devlauncher.DevLauncherController;
 
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;

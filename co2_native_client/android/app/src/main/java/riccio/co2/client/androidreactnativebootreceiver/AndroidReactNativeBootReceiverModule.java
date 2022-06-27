@@ -3,6 +3,7 @@
 package riccio.co2.client.androidreactnativebootreceiver;
 
 // import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
