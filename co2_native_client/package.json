@@ -36,7 +36,7 @@
     "react-native-alert-async": "^1.0.5",
     "react-native-ble-plx": "^2.0.3",
     "react-native-create-bridge": "^2.0.1",
-    "react-native-pager-view": "^5.4.15",
+    "react-native-pager-view": "5.4.9",
     "react-native-safe-area-context": "3.3.2",
     "react-native-screens": "~3.10.1",
     "react-native-tab-view": "^3.1.1",
@@ -63,11 +63,11 @@
     "eslint-plugin-react-native-globals": "^0.1.2",
     "eslint-plugin-react-perf": "^3.3.1",
     "jshint": "2.13.4",
+    "metro-react-native-babel-preset": "~0.67.0",
     "prettier": "^2.5.1",
     "standard-version": "^9.3.2",
     "standard-version-expo": "^1.0.3",
-    "typescript": "~4.6.2",
-    "metro-react-native-babel-preset": "~0.67.0"
+    "typescript": "~4.6.2"
   },
   "private": true,
   "resolutions": {
