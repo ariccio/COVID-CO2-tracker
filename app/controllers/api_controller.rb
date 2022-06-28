@@ -169,7 +169,7 @@ class ApiController < ::ActionController::API
     please_log_in
   rescue ::JWT::DecodeError => e
     ::Sentry.capture_exception(e)
-    # Rails.logger.warn('jwt invalid!')
+    Rails.logger.warn('jwt invalid!')
     render_jwt_error(e)
     nil
   end

@@ -49,6 +49,8 @@ module RequestSpecHelper
         # pp "expected message_str: '#{message_str}', error: '#{json_response["errors"][0]["error"]}'"
     end
     def formatted_error_check_array(response, json_response, status, message_str, error_object_array)
+        # ONLY CHECKS FIRST ONE, it's fine, yolo lmao
+
         expect(response).to(have_http_status(status))
         # pp json_response
         # pp "in error check helper! checking for '#{message_str}'"

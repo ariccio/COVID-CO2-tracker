@@ -76,6 +76,7 @@ module Api
         @place = ::Place.find_by!(google_place_id: params.fetch(:google_place_id))
         refreshed = refresh_latlng_from_google
         return if refreshed.nil?
+
         # if Rails.env.development?
         #   # serial = ::PlaceSerializer.new(@place)
         #   # Much faster than current method!
@@ -84,10 +85,6 @@ module Api
         #   byebug
         # end
 
-        # if Rails.env.development?
-        #   serial = ::PlaceSerializer.new(@place)
-        #   byebug
-        # end
         # TODO: place_measurementtime_desc discards the fetched info
         # TODO: use an ACTUAL place serializer, serializing sublocations and measurements
         measurements = @place.place_measurementtime_desc
@@ -209,6 +206,7 @@ module Api
       end
 
       def in_bounds
+        #TODO: Rewrite this API as a GET not a POST. Way overdue.
         @sw = ::Geokit::LatLng.new(place_bounds_params.fetch(:south), place_bounds_params.fetch(:west))
         @ne = ::Geokit::LatLng.new(place_bounds_params.fetch(:north), place_bounds_params.fetch(:east))
         
