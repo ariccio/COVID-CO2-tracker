@@ -1,4 +1,5 @@
 import notifee, {IOSNotificationSettings, Notification, EventType, Event, TriggerType, TimeUnit, IntervalTrigger, AndroidImportance} from '@notifee/react-native';
+import { ActivityAction, IntentLauncherParams, IntentLauncherResult, startActivityAsync } from 'expo-intent-launcher';
 import {useState, useEffect, useRef} from 'react';
 import { Button, AppState, AppStateStatus } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -20,7 +21,7 @@ import { selectSupportedDevices } from '../userInfo/devicesSlice';
 import { selectUserSettings } from '../userInfo/userInfoSlice';
 import {logEvent} from './LogEvent';
 import { setNotificationChannelID, selectNotificationChannelID, setDisplayNotificationNativeErrors, selectDisplayNotificationNativeErrors, setNotificationAction, NotificationAction, selectNotificationAction, selectNotificationState } from './serviceSlice';
-import { ActivityAction, IntentLauncherParams, IntentLauncherResult, startActivityAsync } from 'expo-intent-launcher';
+
 
 
 function defaultNotification(channelId: string): Notification {
