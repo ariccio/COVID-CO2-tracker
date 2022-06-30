@@ -73,5 +73,20 @@
   "private": true,
   "resolutions": {
     "react-devtools-core": "<4.11.0"
+  },
+  "rnx-kit": {
+    "reactNativeVersion": "^0.68",
+    "kitType": "app",
+    "capabilities": [
+      "babel-preset-react-native",
+      "core",
+      "core-android",
+      "core-ios",
+      "navigation/native",
+      "react",
+      "react-dom",
+      "safe-area",
+      "screens"
+    ]
   }
 }
