@@ -48,6 +48,7 @@
     "@babel/core": "^7.12.9",
     "@babel/preset-typescript": "^7.16.7",
     "@eslint/create-config": "^0.1.2",
+    "@rnx-kit/dep-check": "^1.12.17",
     "@types/react": "~17.0.21",
     "@types/react-native": "~0.67.6",
     "@typescript-eslint/eslint-plugin": "^5.10.2",

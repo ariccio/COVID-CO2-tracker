@@ -2631,6 +2631,11 @@
     redux-thunk "^2.4.1"
     reselect "^4.1.5"
 
+"@rnx-kit/dep-check@^1.12.17":
+  version "1.12.17"
+  resolved "https://registry.yarnpkg.com/@rnx-kit/dep-check/-/dep-check-1.12.17.tgz#8d1dc00b86ea4f82e09f58d625f2f51b7358edb9"
+  integrity sha512-brsxYlc5Ej9O2iOGdw4qfC2lN1WcLK7UsS3HIYOcd9qSqY9Jv6D0cVR/go05ICBHIRB4GqsoipQUPzB3H4Jz/Q==
+
 "@segment/loosely-validate-event@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@segment/loosely-validate-event/-/loosely-validate-event-2.0.0.tgz#87dfc979e5b4e7b82c5f1d8b722dfd5d77644681"
