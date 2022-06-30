@@ -75,7 +75,7 @@
     "react-devtools-core": "<4.11.0"
   },
   "rnx-kit": {
-    "reactNativeVersion": "^0.68",
+    "reactNativeVersion": "^0.68.1",
     "kitType": "app",
     "capabilities": [
       "babel-preset-react-native",
