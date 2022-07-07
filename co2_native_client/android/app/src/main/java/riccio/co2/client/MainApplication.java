@@ -15,7 +15,7 @@ import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.config.ReactFeatureFlags;
 import com.facebook.soloader.SoLoader;
-import com.rndiffapp.newarchitecture.MainApplicationReactNativeHost;
+// import riccio.co2.client.newarchitecture.MainApplicationReactNativeHost;
 
 import expo.modules.ApplicationLifecycleDispatcher;
 import expo.modules.ReactNativeHostWrapper;
@@ -50,12 +50,13 @@ public class MainApplication extends Application implements ReactApplication {
         return "index";
       }
   });
-  private final ReactNativeHost mNewArchitectureNativeHost = new MainApplicationReactNativeHost(this);
+  // private final ReactNativeHost mNewArchitectureNativeHost = new MainApplicationReactNativeHost(this);
 
   @Override
   public ReactNativeHost getReactNativeHost() {
     if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
-      return mNewArchitectureNativeHost;
+      throw new Error("Dear alexander: You have not migrated yet :)");
+      // return mNewArchitectureNativeHost;
     } else {
       return mReactNativeHost;
     }
@@ -70,11 +71,16 @@ public class MainApplication extends Application implements ReactApplication {
 
     DevLauncherController.initialize(this, getReactNativeHost());
     if (BuildConfig.DEBUG) {
-      DevLauncherController.getInstance().setUpdatesInterface(UpdatesDevLauncherController.initialize(this));
+
+      // Seems to be broken, see expo issue: https://github.com/expo/expo/issues/17288
+      // DevLauncherController.getInstance().setUpdatesInterface(UpdatesDevLauncherController.initialize(this));
+
+      // https://github.com/expo/expo/issues/17288#issuecomment-1167808654
+      // I hope @thespacemanatee knows what he's doing, this looks like some disgusinting java hack :)
+      DevLauncherUpdatesInterfaceDelegate.INSTANCE.initializeUpdatesInterface(this);
+      
     }
-    if (BuildConfig.DEBUG) {
-      DevLauncherController.getInstance().setUpdatesInterface(UpdatesDevLauncherController.initialize(this));
-    }
+
     initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
     ApplicationLifecycleDispatcher.onApplicationCreate(this);
   }
