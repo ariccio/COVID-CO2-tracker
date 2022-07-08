@@ -2,6 +2,7 @@
   "expo": {
     "name": "co2_native_client",
     "slug": "co2_native_client",
+    "jsEngine": "hermes",
     "version": "1.0.19",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
