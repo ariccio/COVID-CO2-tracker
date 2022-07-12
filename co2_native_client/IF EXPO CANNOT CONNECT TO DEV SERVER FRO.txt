@@ -1,0 +1,7 @@
+IF EXPO CANNOT CONNECT TO DEV SERVER FROM ANDROID:
+
+
+...the problem might be arp. After many hours of misery, I found that nmapping the network seemed to fix the arp issues! I have no idea why. Here's the command I ran. I called the zenmap profile "fucking expo and router are bitches".
+
+
+nmap -sT -T4 -A -d -v -v -v -v -v -v -v -v -v -v --min-hostgroup 5 --min-parallelism 10 --max-rtt-timeout 100ms --max-scan-delay 10ms --script broadcast-dhcp-discover,broadcast-dhcp6-discover,dhcp-discover 192.168.1.1/24
