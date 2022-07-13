@@ -19,4 +19,4 @@ jobs:
         id: check-version-diff
       - name: do something if diff
         if: ${{steps.check-version-diff.outputs}}
-        run: echo ${{steps.check-version-diff.outputs}}
+        run: echo ${{steps.check-version-diff.outputs.maybe-new-version}}
