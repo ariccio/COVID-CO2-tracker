@@ -1,22 +1,22 @@
-name: 'basic-ass workflow'
-on: push
-permissions:
-  contents: read
-jobs:
-  check_rubygems:
-    name: check latest version of validates_timeliness, looking for new rails 7 compat
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          repository: 'ariccio/check_validates_timeliness'
-          # ref: 'v3.0.0'
-      - uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
-      - name: check validates_timeliness new version
-        uses: ariccio/check_validates_timeliness@correct-set-output-still-broken-v10
-        id: check-version-diff
-      - name: do something if diff
-        if: ${{ steps.check-version-diff.outputs.maybe-new-version }}
-        run: echo "${{ toJSON(steps.check-version-diff.outputs.maybe-new-version) }}";echo "${{toJSON(steps)}}"
+# name: 'basic-ass workflow'
+# on: push
+# permissions:
+#   contents: read
+# jobs:
+#   check_rubygems:
+#     name: check latest version of validates_timeliness, looking for new rails 7 compat
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v3
+#         with:
+#           repository: 'ariccio/check_validates_timeliness'
+#           # ref: 'v3.0.0'
+#       - uses: ruby/setup-ruby@v1
+#         with:
+#           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+#       - name: check validates_timeliness new version
+#         uses: ariccio/check_validates_timeliness@correct-set-output-still-broken-v10
+#         id: check-version-diff
+#       - name: do something if diff
+#         if: ${{ steps.check-version-diff.outputs.maybe-new-version }}
+#         run: echo "${{ toJSON(steps.check-version-diff.outputs.maybe-new-version) }}";echo "${{toJSON(steps)}}"
