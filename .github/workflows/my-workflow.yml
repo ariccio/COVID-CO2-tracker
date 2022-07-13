@@ -15,7 +15,7 @@ jobs:
         with:
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
       - name: check validates_timeliness new version
-        uses: ariccio/check_validates_timeliness@correct-set-output-still-broken-v7
+        uses: ariccio/check_validates_timeliness@correct-set-output-still-broken-v8
         id: check-version-diff
       - name: do something if diff
         if: ${{ steps.check-version-diff.outputs.maybe-new-version }}
