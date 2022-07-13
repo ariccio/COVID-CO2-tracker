@@ -2,7 +2,7 @@ name: 'basic-ass workflow'
 on: push
 jobs:
   check_rubygems:
-    name: check latest version of validates_timeliness
+    name: check latest version of validates_timeliness, looking for new rails 7 compat
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
