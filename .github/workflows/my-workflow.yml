@@ -1,5 +1,7 @@
 name: 'basic-ass workflow'
 on: push
+permissions:
+  contents: read
 jobs:
   check_rubygems:
     name: check latest version of validates_timeliness, looking for new rails 7 compat
