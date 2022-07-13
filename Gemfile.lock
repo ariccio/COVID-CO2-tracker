@@ -129,7 +129,6 @@ GEM
     formtastic (4.0.0)
       actionpack (>= 5.2.0)
     formtastic_i18n (0.7.0)
-    gems (1.2.0)
     geokit (1.13.1)
     geokit-rails (2.3.2)
       geokit (~> 1.5)
@@ -356,7 +355,6 @@ DEPENDENCIES
   devise
   factory_bot_rails
   faker
-  gems
   geokit-rails
   google_places
   googleauth
