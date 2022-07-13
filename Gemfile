@@ -48,6 +48,7 @@ group :development do
 
   gem 'bullet'
   gem 'brakeman', require: false
+  gem 'gems'
 end
 
 # group :production do
