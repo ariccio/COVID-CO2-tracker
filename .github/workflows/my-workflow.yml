@@ -15,4 +15,4 @@ jobs:
         with:
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
       - name: check validates_timeliness new version
-        uses: ariccio/check_validates_timeliness@run-func
+        uses: ariccio/check_validates_timeliness@with-linux-platform
