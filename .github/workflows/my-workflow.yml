@@ -12,7 +12,7 @@ jobs:
           repository: 'ariccio/check_validates_timeliness'
           # ref: 'v3.0.0'
       - uses: ruby/setup-ruby@v1
-        # with:
-          # bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+        with:
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
       - name: check validates_timeliness new version
         uses: ariccio/check_validates_timeliness@run-func
