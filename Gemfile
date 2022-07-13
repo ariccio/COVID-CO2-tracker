@@ -77,6 +77,7 @@ gem 'rexml'
 
 gem 'jsonapi-serializer'
 
+# Note to self, maybe actually write a script to check if it's out of date, yknow? https://github.com/adzap/validates_timeliness/pull/213#issuecomment-1157109678
 gem "validates_timeliness", github: "mitsuru/validates_timeliness", ref: "f28a62589cc069d1d1f5dfd99e1749edca04cd68"
 
 gem 'barnes'
