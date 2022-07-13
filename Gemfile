@@ -77,7 +77,7 @@ gem 'rexml'
 
 gem 'jsonapi-serializer'
 
-gem 'validates_timeliness', '~> 6.0.0.alpha1'
+gem "validates_timeliness", github: "mitsuru/validates_timeliness", ref: "f28a62589cc069d1d1f5dfd99e1749edca04cd68"
 
 gem 'barnes'
 
