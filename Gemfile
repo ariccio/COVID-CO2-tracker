@@ -4,6 +4,7 @@ source 'https://rubygems.org'
 
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
+# TODO:? https://andycroll.com/ruby/read-ruby-version-in-your-gemfile/
 ruby '3.1.1'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails', branch: 'main'
@@ -48,7 +49,6 @@ group :development do
 
   gem 'bullet'
   gem 'brakeman', require: false
-  gem 'gems'
 end
 
 # group :production do
