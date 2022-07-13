@@ -18,5 +18,5 @@ jobs:
         uses: ariccio/check_validates_timeliness@correct-set-output-still-broken-v2
         id: check-version-diff
       - name: do something if diff
-        if: ${{ steps.check-version-diff.outputs }}
-        run: echo "${{ toJSON(steps.check-version-diff.outputs) }}"
+        if: ${{ steps.check-version-diff.outputs.maybe-new-version }}
+        run: echo "${{ toJSON(steps.check-version-diff.outputs.maybe-new-version) }}"
