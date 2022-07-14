@@ -44,7 +44,7 @@ end
 group :development do
   # Use sqlite3 as the database for Active Record
   # gem 'sqlite3', '~> 1.4'
-  gem 'active_record_doctor', require: false
+  gem 'active_record_doctor'
   gem 'rails-erd', require: false
 
   gem 'bullet'
