@@ -179,6 +179,7 @@ GEM
       activerecord
       kaminari-core (= 1.2.2)
     kaminari-core (1.2.2)
+    lefthook (1.0.4)
     loofah (2.18.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
@@ -361,6 +362,7 @@ DEPENDENCIES
   jsonapi-rspec
   jsonapi-serializer
   jwt (~> 2.2)
+  lefthook (~> 1.0)
   net-imap
   net-pop
   net-smtp
@@ -383,4 +385,4 @@ RUBY VERSION
    ruby 3.1.1p18
 
 BUNDLED WITH
-   2.3.10
+   2.3.18

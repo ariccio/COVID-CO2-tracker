@@ -98,3 +98,5 @@ gem 'net-pop', require: false
 
 gem 'net-imap', require: false
 
+
+gem "lefthook", "~> 1.0", require: false
