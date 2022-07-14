@@ -8,9 +8,12 @@ pre-push:
     gems-audit:
       tags: backend security
       run: bundle audit
-    check-validates-timeliness:
-      tags: backend
-      run: ruby gitscripts/check_validates_timeliness.rb
+  scripts:
+    "check_validates_timeliness.rb":
+      runner: ruby
+    # check-validates-timeliness:
+    #   tags: backend
+    #   run: ruby gitscripts/check_validates_timeliness.rb
     # packages-audit:
     #   tags: frontend security
     #   run: yarn audit
