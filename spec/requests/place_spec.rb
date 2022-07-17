@@ -75,7 +75,7 @@ RSpec.describe("Places", type: :request) do
 
           expect(places_in_bounds).to(include("places"))
           expect(places_in_bounds["places"].length).to(eq(1))
-          byebug
+          # byebug
           
           expect(places_in_bounds["places"][0]).to(include("id"))
           expect(places_in_bounds["places"][0]).to(include("type"))
