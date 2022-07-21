@@ -11,7 +11,7 @@
         "heroku-postbuild": "yarn build && yarn deploy"
     },
     "dependencies": {
-        "i18next": "^20.2.4",
+        "i18next": "^21.8.14",
         "i18next-browser-languagedetector": "^6.1.1",
         "i18next-http-backend": "^1.2.4",
         "react-i18next": "^11.8.15"
