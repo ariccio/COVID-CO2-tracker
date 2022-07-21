@@ -7,6 +7,8 @@
 
 # Read more: https://github.com/cyu/rack-cors
 
+# TODO: was this an artifact from early dev?
+
 # This block has strange formatting! See https://www.rubydoc.info/gems/rack-cors/0.4.0 for examples.
 
 ::Rails.application.config.middleware.insert_before(0, ::Rack::Cors) do
