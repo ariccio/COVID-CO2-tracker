@@ -219,7 +219,7 @@ GEM
       net-protocol
       timeout
     nio4r (2.5.8)
-    nokogiri (1.13.7)
+    nokogiri (1.13.8)
       mini_portile2 (~> 2.8.0)
       racc (~> 1.4)
     orm_adapter (0.5.0)
@@ -329,9 +329,9 @@ GEM
       activesupport (>= 5.2)
       sprockets (>= 3.0.0)
     statsd-ruby (1.5.0)
-    strscan (3.0.3)
+    strscan (3.0.4)
     thor (1.2.1)
-    tilt (2.0.10)
+    tilt (2.0.11)
     timeliness (0.4.4)
     timeout (0.3.0)
     tzinfo (2.0.5)
