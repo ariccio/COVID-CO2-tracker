@@ -85,9 +85,9 @@ const submitHandler = (enteredDeviceSerialNumberText: string, setShowAddDeviceIn
         dispatch(setSelectedDevice(response.device_id));
         dispatch(setSelectedDeviceSerialNumber(response.serial));
         setShowAddDeviceInstance(false);
+        alert("Device created! You may add a measurement now");
         if (location.pathname.endsWith(devicesCreateFromHome)) {
             navigate(-1);
-            alert("Device created! You may add a measurement now");
             return;
         }
         navigate(profilePath);
