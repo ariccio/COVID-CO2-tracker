@@ -15,7 +15,7 @@ import {DeviceModels} from './features/deviceModels/DeviceModels';
 import {Place} from './features/places/Place';
 import {MoreInfo} from './features/moreInfoPage/MoreInfo';
 
-import {placesPath, homePath, devicesPath, profilePath, deviceModelsPath, moreInfoPath, bluetoothPath, devicesPathWithParam, deviceModelsPathWithParam, placesPathWithParam} from './paths/paths';
+import {placesPath, homePath, devicesPath, profilePath, deviceModelsPath, moreInfoPath, bluetoothPath, devicesPathWithParam, deviceModelsPathWithParam, placesPathWithParam, devicesPathWithCreate} from './paths/paths';
 
 import './App.css';
 import { BottomNav } from './features/nav/BottomNav';
@@ -42,6 +42,7 @@ const RoutesContainer = () =>
     <Route path={placesPathWithParam} element={<Place/>}/>
     <Route path={deviceModelsPathWithParam} element={<DeviceModels/>}/>
     <Route path={devicesPathWithParam} element={<Device/>}/>
+    <Route path={devicesPathWithCreate} element={<Devices/>}/>
     <Route path={devicesPath} element={<Devices/>}/>
     <Route path={placesPath} element={<Place/>}/>
     <Route path={deviceModelsPath} element={<DeviceModels/>}/>

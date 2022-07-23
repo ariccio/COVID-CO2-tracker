@@ -20,6 +20,7 @@ module Api
         @model = ::Model.find(device_params.fetch(:model_id))
 
         if @user.devices.where(model_id: device_params.fetch(:model_id)).where(serial: device_params.fetch(:serial)).size.positive?
+          Sentry.capture_message("User already uploaded a #{@model.name} to your account with the serial # '#{device_params.fetch(:serial)}'!")
           return render(
             json: {
               errors: [single_error("You already uploaded a #{@model.name} to your account with the serial # '#{device_params.fetch(:serial)}'! Use that to add measurements.", nil)]
@@ -29,6 +30,7 @@ module Api
         # this should be in a validator class:
         # TODO: check if @model.device is nil and then return error.
         if @model.device.where(serial: device_params.fetch(:serial)).count.positive?
+          Sentry.capture_message("#{@model.name} with serial #{device_params.fetch(:serial)} already exists.")
           return render(
             json: {
               errors: [single_error("#{@model.name} with serial #{device_params.fetch(:serial)} already exists.", nil)]

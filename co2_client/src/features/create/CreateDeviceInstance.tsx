@@ -11,7 +11,7 @@ import { ErrorObjectType, formatErrors } from '../../utils/ErrorObject';
 import { NEW_DEVICE_URL } from '../../utils/UrlPath';
 import { postRequestOptions } from '../../utils/DefaultRequestOptions';
 import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
-import { profilePath } from '../../paths/paths';
+import { devicesCreateFromHome, profilePath } from '../../paths/paths';
 import { AppDispatch } from '../../app/store';
 
 
@@ -85,8 +85,10 @@ const submitHandler = (enteredDeviceSerialNumberText: string, setShowAddDeviceIn
         dispatch(setSelectedDevice(response.device_id));
         dispatch(setSelectedDeviceSerialNumber(response.serial));
         setShowAddDeviceInstance(false);
-        if (location.pathname.endsWith('create')) {
+        if (location.pathname.endsWith(devicesCreateFromHome)) {
             navigate(-1);
+            alert("Device created! You may add a measurement now");
+            return;
         }
         navigate(profilePath);
     })

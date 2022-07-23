@@ -31,7 +31,7 @@ import { selectUsername } from '../login/loginSlice';
 import { SelectedSublocationForDropdownDisplay, SublocationsDropdown } from '../sublocationsDropdown/SublocationsDropdown';
 import { selectSublocationSelectedLocationID, setSublocationSelectedLocationID } from '../sublocationsDropdown/sublocationSlice';
 import { Link } from 'react-router-dom';
-import { devicesPath } from '../../paths/paths';
+import { devicesCreateFromHome, devicesPath } from '../../paths/paths';
 import { AppDispatch } from '../../app/store';
 import { findSelected } from '../measurements/MeasurementsByDropdown';
 
@@ -164,7 +164,7 @@ const SelectDeviceDropdown = (props: {userDevices: UserDevicesInfo, selectedDevi
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
                     {devicesToDropdown(props.userDevices)}
-                    <Dropdown.Item eventKey={"-1"} as={Link} to={devicesPath}>
+                    <Dropdown.Item eventKey={"-1"} as={Link} to={devicesPath + `/${devicesCreateFromHome}`}>
                         <span>
                             + {translate(loadingOrCreateString)}
                         </span>

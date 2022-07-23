@@ -4,6 +4,9 @@
 export const manufacturersPath: string = '/manufacturers';
 export const homePath: string = '/home';
 export const devicesPath: string = '/devices';
+export const devicesCreateFromHome = 'createUserDevice';
+
+export const devicesPathWithCreate: string = `${devicesPath}/${devicesCreateFromHome}`;
 export const devicesPathWithParam: string = `${devicesPath}/:deviceId`;
 export const profilePath: string = '/profile';
 export const deviceModelsPath: string = '/devicemodels';
