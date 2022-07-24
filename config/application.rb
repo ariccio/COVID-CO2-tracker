@@ -43,8 +43,8 @@ puts "#{Time.now.strftime("%H:%M:%S:%L")}: DONE requiring gems listed in gemfile
 module COVIDCo2Tracker
   class Application < ::Rails::Application
     puts "\t#{Time.now.strftime("%H:%M:%S:%L")}: Start Application class"
-    # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults(6.1)
+    # Initialize configuration defaults for last manually-checked rails version
+    config.load_defaults(7.0)
 
     # TODO: logging filters for google auth storage and stuff https://guides.rubyonrails.org/v3.0/security.html#logging
 
