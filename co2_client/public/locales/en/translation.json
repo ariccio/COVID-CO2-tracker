@@ -100,7 +100,7 @@
     "creating-manufacturer": "Creating manufacturer...",
     "more-info": "More",
     "locality-selected-warning": "Are you sure you want to select a city or town as your place? Try looking for establishments by name!",
-    "aranet4-serial-info": "The Aranet4 serial number is a 12 digit number behind the AA batteries, in the battery compartment. You can also find it in the Aranet4 app after pairing your device, by clicking the gear icon.",
+    "aranet4-serial-info": "The Aranet4 serial number is a 12 digit number behind the AA batteries, in the battery compartment. Common serial numbers start with '38', '37', or '31'. You can also find it in the Aranet4 app after pairing your device, by clicking the gear icon.",
     "set-as-default-place-for-realtime-upload-client": "Choose place for realtime upload",
     "select-sublocation-to-set-as-default-for-realtime-upload": "Choose a sublocation first for realtime upload!"
 }
