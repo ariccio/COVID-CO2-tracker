@@ -87,6 +87,16 @@ require 'active_support/core_ext/integer/time'
   Rails.logger = Logger.new(STDOUT)
   Rails.logger.level = Logger::DEBUG
 
+  # config.after_initialize() do
+  #   pp 'ENV["PORT\"]: ', ENV["PORT"]
+  #   unless ENV.include?("PORT")
+  #     puts 'ENV["PORT"] does not exist! Setting this to 3001 makes this easier for Alexander when he develops :)'
+  #     ENV["PORT"] = "3001"
+  #   else
+  #     puts "PORT environment variable already exists: #{ENV["PORT"]}"
+  #   end
+  # end
+
 end
 
 puts "#{Time.now.strftime("%H:%M:%S:%L")}: end   of config/environments/development.rb\r\n"
