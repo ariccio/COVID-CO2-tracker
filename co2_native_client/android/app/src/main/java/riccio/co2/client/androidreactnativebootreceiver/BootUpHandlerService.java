@@ -29,10 +29,11 @@ public class BootUpHandlerService extends Service {
             // null);
 
             Context context = getApplicationContext();
-            Intent myIntent = new Intent(context, BootUpHandlerService.class);
-            context.startService(myIntent);
+            Log.d("riccio.co2.client", "BootUpHandlerService temporarily disabled until I fix!");
+            // Intent myIntent = new Intent(context, BootUpHandlerService.class);
+            // context.startService(myIntent);
             // HeadlessJsTaskService.acquireWakeLockNow(context);
-            handler.postDelayed(this, 2000);
+            // handler.postDelayed(this, 2000);
         }
     };
 
