@@ -1,0 +1,1 @@
+ruby --debug -w -Wlevel=2 C:\Ruby31-x64\bin\rails
