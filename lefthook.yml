@@ -7,6 +7,8 @@ pre-push:
   scripts:
     "check_validates_timeliness.rb":
       runner: ruby
+    "check_if_googleauth_compat_with_heroku_22.rb":
+      runner: ruby
   # commands:
   #   gems-audit:
   #     tags: backend security
