@@ -1198,10 +1198,10 @@
   dependencies:
     postcss-value-parser "^4.2.0"
 
-"@eslint/create-config@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@eslint/create-config/-/create-config-0.2.0.tgz#692957e0b177b679c0068d64c88a5bf0331f63ea"
-  integrity sha512-Zr2f99H9d3a7ZMewEvVhXTy6OzOaZwTj8DmkjHTgpXNlkDQFixB0tqsnzuAWpKvUdO5eV5kMMrboz+Hoyjsq2w==
+"@eslint/create-config@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@eslint/create-config/-/create-config-0.3.0.tgz#0f4bdd9f137044d9a65feac3f3689febb0c9ed6c"
+  integrity sha512-utnrGDAJqYEtt2pLg5SWRRxV7BO/oG1Q/Kl9vn/H0dRMP2zl5jyXudlb8rJA6vVYhmKnyq1S/DG5DpubDWremA==
   dependencies:
     "@eslint/eslintrc" "^1.0.3"
     cross-spawn "^7.0.2"
