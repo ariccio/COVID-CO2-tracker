@@ -6,6 +6,7 @@
 
 
   config.environment = Rails.env
+  config.enabled_environments = ["production"]
   # To activate performance monitoring, set one of these options.
   # We recommend adjusting the value in production:
   # config.traces_sample_rate = 0
