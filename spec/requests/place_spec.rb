@@ -15,12 +15,12 @@ RSpec.describe("Places", type: :request) do
     # };
     # place: {east: -73.95199022216795, north: 40.777086290641215, south: 40.75885245857517,…}
   
-    let (:default_bounds) {{place: {
+    let (:default_bounds) {{
       east: -73.95199022216795,
       north: 40.777086290641215,
       south: 40.75885245857517,
       west: -73.96640977783201,
-    }}}
+    }}
 
     # https://dev.to/isalevine/intro-to-rspec-in-rails-part-2-improving-tests-with-let-and-context-241n
     context("success") do 
@@ -69,7 +69,7 @@ RSpec.describe("Places", type: :request) do
         end
         it("Renders place in bounds") do
           # 
-          post(api_v1_places_in_bounds_path, params: default_bounds)
+          get(api_v1_places_in_bounds_path, params: default_bounds)
           check_no_error(response, json_response, :ok)
           places_in_bounds = json_response
 

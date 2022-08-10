@@ -32,7 +32,7 @@
       get '/places_by_google_place_id_exists/:google_place_id', to: 'places#place_by_google_place_id_exists'
       get '/my_devices', to: 'users#my_devices'
       # post '/places_near', to: 'places#near'
-      post '/places_in_bounds', to: 'places#in_bounds'
+      get '/places_in_bounds', to: 'places#in_bounds'
       post '/google_login_token', to: 'auth#token_from_google'
       get '/user_last_measurement', to: 'users#last_measurement'
       resources :keys, only: [:show]

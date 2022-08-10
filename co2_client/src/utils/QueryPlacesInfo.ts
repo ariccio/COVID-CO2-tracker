@@ -1,6 +1,6 @@
 import {API_URL, PLACES_BY_GOOGLE_PLACE_ID_EXISTS_ROUTE, PLACES_IN_BOUNDS, SHOW_PLACES_BY_GOOGLE_PLACE_ID_PATH} from './UrlPath';
 import {fetchJSONWithChecks} from './FetchHelpers';
-import {postRequestOptions, userRequestOptions} from './DefaultRequestOptions';
+import {userRequestOptions} from './DefaultRequestOptions';
 import {Errors, formatErrors} from './ErrorObject';
 import {SelectedPlaceDatabaseInfo, setPlacesInfoFromDatabase, setPlacesInfoErrors, setPlaceExistsInDatabase, defaultPlaceInfo, setPlaceMarkersFromDatabase, setPlaceMarkersErrors, defaultPlaceMarkers, placesFromDatabaseForMarker, setPlaceMarkersFetchInProgress, setPlaceMarkersFetchFinishMS, setPlaceMarkersFetchStartMS} from '../features/places/placesSlice';
 
@@ -109,22 +109,37 @@ type nearbyPlacesResponseType = placesFromDatabaseForMarker & {
     errors?: Errors
 }
 
-function inBoundsPlaceRequestInit(northEast: google.maps.LatLng, southWest: google.maps.LatLng): RequestInit {
-    const defaultOptions = postRequestOptions()
-    const place = {
-        east: northEast.lng(),
-        north: northEast.lat(),
-        south: southWest.lat(),
-        west: southWest.lng()
-    };
-    const newOptions = {
-        ...defaultOptions,
-        body: JSON.stringify({
-            place: place
-        })
-    };
-    return newOptions;
+function inBoundsQueryString(northEast: google.maps.LatLng, southWest: google.maps.LatLng): string {
+    // const place = {
+    //     place: {
+    //         east: String(northEast.lng()),
+    //         north: String(northEast.lat()),
+    //         south: String(southWest.lat()),
+    //         west: String(southWest.lng())
+    //     }
+    // };
+    // const params = new URLSearchParams(place)
+    // const encodedString = `?${stringify(place)}`;
+    // return encodedString;
+    return `?east=${northEast.lng()}&north=${northEast.lat()}&south=${southWest.lat()}&west=${southWest.lng()}`;   
 }
+
+// function inBoundsPlaceRequestInit(): RequestInit {
+//     const defaultOptions = userRequestOptions();
+//     // const place = {
+//     //     east: northEast.lng(),
+//     //     north: northEast.lat(),
+//     //     south: southWest.lat(),
+//     //     west: southWest.lng()
+//     // };
+//     // const newOptions = {
+//     //     ...defaultOptions,
+//     //     // body: JSON.stringify({
+//     //     //     place: place
+//     //     // })
+//     // };
+//     return defaultOptions;
+// }
 
 // interface LatLngBoundsLiteral {
 //     /**
@@ -160,7 +175,6 @@ function inBoundsPlaceRequestInit(northEast: google.maps.LatLng, southWest: goog
 
 // This may end up being too slow
 export const queryPlacesInBoundsFromBackend = (northEast: google.maps.LatLng, southWest: google.maps.LatLng, dispatch: AppDispatch) => {
-    const init = inBoundsPlaceRequestInit(northEast, southWest);
     const fetchFailedCallback = async (awaitedResponse: Response): Promise<nearbyPlacesResponseType> => {
         dispatch(setPlaceMarkersFetchFinishMS(performance.now()));
         console.error("Failed to find nearby places!");
@@ -171,8 +185,11 @@ export const queryPlacesInBoundsFromBackend = (northEast: google.maps.LatLng, so
         console.log("TODO: strong type");
         return awaitedResponse.json();
     }
+
+    const stringifiedBounds = inBoundsQueryString(northEast, southWest);
+    const placesInBoundsURLWithQueryString = (PLACES_IN_BOUNDS + stringifiedBounds)
     dispatch(setPlaceMarkersFetchStartMS(performance.now()));
-    const result = fetchJSONWithChecks(PLACES_IN_BOUNDS, init, 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<nearbyPlacesResponseType>;
+    const result = fetchJSONWithChecks(placesInBoundsURLWithQueryString, userRequestOptions(), 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<nearbyPlacesResponseType>;
     return nearbyResultsFetchedCallback(result, dispatch);
 }
 

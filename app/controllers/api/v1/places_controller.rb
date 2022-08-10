@@ -207,8 +207,8 @@ module Api
 
       def in_bounds
         #TODO: Rewrite this API as a GET not a POST. Way overdue.
-        @sw = ::Geokit::LatLng.new(place_bounds_params.fetch(:south), place_bounds_params.fetch(:west))
-        @ne = ::Geokit::LatLng.new(place_bounds_params.fetch(:north), place_bounds_params.fetch(:east))
+        @sw = ::Geokit::LatLng.new(params[:south], params[:west])
+        @ne = ::Geokit::LatLng.new(params[:north], params[:east])
         
         # (byebug) pp ::Place.in_bounds([@sw, @ne]).to_sql
         # nil
@@ -246,7 +246,7 @@ module Api
       end
 
       def place_bounds_params
-        params.require(:place).permit(:east, :north, :west, :south)
+        params.permit(:east, :north, :west, :south, :place, ":place")
       end
 
       def setup_places_client
