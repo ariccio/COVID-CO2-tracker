@@ -15,4 +15,25 @@
   #   permitted << :other if params[:action] == 'create' && current_user.admin?
   #   permitted
   # end
+  show() do
+    panel("all user measurements") do
+      table_for(user.measurement, sortable: true) do
+        column(:measurement)
+        column(:co2ppm)
+        column(:measurementtime) 
+      end
+      table_for(user.measurement) do
+        column(:measurement) do |measurement|
+          measurement
+        end
+        column(:co2ppm) do |co2ppm|
+          co2ppm.co2ppm
+          # pp co2ppm
+        end
+        column(:time) do |time|
+          time.measurementtime
+        end
+      end
+    end
+  end
 end
