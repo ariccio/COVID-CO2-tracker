@@ -41,10 +41,8 @@ import { AppDispatch } from '../../app/store';
 //     </LinkContainer>
 // </>
 
-// ugly casts fixes some kind of bizarre bug in styled components: https://github.com/styled-components/styled-components/issues/1198#issuecomment-336621217
-// as unknown as unknown is my hack to fix THAT bug's interaction with typescript
 const LoggedIn = (props: {username: string}) =>
-  <NavDropdown title={props.username} id="basic-nav-dropdown" flip={1 as unknown as boolean} align="end" renderMenuOnMount>
+  <NavDropdown title={props.username} id="basic-nav-dropdown" align="end" renderMenuOnMount>
     <NavDropdown.Item>
         <LinkContainer to={profilePath}>
             <NavItem className='nav-item'>{props.username}&apos;s profile</NavItem>
