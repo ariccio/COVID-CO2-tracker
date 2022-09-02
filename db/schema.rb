@@ -10,8 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[6.1].define(version: 2022_02_19_192953) do
-
+ActiveRecord::Schema[7.0].define(version: 2022_02_19_192953) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -22,8 +21,8 @@ ActiveRecord::Schema[6.1].define(version: 2022_02_19_192953) do
     t.bigint "resource_id"
     t.string "author_type"
     t.bigint "author_id"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["author_type", "author_id"], name: "index_active_admin_comments_on_author"
     t.index ["namespace"], name: "index_active_admin_comments_on_namespace"
     t.index ["resource_type", "resource_id"], name: "index_active_admin_comments_on_resource"
@@ -33,10 +32,10 @@ ActiveRecord::Schema[6.1].define(version: 2022_02_19_192953) do
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
     t.string "reset_password_token"
-    t.datetime "reset_password_sent_at"
-    t.datetime "remember_created_at"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "reset_password_sent_at", precision: nil
+    t.datetime "remember_created_at", precision: nil
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["email"], name: "index_admin_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_admin_users_on_reset_password_token", unique: true
   end
@@ -45,31 +44,31 @@ ActiveRecord::Schema[6.1].define(version: 2022_02_19_192953) do
     t.string "serial", null: false
     t.bigint "model_id", null: false
     t.bigint "user_id", null: false
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["model_id"], name: "index_devices_on_model_id"
     t.index ["user_id"], name: "index_devices_on_user_id"
   end
 
   create_table "extra_measurement_infos", force: :cascade do |t|
     t.boolean "realtime"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "manufacturers", force: :cascade do |t|
     t.string "name", null: false
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["name"], name: "index_manufacturers_on_name", unique: true
   end
 
   create_table "measurements", force: :cascade do |t|
     t.bigint "device_id", null: false
     t.integer "co2ppm", null: false
-    t.datetime "measurementtime", null: false
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "measurementtime", precision: nil, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.integer "crowding"
     t.bigint "sub_location_id"
     t.bigint "extra_measurement_info_id"
@@ -82,16 +81,16 @@ ActiveRecord::Schema[6.1].define(version: 2022_02_19_192953) do
   create_table "models", force: :cascade do |t|
     t.string "name", null: false
     t.bigint "manufacturer_id", null: false
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["manufacturer_id"], name: "index_models_on_manufacturer_id"
   end
 
   create_table "places", force: :cascade do |t|
     t.string "google_place_id", null: false
-    t.datetime "last_fetched", null: false
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "last_fetched", precision: nil, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.decimal "place_lat", precision: 10, scale: 6
     t.decimal "place_lng", precision: 10, scale: 6
     t.index ["google_place_id"], name: "index_places_on_google_place_id", unique: true
@@ -102,16 +101,16 @@ ActiveRecord::Schema[6.1].define(version: 2022_02_19_192953) do
   create_table "sub_locations", force: :cascade do |t|
     t.string "description", null: false
     t.bigint "place_id", null: false
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["place_id"], name: "index_sub_locations_on_place_id"
   end
 
   create_table "user_settings", force: :cascade do |t|
     t.bigint "realtime_upload_place_id", null: false
     t.bigint "realtime_upload_sub_location_id", null: false
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["realtime_upload_place_id"], name: "index_user_settings_on_realtime_upload_place_id"
     t.index ["realtime_upload_sub_location_id"], name: "index_user_settings_on_realtime_upload_sub_location_id"
@@ -120,8 +119,8 @@ ActiveRecord::Schema[6.1].define(version: 2022_02_19_192953) do
 
   create_table "users", force: :cascade do |t|
     t.string "email"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.string "name"
     t.string "sub_google_uid"
     t.index ["email"], name: "index_users_on_email", unique: true
