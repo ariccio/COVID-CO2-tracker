@@ -17,12 +17,13 @@
   # end
   show() do
     panel("all user measurements") do
-      table_for(user.measurement, sortable: true) do
-        column(:measurement)
-        column(:co2ppm)
-        column(:measurementtime) 
-      end
+      # table_for(user.measurement, sortable: true) do
+      #   column(:measurement)
+      #   column(:co2ppm)
+      #   column(:measurementtime) 
+      # end
       table_for(user.measurement) do
+        byebug
         column(:measurement) do |measurement|
           measurement
         end
