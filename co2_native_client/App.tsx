@@ -33,8 +33,8 @@ import { selectUploadStatus, setUploadStatus } from './src/features/Uploading/up
 import { UserSettingsMaybeDisplay } from './src/features/UserSettings/UserSettingsDisplay';
 import { BluetoothData, isSupportedDevice, useAranet4NextMeasurementTime, useBluetoothConnectAndPollAranet } from './src/features/bluetooth/Bluetooth';
 import { selectDeviceSerialNumberString } from './src/features/bluetooth/bluetoothSlice';
-import { NotifeeNotificationHookState, useNotifeeNotifications, NotificationInfo, stopServiceAndClearNotifications, StartOrStopButton } from './src/features/service/Notification';
-import { setNotificationState } from './src/features/service/serviceSlice';
+import { NotifeeNotificationHookState, useNotifeeNotifications, NotificationInfo, stopServiceAndClearNotifications, StartOrStopButton, booleanIsBackroundPollingUploadingForButton } from './src/features/service/Notification';
+import { selectNotificationState, setNotificationState } from './src/features/service/serviceSlice';
 import { selectSupportedDevices, setSupportedDevices, setUNSupportedDevices } from './src/features/userInfo/devicesSlice';
 import { selectUserName, selectUserSettings, setUserSettings, setUserSettingsErrors } from './src/features/userInfo/userInfoSlice';
 import { unknownNativeErrorTryFormat } from './src/utils/FormatUnknownNativeError';
@@ -562,12 +562,50 @@ function AllSet() {
   )
 }
 
+function MaybeStartText() {
+  const notificationState = useSelector(selectNotificationState);
+  const {loggedIn} = useIsLoggedIn();
+
+  const isBackroundPollingUploadingForButton = booleanIsBackroundPollingUploadingForButton(notificationState);
+  if (!loggedIn) {
+    return (
+      <>
+        <Text>
+          You need to login before you can proceed.
+        </Text>
+      </>
+    );
+  }
+  if (isBackroundPollingUploadingForButton === null) {
+    return (
+      <>
+        <Text>Initializing notification state...</Text>
+      </>
+    );
+
+  }
+  if (isBackroundPollingUploadingForButton === true) {
+    return (
+      <>
+        <Text>If the &quot;stop background polling&quot; button is the only thing you see, you should be all set! You may switch apps.</Text>
+      </>
+    );
+  }
+  
+  return (
+    <>
+      <Text>If the &quot;start background polling & uploading&quot; button is the only thing you see, you need to click it to start automatic data sharing.</Text>
+    </>
+  );
+
+}
+
 function GetStartedScreen() {
 
   return (
     <>
       <SafeAreaProvider>
-        <Text>If the &quot;start background polling and uploading&quot; button is the only thing you see, you should be all set!</Text>
+        <MaybeStartText/>
         <LogInIfNot/>
         <CreateDeviceIfNotYet/>
         <RealtimeUploadSettings/>

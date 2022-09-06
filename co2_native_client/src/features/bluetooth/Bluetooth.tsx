@@ -269,6 +269,12 @@ const BLUETOOTH_SCAN_PERMISSION_RATIONALE: Rationale = {
     buttonPositive: "Ok, enable bluetooth scanning!"
 }
 
+const BLUETOOTH_CONNECT_PERMISSION_RATIONALE: Rationale = {
+    title: "CO2 tracker needs to use bluetooth to work!",
+    message: "I use bluetooth to scan for and talk to your aranet4. Without bluetooth, I can't read your co2ppm. Android wants me to ask for the permission to connect in addition to all the others too, sorry!",
+    buttonPositive: "Ok, enable bluetooth connection!"
+}
+
 const LOCATION_PERMISSION_RATIONALE: Rationale = {
     title: ALERT_TITLE,
     message: PERMISSION_MESSAGE_TEXT,
@@ -307,6 +313,10 @@ const SCAN_PERMISSION_STRING = 'android.permission.BLUETOOTH_SCAN';
 
 function logBluetoothScanPermissionProbablyNotAvailable(): void {
     console.log(`On Platform.Version ${Platform.Version}, BLUETOOTH_SCAN may not be a permission yet. So, NEVER_ASK_AGAIN isn't a problem, it's just the default that react native on android returns for a non-extant permission. This is also a limitation in android itself.`);
+}
+
+function logBluetoothConnectScanPermissionProbablyNotAvailable(): void {
+    console.log(`On Platform.Version ${Platform.Version}, BLUETOOTH_CONNECT may not be a permission yet. So, NEVER_ASK_AGAIN isn't a problem, it's just the default that react native on android returns for a non-extant permission. This is also a limitation in android itself.`);
 }
 
 const checkBluetoothScanPermissions = async(dispatch: AppDispatch): Promise<boolean> => {
@@ -358,6 +368,56 @@ const requestFineLocationPermission = async(dispatch: AppDispatch): Promise<bool
         return true;
     }
 
+    return false;
+}
+
+const requestBluetoothConnectPermission = async(dispatch: AppDispatch): Promise<boolean> => {
+    dispatch(setScanningStatusString('Requesting BLUETOOTH_CONNECT permission (needed for bluetooth low energy)...'));
+    try {
+        const bluetoothConnectPermissionResult = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT, BLUETOOTH_CONNECT_PERMISSION_RATIONALE)
+        if (bluetoothConnectPermissionResult === PermissionsAndroid.RESULTS.GRANTED) {
+            dispatch(setScanningStatusString('BLUETOOTH_CONNECT permission granted! May need scan permission too...'));
+        }
+        else if (bluetoothConnectPermissionResult === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
+            console.log(`Platform.version: ${Platform.Version}`);
+            if (Platform.Version <= 29) {
+                logBluetoothConnectScanPermissionProbablyNotAvailable();
+                dispatch(setScanningStatusString(null));
+                dispatch(setHasBluetooth(true));
+
+            }
+            else {
+                console.warn(`Android has returned ${bluetoothConnectPermissionResult} for PermissionsAndroid.request(${SCAN_PERMISSION_STRING}). I've seen some kind of weird bug when this is false, and that may be because it doesn't exist on some platforms, so it may be worth trying anyways.`);
+                dispatch(setScanningStatusString(`Bluetooth scan permission supposedly denied by user PERMANENTLY, may be a bug, will try anyways.`));
+                dispatch(setHasBluetooth(true));
+            }
+            if (!__DEV__) {
+                // Shut up sentry warning for now.
+                Sentry.Native.captureMessage(`NEVER_ASK_AGAIN seen.`);
+            }
+            // await bluetoothNeverAskAgainDialogMaybeSettings(dispatch);
+            // // IF this was IOS, we could call Linking.openSettings: https://docs.expo.dev/versions/latest/sdk/linking/#linkingopensettings
+            // dispatch(setScanningStatusString(`Bluetooth scan permission denied by user PERMANENTLY: ${bluetoothScanPermissionResult}`));
+            // dispatch(setHasBluetooth(false));
+            // return;
+        }
+
+        else {
+            console.log(`no good: ${bluetoothConnectPermissionResult}`);
+            dispatch(setScanningStatusString(`BLUETOOTH_CONNECT permission denied by user: ${bluetoothConnectPermissionResult}`));
+            dispatch(setHasBluetooth(false));
+            debugger;
+            // Denied
+            // Do something
+            return true;
+        }
+
+    }
+    catch(error) {
+        dispatch(setScanningStatusString(`Some kind of unexpected error when requesting bluetooth connect permission: ${unknownNativeErrorTryFormat(error)}`));
+        Sentry.Native.captureException(error);
+        return true;
+    }
     return false;
 }
 
@@ -435,6 +495,10 @@ const requestAllBluetoothPermissions = async (dispatch: AppDispatch) => {
         return;
     }
 
+    const shouldReturnBecauseErrorOrOtherIssueInBluetoothConnectPermissionsCheck = await requestBluetoothConnectPermission(dispatch);
+    if (shouldReturnBecauseErrorOrOtherIssueInBluetoothConnectPermissionsCheck) {
+        return;
+    }
 
     console.log(`Requesting bluetooth scan permission... ${SCAN_PERMISSION_STRING as Permission}`);
     dispatch(setScanningStatusString('Requesting permission to scan bluetooth...'));
@@ -1714,7 +1778,7 @@ export const BluetoothData: React.FC<{ knownDevice: boolean | null, nextMeasurem
             <MaybeIfValue text="bluetooth status: " value={bluetoothScanningStatus} />
             <MaybeIfValue text="bluetooth errors: " value={(bluetoothScanningErrorStatus.length > 0) ? bluetoothScanningErrorStatus : null} />
             <MaybeIfValue text="Device status: " value={deviceStatus}/>
-            <Text>Updates from device this session: {updateCount}</Text>
+            <Text>Local reads from device this session: {updateCount}</Text>
             <MaybeIfValue text="id: " value={id} />
             <MaybeIfValue text="name: " value={name} />
             

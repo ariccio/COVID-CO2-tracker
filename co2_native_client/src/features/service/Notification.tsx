@@ -359,6 +359,21 @@ const onClickStopNotificationButton = (dispatch: AppDispatch) => {
     // handleClickStopNotification();
 }
 
+export function booleanIsBackroundPollingUploadingForButton(notificationState: NotifeeNotificationHookState | undefined): boolean | null {
+
+    if (notificationState === undefined) {
+        return null;
+    }
+
+    if (
+        (notificationState !== undefined ) && 
+        notificationState.notificationID && notificationState.triggerNotification && notificationState.channelID) {
+        return true;
+    }
+    return false;
+
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const StartOrStopButton = (props: {onPressAction?: () => any}) => {
     const dispatch = useDispatch();
@@ -370,13 +385,12 @@ export const StartOrStopButton = (props: {onPressAction?: () => any}) => {
         }
     }
 
-    if (notificationState === undefined) {
+    const isBackroundPollingUploadingForButton = booleanIsBackroundPollingUploadingForButton(notificationState);
+    if (isBackroundPollingUploadingForButton === null) {
         return null;
     }
-    // if (props.notificationState)
-    if (
-        (notificationState !== undefined ) && 
-        notificationState.notificationID && notificationState.triggerNotification && notificationState.channelID) {
+
+    if (isBackroundPollingUploadingForButton) {
         return (
             <>
                 <Button title="Stop background polling" onPress={() => {onClickStopNotificationButton(dispatch)}}/>
