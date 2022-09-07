@@ -3,7 +3,7 @@
     "name": "co2_native_client",
     "slug": "co2_native_client",
     "jsEngine": "hermes",
-    "version": "1.0.20",
+    "version": "1.0.21",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -19,7 +19,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "buildNumber": "1.0.20"
+      "buildNumber": "1.0.21"
     },
     "android": {
       "adaptiveIcon": {
@@ -35,7 +35,7 @@
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.hardware.bluetooth_le"
       ],
-      "versionCode": 450010020,
+      "versionCode": 450010021,
       "package": "riccio.co2.client"
     },
     "web": {
