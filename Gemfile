@@ -67,7 +67,7 @@ gem 'geokit-rails'
 gem 'google_places'
 
 # gem 'google_sign_in'
-gem 'googleauth'
+gem 'googleauth', github: "googleapis/google-auth-library-ruby", ref: "81bf4e8e6298652878ff39461789128a2b69f4d9"
 
 gem 'activeadmin'
 gem 'devise' # for activeadmin
