@@ -1584,9 +1584,9 @@
     "@babel/runtime" "^7.6.2"
 
 "@react-google-maps/api@^2.7.0":
-  version "2.12.2"
-  resolved "https://registry.yarnpkg.com/@react-google-maps/api/-/api-2.12.2.tgz#284e4149bdf4a28077adaea162f23a7c504e1b05"
-  integrity sha512-o1WDdhaGta9c/pNpqydDrncxz4XcKJ4uT6aDXCCkfy5h7i71v8fYNkpxPye3l8S3ErQgkW5SPcFj8A6/AU9mdA==
+  version "2.13.1"
+  resolved "https://registry.yarnpkg.com/@react-google-maps/api/-/api-2.13.1.tgz#2e04afc2674eb1e869032f822c0ced8df19ea024"
+  integrity sha512-5P8H3GJpCy9th5u6OUzw36WD5NUAl3hDmcPDaVvowRb9Cn2Zf7b1wLCZ4If+k+gX4o2apsSjD+JtWiRogLOMdQ==
   dependencies:
     "@googlemaps/js-api-loader" "1.14.3"
     "@googlemaps/markerclusterer" "2.0.10"
@@ -2151,9 +2151,9 @@
   integrity sha512-EQHhixfu+mkqHMZl1R2Ovuvn47PUw18azMJOTwSZr9/fhzHNGXAJ0ma0dayRVchprpCj0Kc1K1xKoWaATWF1qg==
 
 "@types/node@^18.6.3":
-  version "18.6.3"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.6.3.tgz#4e4a95b6fe44014563ceb514b2598b3e623d1c98"
-  integrity sha512-6qKpDtoaYLM+5+AFChLhHermMQxc3TOEFIDzrZLPRGHPrLEwqFkkT5Kx3ju05g6X7uDPazz3jHbKPX0KzCjntg==
+  version "18.7.21"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.7.21.tgz#63ee6688070e456325b6748dc492a7b948593871"
+  integrity sha512-rLFzK5bhM0YPyCoTC8bolBjMk7bwnZ8qeZUBslBfjZQou2ssJdWslx9CZ8DGM+Dx7QXQiiTVZ/6QO6kwtHkZCA==
 
 "@types/parse-json@^4.0.0":
   version "4.0.0"
