@@ -55,6 +55,36 @@ public class MainActivity extends DevMenuAwareReactActivity {
     ));
   }
 
+
+  /**
+   * 
+   * 
+   * copied and pasted from upgrade helper, but left commented out by me/ariccio, 9/26/2022.
+   * 
+   * "New delegate and enabling Fabric in ReactRootView is only required for the new architecture builds."
+   * 
+   * Returns the instance of the {@link ReactActivityDelegate}. There the RootView is created and
+   * you can specify the rendered you wish to use (Fabric or the older renderer).
+   
+  @Override
+  protected ReactActivityDelegate createReactActivityDelegate() {
+    return new MainActivityDelegate(this, getMainComponentName());
+  }
+  public static class MainActivityDelegate extends ReactActivityDelegate {
+    public MainActivityDelegate(ReactActivity activity, String mainComponentName) {
+      super(activity, mainComponentName);
+    }
+    @Override
+    protected ReactRootView createRootView() {
+      ReactRootView reactRootView = new ReactRootView(getContext());
+      // If you opted-in for the New Architecture, we enable the Fabric Renderer.
+      reactRootView.setIsFabric(BuildConfig.IS_NEW_ARCHITECTURE_ENABLED);
+      return reactRootView;
+    }
+  }
+*/
+
+
   /**
    * Align the back button behavior with Android S
    * where moving root activities to background instead of finishing activities.
