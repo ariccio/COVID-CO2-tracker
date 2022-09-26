@@ -45,7 +45,7 @@
     "sentry-expo": "^4.2.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.12.9",
+    "@babel/core": "^7.19.1",
     "@babel/preset-typescript": "^7.16.7",
     "@eslint/create-config": "^0.1.2",
     "@rnx-kit/dep-check": "^1.12.17",
