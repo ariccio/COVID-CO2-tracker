@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@config-plugins/react-native-ble-plx": "^3.0.0",
-    "@notifee/react-native": "4.1.0",
+    "@notifee/react-native": "5.7.0",
     "@react-navigation/material-top-tabs": "^6.1.1",
     "@react-navigation/native": "^6.0.8",
     "@reduxjs/toolkit": "^1.7.1",

@@ -1,4 +1,4 @@
-import notifee, {IOSNotificationSettings, Notification, EventType, Event, TriggerType, TimeUnit, IntervalTrigger, AndroidImportance} from '@notifee/react-native';
+import notifee, {NotificationSettings, Notification, EventType, Event, TriggerType, TimeUnit, IntervalTrigger, AndroidImportance} from '@notifee/react-native';
 import { ActivityAction, IntentLauncherParams, IntentLauncherResult, startActivityAsync } from 'expo-intent-launcher';
 import {useState, useEffect, useRef} from 'react';
 import { Button, AppState, AppStateStatus } from 'react-native';
@@ -103,7 +103,7 @@ async function checkedCreateChannel(dispatch: AppDispatch): Promise<string | nul
     }
 }
 
-async function checkedRequestPermission(dispatch: AppDispatch): Promise<IOSNotificationSettings | null> {
+async function checkedRequestPermission(dispatch: AppDispatch): Promise<NotificationSettings | null> {
     try {
         return await notifee.requestPermission();
     }
@@ -260,8 +260,8 @@ async function onDisplayNotification(setDisplayNotificationErrors: React.Dispatc
 
     // Required for iOS
     // See https://notifee.app/react-native/docs/ios/permissions
-    await checkedRequestPermission(dispatch);
-
+    const settings = await checkedRequestPermission(dispatch);
+    console.log(`notification permission settings: ${JSON.stringify(settings)}`);
 
     const notificationWithChannel = defaultNotification(channelId);
     try {
