@@ -10,8 +10,8 @@ pre-push:
       runner: ruby
     "check_if_googleauth_compat_with_heroku_22.rb":
       runner: ruby
-    "check_if_new_expo_for_notifee.js"
-      runner: node
+    # "check_if_new_expo_for_notifee.js":
+    #   runner: node
   # commands:
   #   gems-audit:
   #     tags: backend security
