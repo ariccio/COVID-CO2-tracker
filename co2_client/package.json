@@ -14,7 +14,7 @@
     "@testing-library/user-event": "^14.2.0",
     "@types/google.maps": "^3.47.3",
     "@types/jest": "^29.0.3",
-    "@types/node": "^18.7.22",
+    "@types/node": "^18.8.2",
     "@types/react": "^18.0.12",
     "@types/react-bootstrap": "^0.32.28",
     "@types/react-datepicker": "^4.3.2",
