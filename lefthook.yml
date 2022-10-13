@@ -10,6 +10,11 @@ pre-push:
       runner: ruby
     "check_if_googleauth_compat_with_heroku_22.rb":
       runner: ruby
+  commands:
+    test-backend:
+      run: rspec ./spec
+    test-frontend:
+      run: yarn --cwd ./co2_client run test --all --watchAll=false --silent
     # "check_if_new_expo_for_notifee.js":
     #   runner: node
   # commands:
