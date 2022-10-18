@@ -25,7 +25,9 @@
       table_for(user.measurement) do
 
         # YES this sucks but will finish dev later.
-        byebug unless Rails.env.production?
+        if Rails.env.development?
+          byebug          
+        end
         column(:measurement) do |measurement|
           measurement
         end
