@@ -7,7 +7,7 @@ require 'gems'
 #     validates_timeliness_in_rubygems = "#{RUBYGEMS_API_BASE_URL}/validates_timeliness"
 # end
 
-CURRENT_VERSION = '6.0.0.beta2'
+CURRENT_VERSION = '6.0.0'
 # CURRENT_VERSION = 'fartipelago'
 VALIDATES_TIMELINESS = 'validates_timeliness'
 
