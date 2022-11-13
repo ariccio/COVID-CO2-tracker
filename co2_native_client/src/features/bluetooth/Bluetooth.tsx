@@ -281,19 +281,46 @@ const LOCATION_PERMISSION_RATIONALE: Rationale = {
     buttonPositive: "Ok, enable location!"
 }
 
+const androidPermissions = async (dispatch: AppDispatch): Promise<boolean> => {
+    const hasLocationAlready = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
+    console.log(`Location available: ${hasLocationAlready}`);
+    if (!hasLocationAlready) {
+        const deny = await messages(dispatch);
+        if (deny) {
+            console.log("User denied?");
+            return true;
+        }
+        console.log("User allowed?");
+    }
+    return false;
+}
+
+const iosPermissions = async (dispatch: AppDispatch): Promise<boolean> => {
+    console.log("Not sure what to do for IOS permissions?!")
+    return false;
+}
+
 const maybeNeedPromptUserAboutLocationPermissions = async (dispatch: AppDispatch): Promise<boolean> => {
     dispatch(setScanningStatusString('Need permission to use bluetooth first.'));
     try {
         console.log("Checking if location is available already...");
-        const hasLocationAlready = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
-        console.log(`Location available: ${hasLocationAlready}`);
-        if (!hasLocationAlready) {
-            const deny = await messages(dispatch);
-            if (deny) {
-                console.log("User denied?");
-                return true;
+        const os = Platform.OS;
+        console.log(`On platform: '${os}'`);
+        switch (os) {
+            case ('ios'): {
+                const iosResult = await iosPermissions(dispatch);
+                if (iosResult) {
+                    return true;
+                }
+                break;
             }
-            console.log("User allowed?");
+            case ('android') : {
+                const androidResult = await androidPermissions(dispatch);
+                if (androidResult) {
+                    return true;
+                }
+                break;
+            }
         }
     }
     catch (error) {

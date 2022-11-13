@@ -5,7 +5,7 @@ import { AuthSessionResult } from 'expo-auth-session';
 import * as Google from 'expo-auth-session/providers/google';
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
-import {useEffect, useState} from 'react';
+import {useEffect, useState, useMemo} from 'react';
 import { Button } from 'react-native';
 // import AlertAsync from "react-native-alert-async";
 import { useDispatch, useSelector } from 'react-redux';
@@ -454,6 +454,9 @@ const {manifest} = Constants;
 const devAndroidClientID = '460477494607-6ur80br687qibpif8qhnll3275rjn2bb.apps.googleusercontent.com';
 
 const prodAndroidClientID = '460477494607-m8j9n9k6kbo9cdokdaq243dgn57khkkq.apps.googleusercontent.com';
+
+
+
 function getAndroidClientID(): string {
   if ((typeof manifest?.packagerOpts === `object`) ) {
     if (manifest.packagerOpts.dev || __DEV__ ) {
@@ -466,6 +469,24 @@ function getAndroidClientID(): string {
   }
   // console.log("using android prod oauth client id");
   return prodAndroidClientID;
+}
+
+
+const devIosClientID = '460477494607-jritv1947a7e0ku5bdi8uag6jot8b29f.apps.googleusercontent.com';
+const prodIosClientID = '460477494607-0e20ijqlb44inf0p2tf5n09q7j6148gq.apps.googleusercontent.com';
+
+function getIosClientID(): string {
+  if ((typeof manifest?.packagerOpts === `object`) ) {
+    if (manifest.packagerOpts.dev || __DEV__ ) {
+      if (manifest === undefined) {
+        console.error(`Something is VERY broken - manifest is undefined - Will try default (${devIosClientID})...`);
+      }
+      // console.log("using android dev oauth client id");
+      return devIosClientID;
+    }
+  }
+  // console.log("using android prod oauth client id");
+  return prodIosClientID;
 }
 
 
@@ -486,7 +507,8 @@ export const useGoogleAuthForCO2Tracker = () => {
   const [idToken, setIDToken] = useState(null as (string | null));
   const requestPromptAsync = useSelector(selectRequestPromptAsync);
 
-  const androidClientId = getAndroidClientID();
+  const androidClientId = useMemo(getAndroidClientID, []);
+  const iosClientId = useMemo(getIosClientID, []);
   /*
     Ok, so this:
     redirectUri: "riccio.co2.client:/oauthredirect",
@@ -494,7 +516,7 @@ export const useGoogleAuthForCO2Tracker = () => {
   */
   const config: Partial<Google.GoogleAuthRequestConfig> = {
     // expoClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
-    // iosClientId: 'GOOGLE_GUID.apps.googleusercontent.com',
+    iosClientId: iosClientId,
     androidClientId
     }
 
