@@ -8,6 +8,8 @@ pre-push:
   scripts:
     "check_validates_timeliness.rb":
       runner: ruby
+    "remind_i18next_typescript.rb":
+      runner: ruby  
   commands:
     test-backend:
       run: rspec ./spec

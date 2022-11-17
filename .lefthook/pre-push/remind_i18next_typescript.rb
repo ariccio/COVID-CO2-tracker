@@ -1,0 +1,1 @@
+pp "remember! i18next has typescript support! Todo: https://www.i18next.com/overview/typescript"
