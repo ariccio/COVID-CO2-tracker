@@ -21,6 +21,7 @@ def run
     end
     
     puts "Possible new version #{VALIDATES_TIMELINESS} available: #{correct_latest_version}"
+    puts "Check to see if he's fixed the bug that STILL blocks. See: https://github.com/adzap/validates_timeliness/pull/213#issuecomment-1157109678 and https://github.com/adzap/validates_timeliness/issues/221"
     # Lefthook will treat this as a fail and stop the push.
     exit(1)
 end
