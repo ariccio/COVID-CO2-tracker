@@ -182,7 +182,8 @@ const HomePage = () => {
 
     useEffect(() => {
         if ((currentPlace.types) && (currentPlace.types[0] === 'locality')) {
-            setLocalitySelectedWarningString(translate("locality-selected-warning"))
+            const translatedString = translate("locality-selected-warning");
+            setLocalitySelectedWarningString(translatedString);
         }
         else {
             setLocalitySelectedWarningString('');
