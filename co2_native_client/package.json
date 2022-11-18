@@ -20,6 +20,7 @@
     "expo": "~46.0.16",
     "expo-application": "~4.2.2",
     "expo-auth-session": "~3.7.1",
+    "expo-cli": "^6.0.8",
     "expo-constants": "~13.2.4",
     "expo-dev-client": "~1.2.1",
     "expo-device": "~4.3.0",
