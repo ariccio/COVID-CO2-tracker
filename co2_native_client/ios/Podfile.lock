@@ -17,7 +17,7 @@ PODS:
   - EXJSONUtils (0.3.0)
   - EXManifests (0.3.0):
     - EXJSONUtils
-  - Expo (46.0.16):
+  - Expo (46.0.17):
     - ExpoModulesCore
   - expo-dev-client (1.2.1):
     - EXManifests
@@ -91,16 +91,16 @@ PODS:
     - expo-dev-menu/GestureHandler
     - expo-dev-menu/Reanimated
     - expo-dev-menu/SafeAreaView
-  - ExpoCrypto (11.0.0):
+  - ExpoCrypto (12.0.0):
     - ExpoModulesCore
-  - ExpoKeepAwake (10.2.0):
+  - ExpoKeepAwake (10.2.1):
     - ExpoModulesCore
-  - ExpoModulesCore (0.11.8):
+  - ExpoModulesCore (0.11.9):
     - React-Core
     - ReactCommon/turbomodule/core
   - ExpoRandom (12.3.0):
     - ExpoModulesCore
-  - ExpoWebBrowser (11.0.0):
+  - ExpoWebBrowser (12.0.0):
     - ExpoModulesCore
   - EXSecureStore (11.3.0):
     - ExpoModulesCore
@@ -664,16 +664,16 @@ SPEC CHECKSUMS:
   EXFont: 06df627203afcb8a3b3152ec06eb2f11f46f0cff
   EXJSONUtils: 2a74b8f40f1523cc3f92af99c91aa78201737a77
   EXManifests: 0c6134b7b6f3236a93a778c3f44ba1cfb3f9fa3d
-  Expo: 7ac824960a6059d6c68e73f432c8e6bf6d92a0ef
+  Expo: 4de8a31146bb0480353b3ed1850e015c4862625f
   expo-dev-client: 258dd6da471e23b8671a3634003e4c0ff55aaeda
   expo-dev-launcher: c0c466fe8fbda8a2e34e1c69e1b87df237698599
   expo-dev-menu: ab1e9353dbc761d5b62b1fc909f38e866857feba
   expo-dev-menu-interface: 27047461614aee1dc082cacc0e0f5b4c7b8edd1b
-  ExpoCrypto: e534314db0e1a17ae12b5140d529bd0c5efcbc6a
-  ExpoKeepAwake: 0e8f18142e71bbf2c7f6aa66ebed249ba1420320
-  ExpoModulesCore: 39ec590ce622289c060183aba57f77b1e73b4e11
+  ExpoCrypto: 51e7662c7f5bfeab25b7909b8a5d545ec15d4877
+  ExpoKeepAwake: 8b47e5358d54ea4922b630a74f2acb026ab7a28b
+  ExpoModulesCore: f9d1730cc2dde38e46b0becb97628b3ebbd29f21
   ExpoRandom: f9f1faa299a40733867f344d6b7bfa2d1f4ab04d
-  ExpoWebBrowser: 5804ac42a8269d0e534bc4461993005f72535649
+  ExpoWebBrowser: 073e50f16669d498fb49063b9b7fe780b24f7fda
   EXSecureStore: ac4b3c89dd5810528074d9422d5fed5a9e684467
   EXSplashScreen: 799bece80089219b2c989c1082d70f3b00995cda
   EXStructuredHeaders: 5d86829469399370a9fc7cb1e4391b09de87681d
