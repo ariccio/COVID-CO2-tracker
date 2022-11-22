@@ -6,8 +6,6 @@
 pre-push:
   parallel: true
   scripts:
-    "check_validates_timeliness.rb":
-      runner: ruby
     "remind_i18next_typescript.rb":
       runner: ruby  
   commands:
