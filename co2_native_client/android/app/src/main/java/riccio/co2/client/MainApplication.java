@@ -56,8 +56,7 @@ public class MainApplication extends Application implements ReactApplication {
   @Override
   public ReactNativeHost getReactNativeHost() {
     if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
-      throw new Error("Dear alexander: You have not migrated yet :)");
-      // return mNewArchitectureNativeHost;
+      return mNewArchitectureNativeHost;
     } else {
       return mReactNativeHost;
     }
