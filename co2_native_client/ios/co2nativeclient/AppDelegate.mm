@@ -46,6 +46,7 @@ static NSString *const kRNConcurrentRoot = @"concurrentRoot";
 #endif
 
   NSDictionary *initProps = [self prepareInitialProps];
+  // See for non-standard code: https://github.com/expo/expo/issues/17749#issuecomment-1234856587
   UIView *rootView = [self.reactDelegate createRootViewWithBridge:bridge moduleName:@"main" initialProperties:initProps];
 
   rootView.backgroundColor = [UIColor whiteColor];
