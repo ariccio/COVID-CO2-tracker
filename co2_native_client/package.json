@@ -10,17 +10,17 @@
   },
   "dependencies": {
     "@config-plugins/react-native-ble-plx": "^3.0.0",
+    "@expo/cli": "0.4.10",
     "@notifee/react-native": "5.7.0",
     "@react-navigation/material-top-tabs": "^6.1.1",
     "@react-navigation/native": "^6.0.8",
     "@reduxjs/toolkit": "^1.7.1",
-    "@sentry/react-native": "4.2.2",
+    "@sentry/react-native": "4.9.0",
     "big-integer": "^1.6.51",
     "buffer": "^6.0.3",
-    "expo": "^47.0.0",
+    "expo": "^47.0.8",
     "expo-application": "~5.0.1",
     "expo-auth-session": "~3.7.2",
-    "expo-cli": "^6.0.8",
     "expo-constants": "~14.0.2",
     "expo-dev-client": "~2.0.1",
     "expo-device": "~5.0.0",
@@ -30,10 +30,10 @@
     "expo-splash-screen": "~0.17.5",
     "expo-status-bar": "~1.4.2",
     "expo-updates": "~0.15.6",
-    "react": "18.1.0",
-    "react-devtools-core": "4.23.0",
-    "react-dom": "18.1.0",
-    "react-native": "0.70.5",
+    "react": "18.2.0",
+    "react-devtools-core": "4.26.1",
+    "react-dom": "18.2.0",
+    "react-native": "0.70.6",
     "react-native-alert-async": "^1.0.5",
     "react-native-ble-plx": "^2.0.3",
     "react-native-create-bridge": "^2.0.1",
@@ -43,7 +43,7 @@
     "react-native-tab-view": "^3.1.1",
     "react-native-web": "~0.18.7",
     "react-redux": "^8.0.4",
-    "sentry-expo": "~5.0.0",
+    "sentry-expo": "~6.0.0",
     "update-browserslist-db": "^1.0.9"
   },
   "devDependencies": {
@@ -75,7 +75,10 @@
   },
   "private": true,
   "resolutions": {
-    "react-devtools-core": "<4.11.0"
+    "standard-version-expo/**/@expo/config": "~7.0.2",
+    "expo-cli/@expo/prebuild-config": "~5.0.7",
+    "@expo/**/@expo/prebuild-config": "~5.0.7",
+    "@expo/prebuild-config": "~5.0.7"
   },
   "rnx-kit": {
     "reactNativeVersion": "^0.68.1",
