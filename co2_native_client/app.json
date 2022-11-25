@@ -45,7 +45,8 @@
     },
     "plugins": [
       "@config-plugins/react-native-ble-plx",
-      "@notifee/react-native"
+      "@notifee/react-native",
+      "sentry-expo"
     ],
     "hooks": {
       "postPublish": [
