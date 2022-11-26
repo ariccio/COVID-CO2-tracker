@@ -281,7 +281,7 @@ const LOCATION_PERMISSION_RATIONALE: Rationale = {
     buttonPositive: "Ok, enable location!"
 }
 
-const androidPermissions = async (dispatch: AppDispatch): Promise<boolean> => {
+const androidUserLocationPermissions = async (dispatch: AppDispatch): Promise<boolean> => {
     const hasLocationAlready = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
     console.log(`Location available: ${hasLocationAlready}`);
     if (!hasLocationAlready) {
@@ -295,10 +295,10 @@ const androidPermissions = async (dispatch: AppDispatch): Promise<boolean> => {
     return false;
 }
 
-const iosPermissions = async (dispatch: AppDispatch): Promise<boolean> => {
-    console.log("Not sure what to do for IOS permissions?!")
-    return false;
-}
+// const iosUserLocationPermissions = async (dispatch: AppDispatch): Promise<boolean> => {
+//     console.log("Not sure what to do for IOS permissions?!")
+//     return false;
+// }
 
 const maybeNeedPromptUserAboutLocationPermissions = async (dispatch: AppDispatch): Promise<boolean> => {
     dispatch(setScanningStatusString('Need permission to use bluetooth first.'));
@@ -308,14 +308,18 @@ const maybeNeedPromptUserAboutLocationPermissions = async (dispatch: AppDispatch
         console.log(`On platform: '${os}'`);
         switch (os) {
             case ('ios'): {
-                const iosResult = await iosPermissions(dispatch);
-                if (iosResult) {
-                    return true;
-                }
-                break;
+                // const iosResult = await iosUserLocationPermissions(dispatch);
+                // if (iosResult) {
+                //     return true;
+                // }
+                // break;
+
+                console.log("No location permissions needed on ios?.");
+                return true;
+
             }
             case ('android') : {
-                const androidResult = await androidPermissions(dispatch);
+                const androidResult = await androidUserLocationPermissions(dispatch);
                 if (androidResult) {
                     return true;
                 }
@@ -347,6 +351,12 @@ function logBluetoothConnectScanPermissionProbablyNotAvailable(): void {
 }
 
 const checkBluetoothScanPermissions = async(dispatch: AppDispatch): Promise<boolean> => {
+    const os = Platform.OS;
+    if (os === 'ios') {
+        console.log("No bluetooth scan permissions needed on ios?.");
+        return false;
+    }
+
     try {
         console.log("Checking if bluetooth scan permission is available already...");
         const hasBluetoothScanAlready = await PermissionsAndroid.check(SCAN_PERMISSION_STRING as Permission);
@@ -369,7 +379,14 @@ const checkBluetoothScanPermissions = async(dispatch: AppDispatch): Promise<bool
 
 
 const requestFineLocationPermission = async(dispatch: AppDispatch): Promise<boolean> => {
+    const os = Platform.OS;
+    if (os === 'ios') {
+        console.log("No location permissions needed on ios?.");
+        return false;
+    }
     dispatch(setScanningStatusString('Requesting fine location permission (needed for bluetooth low energy)...'));
+
+
     //https://reactnative.dev/docs/permissionsandroid
     try {
         const fineLocationResult = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION, LOCATION_PERMISSION_RATIONALE);
@@ -399,6 +416,12 @@ const requestFineLocationPermission = async(dispatch: AppDispatch): Promise<bool
 }
 
 const requestBluetoothConnectPermission = async(dispatch: AppDispatch): Promise<boolean> => {
+    const os = Platform.OS;
+    if (os === 'ios') {
+        console.log("No bluetooth connect permissions needed on ios?.");
+        return false;
+    }
+
     dispatch(setScanningStatusString('Requesting BLUETOOTH_CONNECT permission (needed for bluetooth low energy)...'));
     try {
         const bluetoothConnectPermissionResult = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT, BLUETOOTH_CONNECT_PERMISSION_RATIONALE)
@@ -450,6 +473,12 @@ const requestBluetoothConnectPermission = async(dispatch: AppDispatch): Promise<
 
 
 const requestBluetoothScanPermission = async(dispatch: AppDispatch) => {
+    const os = Platform.OS;
+    if (os === 'ios') {
+        console.log("No need to request permissions on ios?.");
+        return false;
+    }
+
     try {
         //Work around android.permission.BLUETOOTH_SCAN not existing in old version of react native...
         const bluetoothScanPermissionResult = await PermissionsAndroid.request(SCAN_PERMISSION_STRING as Permission, BLUETOOTH_SCAN_PERMISSION_RATIONALE);
