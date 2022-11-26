@@ -352,6 +352,7 @@ function loadSettings(jwt: string | null, userName: string | null | undefined, d
     if (response === null) {
       console.log("user has no settings.");
       dispatch(setUserSettingsErrors('User has not created settings.'));
+      dispatch(setUserSettings(null));
       return;
     }
     // console.log(`Got user settings response: ${JSON.stringify(response)}`);

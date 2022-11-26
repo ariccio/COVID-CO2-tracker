@@ -301,7 +301,7 @@ const androidUserLocationPermissions = async (dispatch: AppDispatch): Promise<bo
 // }
 
 const maybeNeedPromptUserAboutLocationPermissions = async (dispatch: AppDispatch): Promise<boolean> => {
-    dispatch(setScanningStatusString('Need permission to use bluetooth first.'));
+    
     try {
         console.log("Checking if location is available already...");
         const os = Platform.OS;
@@ -313,12 +313,13 @@ const maybeNeedPromptUserAboutLocationPermissions = async (dispatch: AppDispatch
                 //     return true;
                 // }
                 // break;
-
+                dispatch(setScanningStatusString(null));
                 console.log("No location permissions needed on ios?.");
                 return true;
 
             }
             case ('android') : {
+                dispatch(setScanningStatusString('Need permission to use bluetooth first.'));
                 const androidResult = await androidUserLocationPermissions(dispatch);
                 if (androidResult) {
                     return true;
@@ -1645,9 +1646,12 @@ export function isSupportedDevice(supportedDevices: UserInfoDevice[] | null, ser
     if (!serialNumber) {
         return false;
     }
+    console.log(`Supported devices: ${supportedDevices}`);
+    console.log(`Serial number: ${serialNumber}`);
 
     const isKnown = supportedDevices.find((device) => device.serial === serialNumber);
     // debugger;
+    console.log(`is ${serialNumber} known?: ${isKnown}`);
     return (isKnown !== undefined);
 }
 
@@ -1841,7 +1845,7 @@ export const BluetoothData: React.FC<{ knownDevice: boolean | null, nextMeasurem
             <RSSIOrWeakRSSI rssi={rssi}/>
             <MaybeIfValue text="Serial number: " value={serialNumber} />
             <MaybeIfValue text="Battery: " value={deviceBatteryLevel} suffix="%" />
-            <MaybeIfValue text="Known user device?: " value={knownDevice} suffix="yes"/>
+            <MaybeIfValueTrue text="Known user device?: " value={knownDevice} suffix="yes"/>
 
             {/* <MaybeIfValue text="localName: " value={(device?.localName) ? device.localName : null} /> */}
             {/* <MaybeIfValue text="manufacturerData: " value={(device?.manufacturerData) ? device?.manufacturerData : null} /> */}
