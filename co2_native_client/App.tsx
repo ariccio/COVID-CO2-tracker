@@ -35,7 +35,7 @@ import { BluetoothData, isSupportedDevice, useAranet4NextMeasurementTime, useBlu
 import { selectDeviceSerialNumberString } from './src/features/bluetooth/bluetoothSlice';
 import { NotifeeNotificationHookState, useNotifeeNotifications, NotificationInfo, stopServiceAndClearNotifications, StartOrStopButton, booleanIsBackroundPollingUploadingForButton } from './src/features/service/Notification';
 import { selectNotificationState, setNotificationState } from './src/features/service/serviceSlice';
-import { selectSupportedDevices, setSupportedDevices, setUNSupportedDevices } from './src/features/userInfo/devicesSlice';
+import { initialUserDevicesState, selectSupportedDevices, selectUserDeviceSettingsStatus, setSupportedDevices, setUNSupportedDevices, setUserDeviceSettingsStatus } from './src/features/userInfo/devicesSlice';
 import { selectUserName, selectUserSettings, setUserSettings, setUserSettingsErrors } from './src/features/userInfo/userInfoSlice';
 import { unknownNativeErrorTryFormat } from './src/utils/FormatUnknownNativeError';
 import { withAuthorizationHeader } from './src/utils/NativeDefaultRequestHelpers';
@@ -176,7 +176,7 @@ const fetchMyDevicesSucessCallback = async (awaitedResponse: Response): Promise<
 const get_my_devices = (jwt: string | null, userName?: string | null) => {
   const eitherNull = isNullString(jwt) || isNullString(userName);
   if (eitherNull) {
-    // console.log("No JWT or username, not getting devices?");
+    console.log("No JWT or username, not getting devices?");
     return;
   }
   if (isUndefinedString(userName)) {
@@ -262,7 +262,10 @@ function dumpDeviceInfo(devices: UserInfoDevice[]): void {
 function handleDevicesResponse(devicesResponse: UserDevicesInfo, dispatch: AppDispatch) {
   if (devicesResponse.errors) {
     const str = `Getting devices failed! Reasons: ${formatErrors(devicesResponse.errors)}`;
+    console.warn(str);
+    dispatch(setSupportedDevices(null));
     dispatch(setUserDeviceErrors(str));
+    dispatch(setUserDeviceSettingsStatus(str));
     Sentry.Native.captureMessage(str);
     return;
   }
@@ -271,7 +274,7 @@ function handleDevicesResponse(devicesResponse: UserDevicesInfo, dispatch: AppDi
   const unSupportedDevices = devicesResponse.devices.filter(filterUnsupportedDevices);
 
   console.log('------');
-  console.log("Supported devices:");
+  console.log("Got supported devices:");
   dumpDeviceInfo(supportedDevices);
   // console.log('------');
   // console.log("UNsupported devices:");
@@ -333,12 +336,13 @@ function measurementChange(measurement: MeasurementDataForUpload | null, userSet
 }
 
 function loadDevices(jwt: string | null, userName: string | null | undefined, dispatch: AppDispatch) {
-  // console.log("Getting devices...");
+  console.log("Getting devices...");
   get_my_devices(jwt, userName)?.then((devicesResponse) => {
     return handleDevicesResponse(devicesResponse, dispatch);
   }).catch((error) => {
     const str = `Getting devices failed! Probably a bad network connection. Error: ${String(error)}`;
     dispatch(setUserDeviceErrors(str));
+    dispatch(setUserDeviceSettingsStatus(str));
     console.warn(error);
     Sentry.Native.captureException(error);
     // eslint-disable-next-line no-debugger
@@ -398,8 +402,9 @@ const UploadingButton = (props: object) => {
   );
 }
 
-const useCheckKnownDevice = (supportedDevices: UserInfoDevice[] | null, serialNumber?: string | null) => {
+const useCheckKnownDevice = (supportedDevices: UserInfoDevice[] | null, serialNumber?: string | null, dispatch: AppDispatch) => {
   const [knownDevice, setKnownDevice] = useState(null as (boolean | null));
+  const {loggedIn} = useIsLoggedIn();
   useEffect(() => {
       if (serialNumber === undefined) {
           // console.log("------------------------------NOT setting known device?");
@@ -409,6 +414,13 @@ const useCheckKnownDevice = (supportedDevices: UserInfoDevice[] | null, serialNu
       else {
           // console.log("------------------------------setting known device?");
           setKnownDevice(isSupportedDevice(supportedDevices, serialNumber))
+      }
+      if (supportedDevices === initialUserDevicesState.userSupportedDevices) {
+        if (!loggedIn) {
+          dispatch(setUserDeviceSettingsStatus('You need to log in before we can load device settings'));
+          return;
+        }
+        dispatch(setUserDeviceSettingsStatus('Still loading user device settings...'));
       }
   }, [supportedDevices, serialNumber]);
 
@@ -429,13 +441,14 @@ async function checkInitialNotification() {
 }
 
 function HomeScreen() {
+  const dispatch = useDispatch();
   const nextMeasurementTime = useSelector(selectNextMeasurementTime);
   const supportedDevices = useSelector(selectSupportedDevices);
   const serialNumber = useSelector(selectDeviceSerialNumberString);
   // const authState = useSelector(selectAuthState);  
   
   
-  const {knownDevice} = useCheckKnownDevice(supportedDevices, serialNumber);
+  const {knownDevice} = useCheckKnownDevice(supportedDevices, serialNumber, dispatch);
   return (
     <SafeAreaProvider style={styles.container}>
       <BluetoothData knownDevice={knownDevice} nextMeasurement={nextMeasurementTime}/>
@@ -490,13 +503,36 @@ function useHasSupportedDevices() {
 
 function CreateDeviceIfNotYet() {
   const supportedDevices = useSelector(selectSupportedDevices);
+  const supportedDeviceSettingStatus = useSelector(selectUserDeviceSettingsStatus);
+  const {loggedIn} = useIsLoggedIn();
 
   if (supportedDevices === null) {
+    return (
+      <>
+        <Text>There was some kind of error loading supported devices. See "Home" for full details.</Text>
+        <MaybeIfValue value={supportedDeviceSettingStatus} text={"Status/Errors: "}/>
+      </>
+    )
+  }
+  console.log(`loggedIn: ${loggedIn}`);
+
+
+  if (!loggedIn) {
+    // debugger;
     return null;
   }
 
   if (supportedDevices.length > 0) {
     return null;
+  }
+
+  if (supportedDevices === initialUserDevicesState.userSupportedDevices) {
+    console.log("Probably still loading user device settings?");
+    return (
+      <>
+        <Text>Loading your known devices from the server...</Text>
+      </>
+    )
   }
 
   return (

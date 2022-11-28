@@ -25,7 +25,7 @@ import { LinkButton } from '../Links/OpenLink';
 // import { addMeasurement } from '../Measurement/MeasurementSlice';
 import { MeasurementDataForUpload } from '../Measurement/MeasurementTypes';
 import { setUploadStatus } from '../Uploading/uploadSlice';
-import { selectSupportedDevices } from '../userInfo/devicesSlice';
+import { initialUserDevicesState, selectSupportedDevices, selectUserDeviceSettingsStatus } from '../userInfo/devicesSlice';
 import { Aranet4_1503CO2, incrementUpdates, selectAranet4SpecificData, selectDeviceBatterylevel, selectDeviceID, selectDeviceName, selectDeviceRSSI, selectDeviceSerialNumberString, selectDeviceStatusString, selectHasBluetooth, selectMeasurementData, selectMeasurementInterval, selectMeasurementTime, selectNeedsBluetoothTurnOn, selectScanningErrorStatusString, selectScanningStatusString, selectUpdateCount, setAranet4Color, setAranet4SecondsSinceLastMeasurement, setDeviceBatteryLevel, setDeviceID, setDeviceName, setDeviceSerialNumber, setDeviceStatusString, setHasBluetooth, setMeasurementDataFromCO2Characteristic, setMeasurementInterval, setNeedsBluetoothTurnOn, setRssi, setScanningErrorStatusString, setScanningStatusString } from './bluetoothSlice';
 
 
@@ -1303,12 +1303,16 @@ async function pollAranet4(setTimeoutHandle: React.Dispatch<React.SetStateAction
         console.error("missing co2");
         return;
     }
-    if (supportedDevices === null) {
+    if (supportedDevices === initialUserDevicesState.userSupportedDevices) {
         if (!loggedIn) {
             dispatch(setUploadStatus('Please log in.'));
             return;
         }
         dispatch(setUploadStatus('Still loading user devices, cannot upload measurement to server yet. This should go away in a minute or so.'));
+        return;
+    }
+    else if (supportedDevices === null) {
+        dispatch(setUploadStatus("There may have been some kind of error loading known devices? Cannot upload."));
         return;
     }
     else {
@@ -1353,14 +1357,8 @@ export const useBluetoothConnectAndPollAranet = () => {
     const deviceID = useSelector(selectDeviceID);
     const serialNumberString = useSelector(selectDeviceSerialNumberString);
 
-    // const [device, setDevice] = useState(null as (Device | null));
     const [timeoutHandle, setTimeoutHandle] = useState(null as (null | NodeJS.Timeout));
-    // const [aranet4SpecificInformation, setAranet4SpecificInformation] = useState(null as (null | Aranet4SpecificInformation));
     const [measurement, setMeasurement] = useState(null as (MeasurementDataForUpload | null));
-    
-
-        //measurementInterval
-        //secondsSinceLastMeasurement
     
     const measurementInterval = useSelector(selectMeasurementInterval);
     const lastMeasurementTime = useSelector(selectMeasurementTime);
@@ -1386,6 +1384,9 @@ export const useBluetoothConnectAndPollAranet = () => {
 
 
     useEffect(() => {
+        if (supportedDevices === initialUserDevicesState.userSupportedDevices) {
+            dispatch(setUploadStatus("Haven't loaded devices from server yet, hang on a sec..."));
+        }
         const known = isSupportedDevice(supportedDevices, serialNumberString);
         // console.log(`Setting device known to ${knownBluetooth}`);
         setKnownDeviceBluetooth(known);
@@ -1456,8 +1457,6 @@ export const useBluetoothConnectAndPollAranet = () => {
             console.log("NOT polling in foreground, backgroundPollingEnabled");
             return;
         }
-        //measurementInterval
-        //secondsSinceLastMeasurement
 
         const lastMeasurementTimeDate = (lastMeasurementTime !== null) ? new Date(lastMeasurementTime) : new Date(Date.now());
         const timerTime = maybeNextMeasurementInOrDefault(measurementInterval, lastMeasurementTimeDate);
@@ -1654,10 +1653,15 @@ function deviceIDFromUserInfoDevice(supportedDevices: UserInfoDevice[], serialNu
 
 export function isSupportedDevice(supportedDevices: UserInfoDevice[] | null, serialNumber: string | null): boolean | null {
     if (supportedDevices === null) {
+        console.warn("Probably some kind of error - no supported devices were loaded, so can't proceed.");
         return null;
     }
+    if (supportedDevices === initialUserDevicesState.userSupportedDevices) {
+        console.log("Still loading supported devices... can't say if anything is supported!");
+        return;
+    }
     if (supportedDevices.length === 0) {
-        console.log("Supported devices array empty, user may not have any?");
+        console.log("Supported devices array empty, user may not have any or may have not yet loaded.");
         return false;
     }
     if (!serialNumber) {
@@ -1755,32 +1759,75 @@ const RSSIOrWeakRSSI: React.FC<{rssi: number | null}> = ({rssi}) => {
     );
 }
 
+const turnOn = async (ev: NativeSyntheticEvent<NativeTouchEvent>, dispatch: AppDispatch, setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>) => {
+    console.log(String(ev));
+    try {
+        const _enabled = await manager.enable();
+        dispatch(setNeedsBluetoothTurnOn(false));
+        dispatch(setScanningErrorStatusString(null));
+        return;
+    }
+    catch (error) {
+        setNativeErrors(unknownNativeErrorTryFormat(error));
+        Sentry.Native.captureException(error);
+    }
+}
+
+const checkBluetoothState = async (setSubscribedBluetoothState: React.Dispatch<React.SetStateAction<State | null>>, setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>) => {
+    try {
+        const state = await manager.state();
+        console.log(`Bluetooth state: ${state}`);
+        setSubscribedBluetoothState(state);
+    }
+    catch (error) {
+        setNativeErrors(unknownNativeErrorTryFormat(error));
+        Sentry.Native.captureException(error);
+    }
+}
+
+const bluetoothStateListener = (newState: State, setSubscribedBluetoothState: React.Dispatch<React.SetStateAction<State | null>>, oldState: State | null) => {
+    setSubscribedBluetoothState(newState);
+    console.log(`Bluetooth state changed! Old state: ${oldState}, new state: ${newState}`)
+}
+
 // eslint-disable-next-line @typescript-eslint/ban-types
 const BluetoothMaybeNeedsTurnOn:React.FC<{}> = () => {
     const dispatch = useDispatch();
     const needsBluetoothTurnOn = useSelector(selectNeedsBluetoothTurnOn);
+    const [subscribedBluetoothState, setSubscribedBluetoothState] = useState(null as (State | null));
     const [nativeErrors, setNativeErrors] = useState(null as (string | null));
+    const [listenerSubscription, setListenerSubscription] = useState(null as (ReturnType<typeof manager.onStateChange> | null));
 
-    const turnOn = (ev: NativeSyntheticEvent<NativeTouchEvent>) => {
-        console.log(String(ev));
-        manager.enable().then(() => {
-            dispatch(setNeedsBluetoothTurnOn(false));
-            return dispatch(setScanningErrorStatusString(null))
-        }).catch((error) => {
-            setNativeErrors(unknownNativeErrorTryFormat(error));
-            Sentry.Native.captureException(error);
-        })
-    }
-    if (needsBluetoothTurnOn) {
+    useEffect(() => {
+        checkBluetoothState(setSubscribedBluetoothState, setNativeErrors);
+    }, [])
+
+    useEffect(() => {
+        const subscription = manager.onStateChange((state) => bluetoothStateListener(state, setSubscribedBluetoothState, subscribedBluetoothState));
+        setListenerSubscription(subscription);
+
+        return () => {
+            listenerSubscription?.remove();
+        }
+    }, [])
+
+    if (needsBluetoothTurnOn ) {
         return (
             <>
                 <MaybeIfValue text="Native errors turning bluetooth on: " value={nativeErrors}/>
-                <Button title="Turn Bluetooth on" onPress={(ev) => {turnOn(ev)}}/>
+                <MaybeIfValue text={"Bluetooth state: "} value={subscribedBluetoothState} />
+                <Button title="Turn Bluetooth on" onPress={(ev) => {turnOn(ev, dispatch, setNativeErrors)}}/>
             </>
         );
     }
 
-    return null;
+    return (
+        <>
+            <MaybeIfValue text={"Bluetooth state: "} value={subscribedBluetoothState} />
+            <MaybeIfValue text="Native errors checking/turning bluetooth on: " value={nativeErrors}/>
+        </>
+    );
+
 }
 
 
@@ -1797,15 +1844,37 @@ const BluetoothMaybeNeedsTurnOn:React.FC<{}> = () => {
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const MaybeNoSupportedBluetoothDevices: React.FC<{}> = () => {
     const supportedDevices = useSelector(selectSupportedDevices);
+    const userDeviceSettingsStatus = useSelector(selectUserDeviceSettingsStatus);
+    const {loggedIn} = useIsLoggedIn();
 
     if (supportedDevices === null) {
-      return null;
+      return (
+        <>
+            <Text>There was some kind of error loading supported/known devices from the server.</Text>
+            <MaybeIfValue text={"Errors: "} value={userDeviceSettingsStatus}/>
+        </>
+      );
+    }
+    if (supportedDevices === initialUserDevicesState.userSupportedDevices) {
+        if (!loggedIn) {
+            return (
+                <>
+                    <Text>You need to log in before you can upload data.</Text>
+                </>
+            )
+        }
+        return (
+            <>
+                <Text>Still loading user device settings...</Text>
+            </>
+        )
     }
     if (supportedDevices.length === 0) {
       return (
         <>
           <Text>You do not have any devices entered into the database. To upload data, please create a device in the web console.</Text>
           <LinkButton url={COVID_CO2_TRACKER_DEVICES_URL} title="Open web console"/>
+          <MaybeIfValue text={"Errors: "} value={userDeviceSettingsStatus}/>
         </>
       )
     }
@@ -1848,6 +1917,7 @@ export const BluetoothData: React.FC<{ knownDevice: boolean | null, nextMeasurem
     const aranet4Data = useSelector(selectAranet4SpecificData);
     // const deviceName = useSelector(selectD)
     const deviceStatus = useSelector(selectDeviceStatusString);
+    const userDeviceSettingsStatus = useSelector(selectUserDeviceSettingsStatus);
     
     
     const updateCount = useSelector(selectUpdateCount);
@@ -1858,6 +1928,7 @@ export const BluetoothData: React.FC<{ knownDevice: boolean | null, nextMeasurem
             <MaybeIfValue text="bluetooth status: " value={bluetoothScanningStatus} />
             <MaybeIfValue text="bluetooth errors: " value={(bluetoothScanningErrorStatus.length > 0) ? bluetoothScanningErrorStatus : null} />
             <MaybeIfValue text="Device status: " value={deviceStatus}/>
+            <MaybeIfValue text="User device settings status: " value={userDeviceSettingsStatus}/>
             <Text>Local reads from device this session: {updateCount}</Text>
             <MaybeIfValue text="id: " value={id} />
             <MaybeIfValue text="name: " value={name} />

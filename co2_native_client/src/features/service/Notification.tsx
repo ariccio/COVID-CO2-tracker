@@ -17,7 +17,7 @@ import { MeasurementDataForUpload } from '../Measurement/MeasurementTypes';
 import { uploadMeasurementHeadless } from '../Measurement/MeasurementUpload';
 import { onHeadlessTaskTriggerBluetooth } from '../bluetooth/Bluetooth';
 import { selectDeviceID, setScanningStatusString } from '../bluetooth/bluetoothSlice';
-import { selectSupportedDevices } from '../userInfo/devicesSlice';
+import { initialUserDevicesState, selectSupportedDevices } from '../userInfo/devicesSlice';
 import { selectUserSettings } from '../userInfo/userInfoSlice';
 import {logEvent} from './LogEvent';
 import { setNotificationChannelID, selectNotificationChannelID, setDisplayNotificationNativeErrors, selectDisplayNotificationNativeErrors, setNotificationAction, NotificationAction, selectNotificationAction, selectNotificationState } from './serviceSlice';
@@ -449,11 +449,16 @@ const init = async (setDisplayNotificationErrors: React.Dispatch<React.SetStateA
         return;
     }
     if (supportedDevices === null) {
+        console.error("Supported devices field is null in notification init code!");
         if (!loggedIn) {
             alert("Please log in.");
             return;
         }
         console.log("need to load user info before starting service...");
+        return;
+    }
+    if (supportedDevices === initialUserDevicesState.userSupportedDevices) {
+        console.warn("Supported devices still loading?");
         return;
     }
 
