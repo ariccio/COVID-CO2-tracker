@@ -1,5 +1,6 @@
 // See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { State } from 'react-native-ble-plx';
 // import { DeviceId, Base64, UUID, State } from 'react-native-ble-plx';
 
 import { RootState } from '../../app/rootReducer';
@@ -60,6 +61,10 @@ export interface BluetoothDeviceState {
     statusString: string | null;
 }
 
+export interface OSBluetoothState {
+    subscribedBluetoothState: State | null;
+    nativeBluetoothStateListenerErrors: string | null;
+}
 
 export interface BluetoothState {
     device: BluetoothDeviceState;
@@ -68,6 +73,7 @@ export interface BluetoothState {
     scanningErrorStatus: string;
     updates: number;
     needsBluetoothTurnOn: boolean;
+    osBluetoothState: OSBluetoothState;
 }
 
 const initialState: BluetoothState = {
@@ -108,7 +114,11 @@ const initialState: BluetoothState = {
     scanningStatusString: null,
     scanningErrorStatus: '',
     updates: 0,
-    needsBluetoothTurnOn: false
+    needsBluetoothTurnOn: false,
+    osBluetoothState: {
+        nativeBluetoothStateListenerErrors: null,
+        subscribedBluetoothState: null
+    }
 };
 
 
@@ -196,11 +206,17 @@ export const bluetoothSlice = createSlice({
         },
         setNeedsBluetoothTurnOn: (state, action: PayloadAction<boolean>) => {
             state.needsBluetoothTurnOn = action.payload;
+        },
+        setSubscribedBluetoothState: (state, action: PayloadAction<State | null>) => {
+            state.osBluetoothState.subscribedBluetoothState = action.payload;
+        },
+        setNativeOSBluetoothStateListenerErrors: (state, action: PayloadAction<string | null>) => {
+            state.osBluetoothState.nativeBluetoothStateListenerErrors = action.payload;
         }
     }
 })
 
-export const {setDeviceID, setDeviceName, setRssi, setHasBluetooth, setScanningStatusString, setDeviceSerialNumber, setScanningErrorStatusString, setDeviceBatteryLevel, setMeasurementData, setAranet4Color, setAranet4SecondsSinceLastMeasurement, setMeasurementInterval, setDeviceStatusString, incrementUpdates, setNeedsBluetoothTurnOn, setMeasurementDataFromCO2Characteristic} = bluetoothSlice.actions;
+export const {setDeviceID, setDeviceName, setRssi, setHasBluetooth, setScanningStatusString, setDeviceSerialNumber, setScanningErrorStatusString, setDeviceBatteryLevel, setMeasurementData, setAranet4Color, setAranet4SecondsSinceLastMeasurement, setMeasurementInterval, setDeviceStatusString, incrementUpdates, setNeedsBluetoothTurnOn, setMeasurementDataFromCO2Characteristic, setSubscribedBluetoothState, setNativeOSBluetoothStateListenerErrors} = bluetoothSlice.actions;
 
 export const selectHasBluetooth = (state: RootState) => state.bluetooth.hasBluetooth;
 export const selectScanningStatusString = (state: RootState) => state.bluetooth.scanningStatusString;
@@ -216,7 +232,9 @@ export const selectDeviceStatusString = (state: RootState) => state.bluetooth.de
 export const selectUpdateCount = (state: RootState) => state.bluetooth.updates;
 export const selectNeedsBluetoothTurnOn = (state: RootState) => state.bluetooth.needsBluetoothTurnOn;
 export const selectMeasurementInterval = (state: RootState) => state.bluetooth.device.aranet4SpecificData.aranet4MeasurementInterval;
-export const selectMeasurementTime = (state: RootState) => state.bluetooth.device.aranet4SpecificData.aranet4MeasurementTime
+export const selectMeasurementTime = (state: RootState) => state.bluetooth.device.aranet4SpecificData.aranet4MeasurementTime;
+export const selectSubscribedOSBluetoothState = (state: RootState) => state.bluetooth.osBluetoothState.subscribedBluetoothState;
+export const selectNativeOSBluetoothStateListenerErrors = (state: RootState) => state.bluetooth.osBluetoothState.nativeBluetoothStateListenerErrors;
 
 
 export const bluetoothReducer = bluetoothSlice.reducer;

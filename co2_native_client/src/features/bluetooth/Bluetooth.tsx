@@ -26,7 +26,7 @@ import { LinkButton } from '../Links/OpenLink';
 import { MeasurementDataForUpload } from '../Measurement/MeasurementTypes';
 import { setUploadStatus } from '../Uploading/uploadSlice';
 import { initialUserDevicesState, selectSupportedDevices, selectUserDeviceSettingsStatus } from '../userInfo/devicesSlice';
-import { Aranet4_1503CO2, incrementUpdates, selectAranet4SpecificData, selectDeviceBatterylevel, selectDeviceID, selectDeviceName, selectDeviceRSSI, selectDeviceSerialNumberString, selectDeviceStatusString, selectHasBluetooth, selectMeasurementData, selectMeasurementInterval, selectMeasurementTime, selectNeedsBluetoothTurnOn, selectScanningErrorStatusString, selectScanningStatusString, selectUpdateCount, setAranet4Color, setAranet4SecondsSinceLastMeasurement, setDeviceBatteryLevel, setDeviceID, setDeviceName, setDeviceSerialNumber, setDeviceStatusString, setHasBluetooth, setMeasurementDataFromCO2Characteristic, setMeasurementInterval, setNeedsBluetoothTurnOn, setRssi, setScanningErrorStatusString, setScanningStatusString } from './bluetoothSlice';
+import { Aranet4_1503CO2, incrementUpdates, selectAranet4SpecificData, selectDeviceBatterylevel, selectDeviceID, selectDeviceName, selectDeviceRSSI, selectDeviceSerialNumberString, selectDeviceStatusString, selectHasBluetooth, selectMeasurementData, selectMeasurementInterval, selectMeasurementTime, selectNativeOSBluetoothStateListenerErrors, selectNeedsBluetoothTurnOn, selectScanningErrorStatusString, selectScanningStatusString, selectSubscribedOSBluetoothState, selectUpdateCount, setAranet4Color, setAranet4SecondsSinceLastMeasurement, setDeviceBatteryLevel, setDeviceID, setDeviceName, setDeviceSerialNumber, setDeviceStatusString, setHasBluetooth, setMeasurementDataFromCO2Characteristic, setMeasurementInterval, setNativeOSBluetoothStateListenerErrors, setNeedsBluetoothTurnOn, setRssi, setScanningErrorStatusString, setScanningStatusString, setSubscribedBluetoothState } from './bluetoothSlice';
 
 
 //https://github.com/thespacemanatee/Smart-Shef-IoT/blob/4782c95f383040f36e4ae7ce063166cce5c76129/smart_shef_app/src/utils/hooks/useMonitorHumidityCharacteristic.ts
@@ -354,7 +354,20 @@ function logBluetoothConnectScanPermissionProbablyNotAvailable(): void {
 const checkBluetoothScanPermissions = async(dispatch: AppDispatch): Promise<boolean> => {
     const os = Platform.OS;
     if (os === 'ios') {
-        console.log("No bluetooth scan permissions needed on ios?.");
+        // console.log("No bluetooth scan permissions needed on ios?.");
+        const state = await manager.state();
+        switch (state) {
+            case (State.PoweredOn):
+                return false;
+            case (State.Unauthorized):
+            case (State.PoweredOff):
+            case (State.Unknown):
+            case (State.Resetting):
+                return true;
+            default:
+                return true;
+
+        }
         return false;
     }
 
@@ -1759,7 +1772,7 @@ const RSSIOrWeakRSSI: React.FC<{rssi: number | null}> = ({rssi}) => {
     );
 }
 
-const turnOn = async (ev: NativeSyntheticEvent<NativeTouchEvent>, dispatch: AppDispatch, setNativeErrors: React.Dispatch<React.SetStateAction<string | null>>) => {
+const turnOn = async (ev: NativeSyntheticEvent<NativeTouchEvent>, dispatch: AppDispatch) => {
     console.log(String(ev));
     try {
         const _enabled = await manager.enable();
@@ -1768,7 +1781,7 @@ const turnOn = async (ev: NativeSyntheticEvent<NativeTouchEvent>, dispatch: AppD
         return;
     }
     catch (error) {
-        setNativeErrors(unknownNativeErrorTryFormat(error));
+        dispatch(setNativeOSBluetoothStateListenerErrors(unknownNativeErrorTryFormat(error)));
         Sentry.Native.captureException(error);
     }
 }
@@ -1785,25 +1798,22 @@ const checkBluetoothState = async (setSubscribedBluetoothState: React.Dispatch<R
     }
 }
 
-const bluetoothStateListener = (newState: State, setSubscribedBluetoothState: React.Dispatch<React.SetStateAction<State | null>>, oldState: State | null) => {
-    setSubscribedBluetoothState(newState);
+const bluetoothStateListener = (newState: State, oldState: State | null, dispatch: AppDispatch) => {
     console.log(`Bluetooth state changed! Old state: ${oldState}, new state: ${newState}`)
+    dispatch(setSubscribedBluetoothState(newState));
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-const BluetoothMaybeNeedsTurnOn:React.FC<{}> = () => {
+export function useOSBluetoothStateListener() {
+    // const [subscribedBluetoothState, setSubscribedBluetoothState] = useState(null as (State | null));
+    // const [nativeBluetoothStateListenerErrors, setNativeBluetoothStateListenerErrors] = useState(null as (string | null));
+
+    const subscribedOSBluetoothState = useSelector(selectSubscribedOSBluetoothState);
     const dispatch = useDispatch();
-    const needsBluetoothTurnOn = useSelector(selectNeedsBluetoothTurnOn);
-    const [subscribedBluetoothState, setSubscribedBluetoothState] = useState(null as (State | null));
-    const [nativeErrors, setNativeErrors] = useState(null as (string | null));
+
     const [listenerSubscription, setListenerSubscription] = useState(null as (ReturnType<typeof manager.onStateChange> | null));
 
     useEffect(() => {
-        checkBluetoothState(setSubscribedBluetoothState, setNativeErrors);
-    }, [])
-
-    useEffect(() => {
-        const subscription = manager.onStateChange((state) => bluetoothStateListener(state, setSubscribedBluetoothState, subscribedBluetoothState));
+        const subscription = manager.onStateChange((newState) => bluetoothStateListener(newState, subscribedOSBluetoothState, dispatch), true);
         setListenerSubscription(subscription);
 
         return () => {
@@ -1811,20 +1821,33 @@ const BluetoothMaybeNeedsTurnOn:React.FC<{}> = () => {
         }
     }, [])
 
+    return {listenerSubscription};
+
+}
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+const BluetoothMaybeNeedsTurnOn:React.FC<{}> = () => {
+    const dispatch = useDispatch();
+    const needsBluetoothTurnOn = useSelector(selectNeedsBluetoothTurnOn);
+    const subscribedOSBluetoothState = useSelector(selectSubscribedOSBluetoothState);
+    const nativeOSBluetoothStateListenerErrors = useSelector(selectNativeOSBluetoothStateListenerErrors);
+    
+
+
     if (needsBluetoothTurnOn ) {
         return (
             <>
-                <MaybeIfValue text="Native errors turning bluetooth on: " value={nativeErrors}/>
-                <MaybeIfValue text={"Bluetooth state: "} value={subscribedBluetoothState} />
-                <Button title="Turn Bluetooth on" onPress={(ev) => {turnOn(ev, dispatch, setNativeErrors)}}/>
+                <MaybeIfValue text="Native errors turning bluetooth on: " value={nativeOSBluetoothStateListenerErrors}/>
+                <MaybeIfValue text={"Bluetooth state: "} value={subscribedOSBluetoothState} />
+                <Button title="Turn Bluetooth on" onPress={(ev) => {turnOn(ev, dispatch)}}/>
             </>
         );
     }
 
     return (
         <>
-            <MaybeIfValue text={"Bluetooth state: "} value={subscribedBluetoothState} />
-            <MaybeIfValue text="Native errors checking/turning bluetooth on: " value={nativeErrors}/>
+            <MaybeIfValue text={"Bluetooth state: "} value={subscribedOSBluetoothState} />
+            <MaybeIfValue text="Native errors checking/turning bluetooth on: " value={nativeOSBluetoothStateListenerErrors}/>
         </>
     );
 

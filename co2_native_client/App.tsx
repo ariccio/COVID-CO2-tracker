@@ -31,7 +31,7 @@ import { MeasurementDataForUpload } from './src/features/Measurement/Measurement
 import { realtimeUpload } from './src/features/Measurement/MeasurementUpload';
 import { selectUploadStatus, setUploadStatus } from './src/features/Uploading/uploadSlice';
 import { UserSettingsMaybeDisplay } from './src/features/UserSettings/UserSettingsDisplay';
-import { BluetoothData, isSupportedDevice, useAranet4NextMeasurementTime, useBluetoothConnectAndPollAranet } from './src/features/bluetooth/Bluetooth';
+import { BluetoothData, isSupportedDevice, useAranet4NextMeasurementTime, useBluetoothConnectAndPollAranet, useOSBluetoothStateListener } from './src/features/bluetooth/Bluetooth';
 import { selectDeviceSerialNumberString } from './src/features/bluetooth/bluetoothSlice';
 import { NotifeeNotificationHookState, useNotifeeNotifications, NotificationInfo, stopServiceAndClearNotifications, StartOrStopButton, booleanIsBackroundPollingUploadingForButton } from './src/features/service/Notification';
 import { selectNotificationState, setNotificationState } from './src/features/service/serviceSlice';
@@ -684,6 +684,7 @@ function App() {
   const {measurement} = useBluetoothConnectAndPollAranet();
   const notificationState: NotifeeNotificationHookState = useNotifeeNotifications();
   const authState = useGoogleAuthForCO2Tracker();
+  const _unused_bluetoothListener = useOSBluetoothStateListener();
 
 
   // useEffect(() => {
