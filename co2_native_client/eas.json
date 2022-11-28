@@ -1,6 +1,7 @@
 {
   "cli": {
-    "version": ">= 0.47.0"
+    "version": ">= 0.47.0",
+    "promptToConfigurePushNotifications": false
   },
   "build": {
     "development": {
@@ -22,8 +23,6 @@
     }
   },
   "submit": {
-    "production": {
-      
-    }
+    "production": {}
   }
 }

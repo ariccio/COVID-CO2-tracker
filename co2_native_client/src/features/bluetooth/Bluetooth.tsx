@@ -1292,6 +1292,9 @@ async function pollAranet4(setTimeoutHandle: React.Dispatch<React.SetStateAction
         return;
     }
     // console.log(JSON.stringify(updated));
+    if (updated.genericInfo.serialNumberString === null) {
+        console.warn("Device serial number string is null?");
+    }
 
     dispatch(setDeviceSerialNumber(updated.genericInfo.serialNumberString));
     dispatch(setDeviceName(updated.genericInfo.deviceNameString));
@@ -1396,6 +1399,12 @@ export const useBluetoothConnectAndPollAranet = () => {
             dispatch(setUploadStatus("Loading user devices from server..."));
             return;
         }
+        console.assert(known === false);
+        if (serialNumberString === null) {
+            console.log('Serial number string null - No devices detected.');
+            dispatch(setUploadStatus(`Null device? Are you sure bluetooth is working and within range?`));
+            return;
+        }
         console.log(`Device ${serialNumberString} is NOT known to bluetooth hook!`);
         dispatch(setUploadStatus(`Device ${serialNumberString} is NOT a known device. Please add in the web console.`));
     }, [supportedDevices, serialNumberString, dispatch])
@@ -1416,6 +1425,10 @@ export const useBluetoothConnectAndPollAranet = () => {
         firstBluetoothUpdate(deviceID, dispatch).then((info) => {
             if (info === undefined) {
                 return;
+            }
+            if (info.genericInfo.serialNumberString === null) {
+                console.warn("device serial number string is null?");
+                dispatch(setScanningErrorStatusString("Warning: Null serial number string... this is weird."));
             }
             dispatch(setDeviceSerialNumber(info.genericInfo.serialNumberString));
             dispatch(setDeviceName(info.genericInfo.deviceNameString));
@@ -1643,7 +1656,14 @@ export function isSupportedDevice(supportedDevices: UserInfoDevice[] | null, ser
     if (supportedDevices === null) {
         return null;
     }
+    if (supportedDevices.length === 0) {
+        console.log("Supported devices array empty, user may not have any?");
+        return false;
+    }
     if (!serialNumber) {
+        if (serialNumber === null) {
+            console.log("(checking if supported) Serial number string is null.");
+        }
         return false;
     }
     console.log(`Supported devices: ${supportedDevices}`);
