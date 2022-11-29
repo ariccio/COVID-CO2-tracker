@@ -402,7 +402,7 @@ const UploadingButton = (props: object) => {
   );
 }
 
-const useCheckKnownDevice = (supportedDevices: UserInfoDevice[] | null, serialNumber?: string | null, dispatch: AppDispatch) => {
+const useCheckKnownDevice = (supportedDevices: UserInfoDevice[] | null, dispatch: AppDispatch, serialNumber?: string | null) => {
   const [knownDevice, setKnownDevice] = useState(null as (boolean | null));
   const {loggedIn} = useIsLoggedIn();
   useEffect(() => {
@@ -417,12 +417,12 @@ const useCheckKnownDevice = (supportedDevices: UserInfoDevice[] | null, serialNu
       }
       if (supportedDevices === initialUserDevicesState.userSupportedDevices) {
         if (!loggedIn) {
-          dispatch(setUserDeviceSettingsStatus('You need to log in before we can load device settings'));
+          dispatch(setUserDeviceSettingsStatus('You need to log in before we can load device settings.'));
           return;
         }
         dispatch(setUserDeviceSettingsStatus('Still loading user device settings...'));
       }
-  }, [supportedDevices, serialNumber]);
+  }, [supportedDevices, serialNumber, loggedIn, dispatch]);
 
   return {knownDevice};
 
@@ -448,7 +448,7 @@ function HomeScreen() {
   // const authState = useSelector(selectAuthState);  
   
   
-  const {knownDevice} = useCheckKnownDevice(supportedDevices, serialNumber, dispatch);
+  const {knownDevice} = useCheckKnownDevice(supportedDevices, dispatch, serialNumber);
   return (
     <SafeAreaProvider style={styles.container}>
       <BluetoothData knownDevice={knownDevice} nextMeasurement={nextMeasurementTime}/>
@@ -510,11 +510,11 @@ function CreateDeviceIfNotYet() {
     return (
       <>
         <Text>There was some kind of error loading supported devices. See "Home" for full details.</Text>
-        <MaybeIfValue value={supportedDeviceSettingStatus} text={"Status/Errors: "}/>
+        <MaybeIfValue value={supportedDeviceSettingStatus} text="Status/Errors: "/>
       </>
     )
   }
-  console.log(`loggedIn: ${loggedIn}`);
+  // console.log(`loggedIn: ${loggedIn}`);
 
 
   if (!loggedIn) {
@@ -727,6 +727,7 @@ function App() {
 
   useEffect(() => {
     return () => {
+      console.log("clearn notif service from app destructor");
       stopServiceAndClearNotifications();
     }
   }, [])

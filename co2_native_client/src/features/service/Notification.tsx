@@ -539,7 +539,7 @@ export const useNotifeeNotifications = (): NotifeeNotificationHookState => {
     useEffect(() => {
         createOrUpdateNotification(setDisplayNotificationErrors, deviceID, supportedDevices, setNotificationID, channelID, loggedIn, jwt, shouldUpload, backgroundPollingEnabled, dispatch, setTriggerNotification, userSettings);
         return (() => {
-            console.log("(cleanup)")
+            // console.log("(cleanup) from notifee hook destructor")
             stopServiceAndClearNotifications();
         })
     }, [deviceID, supportedDevices, channelID, backgroundPollingEnabled, loggedIn, userSettings, jwt, shouldUpload, dispatch])

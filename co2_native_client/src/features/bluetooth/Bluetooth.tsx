@@ -1,7 +1,7 @@
 /* eslint-disable no-debugger */
 /* eslint-disable react/prop-types */
 // See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
-import {Buffer, constants} from 'buffer';
+import {Buffer} from 'buffer';
 import Constants from 'expo-constants';
 import { startActivityAsync, ActivityAction, IntentLauncherResult, IntentLauncherParams } from 'expo-intent-launcher';
 import { useEffect, useState } from 'react';
@@ -48,7 +48,11 @@ interface Aranet4SpecificInformation {
 
 
 export const manager = new BleManager();
-manager.setLogLevel(LogLevel.Debug);
+
+if (__DEV__) {
+    console.log("setting ble loglevel high.");
+    manager.setLogLevel(LogLevel.Debug);
+}
 
 // const BleManagerModule = NativeModules.BleManager;
 // const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
@@ -74,22 +78,22 @@ async function getCharacteristicFromDeviceService(device: Device, serviceUUID: s
     }
     return foundCharacteristic;
 }
-function checkKnownFunctionDescription(characteristic: Characteristic) {
+function checkKnownFunctionDescription(characteristic: Characteristic, index: number, length: number) {
     if (BLUETOOTH.aranet4KnownCharacteristicUUIDDescriptions.has(characteristic.uuid)) {
-        console.log(`\t\t\t${characteristic.uuid}: Known Aranet4 characteristic! '${BLUETOOTH.aranet4KnownCharacteristicUUIDDescriptions.get(characteristic.uuid)}'`);
+        console.log(`\t\t\t${characteristic.uuid} (${index}/${length}): Known Aranet4 characteristic! '${BLUETOOTH.aranet4KnownCharacteristicUUIDDescriptions.get(characteristic.uuid)}'`);
         return;
     }
     else if (BLUETOOTH.GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.has(characteristic.uuid)) {
-        console.log(`\t\t\t${characteristic.uuid}: Known generic GATT characteristic! '${BLUETOOTH.GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.get(characteristic.uuid)}'`);
+        console.log(`\t\t\t${characteristic.uuid} (${index}/${length}): Known generic GATT characteristic! '${BLUETOOTH.GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.get(characteristic.uuid)}'`);
         return;
     }
-    console.log(`\t\t\tUNKNOWN GATT characteristic! '${characteristic.uuid}'`);
+    console.log(`\t\t\tUNKNOWN GATT characteristic! (${index}/${length}) '${characteristic.uuid}'`);
 }
 
 function dumpCharacteristics(characteristics: Characteristic[]) {
     for (let characteristicIndex = 0; characteristicIndex < characteristics.length; ++characteristicIndex) {
         const thisCharacteristic = characteristics[characteristicIndex];
-        checkKnownFunctionDescription(thisCharacteristic);
+        checkKnownFunctionDescription(thisCharacteristic, characteristicIndex, characteristics.length);
     }
 }
 
@@ -97,7 +101,7 @@ function dumpCharacteristics(characteristics: Characteristic[]) {
 async function dumpServiceDescriptions(services: Service[]) {
     for (let serviceIndex = 0; serviceIndex < services.length; ++serviceIndex) {
         const thisService = services[serviceIndex];
-        console.log(`\tservice ${serviceIndex}:`)
+        console.log(`\tservice ${serviceIndex}/${services.length}:`)
 
         const short_uuid = thisService.uuid.substring(4, 8).toUpperCase();
         if (BLUETOOTH.GENERIC_GATT_SERVICE_UUID_DESCRIPTIONS.has(thisService.uuid)) {
@@ -114,6 +118,7 @@ async function dumpServiceDescriptions(services: Service[]) {
         dumpCharacteristics(characteristics);
 
     }
+    console.log("Dump done.");
 }
 
 
@@ -487,11 +492,6 @@ const requestBluetoothConnectPermission = async(dispatch: AppDispatch): Promise<
 
 
 const requestBluetoothScanPermission = async(dispatch: AppDispatch) => {
-    const os = Platform.OS;
-    if (os === 'ios') {
-        console.log("No need to request permissions on ios?.");
-        return false;
-    }
 
     try {
         //Work around android.permission.BLUETOOTH_SCAN not existing in old version of react native...
@@ -547,7 +547,42 @@ const requestBluetoothScanPermission = async(dispatch: AppDispatch) => {
     }
 }
 
-const requestAllBluetoothPermissions = async (dispatch: AppDispatch) => {
+const iosBluetoothChecks = async (dispatch: AppDispatch, subscribedOSBluetoothState: State | null) => {
+    switch (subscribedOSBluetoothState) {
+        case (State.PoweredOn): {
+            dispatch(setHasBluetooth(true));
+            return;
+        }
+        case (null):
+            console.warn("loading lmao");
+            return;
+        case (State.PoweredOff):
+        case (State.Resetting):
+        case (State.Unauthorized):
+        case (State.Unknown):
+        case (State.Unsupported):
+        default:
+            console.warn(`setting hasBluetooth false, ${subscribedOSBluetoothState}`);
+            dispatch(setHasBluetooth(false));
+            return;
+    }
+}
+
+// const updateBluetoothPerms = async (dispatch: AppDispatch, subscribedOSBluetoothState: State | null) => {
+
+// }
+
+const requestAllBluetoothPermissions = async (dispatch: AppDispatch, subscribedOSBluetoothState: State | null) => {
+    const os = Platform.OS;
+    if (os === 'ios') {
+        // console.log("No need to request permissions on ios?.");
+        
+        
+        return iosBluetoothChecks(dispatch, subscribedOSBluetoothState);
+    }
+
+
+
     const shouldReturnBecauseErrorOrDenyInLocationPermissionsCheck = await maybeNeedPromptUserAboutLocationPermissions(dispatch);
     if (shouldReturnBecauseErrorOrDenyInLocationPermissionsCheck) {
         return;
@@ -596,7 +631,10 @@ function parseUint8Buffer(data: Buffer): number {
 }
 
 async function readStringCharacteristicFromDevice(deviceID: string, serviceUUID: string, characteristicUUID: string, serviceName: string, characteristicName: string): Promise<string> {
+    // debugger;
+    console.log(`Reading ${characteristicUUID}/${characteristicName}`);
     const rawStringCharacteristicValue = await manager.readCharacteristicForDevice(deviceID, serviceUUID, characteristicUUID);
+    debugger;
     if (rawStringCharacteristicValue.value === null) {
         debugger;
         throw new Error(`${serviceName}: ${characteristicName} value is null?`);
@@ -607,6 +645,7 @@ async function readStringCharacteristicFromDevice(deviceID: string, serviceUUID:
 }
 
 async function readSerialNumberFromBluetoothDevice(deviceID: string): Promise<string> {
+    // debugger;
     return readStringCharacteristicFromDevice(deviceID, BLUETOOTH.DEVICE_INFORMATION_SERVICE_UUID, BLUETOOTH.GENERIC_GATT_SERIAL_NUMBER_STRING_UUID, "DEVICE_INFORMATION_SERVICE_UUID", "GENERIC_GATT_SERIAL_NUMBER_STRING_UUID");
 }
 
@@ -674,10 +713,16 @@ async function readGenericBluetoothInformation(deviceID: string): Promise<Generi
     if (serialNumberString.length === 0) {
         console.warn(`Device ${deviceID} has an empty serial number string?`);
     }
+    const os = Platform.OS;
 
-    const deviceNameString = await readDeviceNameFromBluetoothDevice(deviceID)
-    if (deviceNameString.length === 0) {
-        console.warn(`Device ${deviceID} has an empty name?`);
+    if (os !== 'ios') {
+        const deviceNameString = await readDeviceNameFromBluetoothDevice(deviceID)
+        if (deviceNameString.length === 0) {
+            console.warn(`Device ${deviceID} has an empty name?`);
+        }
+    }
+    else {
+        console.warn("IOS appears to hide the generic access service from usermode apps?! See: https://lists.apple.com/archives/bluetooth-dev/2016/Feb/msg00018.html and https://github.com/dotintent/react-native-ble-plx/issues/657#issuecomment-1331204557")
     }
     const battery = await readBatteryLevelFromBluetoothDevice(deviceID);
     return {
@@ -1216,6 +1261,7 @@ function filterBleReadError(error: unknown, dispatch: AppDispatch, deviceID: str
             return true;
         }
         const unexpectedStr = `Unexpected bluetooth error while reading from device: ${bleErrorToUsefulString(error)}`;
+        console.error(unexpectedStr);
         dispatch(setDeviceStatusString(unexpectedStr));
         Sentry.Native.captureMessage(unexpectedStr);
         debugger;
@@ -1224,7 +1270,7 @@ function filterBleReadError(error: unknown, dispatch: AppDispatch, deviceID: str
     const unexpectedStr = `Unexpected error while reading from device: ${String(error)}`;
     dispatch(setDeviceStatusString(unexpectedStr));
     Sentry.Native.captureMessage(unexpectedStr);
-    debugger;
+    // debugger;
     throw error;
 }
 
@@ -1377,18 +1423,27 @@ export const useBluetoothConnectAndPollAranet = () => {
     const lastMeasurementTime = useSelector(selectMeasurementTime);
 
     const backgroundPollingEnabled = useSelector(selectBackgroundPollingEnabled);
+    const subscribedOSBluetoothState = useSelector(selectSubscribedOSBluetoothState);
+    const [firstUpdateDone, setFirstUpdateDone] = useState(false);
 
     const {loggedIn} = useIsLoggedIn();
 
     useEffect(() => {
-        requestAllBluetoothPermissions(dispatch);
+        console.log("initial request perms")
+        requestAllBluetoothPermissions(dispatch, subscribedOSBluetoothState);
     }, []);
 
     useEffect(() => {
-        if (!hasBluetooth) {
+        iosBluetoothChecks(dispatch, subscribedOSBluetoothState)
+    }, [dispatch, subscribedOSBluetoothState])
+
+    useEffect(() => {
+        if (hasBluetooth === false) {
+            console.log("!hasBluetooth (before scan)");
             return;
         }
         if (needsBluetoothTurnOn) {
+            console.log("needsBluetoothTurnOn (before scan)");
             return;
         }
         scanAndIdentify(dispatch);
@@ -1410,33 +1465,43 @@ export const useBluetoothConnectAndPollAranet = () => {
             return;
         }
         if (known === null) {
+            if (!loggedIn) {
+                dispatch(setUploadStatus("Can't load devices until you're logged in."));
+                return;
+            }
             dispatch(setUploadStatus("Loading user devices from server..."));
             return;
         }
         console.assert(known === false);
         if (serialNumberString === null) {
             console.log('Serial number string null - No devices detected.');
+            if (subscribedOSBluetoothState === State.PoweredOn) {
+                dispatch(setUploadStatus(`Null device? Is it within range? Bluetooth is on and working.`));
+                return;
+            }
             dispatch(setUploadStatus(`Null device? Are you sure bluetooth is working and within range?`));
             return;
         }
         console.log(`Device ${serialNumberString} is NOT known to bluetooth hook!`);
         dispatch(setUploadStatus(`Device ${serialNumberString} is NOT a known device. Please add in the web console.`));
-    }, [supportedDevices, serialNumberString, dispatch])
+    }, [supportedDevices, serialNumberString, dispatch, subscribedOSBluetoothState, loggedIn])
 
     useEffect(() => {
         if (deviceID === null) {
+            console.log("deviceID === null");
             return;
         }
-        if (!hasBluetooth) {
+        if (hasBluetooth === false) {
+            console.log("!hasBluetooth (before first scan)");
             dispatch(setDeviceStatusString("User has NOT granted bluetooth permissions. Beginning first read over bluetooth anyways..."));
         }
         else {
             dispatch(setDeviceStatusString(`Beginning first read over bluetooth... device known: ${knownDeviceBluetooth}`));
         }
 
-        // console.log(`First bluetooth read, deviceID ${deviceID}`);
+        console.log(`First bluetooth read ${firstUpdateDone}, deviceID ${deviceID}`);
 
-        firstBluetoothUpdate(deviceID, dispatch).then((info) => {
+        firstBluetoothUpdate(deviceID, dispatch, subscribedOSBluetoothState).then((info) => {
             if (info === undefined) {
                 return;
             }
@@ -1446,14 +1511,15 @@ export const useBluetoothConnectAndPollAranet = () => {
             }
             dispatch(setDeviceSerialNumber(info.genericInfo.serialNumberString));
             dispatch(setDeviceName(info.genericInfo.deviceNameString));
+            setFirstUpdateDone(true);
             return setFromAranet4SpecificInfo(dispatch, info.specificInfo);
-
             // setAranet4SpecificInformation(info.specificInfo);
         }).catch((error) => {
             Sentry.Native.captureException(error);
             dispatch(setScanningErrorStatusString(`Unexpected error on first bluetooth update: ${unknownNativeErrorTryFormat(error)}`));
+            setFirstUpdateDone(true);
         })
-    }, [deviceID, dispatch, hasBluetooth, knownDeviceBluetooth])
+    }, [deviceID, dispatch, hasBluetooth, knownDeviceBluetooth, subscribedOSBluetoothState, firstUpdateDone])
 
 
     useEffect(() => {
@@ -1470,6 +1536,10 @@ export const useBluetoothConnectAndPollAranet = () => {
             console.log("NOT polling in foreground, backgroundPollingEnabled");
             return;
         }
+        if (!firstUpdateDone) {
+            console.log("First update not complete yet...")
+            return;
+        }
 
         const lastMeasurementTimeDate = (lastMeasurementTime !== null) ? new Date(lastMeasurementTime) : new Date(Date.now());
         const timerTime = maybeNextMeasurementInOrDefault(measurementInterval, lastMeasurementTimeDate);
@@ -1483,47 +1553,73 @@ export const useBluetoothConnectAndPollAranet = () => {
                 console.log("Clearing co2 timer...");
                 clearTimeout(timeoutHandle);
                 setTimeoutHandle(null);
+
                 clearTimeout(handle);
             }
         }
-    }, [deviceID, timeoutHandle, knownDeviceBluetooth, backgroundPollingEnabled, supportedDevices, dispatch, lastMeasurementTime, loggedIn, measurementInterval])
-
+    }, [deviceID, timeoutHandle, knownDeviceBluetooth, backgroundPollingEnabled, supportedDevices, dispatch, lastMeasurementTime, loggedIn, measurementInterval, firstUpdateDone])
 
 
     return { measurement };
 }
 
-async function firstBluetoothUpdate(deviceID: string, dispatch: AppDispatch): Promise<Aranet4GenericAndSpecificInformation | undefined>  {
+async function firstBluetoothUpdate(deviceID: string, dispatch: AppDispatch, subscribedOSBluetoothState: State | null): Promise<Aranet4GenericAndSpecificInformation | undefined>  {
     try {
         //FIRST and ONLY the first of these.
         // const deviceOrNull = await beginWithDeviceConnection(deviceID, device, dispatch);
+        dispatch(setScanningErrorStatusString(`Beginning of first bluetooth update. Bluetooth state: ${subscribedOSBluetoothState}`));
+        console.log(`\n\n-------\nBeginning of first bluetooth update. Bluetooth state: ${subscribedOSBluetoothState}`)
+
         const connectedDevice = await connectOrAlreadyConnected(deviceID);
 
         if (connectedDevice === null) {
             dispatch(setScanningErrorStatusString("Connection to aranet4 failed."));
+            console.warn("Connection to aranet4 failed.")
             return;
         }
         if (connectedDevice === true) {
             dispatch(setScanningErrorStatusString("Connection to aranet4 failed... Likely will work if tried again"));
+            console.warn("Connection to aranet4 failed... Likely will work if tried again");
             return;
         }
         if (connectedDevice === false) {
+            console.error("Probable bug.");
             throw new Error("Connection to aranet4 failed: BUG");
         }
-        dispatch(setScanningStatusString(`Connected to aranet4 ${deviceID}). Discovering services and characteristics...`));
+        const connectedStr = `Connected to aranet4 ${deviceID}). Discovering services and characteristics...`;
+        dispatch(setScanningStatusString(connectedStr));
+        console.log(`\n\n${connectedStr}`);
         const deviceWithServicesAndCharacteristics = await connectedDevice.discoverAllServicesAndCharacteristics();
 
-        dispatch(setScanningStatusString("Connected to aranet4, services discovered!"));
+        const connectedDiscoveredStr = "Connected to aranet4, services discovered!";
+        dispatch(setScanningStatusString(connectedDiscoveredStr));
+        console.log(connectedDiscoveredStr);
 
         const services = await deviceWithServicesAndCharacteristics.services();
         const hasServiceSanityCheck = checkContainsAranet4Service(services);
         if (!hasServiceSanityCheck) {
             console.warn("Missing aranet4 service?");
         }
+
+        await dumpServiceDescriptions(services);
+
+    
+        // const characteristics = await deviceWithServicesAndCharacteristics.characteristicsForService(BLUETOOTH.ARANET4_SENSOR_SERVICE_UUID);
+        // for (let i = 0; i < characteristics.length; ++i) {
+        //     console.log(`characteristics[${i}]: ${characteristics[i].id}`);
+        // }
+
+
+        // const characteristics_unk = await deviceWithServicesAndCharacteristics.characteristicsForService('f0cd1400-95da-4f4b-9ac8-aa55d312af0c')
+    
+        // for (let i = 0; i < characteristics_unk.length; ++i) {
+        //     console.log(`characteristics_unk[${i}]: ${characteristics_unk[i].id}`);
+        // }
     
 
         
         dispatch(setDeviceStatusString('Reading generic bluetooth information...'));
+        console.log('Reading generic bluetooth information...');
         const genericInfo = await readGenericBluetoothInformation(deviceID);
         
         const specificInfo = await updateAranet4SpecificInformation(deviceID, dispatch);
@@ -1539,15 +1635,16 @@ async function firstBluetoothUpdate(deviceID: string, dispatch: AppDispatch): Pr
         }
     }
     catch (error) {
-        console.log(`First bluetooth read exception handler...`);
+        console.warn(`First bluetooth read exception handler...`);
         if (!filterBleReadError(error, dispatch, deviceID)) {
             console.error(`UNHANDLED ble read error: ${String(error)}, device: ${deviceID}`);
+            debugger;
         }
     }
 }
 
 const connectOrAlreadyConnected = async (deviceID: string): Promise<Device | boolean | null> => {
-    // console.log(`Checking if ${deviceID} is connected first...`);
+    console.log(`Checking if ${deviceID} is connected first...`);
     const isConnected = await manager.isDeviceConnected(deviceID);
     if (!isConnected) {
         // console.log("NOT connected, connecting...");
@@ -1589,7 +1686,9 @@ const connectOrAlreadyConnected = async (deviceID: string): Promise<Device | boo
 
 
 async function foundAranet4(scannedDevice: Device, dispatch: AppDispatch) {
-    dispatch(setScanningStatusString(`Found aranet4! (${scannedDevice.id}) Connecting...`));
+    const status = `Found aranet4! (${scannedDevice.id}) Connecting...`;
+    dispatch(setScanningStatusString(status));
+    console.log(status);
     // console.log("Connecting to aranet4...");
     if (scannedDevice.id) {
         if (scannedDevice.id === '?') {
@@ -1653,6 +1752,8 @@ function dumpNewScannedDeviceInfo(scannedDevice: Device | null) {
             })
             // debugger;
         }
+        console.log(scannedDevice.serviceUUIDs);
+        
     }
 }
 
@@ -1671,7 +1772,7 @@ export function isSupportedDevice(supportedDevices: UserInfoDevice[] | null, ser
     }
     if (supportedDevices === initialUserDevicesState.userSupportedDevices) {
         console.log("Still loading supported devices... can't say if anything is supported!");
-        return;
+        return null;
     }
     if (supportedDevices.length === 0) {
         console.log("Supported devices array empty, user may not have any or may have not yet loaded.");
@@ -1818,8 +1919,9 @@ export function useOSBluetoothStateListener() {
 
         return () => {
             listenerSubscription?.remove();
+            // setListenerSubscription(null);
         }
-    }, [])
+    }, [dispatch])
 
     return {listenerSubscription};
 
@@ -1838,7 +1940,7 @@ const BluetoothMaybeNeedsTurnOn:React.FC<{}> = () => {
         return (
             <>
                 <MaybeIfValue text="Native errors turning bluetooth on: " value={nativeOSBluetoothStateListenerErrors}/>
-                <MaybeIfValue text={"Bluetooth state: "} value={subscribedOSBluetoothState} />
+                <MaybeIfValue text="Bluetooth state: " value={subscribedOSBluetoothState} />
                 <Button title="Turn Bluetooth on" onPress={(ev) => {turnOn(ev, dispatch)}}/>
             </>
         );
@@ -1846,7 +1948,7 @@ const BluetoothMaybeNeedsTurnOn:React.FC<{}> = () => {
 
     return (
         <>
-            <MaybeIfValue text={"Bluetooth state: "} value={subscribedOSBluetoothState} />
+            <MaybeIfValue text="Bluetooth state: " value={subscribedOSBluetoothState} />
             <MaybeIfValue text="Native errors checking/turning bluetooth on: " value={nativeOSBluetoothStateListenerErrors}/>
         </>
     );
@@ -1874,7 +1976,7 @@ export const MaybeNoSupportedBluetoothDevices: React.FC<{}> = () => {
       return (
         <>
             <Text>There was some kind of error loading supported/known devices from the server.</Text>
-            <MaybeIfValue text={"Errors: "} value={userDeviceSettingsStatus}/>
+            <MaybeIfValue text="Errors: " value={userDeviceSettingsStatus}/>
         </>
       );
     }
@@ -1897,7 +1999,7 @@ export const MaybeNoSupportedBluetoothDevices: React.FC<{}> = () => {
         <>
           <Text>You do not have any devices entered into the database. To upload data, please create a device in the web console.</Text>
           <LinkButton url={COVID_CO2_TRACKER_DEVICES_URL} title="Open web console"/>
-          <MaybeIfValue text={"Errors: "} value={userDeviceSettingsStatus}/>
+          <MaybeIfValue text="Errors: " value={userDeviceSettingsStatus}/>
         </>
       )
     }

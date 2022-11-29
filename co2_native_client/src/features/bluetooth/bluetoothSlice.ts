@@ -68,7 +68,7 @@ export interface OSBluetoothState {
 
 export interface BluetoothState {
     device: BluetoothDeviceState;
-    hasBluetooth: boolean;
+    hasBluetooth: boolean | null;
     scanningStatusString: string | null;
     scanningErrorStatus: string;
     updates: number;
@@ -142,6 +142,7 @@ export const bluetoothSlice = createSlice({
         //     state.device.rfData.txPower = action.payload;
         // },
         setHasBluetooth: (state, action: PayloadAction<boolean>) => {
+            console.log(`Current hasBluetooth: ${state.hasBluetooth}, new hasBluetooth: ${action.payload}`);
             state.hasBluetooth = action.payload;
         },
         setScanningStatusString: (state, action: PayloadAction<string | null>) => {

@@ -10,7 +10,9 @@
         "gradleCommand": ":app:assembleDebug"
       },
       "ios": {
-        "buildConfiguration": "Debug"
+        "buildConfiguration": "Debug",
+        "buildArtifactPaths": "ios/build/*"
+
       }
     },
     "preview": {
