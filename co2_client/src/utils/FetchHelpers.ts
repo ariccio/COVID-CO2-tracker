@@ -356,6 +356,7 @@ export async function fetchJSONWithChecks(input: RequestInfo, init: RequestInit,
                 
                 //WHY DOES JAVASCRIPT LET ME DO THIS WITHOUT AWAIT? Annoyed debugging.
                 if (await fetchFailed(awaitedResponse.clone(), expectedStatus, alert)) {
+                    console.warn(`failed fetch for ${input}`)
                     // debugger;
                     // If you DO NOT clone the result and try to use it for error handling, reading it again for later use will cause it to fail by reading it twice. 
                     console.warn("failure callback must clone response if checking for errors!");
@@ -371,18 +372,18 @@ export async function fetchJSONWithChecks(input: RequestInfo, init: RequestInit,
                 // rawResponseForErrorsMessage.
                 dumpResponse(rawResponseForErrorsMessage);
                 // debugger;
-                throw new Error(`Error during fetch, network layer: ${rawResponseForErrorsMessage.text()}, lower level error: ${awaitError}`);
+                throw new Error(`Error during fetch for ${input}, network layer: ${rawResponseForErrorsMessage.text()}, lower level error: ${awaitError}`);
             }
         }).catch((catchError) => {
             //YESS
-            console.error("Network error OR error in fetch callback, ultimate cause: ");
+            console.error(`Network error OR error in fetch callback for ${input}, ultimate cause: `);
             // debugger;
             console.error(catchError);
             throw new Error(catchError);
         })
     }
     catch(error) {
-        console.warn(`last chance bailed? (${input.toString()})`);
+        console.warn(`last chance bailed for ${input}? (${input.toString()})`);
         debugger;
         fetchFilter(error);
     }
