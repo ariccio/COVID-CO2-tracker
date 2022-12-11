@@ -48,7 +48,7 @@ interface Aranet4SpecificInformation {
 
 
 export const manager = new BleManager();
-
+const bluetoothDebugDumps = false;
 if (__DEV__) {
     console.log("setting ble loglevel high.");
     manager.setLogLevel(LogLevel.Debug);
@@ -554,7 +554,7 @@ const iosBluetoothChecks = async (dispatch: AppDispatch, subscribedOSBluetoothSt
             return;
         }
         case (null):
-            console.warn("loading lmao");
+            console.log("loading bluetooth state!");
             return;
         case (State.PoweredOff):
         case (State.Resetting):
@@ -632,11 +632,13 @@ function parseUint8Buffer(data: Buffer): number {
 
 async function readStringCharacteristicFromDevice(deviceID: string, serviceUUID: string, characteristicUUID: string, serviceName: string, characteristicName: string): Promise<string> {
     // debugger;
-    console.log(`Reading ${characteristicUUID}/${characteristicName}`);
+    if (bluetoothDebugDumps) {
+        console.log(`Reading ${characteristicUUID}/${characteristicName}`);
+    }
     const rawStringCharacteristicValue = await manager.readCharacteristicForDevice(deviceID, serviceUUID, characteristicUUID);
-    debugger;
+    // debugger;
     if (rawStringCharacteristicValue.value === null) {
-        debugger;
+        // debugger;
         throw new Error(`${serviceName}: ${characteristicName} value is null?`);
     }
     const stringCharacteristicAsBuffer = Buffer.from(rawStringCharacteristicValue.value, 'base64');
@@ -715,21 +717,25 @@ async function readGenericBluetoothInformation(deviceID: string): Promise<Generi
     }
     const os = Platform.OS;
 
+    const battery = await readBatteryLevelFromBluetoothDevice(deviceID);
+
     if (os !== 'ios') {
         const deviceNameString = await readDeviceNameFromBluetoothDevice(deviceID)
         if (deviceNameString.length === 0) {
             console.warn(`Device ${deviceID} has an empty name?`);
         }
+        return {
+            deviceNameString,
+            serialNumberString,
+            battery
+        };    
     }
-    else {
-        console.warn("IOS appears to hide the generic access service from usermode apps?! See: https://lists.apple.com/archives/bluetooth-dev/2016/Feb/msg00018.html and https://github.com/dotintent/react-native-ble-plx/issues/657#issuecomment-1331204557")
-    }
-    const battery = await readBatteryLevelFromBluetoothDevice(deviceID);
+    console.log("IOS appears to hide the generic access service from usermode apps?! See: https://lists.apple.com/archives/bluetooth-dev/2016/Feb/msg00018.html and https://github.com/dotintent/react-native-ble-plx/issues/657#issuecomment-1331204557")
     return {
-        deviceNameString,
+        deviceNameString: null,
         serialNumberString,
         battery
-    };
+    };    
 
 }
 function co2MeasurementCharacteristicBufferToMeasurementState(co2CharacteristicAsBuffer: Buffer): Aranet4_1503CO2 {
@@ -1202,8 +1208,8 @@ function headlessFilterBleReadError(error: unknown, deviceID: string | null): Bl
 function filterBleReadError(error: unknown, dispatch: AppDispatch, deviceID: string | null): void | boolean {
     if (error instanceof BleError) {
         if (error.errorCode === BleErrorCode.OperationCancelled) {
-            dispatch(setDeviceStatusString('Bluetooth read was cancelled for some reason. Will try again.'));
-            return true;
+            dispatch(setDeviceStatusString('Bluetooth read was cancelled for some reason. Might try again.'));
+            return false;
         }
         if (error.errorCode === BleErrorCode.DeviceNotConnected) {
             console.log(`Device ${deviceID} not connected. Data not available. Will try again.`);
@@ -1235,13 +1241,16 @@ function filterBleReadError(error: unknown, dispatch: AppDispatch, deviceID: str
         //0x11 === GATT_INSUF_RESOURCE
         //Need to cast because react-native-ble-plx doesn't enumerate this? :)
         if ((error.androidErrorCode as number) === 0x11) {
-            dispatch(setDeviceStatusString("Your device didn't even have enough memory to process the error message! There's something wrong, I will NOT try again. I didn't expect to see this problem, ever!"));
+            const errStr = "Your device didn't even have enough memory to process the error message! There's something wrong, I will NOT try again. I didn't expect to see this problem, ever!";
+            dispatch(setDeviceStatusString(errStr));
+            console.error(errStr);
             debugger;
             return false;
         }
         //NoResources === 0x80
         if (error.androidErrorCode === BleAndroidErrorCode.NoResources) {
             dispatch(setDeviceStatusString("Your device is out of memory, no point in trying again!"));
+            return false;
         }
         //0x81 === GATT_INTERNAL_ERROR (android messed up)
         if (error.androidErrorCode === 0x81) {
@@ -1333,8 +1342,11 @@ async function updateCallback(deviceID: string, dispatch: AppDispatch): Promise<
     catch(error) {
         console.log(`update callback exception handler...`);
         if (!filterBleReadError(error, dispatch, deviceID)) {
-            debugger;
+            console.error(`UNHANDLED ble read error: ${String(error)}, device: ${deviceID}`);
+            // debugger;
+            return;
         }
+        console.log(`Error '${error}' filtered.`);
     }
 }
 
@@ -1500,7 +1512,9 @@ export const useBluetoothConnectAndPollAranet = () => {
         }
 
         console.log(`First bluetooth read ${firstUpdateDone}, deviceID ${deviceID}`);
-
+        if (firstUpdateDone) {
+            return;
+        }
         firstBluetoothUpdate(deviceID, dispatch, subscribedOSBluetoothState).then((info) => {
             if (info === undefined) {
                 return;
@@ -1512,7 +1526,10 @@ export const useBluetoothConnectAndPollAranet = () => {
             dispatch(setDeviceSerialNumber(info.genericInfo.serialNumberString));
             dispatch(setDeviceName(info.genericInfo.deviceNameString));
             setFirstUpdateDone(true);
-            return setFromAranet4SpecificInfo(dispatch, info.specificInfo);
+            setFromAranet4SpecificInfo(dispatch, info.specificInfo);
+            // dispatch(setScanningStatusString(`First bluetooth update done.`));
+            dispatch(setScanningStatusString(null));
+            return;
             // setAranet4SpecificInformation(info.specificInfo);
         }).catch((error) => {
             Sentry.Native.captureException(error);
@@ -1567,7 +1584,7 @@ async function firstBluetoothUpdate(deviceID: string, dispatch: AppDispatch, sub
     try {
         //FIRST and ONLY the first of these.
         // const deviceOrNull = await beginWithDeviceConnection(deviceID, device, dispatch);
-        dispatch(setScanningErrorStatusString(`Beginning of first bluetooth update. Bluetooth state: ${subscribedOSBluetoothState}`));
+        // dispatch(setScanningStatusString(`Beginning of first bluetooth update. Bluetooth state: ${subscribedOSBluetoothState}`));
         console.log(`\n\n-------\nBeginning of first bluetooth update. Bluetooth state: ${subscribedOSBluetoothState}`)
 
         const connectedDevice = await connectOrAlreadyConnected(deviceID);
@@ -1601,7 +1618,9 @@ async function firstBluetoothUpdate(deviceID: string, dispatch: AppDispatch, sub
             console.warn("Missing aranet4 service?");
         }
 
-        await dumpServiceDescriptions(services);
+        if (bluetoothDebugDumps) {
+            await dumpServiceDescriptions(services);
+        }
 
     
         // const characteristics = await deviceWithServicesAndCharacteristics.characteristicsForService(BLUETOOTH.ARANET4_SENSOR_SERVICE_UUID);
@@ -1635,11 +1654,15 @@ async function firstBluetoothUpdate(deviceID: string, dispatch: AppDispatch, sub
         }
     }
     catch (error) {
-        console.warn(`First bluetooth read exception handler...`);
+        console.warn(`First bluetooth read exception handler... ${String(error)}`);
+        
         if (!filterBleReadError(error, dispatch, deviceID)) {
             console.error(`UNHANDLED ble read error: ${String(error)}, device: ${deviceID}`);
-            debugger;
+            // debugger;
+            return;
         }
+        console.log(`Error '${error}' filtered.`);
+        return await firstBluetoothUpdate(deviceID, dispatch, subscribedOSBluetoothState);
     }
 }
 
@@ -1842,7 +1865,7 @@ function maybeNextMeasurementInOrDefault(measurementInterval: number | null, las
         return atLeastOneMinuteOrDev(maybeNextSeconds);
     }
     if (__DEV__ && (maybeNextSeconds > 30)) {
-        return 30 * 1000;
+        return 32 * 1000;
     }
     const maybeNextMs = (maybeNextSeconds * 1000);
     if (maybeNextMs < 5000) {
@@ -1918,6 +1941,7 @@ export function useOSBluetoothStateListener() {
         setListenerSubscription(subscription);
 
         return () => {
+            console.log("Cancelling bluetooth state subscription!");
             listenerSubscription?.remove();
             // setListenerSubscription(null);
         }

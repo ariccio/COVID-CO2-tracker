@@ -412,8 +412,9 @@ const useCheckKnownDevice = (supportedDevices: UserInfoDevice[] | null, dispatch
           // return;
       }
       else {
-          // console.log("------------------------------setting known device?");
-          setKnownDevice(isSupportedDevice(supportedDevices, serialNumber))
+          console.log("------------------------------setting known device?");
+          setKnownDevice(isSupportedDevice(supportedDevices, serialNumber));
+          dispatch(setUserDeviceSettingsStatus(null));
       }
       if (supportedDevices === initialUserDevicesState.userSupportedDevices) {
         if (!loggedIn) {
