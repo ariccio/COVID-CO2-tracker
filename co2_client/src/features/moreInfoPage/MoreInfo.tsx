@@ -1,5 +1,7 @@
+import { FormEvent, RefObject, useRef, useState, Dispatch, SetStateAction } from 'react';
 import { Col, Row } from 'react-bootstrap';
 import Card from 'react-bootstrap/Card';
+import { percentRebreathedFromPPM, rebreathedToString } from '../../utils/Rebreathed';
 // import Nav from 'react-bootstrap/Nav';
 
 const CAC = () =>
@@ -46,6 +48,48 @@ const CovidStraightTalk = () =>
 
 // interface MoreInfoProps {}
 
+function handleCO2CalcSubmit(event: FormEvent<HTMLElement>, fieldNumberCo2Value: RefObject<HTMLInputElement>, setEnteredCO2: Dispatch<SetStateAction<number | null>>, setErrorMessage: Dispatch<SetStateAction<string | null>>) {
+    event.preventDefault();
+    // console.log(event);
+    // console.log(fieldNumberCo2Value.current?.value);
+    if (fieldNumberCo2Value.current === null) {
+        setErrorMessage('Unexpected null ref current value for fieldNumberCo2Value');
+        return;
+    }
+    setEnteredCO2(parseInt(fieldNumberCo2Value.current.value, 10));
+}
+
+const EnteredToRebreathedPercent = (props: {currentCo2Entered: (null | number)}) => {
+    if(props.currentCo2Entered === null) {
+        return null;
+    }
+    const percent = percentRebreathedFromPPM(props.currentCo2Entered);
+    const displayRebreathed = rebreathedToString(percent);
+    return (
+        <>
+            {displayRebreathed} other people's air.
+        </>
+    )
+}
+
+const CalculateRebreathedCO2 = () => {
+    const fieldNumberCo2Value = useRef<HTMLInputElement>(null);
+    const [enteredCO2, setEnteredCO2] = useState(null as (number | null));
+    const [errorMessage, setErrorMessage] = useState(null as (string | null));
+    return (
+        <>
+            <form onSubmit={(event) => {handleCO2CalcSubmit(event, fieldNumberCo2Value, setEnteredCO2, setErrorMessage)}} id={'co2-calc'}>
+                <label>Calculate rebreated fraction from a CO2 PPM:
+                    <input type={'number'} form='co2-calc' inputMode='decimal' min={420} id='co2-calc-field' ref={fieldNumberCo2Value}/>
+                </label>
+                <input type="submit" value={"submit"}/>
+
+            </form>
+            <EnteredToRebreathedPercent currentCo2Entered={enteredCO2}/>
+            {errorMessage}
+        </>
+    )
+}
 
 export const MoreInfo = () => {
     return (
@@ -68,6 +112,14 @@ export const MoreInfo = () => {
                 </Col>
                 <Col>
                     <CovidStraightTalk/>
+                </Col>
+            </Row>
+            <h4>
+                Tools
+            </h4>
+            <Row md={2}>
+                <Col>
+                    <CalculateRebreathedCO2/>
                 </Col>
             </Row>
         </>
