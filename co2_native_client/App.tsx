@@ -510,7 +510,7 @@ function CreateDeviceIfNotYet() {
   if (supportedDevices === null) {
     return (
       <>
-        <Text>There was some kind of error loading supported devices. See "Home" for full details.</Text>
+        <Text>There was some kind of error loading supported devices. See &quot;Home&quot; for full details.</Text>
         <MaybeIfValue value={supportedDeviceSettingStatus} text="Status/Errors: "/>
       </>
     )

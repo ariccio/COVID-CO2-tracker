@@ -1,7 +1,7 @@
 import notifee, {NotificationSettings, Notification, EventType, Event, TriggerType, TimeUnit, IntervalTrigger, AndroidImportance} from '@notifee/react-native';
 import { ActivityAction, IntentLauncherParams, IntentLauncherResult, startActivityAsync } from 'expo-intent-launcher';
 import {useState, useEffect, useRef} from 'react';
-import { Button, AppState, AppStateStatus } from 'react-native';
+import { Button, AppState, AppStateStatus, Platform } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import * as Sentry from 'sentry-expo';
 
@@ -60,6 +60,9 @@ function defaultNotification(channelId: string): Notification {
             pressAction: {
                 id: 'default'
             }
+        },
+        ios: {
+          interruptionLevel: 'passive'  
         }
     }
     return defaultNotificationOptions;
@@ -175,39 +178,39 @@ async function checkedRequestPermission(dispatch: AppDispatch): Promise<Notifica
 // }
 
 
-async function handleForegroundServiceEvent({ type, detail }: Event, deviceID: string, supportedDevices: UserInfoDevice[], foreground: string, userSettings: UserSettings, jwt: string, shouldUpload: boolean) {
+async function handleForegroundServiceEvent(event: Event, deviceID: string, supportedDevices: UserInfoDevice[], userSettings: UserSettings, jwt: string, shouldUpload: boolean) {
     
     
-    if (type === EventType.ACTION_PRESS) {
-        const eventMessage = logEvent(foreground, { type, detail });
-        console.log(`-------\r\n(SERVICE, ${timeNowAsString()})${eventMessage}: ${JSON.stringify(detail)}`);
+    if (event.type === EventType.ACTION_PRESS) {
+        const eventMessage = logEvent('foreground', event);
+        console.log(`-------\r\n(SERVICE, ${timeNowAsString()})${eventMessage}: ${JSON.stringify(event)}`);
         
 
-        if (!detail) {
+        if (!event.detail) {
             console.warn("missing notification event detail?");
             return;
         }
-        if (detail.pressAction === undefined) {
+        if (event.detail.pressAction === undefined) {
             console.warn("missing notification event detail pressAction?");
             return;
         }
-        if (detail.pressAction.id === 'stop') {
+        if (event.detail.pressAction.id === 'stop') {
             console.log("Stopping foreground service...");
             stopServiceAndClearNotifications();
             return;
         }
-        console.log(`...Unexpected pressAction? ${detail.pressAction.id}`);
+        console.log(`...Unexpected pressAction? ${event.detail.pressAction.id}`);
     }
 
-    else if (type === EventType.DELIVERED) {
-        const eventMessage = logEvent(foreground, { type, detail });
-        console.log(`-------\r\n\t(SERVICE, ${timeNowAsString()})${eventMessage}: ${JSON.stringify(detail)}`);
+    else if (event.type === EventType.DELIVERED) {
+        const eventMessage = logEvent('foreground', event);
+        console.log(`-------\r\n\t(SERVICE, ${timeNowAsString()})${eventMessage}: ${JSON.stringify(event)}`);
         
 
-        if (detail.notification === undefined) {
+        if (event.detail.notification === undefined) {
             throw new Error("Missing notification content in detail!");
         }
-        if (detail.notification.id === undefined) {
+        if (event.detail.notification.id === undefined) {
             throw new Error("Missing notification ID in detail!");
         }
 
@@ -215,33 +218,67 @@ async function handleForegroundServiceEvent({ type, detail }: Event, deviceID: s
         console.log(`Starting headless task with deviceID: ${deviceID}, supportedDevices: ${JSON.stringify(supportedDevices)}`);
         const result: MeasurementDataForUpload | null = await onHeadlessTaskTriggerBluetooth(deviceID, supportedDevices);
         console.log(`Read this value!\n\t${JSON.stringify(await result)}`);
-        await notifee.cancelDisplayedNotification(detail.notification.id);
+        await notifee.cancelDisplayedNotification(event.detail.notification.id);
         await uploadMeasurementHeadless(result, userSettings, jwt, shouldUpload);
     }
     else {
-        const eventMessage = logEvent(foreground, { type, detail });
-        console.log(`-------\r\n(SERVICE, ${timeNowAsString()})${eventMessage} (unimplemented event handling for this event.): ${JSON.stringify(detail)}`);
+        const eventMessage = logEvent('foreground', event);
+        console.log(`-------\r\n(SERVICE, ${timeNowAsString()})${eventMessage} (unimplemented event handling for this event.): ${JSON.stringify(event)}`);
     }
 }
 
-const foregroundServiceCallback = (notification: Notification, deviceID: string, supportedDevices: UserInfoDevice[], userSettings: UserSettings, jwt: string, shouldUpload: boolean): Promise<void> => {
+async function handleBackgroundEvent(event: Event, deviceID: string, supportedDevices: UserInfoDevice[], userSettings: UserSettings, jwt: string, shouldUpload: boolean, dispatch: AppDispatch) {
+    const eventMessage = logEvent('background', event);
+    console.log(`-------\r\n(SERVICE, ${timeNowAsString()})${eventMessage} (unimplemented event handling for this event.): ${JSON.stringify(event)}`);
+
+    if (event.detail.notification === undefined) {
+        const errorMessageStr = `Error in handleBackgroundEvent: event.detail.notification is undefined, probably a native error?`;
+        dispatch(setDisplayNotificationNativeErrors(errorMessageStr));
+        Sentry.Native.captureMessage(errorMessageStr);
+        // Sentry.Native.captureException(exception);
+        return;
+    }
+    if (event.detail.notification.id === undefined) {
+        const errorMessageStr = `Error in handleBackgroundEvent: event.detail.notification.id is undefined, probably a native error?`;
+        dispatch(setDisplayNotificationNativeErrors(errorMessageStr));
+        Sentry.Native.captureMessage(errorMessageStr);
+        // Sentry.Native.captureException(exception);
+        return;
+    }
+
+    await notifee.cancelNotification(event.detail.notification.id);
+}
+
+const foregroundServiceCallback = (notification: Notification, deviceID: string, supportedDevices: UserInfoDevice[], userSettings: UserSettings, jwt: string, shouldUpload: boolean, dispatch: AppDispatch): Promise<void> => {
     console.log(`--------FOREGROUND SERVICE CALLBACK ${JSON.stringify(notification)}------`);
     return new Promise(() => {
         console.log("Registering notification service event handlers...");
         // https://notifee.app/react-native/docs/android/foreground-service
-        notifee.onForegroundEvent(({ type, detail }: Event) => {return handleForegroundServiceEvent({type, detail}, deviceID, supportedDevices, 'foreground', userSettings, jwt, shouldUpload)});
-        notifee.onBackgroundEvent(({ type, detail }: Event) => {return handleForegroundServiceEvent({type, detail}, deviceID, supportedDevices, 'background', userSettings, jwt, shouldUpload)});
+        notifee.onForegroundEvent((event: Event) => {return handleForegroundServiceEvent(event, deviceID, supportedDevices, userSettings, jwt, shouldUpload)});
+        notifee.onBackgroundEvent((event: Event) => {return handleBackgroundEvent(event, deviceID, supportedDevices, userSettings, jwt, shouldUpload, dispatch)});
         // debugger;
     })
 }
 
-async function registerForegroundService(deviceID: string, supportedDevices: UserInfoDevice[], userSettings: UserSettings, jwt: string, shouldUpload: boolean, dispatch: AppDispatch): Promise<void> {
+function registerForegroundService(deviceID: string, supportedDevices: UserInfoDevice[], userSettings: UserSettings, jwt: string, shouldUpload: boolean, dispatch: AppDispatch) {
     try {
         console.log("Registering foreground service...");
-        notifee.registerForegroundService((notification: Notification) => foregroundServiceCallback(notification, deviceID, supportedDevices, userSettings, jwt, shouldUpload));
+        notifee.registerForegroundService((notification: Notification) => foregroundServiceCallback(notification, deviceID, supportedDevices, userSettings, jwt, shouldUpload, dispatch));
     }
     catch (exception) {
         dispatch(setDisplayNotificationNativeErrors(`Error in registerForegroundService: '${unknownNativeErrorTryFormat(exception)}'`));
+        Sentry.Native.captureException(exception);
+        //Probably native error.
+    }
+}
+
+async function registerBackgroundEventHandler(deviceID: string, supportedDevices: UserInfoDevice[], userSettings: UserSettings, jwt: string, shouldUpload: boolean, dispatch: AppDispatch): Promise<void> {
+    try {
+        console.log("Registering background event handler...");
+        notifee.onBackgroundEvent((event: Event) => {return handleBackgroundEvent(event, deviceID, supportedDevices, userSettings, jwt, shouldUpload, dispatch)})
+    }
+    catch (exception) {
+        dispatch(setDisplayNotificationNativeErrors(`Error in registerBackgroundEventHandler: '${unknownNativeErrorTryFormat(exception)}'`));
         Sentry.Native.captureException(exception);
         //Probably native error.
     }
@@ -254,9 +291,19 @@ async function onDisplayNotification(setDisplayNotificationErrors: React.Dispatc
     //https://github.com/invertase/notifee/blob/7d03bb4eda27b5d4325473cf155852cef42f5909/docs/react-native/docs/debugging.md
     // To quickly view Android logs in the terminal:
     //   adb logcat '*:S' NOTIFEE:D
-
-    console.log("Creating foreground service...");
-    await registerForegroundService(deviceID, supportedDevices, userSettings, jwt, shouldUpload, dispatch);
+    const os = Platform.OS;
+    if (os === 'android') {
+        console.log("Creating foreground service...");
+        await registerForegroundService(deviceID, supportedDevices, userSettings, jwt, shouldUpload, dispatch);
+    }
+    else if (os === 'ios') {
+        console.log('creating ios background event handler...');
+        registerBackgroundEventHandler(deviceID, supportedDevices, userSettings, jwt, shouldUpload, dispatch);
+    }
+    else {
+        console.error("unimplemented");
+        throw new Error("tf?")
+    }
 
     // Required for iOS
     // See https://notifee.app/react-native/docs/ios/permissions
@@ -367,9 +414,17 @@ export function booleanIsBackroundPollingUploadingForButton(notificationState: N
 
     if (
         (notificationState !== undefined ) && 
-        notificationState.notificationID && notificationState.triggerNotification && notificationState.channelID) {
+        notificationState.notificationID && notificationState.triggerNotification) {
+        // && 
+        const os = Platform.OS;
+        if (os === 'android') {
+            if (!notificationState.channelID) {
+                return false;
+            }
+        }
         return true;
     }
+    // console.log(`notificationState.notificationID: ${notificationState.notificationID}, notificationState.triggerNotification: ${notificationState.triggerNotification}, notificationState.channelID:  ${notificationState.channelID}`)
     return false;
 
 }
@@ -432,16 +487,35 @@ export interface NotifeeNotificationHookState {
     // handleClickStopNotification: () => Promise<void>;
 }
 
-const init = async (setDisplayNotificationErrors: React.Dispatch<React.SetStateAction<string | null>>, deviceID: string | null, supportedDevices: UserInfoDevice[] | null, setNotificationID: React.Dispatch<React.SetStateAction<string | null>>, channelID: string | null, loggedIn: boolean, userSettings: UserSettings, jwt: string, shouldUpload: boolean, dispatch: AppDispatch, setTriggerNotification: React.Dispatch<React.SetStateAction<string | null>>) => {
-    if (channelID === null) {
-        console.log("Channel not created yet, creating...");
-        const channelId_ = await checkedCreateChannel(dispatch);
-        if (channelId_ === null) {
-            console.error("Channel creation failed! Native errors should be set.");
+async function createNotificationChannel(dispatch: AppDispatch): Promise<void> {
+    console.log("Channel not created yet, creating...");
+    const channelIdResult = await checkedCreateChannel(dispatch);
+    if (channelIdResult === null) {
+        console.error("Channel creation failed! Native errors should be set.");
+        return;
+    }
+    console.log(`Created notification channel: '${channelIdResult}'`);
+    if (Platform.OS === 'android') {
+        if ((channelIdResult === '')) {
+            console.error("Channel creation returned an empty string? Native errors MAY be set.");
+            Sentry.Native.captureMessage(`created Channel ID is null on Android?`);
             return;
         }
-        dispatch(setNotificationChannelID(channelId_));
+        dispatch(setNotificationChannelID(channelIdResult));
         return;
+    }
+    if (channelIdResult !== '') {
+        console.warn(`Unexpected channel ID result ('${channelIdResult}') on non-android platform?`);
+        Sentry.Native.captureMessage(`created Channel ID is NOT null: '${channelIdResult}'`);
+        dispatch(setNotificationChannelID(channelIdResult));
+    }
+    return;
+
+}
+
+const init = async (setDisplayNotificationErrors: React.Dispatch<React.SetStateAction<string | null>>, deviceID: string | null, supportedDevices: UserInfoDevice[] | null, setNotificationID: React.Dispatch<React.SetStateAction<string | null>>, channelID: string | null, loggedIn: boolean, userSettings: UserSettings, jwt: string, shouldUpload: boolean, dispatch: AppDispatch, setTriggerNotification: React.Dispatch<React.SetStateAction<string | null>>, currentTriggerNotification: string | null) => {
+    if (channelID === null) {
+        return await createNotificationChannel(dispatch);
     }
 
     if (deviceID === null) {
@@ -466,6 +540,9 @@ const init = async (setDisplayNotificationErrors: React.Dispatch<React.SetStateA
     if (result !== undefined) {
         setNotificationID(result);
     }
+    if (currentTriggerNotification !== null) {
+        console.warn(`Trigger notification already set! (init)`);
+    }
     // console.warn("TODO: create trigger here?")
     const triggerResult = await createTriggerNotification(dispatch, channelID);
     if (triggerResult !== undefined) {
@@ -475,7 +552,6 @@ const init = async (setDisplayNotificationErrors: React.Dispatch<React.SetStateA
         console.error(`Unexpected error creating trigger notification?`);
     }
     dispatch(setBackgroundPollingEnabled(true));
-
 }
 
 
@@ -525,7 +601,7 @@ export const useNotifeeNotifications = (): NotifeeNotificationHookState => {
                 if (triggerNotification !== null) {
                     console.warn(`triggerNotification !== null (triggerNotification), do I need to delete?`);
                 }
-                clickDisplayNotification(channelID, setTriggerNotification, dispatch);
+                clickDisplayNotification(channelID, setTriggerNotification, dispatch, triggerNotification);
                 break;
             }
             case (NotificationAction.StopNotification): {
@@ -537,7 +613,7 @@ export const useNotifeeNotifications = (): NotifeeNotificationHookState => {
     }, [notificationAction, channelID, dispatch])
 
     useEffect(() => {
-        createOrUpdateNotification(setDisplayNotificationErrors, deviceID, supportedDevices, setNotificationID, channelID, loggedIn, jwt, shouldUpload, backgroundPollingEnabled, dispatch, setTriggerNotification, userSettings);
+        createOrUpdateNotification(setDisplayNotificationErrors, deviceID, supportedDevices, setNotificationID, channelID, loggedIn, jwt, shouldUpload, backgroundPollingEnabled, dispatch, setTriggerNotification, triggerNotification, userSettings);
         return (() => {
             // console.log("(cleanup) from notifee hook destructor")
             stopServiceAndClearNotifications();
@@ -546,9 +622,10 @@ export const useNotifeeNotifications = (): NotifeeNotificationHookState => {
 
     // https://docs.expo.dev/versions/latest/react-native/appstate/  
     useEffect(() => {
-      AppState.addEventListener('change', _handleAppStateChange);
+        const subscription = AppState.addEventListener('change', _handleAppStateChange);
       return () => {
-        AppState.removeEventListener('change', _handleAppStateChange);
+        // AppState.removeEventListener('change', _handleAppStateChange);
+        subscription.remove();
       };
     }, []);
   
@@ -580,7 +657,7 @@ function checkBatteryOptimization(dispatch: AppDispatch) {
     });
 }
 
-async function clickDisplayNotification(channelID: string | null, setTriggerNotification: React.Dispatch<React.SetStateAction<string | null>>, dispatch: AppDispatch) {
+async function clickDisplayNotification(channelID: string | null, setTriggerNotification: React.Dispatch<React.SetStateAction<string | null>>, dispatch: AppDispatch, currentTriggerNotification: string | null) {
     stopServiceAndClearNotifications();
     let channelId_ = channelID;
     if (channelId_ === null) {
@@ -595,6 +672,9 @@ async function clickDisplayNotification(channelID: string | null, setTriggerNoti
 
     }
 
+    if (currentTriggerNotification !== null) {
+        console.warn(`Trigger notification already set! (clickDisplayNotification)`);
+    }
     const triggerResult = await createTriggerNotification(dispatch, channelId_);
     if (triggerResult !== undefined) {
         setTriggerNotification(triggerResult);
@@ -616,7 +696,7 @@ async function clickStopNotification(setTriggerNotification: React.Dispatch<Reac
     dispatch(setShouldUpload(false));
 }
 
-function createOrUpdateNotification(setDisplayNotificationErrors: React.Dispatch<React.SetStateAction<string | null>>, deviceID: string | null, supportedDevices: UserInfoDevice[] | null, setNotificationID: React.Dispatch<React.SetStateAction<string | null>>, channelID: string | null, loggedIn: boolean, jwt: string | null, shouldUpload: boolean, backgroundPollingEnabled: boolean, dispatch: AppDispatch, setTriggerNotification: React.Dispatch<React.SetStateAction<string | null>>, userSettings?: UserSettings | null) {
+function createOrUpdateNotification(setDisplayNotificationErrors: React.Dispatch<React.SetStateAction<string | null>>, deviceID: string | null, supportedDevices: UserInfoDevice[] | null, setNotificationID: React.Dispatch<React.SetStateAction<string | null>>, channelID: string | null, loggedIn: boolean, jwt: string | null, shouldUpload: boolean, backgroundPollingEnabled: boolean, dispatch: AppDispatch, setTriggerNotification: React.Dispatch<React.SetStateAction<string | null>>, triggerNotification: string | null, userSettings?: UserSettings | null) {
     if (!backgroundPollingEnabled) {
         console.log("NOT polling in background.");
         return;

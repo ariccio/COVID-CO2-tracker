@@ -373,6 +373,9 @@ const checkBluetoothScanPermissions = async(dispatch: AppDispatch): Promise<bool
                 return true;
 
         }
+        // eslint-disable-next-line no-unreachable
+        console.error(`UNREACHABLE code!`);
+        throw new Error("UNREACHABLE");
         return false;
     }
 
@@ -1416,6 +1419,55 @@ function setFromAranet4SpecificInfo(dispatch: AppDispatch, aranet4SpecificInform
     }
 }
 
+
+function firstBluetoothUpdater(deviceID: string | null, hasBluetooth: boolean | null, knownDeviceBluetooth: boolean | null, firstUpdateDone: boolean, subscribedOSBluetoothState: State | null, setFirstUpdateDone: React.Dispatch<React.SetStateAction<boolean>>, dispatch: AppDispatch) {
+    if (deviceID === null) {
+        console.log("deviceID === null");
+        return;
+    }
+    if (hasBluetooth === false) {
+        console.log("!hasBluetooth (before first scan)");
+        dispatch(setDeviceStatusString("User has NOT granted bluetooth permissions. Beginning first read over bluetooth anyways..."));
+    }
+    else {
+        dispatch(setDeviceStatusString(`Beginning first read over bluetooth... device known: ${knownDeviceBluetooth}`));
+    }
+
+    if (knownDeviceBluetooth === null) {
+        const str = `Not yet sure if device is known on the server... (knownDeviceBluetooth === null)`;
+        console.log(`exiting first bluetooth update, will probably re-enter. ${str}`)
+        dispatch(setDeviceStatusString(str));
+        return;
+    }
+
+    console.log(`First bluetooth read ${firstUpdateDone}, deviceID ${deviceID}`);
+    if (firstUpdateDone) {
+        return;
+    }
+    console.log(`deviceID: ${deviceID}, subscribedOSBluetoothState: ${subscribedOSBluetoothState}, hasBluetooth: ${hasBluetooth}, knownDeviceBluetooth: ${knownDeviceBluetooth}, firstUpdateDone: ${firstUpdateDone}`);
+    firstBluetoothUpdate(deviceID, dispatch, subscribedOSBluetoothState).then((info) => {
+        if (info === undefined) {
+            return;
+        }
+        if (info.genericInfo.serialNumberString === null) {
+            console.warn("device serial number string is null?");
+            dispatch(setScanningErrorStatusString("Warning: Null serial number string... this is weird."));
+        }
+        dispatch(setDeviceSerialNumber(info.genericInfo.serialNumberString));
+        dispatch(setDeviceName(info.genericInfo.deviceNameString));
+        setFirstUpdateDone(true);
+        setFromAranet4SpecificInfo(dispatch, info.specificInfo);
+        // dispatch(setScanningStatusString(`First bluetooth update done.`));
+        dispatch(setScanningStatusString(null));
+        return;
+        // setAranet4SpecificInformation(info.specificInfo);
+    }).catch((error) => {
+        Sentry.Native.captureException(error);
+        dispatch(setScanningErrorStatusString(`Unexpected error on first bluetooth update: ${unknownNativeErrorTryFormat(error)}`));
+        setFirstUpdateDone(true);
+    });
+}
+
 export const useBluetoothConnectAndPollAranet = () => {
     const dispatch = useDispatch();
 
@@ -1499,43 +1551,7 @@ export const useBluetoothConnectAndPollAranet = () => {
     }, [supportedDevices, serialNumberString, dispatch, subscribedOSBluetoothState, loggedIn])
 
     useEffect(() => {
-        if (deviceID === null) {
-            console.log("deviceID === null");
-            return;
-        }
-        if (hasBluetooth === false) {
-            console.log("!hasBluetooth (before first scan)");
-            dispatch(setDeviceStatusString("User has NOT granted bluetooth permissions. Beginning first read over bluetooth anyways..."));
-        }
-        else {
-            dispatch(setDeviceStatusString(`Beginning first read over bluetooth... device known: ${knownDeviceBluetooth}`));
-        }
-
-        console.log(`First bluetooth read ${firstUpdateDone}, deviceID ${deviceID}`);
-        if (firstUpdateDone) {
-            return;
-        }
-        firstBluetoothUpdate(deviceID, dispatch, subscribedOSBluetoothState).then((info) => {
-            if (info === undefined) {
-                return;
-            }
-            if (info.genericInfo.serialNumberString === null) {
-                console.warn("device serial number string is null?");
-                dispatch(setScanningErrorStatusString("Warning: Null serial number string... this is weird."));
-            }
-            dispatch(setDeviceSerialNumber(info.genericInfo.serialNumberString));
-            dispatch(setDeviceName(info.genericInfo.deviceNameString));
-            setFirstUpdateDone(true);
-            setFromAranet4SpecificInfo(dispatch, info.specificInfo);
-            // dispatch(setScanningStatusString(`First bluetooth update done.`));
-            dispatch(setScanningStatusString(null));
-            return;
-            // setAranet4SpecificInformation(info.specificInfo);
-        }).catch((error) => {
-            Sentry.Native.captureException(error);
-            dispatch(setScanningErrorStatusString(`Unexpected error on first bluetooth update: ${unknownNativeErrorTryFormat(error)}`));
-            setFirstUpdateDone(true);
-        })
+        firstBluetoothUpdater(deviceID, hasBluetooth, knownDeviceBluetooth, firstUpdateDone, subscribedOSBluetoothState, setFirstUpdateDone, dispatch);
     }, [deviceID, dispatch, hasBluetooth, knownDeviceBluetooth, subscribedOSBluetoothState, firstUpdateDone])
 
 
@@ -1604,8 +1620,8 @@ async function firstBluetoothUpdate(deviceID: string, dispatch: AppDispatch, sub
             throw new Error("Connection to aranet4 failed: BUG");
         }
         const connectedStr = `Connected to aranet4 ${deviceID}). Discovering services and characteristics...`;
-        dispatch(setScanningStatusString(connectedStr));
         console.log(`\n\n${connectedStr}`);
+        dispatch(setScanningStatusString(connectedStr));
         const deviceWithServicesAndCharacteristics = await connectedDevice.discoverAllServicesAndCharacteristics();
 
         const connectedDiscoveredStr = "Connected to aranet4, services discovered!";
@@ -1662,6 +1678,7 @@ async function firstBluetoothUpdate(deviceID: string, dispatch: AppDispatch, sub
             return;
         }
         console.log(`Error '${error}' filtered.`);
+        console.log(`Repeating call of firstBluetoothUpdate!`);
         return await firstBluetoothUpdate(deviceID, dispatch, subscribedOSBluetoothState);
     }
 }
@@ -1807,7 +1824,7 @@ export function isSupportedDevice(supportedDevices: UserInfoDevice[] | null, ser
         }
         return false;
     }
-    console.log(`Supported devices: ${supportedDevices}`);
+    console.log(`Supported devices: ${JSON.stringify(supportedDevices)}`);
     console.log(`Serial number: ${serialNumber}`);
 
     const isKnown = supportedDevices.find((device) => device.serial === serialNumber);

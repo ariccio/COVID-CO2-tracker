@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Linking, Text } from 'react-native';
 import { useSelector } from "react-redux";
 import * as Sentry from 'sentry-expo';
+import { unknownNativeErrorTryFormat } from '../../utils/FormatUnknownNativeError';
 
 
 // import { defaultUserSettings } from "../../../../co2_client/src/utils/UserSettings";

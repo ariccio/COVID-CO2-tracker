@@ -50,6 +50,7 @@
     "@babel/core": "^7.19.3",
     "@babel/preset-typescript": "^7.16.7",
     "@eslint/create-config": "^0.3.1",
+    "@react-native-community/cli-debugger-ui": "^10.0.0",
     "@rnx-kit/dep-check": "^1.13.0",
     "@types/react": "~18.0.24",
     "@types/react-native": "~0.70.6",
@@ -71,7 +72,6 @@
     "prettier": "^2.5.1",
     "react-test-renderer": "^18.2.0",
     "standard-version": "^9.3.2",
-    "standard-version-expo": "^1.0.3",
     "typescript": "^4.6.3"
   },
   "private": true,
