@@ -1,6 +1,6 @@
 package riccio.co2.client;
 import expo.modules.updates.UpdatesDevLauncherController;
-import expo.modules.devlauncher.DevLauncherUpdatesInterfaceDelegate;
+// import expo.modules.devlauncher.DevLauncherUpdatesInterfaceDelegate;
 import expo.modules.devlauncher.DevLauncherController;
 
 import android.app.Application;
@@ -77,7 +77,7 @@ public class MainApplication extends Application implements ReactApplication {
 
       // https://github.com/expo/expo/issues/17288#issuecomment-1167808654
       // I hope @thespacemanatee knows what he's doing, this looks like some disgusinting java hack :)
-      DevLauncherUpdatesInterfaceDelegate.INSTANCE.initializeUpdatesInterface(this);
+      // DevLauncherUpdatesInterfaceDelegate.INSTANCE.initializeUpdatesInterface(this);
     }
 
     initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
