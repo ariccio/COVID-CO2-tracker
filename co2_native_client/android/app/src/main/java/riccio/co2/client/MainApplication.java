@@ -16,7 +16,7 @@ import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.config.ReactFeatureFlags;
 import com.facebook.soloader.SoLoader;
-// import riccio.co2.client.newarchitecture.MainApplicationReactNativeHost;
+import riccio.co2.client.newarchitecture.MainApplicationReactNativeHost;
 
 import expo.modules.ApplicationLifecycleDispatcher;
 import expo.modules.ReactNativeHostWrapper;
@@ -51,7 +51,7 @@ public class MainApplication extends Application implements ReactApplication {
         return "index";
       }
   });
-  // private final ReactNativeHost mNewArchitectureNativeHost = new MainApplicationReactNativeHost(this);
+  private final ReactNativeHost mNewArchitectureNativeHost = new MainApplicationReactNativeHost(this);
 
   @Override
   public ReactNativeHost getReactNativeHost() {
