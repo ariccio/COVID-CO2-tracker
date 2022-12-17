@@ -11,7 +11,7 @@
       },
       "ios": {
         "buildConfiguration": "Debug",
-        "buildArtifactPaths": "ios/build/*"
+        "buildArtifactPaths": ["ios/build/*"]
 
       }
     },
