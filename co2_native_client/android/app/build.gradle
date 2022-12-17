@@ -149,8 +149,8 @@ android {
         applicationId 'riccio.co2.client'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 440010022
-        versionName "1.0.22"
+        versionCode 440010023
+        versionName "1.0.23"
         buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
         if (isNewArchitectureEnabled()) {
             // We configure the CMake build only if you decide to opt-in for the New Architecture.
