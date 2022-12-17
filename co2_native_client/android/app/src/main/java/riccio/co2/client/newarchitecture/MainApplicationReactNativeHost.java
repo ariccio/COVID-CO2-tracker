@@ -1,4 +1,4 @@
-package com.rndiffapp.newarchitecture;
+package riccio.co2.client.newarchitecture;
 
 import android.app.Application;
 import androidx.annotation.NonNull;
@@ -20,9 +20,9 @@ import com.facebook.react.fabric.EmptyReactNativeConfig;
 import com.facebook.react.fabric.FabricJSIModuleProvider;
 import com.facebook.react.fabric.ReactNativeConfig;
 import com.facebook.react.uimanager.ViewManagerRegistry;
-import com.rndiffapp.BuildConfig;
-import com.rndiffapp.newarchitecture.components.MainComponentsRegistry;
-import com.rndiffapp.newarchitecture.modules.MainApplicationTurboModuleManagerDelegate;
+import riccio.co2.client.BuildConfig;
+import riccio.co2.client.newarchitecture.components.MainComponentsRegistry;
+import riccio.co2.client.newarchitecture.modules.MainApplicationTurboModuleManagerDelegate;
 import java.util.ArrayList;
 import java.util.List;
 
