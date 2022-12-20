@@ -46,7 +46,8 @@
     "plugins": [
       "@config-plugins/react-native-ble-plx",
       "@notifee/react-native",
-      "sentry-expo"
+      "sentry-expo",
+      "react-native-background-fetch"
     ],
     "hooks": {
       "postPublish": [

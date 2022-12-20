@@ -733,6 +733,7 @@ async function readGenericBluetoothInformation(deviceID: string): Promise<Generi
             battery
         };    
     }
+    console.assert(os === 'ios');
     console.log("IOS appears to hide the generic access service from usermode apps?! See: https://lists.apple.com/archives/bluetooth-dev/2016/Feb/msg00018.html and https://github.com/dotintent/react-native-ble-plx/issues/657#issuecomment-1331204557")
     return {
         deviceNameString: null,

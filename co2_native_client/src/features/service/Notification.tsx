@@ -83,6 +83,9 @@ function defaultTriggerNotification(channelId: string): Notification {
             timeoutAfter: (1000 * 60),
             onlyAlertOnce: true,
             importance: AndroidImportance.LOW
+        },
+        ios: {
+
         }
     }
     return defaultNotificationOptions;
@@ -272,17 +275,17 @@ function registerForegroundService(deviceID: string, supportedDevices: UserInfoD
     }
 }
 
-async function registerBackgroundEventHandler(deviceID: string, supportedDevices: UserInfoDevice[], userSettings: UserSettings, jwt: string, shouldUpload: boolean, dispatch: AppDispatch): Promise<void> {
-    try {
-        console.log("Registering background event handler...");
-        notifee.onBackgroundEvent((event: Event) => {return handleBackgroundEvent(event, deviceID, supportedDevices, userSettings, jwt, shouldUpload, dispatch)})
-    }
-    catch (exception) {
-        dispatch(setDisplayNotificationNativeErrors(`Error in registerBackgroundEventHandler: '${unknownNativeErrorTryFormat(exception)}'`));
-        Sentry.Native.captureException(exception);
-        //Probably native error.
-    }
-}
+// async function registerBackgroundEventHandler(deviceID: string, supportedDevices: UserInfoDevice[], userSettings: UserSettings, jwt: string, shouldUpload: boolean, dispatch: AppDispatch): Promise<void> {
+//     try {
+//         console.log("Registering background event handler...");
+//         notifee.onBackgroundEvent((event: Event) => {return handleBackgroundEvent(event, deviceID, supportedDevices, userSettings, jwt, shouldUpload, dispatch)})
+//     }
+//     catch (exception) {
+//         dispatch(setDisplayNotificationNativeErrors(`Error in registerBackgroundEventHandler: '${unknownNativeErrorTryFormat(exception)}'`));
+//         Sentry.Native.captureException(exception);
+//         //Probably native error.
+//     }
+// }
 
 //https://notifee.app/react-native/docs/displaying-a-notification
 async function onDisplayNotification(setDisplayNotificationErrors: React.Dispatch<React.SetStateAction<string | null>>, channelId: string, deviceID: string, supportedDevices: UserInfoDevice[], userSettings: UserSettings, jwt: string, shouldUpload: boolean, dispatch: AppDispatch) {
@@ -297,8 +300,9 @@ async function onDisplayNotification(setDisplayNotificationErrors: React.Dispatc
         await registerForegroundService(deviceID, supportedDevices, userSettings, jwt, shouldUpload, dispatch);
     }
     else if (os === 'ios') {
-        console.log('creating ios background event handler...');
-        registerBackgroundEventHandler(deviceID, supportedDevices, userSettings, jwt, shouldUpload, dispatch);
+        // console.log('creating ios background event handler...');
+        // registerBackgroundEventHandler(deviceID, supportedDevices, userSettings, jwt, shouldUpload, dispatch);
+        console.log("IOS backgrounding is not implemented with notifications.");
     }
     else {
         console.error("unimplemented");
