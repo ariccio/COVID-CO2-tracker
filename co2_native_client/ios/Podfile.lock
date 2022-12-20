@@ -7,6 +7,8 @@ PODS:
     - ExpoModulesCore
   - EXApplication (5.0.1):
     - ExpoModulesCore
+  - EXBackgroundFetch (11.0.1):
+    - ExpoModulesCore
   - EXConstants (14.0.2):
     - ExpoModulesCore
   - EXDevice (5.0.0):
@@ -109,6 +111,9 @@ PODS:
     - ExpoModulesCore
     - React-Core
   - EXStructuredHeaders (3.0.1)
+  - EXTaskManager (11.0.1):
+    - ExpoModulesCore
+    - UMAppLoader
   - EXUpdates (0.15.6):
     - ASN1Decoder (~> 1.8)
     - EASClient
@@ -511,6 +516,7 @@ PODS:
     - Sentry/Core (= 7.22.0)
   - Sentry/Core (7.22.0)
   - SocketRocket (0.6.0)
+  - UMAppLoader (4.0.0)
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
     - Yoga (~> 1.14)
@@ -520,6 +526,7 @@ DEPENDENCIES:
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - EASClient (from `../node_modules/expo-eas-client/ios`)
   - EXApplication (from `../node_modules/expo-application/ios`)
+  - EXBackgroundFetch (from `../node_modules/expo-background-fetch/ios`)
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - EXDevice (from `../node_modules/expo-device/ios`)
   - EXFileSystem (from `../node_modules/expo-file-system/ios`)
@@ -539,6 +546,7 @@ DEPENDENCIES:
   - EXSecureStore (from `../node_modules/expo-secure-store/ios`)
   - EXSplashScreen (from `../node_modules/expo-splash-screen/ios`)
   - EXStructuredHeaders (from `../node_modules/expo-structured-headers/ios`)
+  - EXTaskManager (from `../node_modules/expo-task-manager/ios`)
   - EXUpdates (from `../node_modules/expo-updates/ios`)
   - EXUpdatesInterface (from `../node_modules/expo-updates-interface/ios`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
@@ -603,6 +611,7 @@ DEPENDENCIES:
   - "RNNotifee (from `../node_modules/@notifee/react-native`)"
   - RNScreens (from `../node_modules/react-native-screens`)
   - "RNSentry (from `../node_modules/@sentry/react-native`)"
+  - UMAppLoader (from `../node_modules/unimodules-app-loader/ios`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -635,6 +644,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-eas-client/ios"
   EXApplication:
     :path: "../node_modules/expo-application/ios"
+  EXBackgroundFetch:
+    :path: "../node_modules/expo-background-fetch/ios"
   EXConstants:
     :path: "../node_modules/expo-constants/ios"
   EXDevice:
@@ -673,6 +684,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-splash-screen/ios"
   EXStructuredHeaders:
     :path: "../node_modules/expo-structured-headers/ios"
+  EXTaskManager:
+    :path: "../node_modules/expo-task-manager/ios"
   EXUpdates:
     :path: "../node_modules/expo-updates/ios"
   EXUpdatesInterface:
@@ -751,6 +764,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-screens"
   RNSentry:
     :path: "../node_modules/@sentry/react-native"
+  UMAppLoader:
+    :path: "../node_modules/unimodules-app-loader/ios"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -761,6 +776,7 @@ SPEC CHECKSUMS:
   DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
   EASClient: 19efe9e8ef9b3917c5f3dcb3ed82319de4d8c0bd
   EXApplication: 034b1c40a8e9fe1bff76a1e511ee90dff64ad834
+  EXBackgroundFetch: 186248a00a38fc4d22d60ec30e4e751449e785ee
   EXConstants: 3c86653c422dd77e40d10cbbabb3025003977415
   EXDevice: 734a55d8935ea8e075d12df1919a0497153bf55c
   EXFileSystem: 60602b6eefa6873f97172c684b7537c9760b50d6
@@ -780,6 +796,7 @@ SPEC CHECKSUMS:
   EXSecureStore: daec0117c922a67c658cb229152a9e252e5c1750
   EXSplashScreen: 3e989924f61a8dd07ee4ea584c6ba14be9b51949
   EXStructuredHeaders: fb774e45eac2e5d62ba40b28176bfbfba61b843e
+  EXTaskManager: 0afcc6fd813dec5dee98aa5ec4f22c2a840dd4a7
   EXUpdates: e687436502147e80ef13cf6eedd17e3039ef47d6
   EXUpdatesInterface: bffd1ead18f0bab04fa784ca159c115607b8a23c
   FBLazyVector: affa4ba1bfdaac110a789192f4d452b053a86624
@@ -834,6 +851,7 @@ SPEC CHECKSUMS:
   RNSentry: f03937a2cf86c7029ba31fbbf5618c55d223cd62
   Sentry: 30b51086ca9aac23337880152e95538f7e177f7f
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
+  UMAppLoader: 354d71d2d2ce8d6c19fb13d72b9c8209b18a8c56
   Yoga: eca980a5771bf114c41a754098cd85e6e0d90ed7
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
