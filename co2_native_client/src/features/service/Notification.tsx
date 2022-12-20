@@ -60,10 +60,11 @@ function defaultNotification(channelId: string): Notification {
             pressAction: {
                 id: 'default'
             }
-        },
-        ios: {
-          interruptionLevel: 'passive'  
         }
+        // ,
+        // ios: {
+        //   interruptionLevel: 'passive'  
+        // }
     }
     return defaultNotificationOptions;
 }
@@ -83,10 +84,11 @@ function defaultTriggerNotification(channelId: string): Notification {
             timeoutAfter: (1000 * 60),
             onlyAlertOnce: true,
             importance: AndroidImportance.LOW
-        },
-        ios: {
-
         }
+        // ,
+        // ios: {
+
+        // }
     }
     return defaultNotificationOptions;
 }
