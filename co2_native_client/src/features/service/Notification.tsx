@@ -21,7 +21,7 @@ import { initialUserDevicesState, selectSupportedDevices } from '../userInfo/dev
 import { selectUserSettings } from '../userInfo/userInfoSlice';
 import {logEvent} from './LogEvent';
 import { setNotificationChannelID, selectNotificationChannelID, setDisplayNotificationNativeErrors, selectDisplayNotificationNativeErrors, setNotificationAction, NotificationAction, selectNotificationAction, selectNotificationState } from './serviceSlice';
-
+import { BACKGROUND_FETCH_TASK, registerBackgroundFetchAsync, unregisterBackgroundFetchAsync } from './iosBackgroundWork';
 
 
 function defaultNotification(channelId: string): Notification {
@@ -491,6 +491,11 @@ export interface NotifeeNotificationHookState {
     channelID: string | null;
     triggerNotification: string | null;
     // handleClickStopNotification: () => Promise<void>;
+    
+    // Reeaaallly needs to be refactored.
+    shouldUpload: boolean;
+
+
 }
 
 async function createNotificationChannel(dispatch: AppDispatch): Promise<void> {
@@ -568,54 +573,63 @@ export async function stopServiceAndClearNotifications() {
     await notifee.cancelTriggerNotifications();
 }
 
-export const useNotifeeNotifications = (): NotifeeNotificationHookState => {
+// const useHasAvailableKnownDevice() {
+
+// }
+
+
+function handleNotificationAction(dispatch: AppDispatch, notificationAction: NotificationAction | null, channelID: string | null, triggerNotification: string | null, setTriggerNotification: React.Dispatch<React.SetStateAction<string | null>>, setNotificationID: React.Dispatch<React.SetStateAction<string | null>>) {
+    switch (notificationAction) {
+        case (NotificationAction.StartNotification): {
+            console.log("notification start requested");
+            if (triggerNotification !== null) {
+                console.warn(`triggerNotification !== null (triggerNotification), do I need to delete?`);
+            }
+            clickDisplayNotification(channelID, setTriggerNotification, dispatch, triggerNotification);
+            break;
+        }
+        case (NotificationAction.StopNotification): {
+            console.log("notification stop requested");
+            clickStopNotification(setTriggerNotification, dispatch, setNotificationID);
+            break;
+        }
+    }
+
+}
+
+const _handleAppStateChange = (nextAppState: AppStateStatus, appState: React.MutableRefObject<AppStateStatus>, setAppStateVisible: React.Dispatch<React.SetStateAction<AppStateStatus>>) => {
+    if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+      console.log('App has come to the foreground!');
+    }
+
+    appState.current = nextAppState;
+    setAppStateVisible(appState.current);
+    console.log('AppState', appState.current);
+  };
+
+
+export const useNotifeeNotifications = (supportedDevices: UserInfoDevice[] | null, deviceID: string | null): NotifeeNotificationHookState => {
     const [displayNotificationErrors, setDisplayNotificationErrors] = useState(null as (string | null));
-    // const [nativeErrors, setNativeErrors] = useState(null as (string | null));    
+
     const [notificationID, setNotificationID] = useState(null as (string | null));
     const [triggerNotification, setTriggerNotification] = useState(null as (string | null));
 
     const appState = useRef(AppState.currentState);
     const [appStateVisible, setAppStateVisible] = useState(appState.current);
-
-    const deviceID = useSelector(selectDeviceID);
-    const supportedDevices = useSelector(selectSupportedDevices);
     const backgroundPollingEnabled = useSelector(selectBackgroundPollingEnabled);
 
     const userSettings = useSelector(selectUserSettings);
-    const jwt = useSelector(selectJWT);
+
     const shouldUpload = useSelector(selectShouldUpload);
     const channelID = useSelector(selectNotificationChannelID);
     const notificationAction = useSelector(selectNotificationAction);
 
-    const {loggedIn} = useIsLoggedIn();
+    const {loggedIn, jwt} = useIsLoggedIn();
 
     const dispatch = useDispatch();
 
-    // const handleClickDisplayNotification = async () => {
-        
-    // }
-
-    // const handleClickStopNotification = async () => {
-        
-    // }
-
-
     useEffect(() => {
-        switch (notificationAction) {
-            case (NotificationAction.StartNotification): {
-                console.log("notification start requested");
-                if (triggerNotification !== null) {
-                    console.warn(`triggerNotification !== null (triggerNotification), do I need to delete?`);
-                }
-                clickDisplayNotification(channelID, setTriggerNotification, dispatch, triggerNotification);
-                break;
-            }
-            case (NotificationAction.StopNotification): {
-                console.log("notification stop requested");
-                clickStopNotification(setTriggerNotification, dispatch, setNotificationID);
-                break;
-            }
-        }
+        handleNotificationAction(dispatch, notificationAction, channelID, triggerNotification, setTriggerNotification, setNotificationID);
     }, [notificationAction, channelID, dispatch])
 
     useEffect(() => {
@@ -628,28 +642,18 @@ export const useNotifeeNotifications = (): NotifeeNotificationHookState => {
 
     // https://docs.expo.dev/versions/latest/react-native/appstate/  
     useEffect(() => {
-        const subscription = AppState.addEventListener('change', _handleAppStateChange);
+        const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => _handleAppStateChange(nextAppState, appState, setAppStateVisible));
       return () => {
-        // AppState.removeEventListener('change', _handleAppStateChange);
         subscription.remove();
       };
     }, []);
   
-    const _handleAppStateChange = (nextAppState: AppStateStatus) => {
-      if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-        console.log('App has come to the foreground!');
-      }
-  
-      appState.current = nextAppState;
-      setAppStateVisible(appState.current);
-      console.log('AppState', appState.current);
-    };
 
     useEffect(() => {
         checkBatteryOptimization(dispatch);
     }, [])
 
-    return { displayNotificationErrors, notificationID, channelID, triggerNotification }
+    return { displayNotificationErrors, notificationID, channelID, triggerNotification, shouldUpload }
 }
 
 function checkBatteryOptimization(dispatch: AppDispatch) {
@@ -724,6 +728,6 @@ function createOrUpdateNotification(setDisplayNotificationErrors: React.Dispatch
     }
 
     console.log("polling in background.");
-    init(setDisplayNotificationErrors, deviceID, supportedDevices, setNotificationID, channelID, loggedIn, userSettings, jwt, shouldUpload, dispatch, setTriggerNotification);
+    init(setDisplayNotificationErrors, deviceID, supportedDevices, setNotificationID, channelID, loggedIn, userSettings, jwt, shouldUpload, dispatch, setTriggerNotification, triggerNotification);
 }
 

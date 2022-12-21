@@ -12,6 +12,8 @@ import { StyleSheet, Button, Text, ViewStyle } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import * as Sentry from 'sentry-expo';
+import * as BackgroundFetch from 'expo-background-fetch';
+import * as TaskManager from 'expo-task-manager';
 
 
 
@@ -32,7 +34,7 @@ import { realtimeUpload } from './src/features/Measurement/MeasurementUpload';
 import { selectUploadStatus, setUploadStatus } from './src/features/Uploading/uploadSlice';
 import { UserSettingsMaybeDisplay } from './src/features/UserSettings/UserSettingsDisplay';
 import { BluetoothData, isSupportedDevice, useAranet4NextMeasurementTime, useBluetoothConnectAndPollAranet, useOSBluetoothStateListener } from './src/features/bluetooth/Bluetooth';
-import { selectDeviceSerialNumberString } from './src/features/bluetooth/bluetoothSlice';
+import { selectDeviceID, selectDeviceSerialNumberString } from './src/features/bluetooth/bluetoothSlice';
 import { NotifeeNotificationHookState, useNotifeeNotifications, NotificationInfo, stopServiceAndClearNotifications, StartOrStopButton, booleanIsBackroundPollingUploadingForButton } from './src/features/service/Notification';
 import { selectNotificationState, setNotificationState } from './src/features/service/serviceSlice';
 import { initialUserDevicesState, selectSupportedDevices, selectUserDeviceSettingsStatus, setSupportedDevices, setUNSupportedDevices, setUserDeviceSettingsStatus } from './src/features/userInfo/devicesSlice';
@@ -45,6 +47,7 @@ import { timeNowAsString } from './src/utils/TimeNow';
 import { COVID_CO2_TRACKER_DEVICES_URL, COVID_CO2_TRACKER_HOME_URL, USER_DEVICES_URL_NATIVE, USER_SETTINGS_URL_NATIVE } from './src/utils/UrlPaths';
 import { useIsLoggedIn } from './src/utils/UseLoggedIn';
 import { isLoggedIn, isNullString, isUndefinedString } from './src/utils/isLoggedIn';
+import { BACKGROUND_FETCH_TASK, registerBackgroundFetchAsync, unregisterBackgroundFetchAsync, useIosBackgroundTaskToReadBluetoothAranet4 } from './src/features/service/iosBackgroundWork';
 
 
 
@@ -447,6 +450,14 @@ function HomeScreen() {
   const supportedDevices = useSelector(selectSupportedDevices);
   const serialNumber = useSelector(selectDeviceSerialNumberString);
   // const authState = useSelector(selectAuthState);  
+  const [isIOSBackgroundTaskRegistered, setIsIOSBackgroundTaskRegistered] = useState(false);
+  const [iOSBackgroundTaskStatus, setIOSBackgroundTaskStatus] = useState(null as (BackgroundFetch.BackgroundFetchStatus | null));
+
+
+
+  useEffect(() => {
+    checkStatusAsync(setIsIOSBackgroundTaskRegistered, setIOSBackgroundTaskStatus);
+  }, []);
   
   
   const {knownDevice} = useCheckKnownDevice(supportedDevices, dispatch, serialNumber);
@@ -460,6 +471,8 @@ function HomeScreen() {
       
       <NotificationInfo/>
       <UploadingButton/>
+      <MaybeIfValue text='iosBackgroundTaskRegistered' value={isIOSBackgroundTaskRegistered} />
+      <MaybeIfValue text='iosBackgroundTaskStatus' value={iOSBackgroundTaskStatus}/>
       <StatusBar style="auto" />
     </SafeAreaProvider>
   );
@@ -665,6 +678,24 @@ const NAVIGATOR_SCREEN_OPTIONS = {
   tabBarContentContainerStyle: CONTENT_CONTAINER_STYLE
 };
 
+
+const checkStatusAsync = async (setIsIOSBackgroundTaskRegistered: React.Dispatch<React.SetStateAction<boolean>>, setIOSBackgroundTaskStatus: React.Dispatch<React.SetStateAction<BackgroundFetch.BackgroundFetchStatus | null>>) => {
+  const status = await BackgroundFetch.getStatusAsync();
+  const isRegistered = await TaskManager.isTaskRegisteredAsync(BACKGROUND_FETCH_TASK);
+  setIOSBackgroundTaskStatus(status);
+  setIsIOSBackgroundTaskRegistered(isRegistered);
+};
+
+// const toggleFetchTask = async (isIOSBackgroundTaskRegistered: boolean, setIsIOSBackgroundTaskRegistered: React.Dispatch<React.SetStateAction<boolean>>, setIOSBackgroundTaskStatus: React.Dispatch<React.SetStateAction<BackgroundFetch.BackgroundFetchStatus | null>>) => {
+//   if (isIOSBackgroundTaskRegistered) {
+//       await unregisterBackgroundFetchAsync();
+//   } else {
+//       await registerBackgroundFetchAsync();
+//   }
+
+//   checkStatusAsync(setIsIOSBackgroundTaskRegistered, setIOSBackgroundTaskStatus);
+// };
+
 function App() {
   const dispatch = useDispatch();
 
@@ -678,14 +709,19 @@ function App() {
   const jwt = useSelector(selectJWT);
   const userName = useSelector(selectUserName);
   const shouldUpload = useSelector(selectShouldUpload);
+  const supportedDevices = useSelector(selectSupportedDevices);
+  const deviceID = useSelector(selectDeviceID);
 
 
   const {nextMeasurementTime} = useAranet4NextMeasurementTime();
   
   const {measurement} = useBluetoothConnectAndPollAranet();
-  const notificationState: NotifeeNotificationHookState = useNotifeeNotifications();
+  const notificationState: NotifeeNotificationHookState = useNotifeeNotifications(supportedDevices, deviceID);
   const authState = useGoogleAuthForCO2Tracker();
   const _unused_bluetoothListener = useOSBluetoothStateListener();
+  useIosBackgroundTaskToReadBluetoothAranet4();
+
+
 
 
   // useEffect(() => {

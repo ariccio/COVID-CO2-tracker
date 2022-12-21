@@ -23,6 +23,6 @@ export function useIsLoggedIn() {
         setLoggedIn(isLoggedIn(jwt, userName))
     }, [jwt, userName]);
 
-    return {loggedIn};
+    return {loggedIn, jwt};
 }
 
