@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { Linking, Text } from 'react-native';
 import { useSelector } from "react-redux";
 import * as Sentry from 'sentry-expo';
+
 import { unknownNativeErrorTryFormat } from '../../utils/FormatUnknownNativeError';
-
-
 // import { defaultUserSettings } from "../../../../co2_client/src/utils/UserSettings";
 import { MaybeIfValue } from "../../utils/RenderValues";
 import { COVID_CO2_TRACKER_PLACES_URL } from '../../utils/UrlPaths';

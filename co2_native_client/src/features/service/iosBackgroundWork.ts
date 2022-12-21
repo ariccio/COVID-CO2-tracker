@@ -2,19 +2,18 @@
 
 import * as BackgroundFetch from 'expo-background-fetch';
 import * as TaskManager from 'expo-task-manager';
-// import * as SecureStore from 'expo-secure-store';
-
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
+
 import { UserInfoDevice } from '../../../../co2_client/src/utils/DeviceInfoTypes';
 import { UserSettings } from '../../../../co2_client/src/utils/UserSettings';
 import { selectShouldUpload } from '../../app/globalSlice';
 import { useIsLoggedIn } from '../../utils/UseLoggedIn';
-import { onHeadlessTaskTriggerBluetooth } from '../bluetooth/Bluetooth';
-import { selectDeviceID } from '../bluetooth/bluetoothSlice';
 import { MeasurementDataForUpload } from '../Measurement/MeasurementTypes';
 import { uploadMeasurementHeadless } from '../Measurement/MeasurementUpload';
+import { onHeadlessTaskTriggerBluetooth } from '../bluetooth/Bluetooth';
+import { selectDeviceID } from '../bluetooth/bluetoothSlice';
 import { selectSupportedDevices } from '../userInfo/devicesSlice';
 import { selectUserSettings } from '../userInfo/userInfoSlice';
 

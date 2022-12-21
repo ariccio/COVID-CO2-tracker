@@ -4,16 +4,16 @@
 import notifee from '@notifee/react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
+import {getStatusAsync, BackgroundFetchStatus} from 'expo-background-fetch';
 import * as Device from 'expo-device';
 import { StatusBar } from 'expo-status-bar';
+import * as TaskManager from 'expo-task-manager';
 import * as WebBrowser from 'expo-web-browser';
 import {useEffect, useState} from 'react';
 import { StyleSheet, Button, Text, ViewStyle } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import * as Sentry from 'sentry-expo';
-import * as BackgroundFetch from 'expo-background-fetch';
-import * as TaskManager from 'expo-task-manager';
 
 
 
@@ -451,12 +451,21 @@ function HomeScreen() {
   const serialNumber = useSelector(selectDeviceSerialNumberString);
   // const authState = useSelector(selectAuthState);  
   const [isIOSBackgroundTaskRegistered, setIsIOSBackgroundTaskRegistered] = useState(false);
-  const [iOSBackgroundTaskStatus, setIOSBackgroundTaskStatus] = useState(null as (BackgroundFetch.BackgroundFetchStatus | null));
+  const [iOSBackgroundTaskStatus, setIOSBackgroundTaskStatus] = useState(null as (BackgroundFetchStatus | null));
+
+  const [nativeErrors, setNativeErrors] = useState(null as (string | null));
 
 
 
   useEffect(() => {
-    checkStatusAsync(setIsIOSBackgroundTaskRegistered, setIOSBackgroundTaskStatus);
+    checkStatusAsync(setIsIOSBackgroundTaskRegistered, setIOSBackgroundTaskStatus).then((undefinedOrError) => {
+      if (undefinedOrError) {
+        setNativeErrors(undefinedOrError);
+      }
+      return;
+    }).catch((maybeError) => {
+      setNativeErrors(unknownNativeErrorTryFormat(maybeError));
+    });
   }, []);
   
   
@@ -473,6 +482,7 @@ function HomeScreen() {
       <UploadingButton/>
       <MaybeIfValue text='iosBackgroundTaskRegistered' value={isIOSBackgroundTaskRegistered} />
       <MaybeIfValue text='iosBackgroundTaskStatus' value={iOSBackgroundTaskStatus}/>
+      <MaybeIfValue text='unexpected native errors: ' value={nativeErrors}/>
       <StatusBar style="auto" />
     </SafeAreaProvider>
   );
@@ -679,11 +689,17 @@ const NAVIGATOR_SCREEN_OPTIONS = {
 };
 
 
-const checkStatusAsync = async (setIsIOSBackgroundTaskRegistered: React.Dispatch<React.SetStateAction<boolean>>, setIOSBackgroundTaskStatus: React.Dispatch<React.SetStateAction<BackgroundFetch.BackgroundFetchStatus | null>>) => {
-  const status = await BackgroundFetch.getStatusAsync();
-  const isRegistered = await TaskManager.isTaskRegisteredAsync(BACKGROUND_FETCH_TASK);
-  setIOSBackgroundTaskStatus(status);
-  setIsIOSBackgroundTaskRegistered(isRegistered);
+const checkStatusAsync = async (setIsIOSBackgroundTaskRegistered: React.Dispatch<React.SetStateAction<boolean>>, setIOSBackgroundTaskStatus: React.Dispatch<React.SetStateAction<BackgroundFetchStatus | null>>) => {
+  try {
+    const isRegistered = await TaskManager.isTaskRegisteredAsync(BACKGROUND_FETCH_TASK);
+    setIsIOSBackgroundTaskRegistered(isRegistered);
+    const status = await getStatusAsync();
+    setIOSBackgroundTaskStatus(status);
+  }
+  catch (error) {
+    // Sentry.Native.captureException(error);
+    return `unexpected error: ${unknownNativeErrorTryFormat(error)}`;
+  }
 };
 
 // const toggleFetchTask = async (isIOSBackgroundTaskRegistered: boolean, setIsIOSBackgroundTaskRegistered: React.Dispatch<React.SetStateAction<boolean>>, setIOSBackgroundTaskStatus: React.Dispatch<React.SetStateAction<BackgroundFetch.BackgroundFetchStatus | null>>) => {
@@ -722,6 +738,13 @@ function App() {
   useIosBackgroundTaskToReadBluetoothAranet4();
 
 
+
+  useEffect( () => {
+    registerBackgroundFetchAsync();
+    return () => {
+      unregisterBackgroundFetchAsync();
+    }
+  }, [])
 
 
   // useEffect(() => {

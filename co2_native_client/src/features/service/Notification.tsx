@@ -1,5 +1,5 @@
 import notifee, {NotificationSettings, Notification, EventType, Event, TriggerType, TimeUnit, IntervalTrigger, AndroidImportance} from '@notifee/react-native';
-import { ActivityAction, IntentLauncherParams, IntentLauncherResult, startActivityAsync } from 'expo-intent-launcher';
+// import { ActivityAction, IntentLauncherParams, IntentLauncherResult, startActivityAsync } from 'expo-intent-launcher';
 import {useState, useEffect, useRef} from 'react';
 import { Button, AppState, AppStateStatus, Platform } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -7,7 +7,7 @@ import * as Sentry from 'sentry-expo';
 
 import { UserInfoDevice } from '../../../../co2_client/src/utils/DeviceInfoTypes';
 import { UserSettings } from '../../../../co2_client/src/utils/UserSettings';
-import { selectBackgroundPollingEnabled, selectBatteryOptimizationEnabled, selectJWT, selectShouldUpload, setBackgroundPollingEnabled, setBatteryOptimizationEnabled,  setShouldUpload } from '../../app/globalSlice';
+import { selectBackgroundPollingEnabled, selectBatteryOptimizationEnabled, selectShouldUpload, setBackgroundPollingEnabled, setBatteryOptimizationEnabled,  setShouldUpload } from '../../app/globalSlice';
 import { AppDispatch } from '../../app/store';
 import { unknownNativeErrorTryFormat } from '../../utils/FormatUnknownNativeError';
 import { MaybeIfValue } from '../../utils/RenderValues';
@@ -16,12 +16,11 @@ import { useIsLoggedIn } from '../../utils/UseLoggedIn';
 import { MeasurementDataForUpload } from '../Measurement/MeasurementTypes';
 import { uploadMeasurementHeadless } from '../Measurement/MeasurementUpload';
 import { onHeadlessTaskTriggerBluetooth } from '../bluetooth/Bluetooth';
-import { selectDeviceID, setScanningStatusString } from '../bluetooth/bluetoothSlice';
-import { initialUserDevicesState, selectSupportedDevices } from '../userInfo/devicesSlice';
+// import { selectDeviceID, setScanningStatusString } from '../bluetooth/bluetoothSlice';
+import { initialUserDevicesState } from '../userInfo/devicesSlice';
 import { selectUserSettings } from '../userInfo/userInfoSlice';
 import {logEvent} from './LogEvent';
 import { setNotificationChannelID, selectNotificationChannelID, setDisplayNotificationNativeErrors, selectDisplayNotificationNativeErrors, setNotificationAction, NotificationAction, selectNotificationAction, selectNotificationState } from './serviceSlice';
-import { BACKGROUND_FETCH_TASK, registerBackgroundFetchAsync, unregisterBackgroundFetchAsync } from './iosBackgroundWork';
 
 
 function defaultNotification(channelId: string): Notification {
