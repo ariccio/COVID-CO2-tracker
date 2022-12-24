@@ -82,7 +82,10 @@ function defaultTriggerNotification(channelId: string): Notification {
             smallIcon: 'ic_small_icon', // optional, defaults to 'ic_launcher'.
             timeoutAfter: (1000 * 60),
             onlyAlertOnce: true,
-            importance: AndroidImportance.LOW
+            importance: AndroidImportance.LOW,
+            progress: {
+                indeterminate: true
+            }
         }
         // ,
         // ios: {
@@ -208,6 +211,7 @@ async function handleForegroundServiceEvent(event: Event, deviceID: string, supp
 
     else if (event.type === EventType.DELIVERED) {
         const eventMessage = logEvent('foreground', event);
+        const UID = Math.random();
         console.log(`-------\r\n\t(SERVICE, ${timeNowAsString()})${eventMessage}: ${JSON.stringify(event)}`);
         
 
@@ -219,11 +223,12 @@ async function handleForegroundServiceEvent(event: Event, deviceID: string, supp
         }
 
         console.log("Likely event trigger?");
-        console.log(`Starting headless task with deviceID: ${deviceID}, supportedDevices: ${JSON.stringify(supportedDevices)}`);
+        console.log(`Starting headless task (${UID}) with deviceID: ${deviceID}, supportedDevices: ${JSON.stringify(supportedDevices)}`);
         const result: MeasurementDataForUpload | null = await onHeadlessTaskTriggerBluetooth(deviceID, supportedDevices);
         console.log(`Read this value!\n\t${JSON.stringify(await result)}`);
         await notifee.cancelDisplayedNotification(event.detail.notification.id);
         await uploadMeasurementHeadless(result, userSettings, jwt, shouldUpload);
+        console.log(`Headless task ${UID} complete.`)
     }
     else {
         const eventMessage = logEvent('foreground', event);

@@ -886,6 +886,7 @@ const headlessForegroundScanConnectRead = async (deviceID: string, supportedDevi
             return true;
         }
         if (connectedDevice === false) {
+            console.warn(`connectedDevice === false, connection may have failed?`)
             return false;
         }
     
@@ -960,7 +961,7 @@ const headlessForegroundScanConnectRead = async (deviceID: string, supportedDevi
     }
 
 }
-const headlessForegroundScanConnectReadWithRetry = async (deviceID: string, supportedDevices: UserInfoDevice[]): Promise<Aranet4GenericAndSpecificInformation | null> => {
+const headlessWithRetryWrapperForegroundScanConnectRead = async (deviceID: string, supportedDevices: UserInfoDevice[]): Promise<Aranet4GenericAndSpecificInformation | null> => {
     const updatedOrNeedsRetry = await headlessForegroundScanConnectRead(deviceID, supportedDevices);
     if (updatedOrNeedsRetry === false) {
         console.warn("non recoverable error, not retrying...");
@@ -985,7 +986,7 @@ const headlessForegroundScanConnectReadWithRetry = async (deviceID: string, supp
 
 
 export const onHeadlessTaskTriggerBluetooth = async (deviceID: string, supportedDevices: UserInfoDevice[]): Promise<MeasurementDataForUpload | null> => {
-    const updated = await headlessForegroundScanConnectReadWithRetry(deviceID, supportedDevices);
+    const updated = await headlessWithRetryWrapperForegroundScanConnectRead(deviceID, supportedDevices);
     if (updated === null) {
         console.error("failed to read in headless task!");
         // debugger;
@@ -1694,7 +1695,8 @@ const connectOrAlreadyConnected = async (deviceID: string): Promise<Device | boo
     // console.log("connected, checking connection manager for connection...");
     const connectedDevices = await manager.connectedDevices([BLUETOOTH.ARANET4_SENSOR_SERVICE_UUID]);
     if (connectedDevices.length === 0) {
-        console.log(`Manager reports ZERO connected devices`);
+        console.log(`Manager reports ZERO connected devices. Connection maybe lost in the short time since connected? Will retry.`);
+        return true;
     }
     if (connectedDevices.length > 1) {
         console.log(`Manager reports ${connectedDevices.length} connected devices`);
