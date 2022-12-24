@@ -37,6 +37,23 @@ export const MaybeIfValueTrue: React.FC<{text: string, value: any, suffix?: stri
   );
 }
 
+export const MaybeTextIfValueTrue: React.FC<{text: string, value: any, suffix?: string}> = ({text, value, suffix}) => {
+  if (value === undefined) {
+    // console.error("value missing?");
+    return null;
+  }
+  if (value === null) {
+    return null;
+  }
+  if (!value) {
+    return null;
+  }
+  return (
+    <Text>
+        {text}{suffix}
+    </Text>
+  );
+}
   
 export const ValueOrLoading: React.FC<{text: string, value: any, suffix?: string}> = ({text, value, suffix}) => {
   if (value === undefined) {

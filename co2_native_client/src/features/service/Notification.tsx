@@ -231,22 +231,36 @@ async function handleForegroundServiceEvent(event: Event, deviceID: string, supp
     }
 }
 
+function isKnownUndefinedDetailEvent(event: Event): boolean {
+    // https://notifee.app/react-native/reference/eventtype
+    switch (event.type) {
+        case (EventType.APP_BLOCKED):
+            return true;
+
+    }
+    return false;
+}
+
 async function handleBackgroundEvent(event: Event, deviceID: string, supportedDevices: UserInfoDevice[], userSettings: UserSettings, jwt: string, shouldUpload: boolean, dispatch: AppDispatch) {
     const eventMessage = logEvent('background', event);
     console.log(`-------\r\n(SERVICE, ${timeNowAsString()})${eventMessage} (unimplemented event handling for this event.): ${JSON.stringify(event)}`);
 
     if (event.detail.notification === undefined) {
-        const errorMessageStr = `Error in handleBackgroundEvent: event.detail.notification is undefined, probably a native error?`;
-        dispatch(setDisplayNotificationNativeErrors(errorMessageStr));
-        Sentry.Native.captureMessage(errorMessageStr);
-        // Sentry.Native.captureException(exception);
+        if (!isKnownUndefinedDetailEvent(event)) {
+            const errorMessageStr = `Error in handleBackgroundEvent: event.detail.notification is undefined, probably a native error?`;
+            dispatch(setDisplayNotificationNativeErrors(errorMessageStr));
+            Sentry.Native.captureMessage(errorMessageStr);
+            // Sentry.Native.captureException(exception);
+        }
         return;
     }
     if (event.detail.notification.id === undefined) {
-        const errorMessageStr = `Error in handleBackgroundEvent: event.detail.notification.id is undefined, probably a native error?`;
-        dispatch(setDisplayNotificationNativeErrors(errorMessageStr));
-        Sentry.Native.captureMessage(errorMessageStr);
-        // Sentry.Native.captureException(exception);
+        if (!isKnownUndefinedDetailEvent(event)) {
+            const errorMessageStr = `Error in handleBackgroundEvent: event.detail.notification.id is undefined, probably a native error?`;
+            dispatch(setDisplayNotificationNativeErrors(errorMessageStr));
+            Sentry.Native.captureMessage(errorMessageStr);
+            // Sentry.Native.captureException(exception);
+        }
         return;
     }
 

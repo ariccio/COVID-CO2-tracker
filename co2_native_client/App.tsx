@@ -24,7 +24,7 @@ import {ErrorObjectType, formatErrors, withErrors} from '../co2_client/src/utils
 // import {} from '../co2_client/src/utils/UserInfoTypes';
 import { userSettingsResponseDataAsPlainSettings, userSettingsResponseToStrongType} from '../co2_client/src/utils/QuerySettingsTypes';
 import {UserSettings} from '../co2_client/src/utils/UserSettings';
-import { incrementSuccessfulUploads, selectJWT, selectNextMeasurementTime, selectShouldUpload, selectSuccessfulUploads, selectUserDeviceErrors, setNextMeasurementTime, setShouldUpload, setUserDeviceErrors } from './src/app/globalSlice';
+import { incrementSuccessfulUploads, selectBatteryOptimizationEnabled, selectJWT, selectNextMeasurementTime, selectShouldUpload, selectSuccessfulUploads, selectUserDeviceErrors, setNextMeasurementTime, setShouldUpload, setUserDeviceErrors } from './src/app/globalSlice';
 import { AppDispatch, store } from './src/app/store';
 import {AuthContainer, useGoogleAuthForCO2Tracker} from './src/features/Auth/Auth';
 // import { selectAuthState, setAuthState } from './src/features/Auth/authSlice';
@@ -42,7 +42,7 @@ import { selectUserName, selectUserSettings, setUserSettings, setUserSettingsErr
 import { unknownNativeErrorTryFormat } from './src/utils/FormatUnknownNativeError';
 import { withAuthorizationHeader } from './src/utils/NativeDefaultRequestHelpers';
 import {fetchJSONWithChecks} from './src/utils/NativeFetchHelpers';
-import { MaybeIfValue } from './src/utils/RenderValues';
+import { MaybeIfValue, MaybeIfValueTrue, MaybeTextIfValueTrue } from './src/utils/RenderValues';
 import { timeNowAsString } from './src/utils/TimeNow';
 import { COVID_CO2_TRACKER_DEVICES_URL, COVID_CO2_TRACKER_HOME_URL, USER_DEVICES_URL_NATIVE, USER_SETTINGS_URL_NATIVE } from './src/utils/UrlPaths';
 import { useIsLoggedIn } from './src/utils/UseLoggedIn';
@@ -662,7 +662,7 @@ function MaybeStartText() {
 }
 
 function GetStartedScreen() {
-
+  const batteryOptimizationEnabled = useSelector(selectBatteryOptimizationEnabled);
   return (
     <>
       <SafeAreaProvider>
@@ -670,6 +670,7 @@ function GetStartedScreen() {
         <LogInIfNot/>
         <CreateDeviceIfNotYet/>
         <RealtimeUploadSettings/>
+        <MaybeTextIfValueTrue value={batteryOptimizationEnabled} text="Battery optimization is enabled. App may not update in background if &quot;Batter Saver&quot; is enabled."/>
         <AllSet/>
 
       </SafeAreaProvider>
