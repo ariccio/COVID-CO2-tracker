@@ -185,13 +185,10 @@ async function checkedRequestPermission(dispatch: AppDispatch): Promise<Notifica
 // }
 
 
-async function handleForegroundServiceEvent(event: Event, deviceID: string, supportedDevices: UserInfoDevice[], userSettings: UserSettings, jwt: string, shouldUpload: boolean) {
-    
-    
+async function handleForegroundServiceEvent(event: Event, deviceID: string, supportedDevices: UserInfoDevice[], userSettings: UserSettings, jwt: string, shouldUpload: boolean, dispatch: AppDispatch) {
     if (event.type === EventType.ACTION_PRESS) {
         const eventMessage = logEvent('foreground', event);
         console.log(`-------\r\n(SERVICE, ${timeNowAsString()})${eventMessage}: ${JSON.stringify(event)}`);
-        
 
         if (!event.detail) {
             console.warn("missing notification event detail?");
@@ -226,8 +223,8 @@ async function handleForegroundServiceEvent(event: Event, deviceID: string, supp
         console.log(`Starting headless task (${UID}) with deviceID: ${deviceID}, supportedDevices: ${JSON.stringify(supportedDevices)}`);
         const result: MeasurementDataForUpload | null = await onHeadlessTaskTriggerBluetooth(deviceID, supportedDevices);
         console.log(`Read this value!\n\t${JSON.stringify(await result)}`);
+        await uploadMeasurementHeadless(result, userSettings, jwt, shouldUpload, dispatch);
         await notifee.cancelDisplayedNotification(event.detail.notification.id);
-        await uploadMeasurementHeadless(result, userSettings, jwt, shouldUpload);
         console.log(`Headless task ${UID} complete.`)
     }
     else {
@@ -277,7 +274,7 @@ const foregroundServiceCallback = (notification: Notification, deviceID: string,
     return new Promise(() => {
         console.log("Registering notification service event handlers...");
         // https://notifee.app/react-native/docs/android/foreground-service
-        notifee.onForegroundEvent((event: Event) => {return handleForegroundServiceEvent(event, deviceID, supportedDevices, userSettings, jwt, shouldUpload)});
+        notifee.onForegroundEvent((event: Event) => {return handleForegroundServiceEvent(event, deviceID, supportedDevices, userSettings, jwt, shouldUpload, dispatch)});
         notifee.onBackgroundEvent((event: Event) => {return handleBackgroundEvent(event, deviceID, supportedDevices, userSettings, jwt, shouldUpload, dispatch)});
         // debugger;
     })

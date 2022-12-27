@@ -17,7 +17,7 @@ import { UserInfoDevice } from '../../../../co2_client/src/utils/DeviceInfoTypes
 import { selectBackgroundPollingEnabled } from '../../app/globalSlice';
 import { AppDispatch } from '../../app/store';
 import { unknownNativeErrorTryFormat } from '../../utils/FormatUnknownNativeError';
-import { MaybeIfValue, MaybeIfValueTrue } from '../../utils/RenderValues';
+import { MaybeIfValue, MaybeIfValueLessThan, MaybeIfValueTrue } from '../../utils/RenderValues';
 import { timeNowAsString } from '../../utils/TimeNow';
 import { COVID_CO2_TRACKER_DEVICES_URL } from '../../utils/UrlPaths';
 import { useIsLoggedIn } from '../../utils/UseLoggedIn';
@@ -2104,7 +2104,7 @@ export const BluetoothData: React.FC<{ knownDevice: boolean | null, nextMeasurem
             
             <RSSIOrWeakRSSI rssi={rssi}/>
             <MaybeIfValue text="Serial number: " value={serialNumber} />
-            <MaybeIfValue text="Battery: " value={deviceBatteryLevel} suffix="%" />
+            <MaybeIfValueLessThan text="Battery: " value={deviceBatteryLevel} compareAgainst={50} suffix="%" />
             <MaybeIfValueTrue text="Known user device?: " value={knownDevice} suffix="yes"/>
 
             {/* <MaybeIfValue text="localName: " value={(device?.localName) ? device.localName : null} /> */}

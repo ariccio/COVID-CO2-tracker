@@ -7,6 +7,7 @@ import { RootState } from './rootReducer';
 interface Globals {
     jwt: string | null;
     successfulUploads: number;
+    failedUploads: number;
     batteryOptimizationEnabled: boolean | null;
     backgroundPolling: boolean;
     shouldUpload: boolean;
@@ -17,6 +18,7 @@ interface Globals {
 const initialState: Globals = {
     jwt: null,
     successfulUploads: 0,
+    failedUploads: 0,
     batteryOptimizationEnabled: null,
     backgroundPolling: false,
     shouldUpload: false,
@@ -34,6 +36,9 @@ export const globalSlice = createSlice({
         incrementSuccessfulUploads: (state, action: PayloadAction<void>) => {
             // debugger;
             state.successfulUploads += 1;
+        },
+        incrementFailedUploads: (state, action: PayloadAction<void>) => {
+            state.failedUploads += 1;
         },
         setBatteryOptimizationEnabled: (state, action: PayloadAction<boolean | null>) => {
             state.batteryOptimizationEnabled = action.payload;
@@ -53,7 +58,7 @@ export const globalSlice = createSlice({
     }
 });
 
-export const {setJWT, incrementSuccessfulUploads, setBatteryOptimizationEnabled, setBackgroundPollingEnabled, setShouldUpload, setNextMeasurementTime, setUserDeviceErrors} = globalSlice.actions;
+export const {setJWT, incrementSuccessfulUploads, setBatteryOptimizationEnabled, setBackgroundPollingEnabled, setShouldUpload, setNextMeasurementTime, setUserDeviceErrors, incrementFailedUploads} = globalSlice.actions;
 
 export const selectJWT = (state: RootState) => state.globals.jwt;
 export const selectSuccessfulUploads = (state: RootState) => state.globals.successfulUploads;
@@ -61,7 +66,7 @@ export const selectBatteryOptimizationEnabled = (state: RootState) => state.glob
 export const selectBackgroundPollingEnabled = (state: RootState) => state.globals.backgroundPolling;
 export const selectShouldUpload = (state: RootState) => state.globals.shouldUpload;
 export const selectNextMeasurementTime = (state: RootState) => state.globals.nextMeasurementTime;
-
+export const selectFailedUploads = (state: RootState) => state.globals.failedUploads;
 export const selectUserDeviceErrors = (state: RootState) => state.globals.userDeviceErrors;
 
 

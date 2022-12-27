@@ -24,7 +24,7 @@ import {ErrorObjectType, formatErrors, withErrors} from '../co2_client/src/utils
 // import {} from '../co2_client/src/utils/UserInfoTypes';
 import { userSettingsResponseDataAsPlainSettings, userSettingsResponseToStrongType} from '../co2_client/src/utils/QuerySettingsTypes';
 import {UserSettings} from '../co2_client/src/utils/UserSettings';
-import { incrementSuccessfulUploads, selectBatteryOptimizationEnabled, selectJWT, selectNextMeasurementTime, selectShouldUpload, selectSuccessfulUploads, selectUserDeviceErrors, setNextMeasurementTime, setShouldUpload, setUserDeviceErrors } from './src/app/globalSlice';
+import { incrementSuccessfulUploads, selectBatteryOptimizationEnabled, selectFailedUploads, selectJWT, selectNextMeasurementTime, selectShouldUpload, selectSuccessfulUploads, selectUserDeviceErrors, setNextMeasurementTime, setShouldUpload, setUserDeviceErrors } from './src/app/globalSlice';
 import { AppDispatch, store } from './src/app/store';
 import {AuthContainer, useGoogleAuthForCO2Tracker} from './src/features/Auth/Auth';
 // import { selectAuthState, setAuthState } from './src/features/Auth/authSlice';
@@ -379,12 +379,14 @@ function loadSettings(jwt: string | null, userName: string | null | undefined, d
 const RealtimeMeasurementInfo = () => {
   const uploadStatus = useSelector(selectUploadStatus);
   const successfulUploads = useSelector(selectSuccessfulUploads);
+  const failedUploads = useSelector(selectFailedUploads);
   const userDeviceErrors = useSelector(selectUserDeviceErrors);
   return (
     <>
       <MaybeIfValue text="Device fetch errors: " value={userDeviceErrors}/>
       <MaybeIfValue text="Realtime upload status/errors: " value={uploadStatus}/>
       <MaybeIfValue text="Measurments uploaded: " value={successfulUploads} />
+      <MaybeIfValue text="Failed Measurment uploads: " value={failedUploads} />
       <MaybeIfValue text="Your phone type: " value={Device.modelName}/>    
     </>
   );

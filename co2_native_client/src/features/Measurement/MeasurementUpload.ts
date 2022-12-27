@@ -3,10 +3,14 @@ import * as Sentry from 'sentry-expo';
 import { postRequestOptions } from "../../../../co2_client/src/utils/DefaultRequestOptions";
 import { formatErrors, withErrors } from "../../../../co2_client/src/utils/ErrorObject";
 import { UserSettings } from "../../../../co2_client/src/utils/UserSettings";
+import { AppDispatch } from '../../app/store';
 import { withAuthorizationHeader } from "../../utils/NativeDefaultRequestHelpers";
 import { fetchJSONWithChecks } from "../../utils/NativeFetchHelpers";
 import { REAL_TIME_UPLOAD_URL_NATIVE } from "../../utils/UrlPaths";
 import { MeasurementDataForUpload } from "./MeasurementTypes";
+import {setUploadStatus} from "../Uploading/uploadSlice";
+import {incrementFailedUploads, incrementSuccessfulUploads} from "../../app/globalSlice";
+import { unknownNativeErrorTryFormat } from '../../utils/FormatUnknownNativeError';
 
 export function initRealtimeMeasurement(jwt: string, measurement: MeasurementDataForUpload, userSettings: UserSettings): RequestInit {
     const defaultOptions = postRequestOptions();
@@ -41,7 +45,7 @@ export async function realtimeUpload(jwt: string, measurement: MeasurementDataFo
     return result;
 }
 
-export function uploadMeasurementHeadless(measurement: MeasurementDataForUpload | null, userSettings: UserSettings | null | undefined, jwt: string | null, shouldUpload: boolean) {
+export function uploadMeasurementHeadless(measurement: MeasurementDataForUpload | null, userSettings: UserSettings | null | undefined, jwt: string | null, shouldUpload: boolean, dispatch: AppDispatch) {
     // console.log(`Measurement changed! ${JSON.stringify(measurement)}`);
   
     // dispatch(addMeasurement())
@@ -78,19 +82,24 @@ export function uploadMeasurementHeadless(measurement: MeasurementDataForUpload 
             const str = `Headless upload errors: ${formatErrors(response.errors)}`;
             console.error(str);
             Sentry.Native.captureMessage(str);
+            dispatch(setUploadStatus(`Uploading failed: ${formatErrors(response.errors)}`));
+            dispatch(incrementFailedUploads());
             // dispatch(setUploadStatus(`Error uploading measurement: ${formatErrors(response.errors)}`));
             // eslint-disable-next-line no-useless-return
             return;
         }
         // eslint-disable-next-line no-useless-return
         console.log('SUCESSFUL MEASUREMENT UPLOAD!');
+        dispatch(incrementSuccessfulUploads());
         // eslint-disable-next-line no-useless-return
         return;
     //   dispatch(setUploadStatus(`Successful at ${(new Date(Date.now())).toLocaleTimeString()}`));
     //   dispatch(incrementSuccessfulUploads());
     }).catch((error) => {
         Sentry.Native.captureException(error);
-        console.error(`Headless upload error: ${String(error)}`);
+        console.error(`Headless upload error: ${unknownNativeErrorTryFormat(error)}`);
+        dispatch(setUploadStatus(`Uploading failed, app error: ${unknownNativeErrorTryFormat(error)}`));
+        dispatch(incrementFailedUploads());
     //   dispatch(setUploadStatus(`Error uploading measurement: ${String(error)}`));
         // debugger;
     });
