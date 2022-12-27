@@ -10,7 +10,7 @@ import { UserSettings } from '../../../../co2_client/src/utils/UserSettings';
 import { selectBackgroundPollingEnabled, selectBatteryOptimizationEnabled, selectShouldUpload, setBackgroundPollingEnabled, setBatteryOptimizationEnabled,  setShouldUpload } from '../../app/globalSlice';
 import { AppDispatch } from '../../app/store';
 import { unknownNativeErrorTryFormat } from '../../utils/FormatUnknownNativeError';
-import { MaybeIfValue } from '../../utils/RenderValues';
+import { MaybeIfValue, MaybeIfValueTrue } from '../../utils/RenderValues';
 import { timeNowAsString } from '../../utils/TimeNow';
 import { useIsLoggedIn } from '../../utils/UseLoggedIn';
 import { MeasurementDataForUpload } from '../Measurement/MeasurementTypes';
@@ -320,6 +320,7 @@ async function onDisplayNotification(setDisplayNotificationErrors: React.Dispatc
         // console.log('creating ios background event handler...');
         // registerBackgroundEventHandler(deviceID, supportedDevices, userSettings, jwt, shouldUpload, dispatch);
         console.log("IOS backgrounding is not implemented with notifications.");
+        return;
     }
     else {
         console.error("unimplemented");
@@ -372,6 +373,11 @@ async function onDisplayNotification(setDisplayNotificationErrors: React.Dispatc
 }
 
 async function createTriggerNotification(dispatch: AppDispatch, channelId: string) {
+    const os = Platform.OS;
+    if (os === 'ios') {
+        console.log("No trigger notification on IOS.");
+        return;
+    }
     const trigger: IntervalTrigger = {
         type: TriggerType.INTERVAL,
         interval: 15,
@@ -489,7 +495,7 @@ export const NotificationInfo = () => {
             <StartOrStopButton/>
             
             <MaybeIfValue text="Errors from displaying notifications: " value={notificationState?.displayNotificationErrors} />
-            <MaybeIfValue text="Battery optimization enabled: " value={(batteryOptimizationEnabled === null) ? null : String(batteryOptimizationEnabled)} />
+            <MaybeIfValueTrue text="Battery optimization enabled: " value={batteryOptimizationEnabled} />
             <MaybeIfValue text="Notifee native errors (what?): " value={notificationNativeErrors} />
             <MaybeIfValue text="Notification ID: " value={notificationState?.notificationID} />
             <MaybeIfValue text="Trigger notification: " value={notificationState?.triggerNotification} />

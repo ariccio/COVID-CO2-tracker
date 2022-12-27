@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable no-debugger */
 // See updated (more restrictive) licensing restrictions for this subproject! Updated 02/03/2022.
 
@@ -434,6 +435,31 @@ const useCheckKnownDevice = (supportedDevices: UserInfoDevice[] | null, dispatch
 
 }
 
+function backgroundTaskStatusToString(iOSBackgroundTaskStatus: BackgroundFetchStatus): string {
+  if (iOSBackgroundTaskStatus === BackgroundFetchStatus.Available) {
+    return '(Available)';
+  }
+  if (iOSBackgroundTaskStatus === BackgroundFetchStatus.Denied) {
+    return '(DENIED!)';
+  }
+  if (iOSBackgroundTaskStatus === BackgroundFetchStatus.Restricted) {
+    return '(restricted - maybe parental controls?)';
+  }
+  return '(UNKNOWN value)';
+
+}
+
+const BackgroundTaskStatus: React.FC<{iOSBackgroundTaskStatus: BackgroundFetchStatus | null}> = ({iOSBackgroundTaskStatus}) => {
+ 
+  if (iOSBackgroundTaskStatus === null) {
+    return null;
+  }
+  return (
+    <>
+      <MaybeIfValue text='iosBackgroundTaskStatus: ' value={iOSBackgroundTaskStatus} suffix={backgroundTaskStatusToString(iOSBackgroundTaskStatus)}/>
+    </>
+  )
+}
 
 // Bootstrap sequence function
 async function checkInitialNotification() {
@@ -481,9 +507,9 @@ function HomeScreen() {
       <UserSettingsMaybeDisplay/>
       
       <NotificationInfo/>
+      <MaybeIfValue text='iosBackgroundTaskRegistered.' value={isIOSBackgroundTaskRegistered} />
+      <BackgroundTaskStatus iOSBackgroundTaskStatus={iOSBackgroundTaskStatus}/>
       <UploadingButton/>
-      <MaybeIfValue text='iosBackgroundTaskRegistered' value={isIOSBackgroundTaskRegistered} />
-      <MaybeIfValue text='iosBackgroundTaskStatus' value={iOSBackgroundTaskStatus}/>
       <MaybeIfValue text='unexpected native errors: ' value={nativeErrors}/>
       <StatusBar style="auto" />
     </SafeAreaProvider>
