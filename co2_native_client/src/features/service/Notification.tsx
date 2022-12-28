@@ -80,7 +80,7 @@ function defaultTriggerNotification(channelId: string): Notification {
         android: { // "Android specific notification options. See the [`NotificationAndroid`](/react-native/reference/notificationandroid) interface for more information and default options which are applied to a notification."
             channelId, // "Specifies the `AndroidChannel` which the notification will be delivered on."
             smallIcon: 'ic_small_icon', // optional, defaults to 'ic_launcher'.
-            timeoutAfter: (1000 * 60),
+            timeoutAfter: (10000 * 60),
             onlyAlertOnce: true,
             importance: AndroidImportance.LOW,
             progress: {
@@ -224,7 +224,7 @@ async function handleForegroundServiceEvent(event: Event, deviceID: string, supp
         const result: MeasurementDataForUpload | null = await onHeadlessTaskTriggerBluetooth(deviceID, supportedDevices);
         console.log(`Read this value!\n\t${JSON.stringify(await result)}`);
         await uploadMeasurementHeadless(result, userSettings, jwt, shouldUpload, dispatch);
-        await notifee.cancelDisplayedNotification(event.detail.notification.id);
+        // await notifee.cancelDisplayedNotification(event.detail.notification.id);
         console.log(`Headless task ${UID} complete.`)
     }
     else {
@@ -266,7 +266,7 @@ async function handleBackgroundEvent(event: Event, deviceID: string, supportedDe
         return;
     }
 
-    await notifee.cancelNotification(event.detail.notification.id);
+    // await notifee.cancelNotification(event.detail.notification.id);
 }
 
 const foregroundServiceCallback = (notification: Notification, deviceID: string, supportedDevices: UserInfoDevice[], userSettings: UserSettings, jwt: string, shouldUpload: boolean, dispatch: AppDispatch): Promise<void> => {
@@ -657,7 +657,9 @@ export const useNotifeeNotifications = (supportedDevices: UserInfoDevice[] | nul
         createOrUpdateNotification(setDisplayNotificationErrors, deviceID, supportedDevices, setNotificationID, channelID, loggedIn, jwt, shouldUpload, backgroundPollingEnabled, dispatch, setTriggerNotification, triggerNotification, userSettings);
         return (() => {
             // console.log("(cleanup) from notifee hook destructor")
-            stopServiceAndClearNotifications();
+            
+            // is this breaking the app? disabled for now.
+            // stopServiceAndClearNotifications();
         })
     }, [deviceID, supportedDevices, channelID, backgroundPollingEnabled, loggedIn, userSettings, jwt, shouldUpload, dispatch])
 
