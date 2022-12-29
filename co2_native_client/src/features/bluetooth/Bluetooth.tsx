@@ -17,7 +17,7 @@ import { UserInfoDevice } from '../../../../co2_client/src/utils/DeviceInfoTypes
 import { selectBackgroundPollingEnabled } from '../../app/globalSlice';
 import { AppDispatch } from '../../app/store';
 import { unknownNativeErrorTryFormat } from '../../utils/FormatUnknownNativeError';
-import { MaybeIfValue, MaybeIfValueLessThan, MaybeIfValueNot, MaybeIfValueTrue } from '../../utils/RenderValues';
+import { MaybeIfValue, MaybeIfValueGreaterThan, MaybeIfValueLessThan, MaybeIfValueNot, MaybeIfValueTrue } from '../../utils/RenderValues';
 import { timeNowAsString } from '../../utils/TimeNow';
 import { COVID_CO2_TRACKER_DEVICES_URL } from '../../utils/UrlPaths';
 import { useIsLoggedIn } from '../../utils/UseLoggedIn';
@@ -1988,7 +1988,7 @@ function dbOrDbAndWeakMessage(rssi: number | null): string {
     if (rssi === null) {
         return "db";
     }
-    if (rssi > -88) {
+    if (rssi > -70) {
         return "db";
     }
     return `db - weak signal. You may have connection problems!`;
@@ -1996,7 +1996,7 @@ function dbOrDbAndWeakMessage(rssi: number | null): string {
 
 const RSSIOrWeakRSSI: React.FC<{rssi: number | null}> = ({rssi}) => {
     return (
-        <MaybeIfValue text="rssi: " value={rssi} suffix={dbOrDbAndWeakMessage(rssi)} />
+        <MaybeIfValueGreaterThan text="rssi: " value={rssi} suffix={dbOrDbAndWeakMessage(rssi)} compareAgainst={-40} />
     );
 }
 

@@ -575,12 +575,13 @@ const init = async (setDisplayNotificationErrors: React.Dispatch<React.SetStateA
         setNotificationID(result);
     }
     if (currentTriggerNotification !== null) {
-        console.warn(`Trigger notification already set! (init)`);
+        console.warn(`Trigger notification already set! (${currentTriggerNotification})(init)`);
     }
     // console.warn("TODO: create trigger here?")
     const triggerResult = await createTriggerNotification(dispatch, channelID);
     if (triggerResult !== undefined) {
         setTriggerNotification(triggerResult);
+        console.warn(`created trigger notification ${triggerResult}`)
     }
     else {
         console.error(`Unexpected error creating trigger notification?`);
@@ -661,7 +662,7 @@ export const useNotifeeNotifications = (supportedDevices: UserInfoDevice[] | nul
         
         createOrUpdateNotification(setDisplayNotificationErrors, deviceID, supportedDevices, setNotificationID, channelID, loggedIn, jwt, shouldUpload, backgroundPollingEnabled, dispatch, setTriggerNotification, triggerNotification, hasBluetooth, userSettings);
         return (() => {
-            // console.log("(cleanup) from notifee hook destructor")
+            console.log("(cleanup) from notifee hook destructor")
             
             // is this breaking the app? disabled for now.
             // stopServiceAndClearNotifications();
@@ -711,10 +712,11 @@ async function clickDisplayNotification(channelID: string | null, setTriggerNoti
     }
 
     if (currentTriggerNotification !== null) {
-        console.warn(`Trigger notification already set! (clickDisplayNotification)`);
+        console.warn(`Trigger notification already set! (${currentTriggerNotification})(clickDisplayNotification)`);
     }
     const triggerResult = await createTriggerNotification(dispatch, channelId_);
     if (triggerResult !== undefined) {
+        console.warn(`Created trigger notification: ${triggerResult}`);
         setTriggerNotification(triggerResult);
     }
     else {
@@ -726,7 +728,7 @@ async function clickDisplayNotification(channelID: string | null, setTriggerNoti
 
 
 async function clickStopNotification(setTriggerNotification: React.Dispatch<React.SetStateAction<string | null>>, dispatch: AppDispatch, setNotificationID: React.Dispatch<React.SetStateAction<string | null>>) {
-    stopServiceAndClearNotifications();
+    await stopServiceAndClearNotifications();
     dispatch(setNotificationChannelID(null));
     setTriggerNotification(null);
     dispatch(setBackgroundPollingEnabled(false));

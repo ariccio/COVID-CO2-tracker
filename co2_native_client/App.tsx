@@ -700,7 +700,7 @@ function GetStartedScreen() {
         <LogInIfNot/>
         <CreateDeviceIfNotYet/>
         <RealtimeUploadSettings/>
-        <MaybeTextIfValueTrue value={batteryOptimizationEnabled} text="Battery optimization is enabled. App may not update in background if &quot;Batter Saver&quot; is enabled."/>
+        <MaybeTextIfValueTrue value={batteryOptimizationEnabled} text="WARNING: Battery optimization is enabled. App may not update in background if &quot;Batter Saver&quot; is enabled."/>
         <AllSet/>
 
       </SafeAreaProvider>
@@ -771,9 +771,11 @@ function App() {
 
 
   useEffect( () => {
-    registerBackgroundFetchAsync();
-    return () => {
-      unregisterBackgroundFetchAsync();
+    if (Platform.OS === 'ios') {
+      registerBackgroundFetchAsync();
+      return () => {
+        unregisterBackgroundFetchAsync();
+      }
     }
   }, [])
 
