@@ -21,6 +21,7 @@ import { initialUserDevicesState } from '../userInfo/devicesSlice';
 import { selectUserSettings } from '../userInfo/userInfoSlice';
 import {logEvent} from './LogEvent';
 import { setNotificationChannelID, selectNotificationChannelID, setDisplayNotificationNativeErrors, selectDisplayNotificationNativeErrors, setNotificationAction, NotificationAction, selectNotificationAction, selectNotificationState } from './serviceSlice';
+import { incrementUpdates, selectHasBluetooth } from '../bluetooth/bluetoothSlice';
 
 
 function defaultNotification(channelId: string): Notification {
@@ -225,7 +226,8 @@ async function handleForegroundServiceEvent(event: Event, deviceID: string, supp
         console.log(`Read this value!\n\t${JSON.stringify(await result)}`);
         await uploadMeasurementHeadless(result, userSettings, jwt, shouldUpload, dispatch);
         // await notifee.cancelDisplayedNotification(event.detail.notification.id);
-        console.log(`Headless task ${UID} complete.`)
+        console.log(`Headless task ${UID} complete.`);
+        dispatch(incrementUpdates());
     }
     else {
         const eventMessage = logEvent('foreground', event);
@@ -495,7 +497,7 @@ export const NotificationInfo = () => {
             <StartOrStopButton/>
             
             <MaybeIfValue text="Errors from displaying notifications: " value={notificationState?.displayNotificationErrors} />
-            <MaybeIfValueTrue text="Battery optimization enabled: " value={batteryOptimizationEnabled} />
+            <MaybeIfValueTrue text="WARNING: Battery optimization enabled!" value={batteryOptimizationEnabled} />
             <MaybeIfValue text="Notifee native errors (what?): " value={notificationNativeErrors} />
             <MaybeIfValue text="Notification ID: " value={notificationState?.notificationID} />
             <MaybeIfValue text="Trigger notification: " value={notificationState?.triggerNotification} />
@@ -645,6 +647,8 @@ export const useNotifeeNotifications = (supportedDevices: UserInfoDevice[] | nul
     const channelID = useSelector(selectNotificationChannelID);
     const notificationAction = useSelector(selectNotificationAction);
 
+    const hasBluetooth = useSelector(selectHasBluetooth);
+
     const {loggedIn, jwt} = useIsLoggedIn();
 
     const dispatch = useDispatch();
@@ -654,14 +658,15 @@ export const useNotifeeNotifications = (supportedDevices: UserInfoDevice[] | nul
     }, [notificationAction, channelID, dispatch])
 
     useEffect(() => {
-        createOrUpdateNotification(setDisplayNotificationErrors, deviceID, supportedDevices, setNotificationID, channelID, loggedIn, jwt, shouldUpload, backgroundPollingEnabled, dispatch, setTriggerNotification, triggerNotification, userSettings);
+        
+        createOrUpdateNotification(setDisplayNotificationErrors, deviceID, supportedDevices, setNotificationID, channelID, loggedIn, jwt, shouldUpload, backgroundPollingEnabled, dispatch, setTriggerNotification, triggerNotification, hasBluetooth, userSettings);
         return (() => {
             // console.log("(cleanup) from notifee hook destructor")
             
             // is this breaking the app? disabled for now.
             // stopServiceAndClearNotifications();
         })
-    }, [deviceID, supportedDevices, channelID, backgroundPollingEnabled, loggedIn, userSettings, jwt, shouldUpload, dispatch])
+    }, [deviceID, supportedDevices, channelID, backgroundPollingEnabled, loggedIn, userSettings, jwt, shouldUpload, dispatch, hasBluetooth])
 
     // https://docs.expo.dev/versions/latest/react-native/appstate/  
     useEffect(() => {
@@ -729,7 +734,7 @@ async function clickStopNotification(setTriggerNotification: React.Dispatch<Reac
     dispatch(setShouldUpload(false));
 }
 
-function createOrUpdateNotification(setDisplayNotificationErrors: React.Dispatch<React.SetStateAction<string | null>>, deviceID: string | null, supportedDevices: UserInfoDevice[] | null, setNotificationID: React.Dispatch<React.SetStateAction<string | null>>, channelID: string | null, loggedIn: boolean, jwt: string | null, shouldUpload: boolean, backgroundPollingEnabled: boolean, dispatch: AppDispatch, setTriggerNotification: React.Dispatch<React.SetStateAction<string | null>>, triggerNotification: string | null, userSettings?: UserSettings | null) {
+function createOrUpdateNotification(setDisplayNotificationErrors: React.Dispatch<React.SetStateAction<string | null>>, deviceID: string | null, supportedDevices: UserInfoDevice[] | null, setNotificationID: React.Dispatch<React.SetStateAction<string | null>>, channelID: string | null, loggedIn: boolean, jwt: string | null, shouldUpload: boolean, backgroundPollingEnabled: boolean, dispatch: AppDispatch, setTriggerNotification: React.Dispatch<React.SetStateAction<string | null>>, triggerNotification: string | null, hasBluetooth: boolean | null, userSettings?: UserSettings | null) {
     if (!backgroundPollingEnabled) {
         console.log("NOT polling in background.");
         return;
@@ -747,6 +752,15 @@ function createOrUpdateNotification(setDisplayNotificationErrors: React.Dispatch
     if (userSettings === undefined) {
         console.log("Can't start polling yet, loading user settings.");
         alert("Still loading user settings, are you logged in?");
+        return;
+    }
+
+    if (hasBluetooth === null) {
+        console.log("Can't start polling yet, bluetooth permissions checks still in progress...");
+        return;
+    }
+    if (!hasBluetooth) {
+        console.log("Can't start polling yet, bluetooth not available...");
         return;
     }
 

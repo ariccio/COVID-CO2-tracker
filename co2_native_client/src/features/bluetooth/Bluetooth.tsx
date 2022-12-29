@@ -17,7 +17,7 @@ import { UserInfoDevice } from '../../../../co2_client/src/utils/DeviceInfoTypes
 import { selectBackgroundPollingEnabled } from '../../app/globalSlice';
 import { AppDispatch } from '../../app/store';
 import { unknownNativeErrorTryFormat } from '../../utils/FormatUnknownNativeError';
-import { MaybeIfValue, MaybeIfValueLessThan, MaybeIfValueTrue } from '../../utils/RenderValues';
+import { MaybeIfValue, MaybeIfValueLessThan, MaybeIfValueNot, MaybeIfValueTrue } from '../../utils/RenderValues';
 import { timeNowAsString } from '../../utils/TimeNow';
 import { COVID_CO2_TRACKER_DEVICES_URL } from '../../utils/UrlPaths';
 import { useIsLoggedIn } from '../../utils/UseLoggedIn';
@@ -161,7 +161,9 @@ const scanCallback = async (error: BleError | null, scannedDevice: Device | null
 const aranetService = [BLUETOOTH.ARANET4_SENSOR_SERVICE_UUID];
 
 const scanAndIdentify = (dispatch: AppDispatch) => {
-    dispatch(setScanningStatusString(`Beginning scan for devices with services: ${aranetService}...`));
+    const beginStr = `Beginning scan for devices with services: ${aranetService}...`;
+    dispatch(setScanningStatusString(beginStr));
+    console.log(beginStr);
     manager.startDeviceScan(aranetService, null, (error, scannedDevice) => scanCallback(error, scannedDevice, dispatch));
 }
 
@@ -170,7 +172,7 @@ const ALERT_MESSAGE_TEXT = "CO2 tracker uploader needs location permissions so t
 const ALERT_TITLE = "CO2 tracker needs location!";
 
 const YES_STRING = 'yes';
-const NO = 'no';
+const NO = Promise.resolve('no');
 
 const CANCEL_DISMISS_OPTIONS = {
     cancelable: true,
@@ -185,7 +187,9 @@ const messages = async (dispatch: AppDispatch): Promise<boolean> => {
         {text: "No", onPress: () => NO}
     ];
 
-    const choice = await AlertAsync(ALERT_TITLE, ALERT_MESSAGE_TEXT, buttons, CANCEL_DISMISS_OPTIONS)
+    console.log('starting async alert!');
+    const choice = await AlertAsync(ALERT_TITLE, ALERT_MESSAGE_TEXT, buttons, CANCEL_DISMISS_OPTIONS);
+    console.log(`async alert done! ${choice}`);
     if (choice !== YES_STRING) {
         dispatch(setScanningStatusString(`User said no.`));
         return true;
@@ -286,17 +290,21 @@ const LOCATION_PERMISSION_RATIONALE: Rationale = {
     buttonPositive: "Ok, enable location!"
 }
 
-const androidUserLocationPermissions = async (dispatch: AppDispatch): Promise<boolean> => {
+const androidNeedUserLocationPermissions = async (dispatch: AppDispatch): Promise<boolean> => {
     const hasLocationAlready = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
-    console.log(`Location available: ${hasLocationAlready}`);
+    
     if (!hasLocationAlready) {
+        console.warn(`Location available: ${hasLocationAlready}`);
+        console.log('Showing user location permission dialogs.')
         const deny = await messages(dispatch);
         if (deny) {
             console.log("User denied?");
             return true;
         }
         console.log("User allowed?");
+        return false;
     }
+    console.log(`Location available: ${hasLocationAlready}`);
     return false;
 }
 
@@ -325,11 +333,11 @@ const maybeNeedPromptUserAboutLocationPermissions = async (dispatch: AppDispatch
             }
             case ('android') : {
                 dispatch(setScanningStatusString('Need permission to use bluetooth first.'));
-                const androidResult = await androidUserLocationPermissions(dispatch);
-                if (androidResult) {
+                const denied = await androidNeedUserLocationPermissions(dispatch);
+                if (denied) {
                     return true;
                 }
-                break;
+                return false;
             }
         }
     }
@@ -400,11 +408,11 @@ const checkBluetoothScanPermissions = async(dispatch: AppDispatch): Promise<bool
 }
 
 
-const requestFineLocationPermission = async(dispatch: AppDispatch): Promise<boolean> => {
+const requestFineLocationPermission = async(dispatch: AppDispatch): Promise<ShouldReturnAndHasBluetooth> => {
     const os = Platform.OS;
     if (os === 'ios') {
         console.log("No location permissions needed on ios?.");
-        return false;
+        return {shouldReturn: false, permissionsGranted: true};
     }
     dispatch(setScanningStatusString('Requesting fine location permission (needed for bluetooth low energy)...'));
 
@@ -418,6 +426,7 @@ const requestFineLocationPermission = async(dispatch: AppDispatch): Promise<bool
             // dispatch(setHasBluetooth(true));
             dispatch(setScanningStatusString('Fine location permission granted! May need scan permission too...'));
             // Do something
+            return {shouldReturn: false, permissionsGranted: true};
         } else {
             console.log(`no good: ${fineLocationResult}`);
             dispatch(setScanningStatusString(`Bluetooth (location for bluetooth) permission denied by user: ${fineLocationResult}`));
@@ -425,23 +434,28 @@ const requestFineLocationPermission = async(dispatch: AppDispatch): Promise<bool
             debugger;
             // Denied
             // Do something
-            return true;
+            return {shouldReturn: true, permissionsGranted: false};
         }    
     }
     catch(error) {
         dispatch(setScanningStatusString(`Some kind of unexpected error when requesting location permission: ${unknownNativeErrorTryFormat(error)}`));
         Sentry.Native.captureException(error);
-        return true;
+        return {shouldReturn: true, permissionsGranted: false};
     }
 
-    return false;
+    // return false;
 }
 
-const requestBluetoothConnectPermission = async(dispatch: AppDispatch): Promise<boolean> => {
+type ShouldReturnAndHasBluetooth = {
+    shouldReturn: boolean;
+    permissionsGranted: boolean;
+}
+
+const requestBluetoothConnectPermission = async(dispatch: AppDispatch): Promise<ShouldReturnAndHasBluetooth> => {
     const os = Platform.OS;
     if (os === 'ios') {
         console.log("No bluetooth connect permissions needed on ios?.");
-        return false;
+        return {shouldReturn: false, permissionsGranted: false};
     }
 
     dispatch(setScanningStatusString('Requesting BLUETOOTH_CONNECT permission (needed for bluetooth low energy)...'));
@@ -449,52 +463,54 @@ const requestBluetoothConnectPermission = async(dispatch: AppDispatch): Promise<
         const bluetoothConnectPermissionResult = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT, BLUETOOTH_CONNECT_PERMISSION_RATIONALE)
         if (bluetoothConnectPermissionResult === PermissionsAndroid.RESULTS.GRANTED) {
             dispatch(setScanningStatusString('BLUETOOTH_CONNECT permission granted! May need scan permission too...'));
+            return {shouldReturn: false, permissionsGranted: true};
         }
         else if (bluetoothConnectPermissionResult === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
             console.log(`Platform.version: ${Platform.Version}`);
             if (Platform.Version <= 29) {
                 logBluetoothConnectScanPermissionProbablyNotAvailable();
                 dispatch(setScanningStatusString(null));
-                dispatch(setHasBluetooth(true));
+                // dispatch(setHasBluetooth(true));
+                return {shouldReturn: false, permissionsGranted: true};
 
             }
             else {
                 console.warn(`Android has returned ${bluetoothConnectPermissionResult} for PermissionsAndroid.request(${SCAN_PERMISSION_STRING}). I've seen some kind of weird bug when this is false, and that may be because it doesn't exist on some platforms, so it may be worth trying anyways.`);
                 dispatch(setScanningStatusString(`Bluetooth scan permission supposedly denied by user PERMANENTLY, may be a bug, will try anyways.`));
-                dispatch(setHasBluetooth(true));
+                // dispatch(setHasBluetooth(true));
             }
             if (!__DEV__) {
                 // Shut up sentry warning for now.
                 Sentry.Native.captureMessage(`NEVER_ASK_AGAIN seen.`);
             }
+            return {shouldReturn: false, permissionsGranted: true};
             // await bluetoothNeverAskAgainDialogMaybeSettings(dispatch);
             // // IF this was IOS, we could call Linking.openSettings: https://docs.expo.dev/versions/latest/sdk/linking/#linkingopensettings
             // dispatch(setScanningStatusString(`Bluetooth scan permission denied by user PERMANENTLY: ${bluetoothScanPermissionResult}`));
             // dispatch(setHasBluetooth(false));
             // return;
         }
-
         else {
             console.log(`no good: ${bluetoothConnectPermissionResult}`);
             dispatch(setScanningStatusString(`BLUETOOTH_CONNECT permission denied by user: ${bluetoothConnectPermissionResult}`));
-            dispatch(setHasBluetooth(false));
+            // dispatch(setHasBluetooth(false));
             debugger;
             // Denied
             // Do something
-            return true;
+            return {shouldReturn: true, permissionsGranted: false};
         }
 
     }
     catch(error) {
         dispatch(setScanningStatusString(`Some kind of unexpected error when requesting bluetooth connect permission: ${unknownNativeErrorTryFormat(error)}`));
         Sentry.Native.captureException(error);
-        return true;
+        return {shouldReturn: true, permissionsGranted: false};
     }
-    return false;
+    // return false;
 }
 
 
-const requestBluetoothScanPermission = async(dispatch: AppDispatch) => {
+const requestBluetoothScanPermission = async(dispatch: AppDispatch): Promise<ShouldReturnAndHasBluetooth> => {
 
     try {
         //Work around android.permission.BLUETOOTH_SCAN not existing in old version of react native...
@@ -503,31 +519,33 @@ const requestBluetoothScanPermission = async(dispatch: AppDispatch) => {
 
         // see: https://reactnative.dev/docs/permissionsandroid#result-strings-for-requesting-permissions
         if (bluetoothScanPermissionResult === PermissionsAndroid.RESULTS.GRANTED) {
-            dispatch(setHasBluetooth(true));
+            // dispatch(setHasBluetooth(true));
             dispatch(setScanningStatusString('Bluetooth scan permission granted!'));
-            return;
+            return {shouldReturn: false, permissionsGranted: true};
         }
         else if (bluetoothScanPermissionResult === PermissionsAndroid.RESULTS.DENIED) {
             dispatch(setScanningStatusString(`Bluetooth scan permission denied by user: ${bluetoothScanPermissionResult}`));
-            dispatch(setHasBluetooth(false));
-            return;
+            // dispatch(setHasBluetooth(false));
+            return {shouldReturn: true, permissionsGranted: false};
         }
         else if (bluetoothScanPermissionResult === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
             console.log(`Platform.version: ${Platform.Version}`);
+            if (!__DEV__) {
+                // Shut up sentry warning for now.
+                Sentry.Native.captureMessage(`NEVER_ASK_AGAIN seen.`);
+            }
+
             if (Platform.Version <= 29) {
                 logBluetoothScanPermissionProbablyNotAvailable();
-                dispatch(setScanningStatusString(null));
-                dispatch(setHasBluetooth(true));
-
+                dispatch(setScanningStatusString('NEVER_ASK_AGAIN from bluetooth permissions, but will try anyways.'));
+                return {shouldReturn: false, permissionsGranted: true};
+                // dispatch(setHasBluetooth(true));
             }
             else {
                 console.warn(`Android has returned ${bluetoothScanPermissionResult} for PermissionsAndroid.request(${SCAN_PERMISSION_STRING}). I've seen some kind of weird bug when this is false, and that may be because it doesn't exist on some platforms, so it may be worth trying anyways.`);
                 dispatch(setScanningStatusString(`Bluetooth scan permission supposedly denied by user PERMANENTLY, may be a bug, will try anyways.`));
-                dispatch(setHasBluetooth(true));
-            }
-            if (!__DEV__) {
-                // Shut up sentry warning for now.
-                Sentry.Native.captureMessage(`NEVER_ASK_AGAIN seen.`);
+                // dispatch(setHasBluetooth(true));
+                return {shouldReturn: false, permissionsGranted: true};
             }
             // await bluetoothNeverAskAgainDialogMaybeSettings(dispatch);
             // // IF this was IOS, we could call Linking.openSettings: https://docs.expo.dev/versions/latest/sdk/linking/#linkingopensettings
@@ -539,20 +557,21 @@ const requestBluetoothScanPermission = async(dispatch: AppDispatch) => {
             dispatch(setScanningStatusString(`Bluetooth scan permission denied by user (other reason): ${bluetoothScanPermissionResult}`));
             dispatch(setHasBluetooth(false));
             Sentry.Native.captureMessage(`Unexpected scan permission result: '${bluetoothScanPermissionResult}'`);
-            return;
+            return {shouldReturn: true, permissionsGranted: false};
         }
 
     }
     catch (error) {
         dispatch(setScanningStatusString(`Some kind of unexpected error when requesting bluetooth scan permission: ${unknownNativeErrorTryFormat(error)}`));
         Sentry.Native.captureException(error);
-        return;
+        return {shouldReturn: true, permissionsGranted: false};
     }
 }
 
 const iosBluetoothChecks = async (dispatch: AppDispatch, subscribedOSBluetoothState: State | null) => {
     switch (subscribedOSBluetoothState) {
         case (State.PoweredOn): {
+            console.log(`ios has bluetooth`);
             dispatch(setHasBluetooth(true));
             return;
         }
@@ -588,23 +607,38 @@ const requestAllBluetoothPermissions = async (dispatch: AppDispatch, subscribedO
 
     const shouldReturnBecauseErrorOrDenyInLocationPermissionsCheck = await maybeNeedPromptUserAboutLocationPermissions(dispatch);
     if (shouldReturnBecauseErrorOrDenyInLocationPermissionsCheck) {
+        dispatch(setHasBluetooth(false));
         return;
     }
     
     
     const shouldReturnBecauseErrorOrDenyInRequestingFineLocationPermission = await requestFineLocationPermission(dispatch);
-    if (shouldReturnBecauseErrorOrDenyInRequestingFineLocationPermission) {
+    if (shouldReturnBecauseErrorOrDenyInRequestingFineLocationPermission.shouldReturn) {
+        console.assert(!(shouldReturnBecauseErrorOrDenyInRequestingFineLocationPermission.permissionsGranted));
+        dispatch(setHasBluetooth(false));
+        return;
+    }
+    if (!(shouldReturnBecauseErrorOrDenyInRequestingFineLocationPermission.permissionsGranted)) {
+        dispatch(setHasBluetooth(false));
         return;
     }
 
     const shouldReturnBecauseErrorOrOtherIssueInBluetoothPermissionsCheck = await checkBluetoothScanPermissions(dispatch);
 
     if (shouldReturnBecauseErrorOrOtherIssueInBluetoothPermissionsCheck) {
+        dispatch(setHasBluetooth(false));
         return;
     }
 
-    const shouldReturnBecauseErrorOrOtherIssueInBluetoothConnectPermissionsCheck = await requestBluetoothConnectPermission(dispatch);
-    if (shouldReturnBecauseErrorOrOtherIssueInBluetoothConnectPermissionsCheck) {
+    const bluetoothConnectShouldReturnAndPermissionsGranted = await requestBluetoothConnectPermission(dispatch);
+    if (bluetoothConnectShouldReturnAndPermissionsGranted.shouldReturn) {
+        console.assert(!(bluetoothConnectShouldReturnAndPermissionsGranted.permissionsGranted));
+        dispatch(setHasBluetooth(false));
+        // dispatch(setHasBluetooth(bluetoothConnectShouldReturnAndPermissionsGranted.permissionsGranted));
+        return;
+    }
+    if (!(bluetoothConnectShouldReturnAndPermissionsGranted.permissionsGranted)) {
+        dispatch(setHasBluetooth(false));
         return;
     }
 
@@ -612,7 +646,13 @@ const requestAllBluetoothPermissions = async (dispatch: AppDispatch, subscribedO
     dispatch(setScanningStatusString('Requesting permission to scan bluetooth...'));
     // This worked! It's disgusting enoguh that I don't want to use it, but I'm mildly impressed with myself.
     // const bluetoothScanResult = await (PermissionsAndroid.request as (permission: string) => Promise<any>)(scan);
-    await requestBluetoothScanPermission(dispatch);
+    const maybeBluetoothScanPermission = await requestBluetoothScanPermission(dispatch);
+    if (maybeBluetoothScanPermission.permissionsGranted) {
+        console.log("All permissions should be granted?");
+        dispatch(setHasBluetooth(true));
+        dispatch(setScanningStatusString(null));
+    }
+    return;
 }
 
 function parseUTF8StringBuffer(data: Buffer): string {
@@ -1119,6 +1159,7 @@ interface BleErrorInfo {
 }
 
 function headlessFilterBleReadError(error: unknown, deviceID: string | null): BleErrorInfo {
+    console.log("Filtering headless error");
     if (error instanceof BleError) {
         if (error.errorCode === BleErrorCode.OperationCancelled) {
             return {
@@ -1289,15 +1330,19 @@ function filterBleReadError(error: unknown, dispatch: AppDispatch, deviceID: str
 }
 
 async function forceEnableBluetooth(dispatch: AppDispatch) {
+    console.log('force enable bluetooth?');
     const bluetothState = await manager.state();
     if (bluetothState === State.PoweredOff) {
+        console.warn('was powered off?');
         dispatch(setScanningStatusString(`Bluetooth powered off, turning on...`));
         await manager.enable();
         dispatch(setScanningStatusString(`Bluetooth turned on!`));
         dispatch(setScanningErrorStatusString(null));
     }
     else {
-        dispatch(setScanningStatusString(`Bluetooth manager status: ${bluetothState}`));
+        const statusStr = `Bluetooth manager status: ${bluetothState}`;
+        dispatch(setScanningStatusString(statusStr));
+        console.log(statusStr);
     }
 }
 
@@ -1308,7 +1353,9 @@ interface Aranet4GenericAndSpecificInformation {
 
 async function updateCallback(deviceID: string, dispatch: AppDispatch): Promise<Aranet4GenericAndSpecificInformation | undefined> {
     // console.log("update co2 triggered!");
-    dispatch(setDeviceStatusString("Updating CO2 over bluetooth..."));
+    const updateStr = `Updating CO2 over bluetooth ${deviceID}...`;
+    dispatch(setDeviceStatusString(updateStr));
+    console.log(updateStr);
     
     try {
         await forceEnableBluetooth(dispatch);
@@ -1356,7 +1403,9 @@ async function updateCallback(deviceID: string, dispatch: AppDispatch): Promise<
 }
 
 async function pollAranet4(setTimeoutHandle: React.Dispatch<React.SetStateAction<NodeJS.Timeout | null>>, deviceID: string, dispatch: AppDispatch, supportedDevices: UserInfoDevice[] | null, setMeasurement: React.Dispatch<React.SetStateAction<MeasurementDataForUpload | null>>, loggedIn: boolean) {
+    console.log("enter pollAranet4...");
     setTimeoutHandle(null);
+    
     if (deviceID === '?') {
         debugger;
     }
@@ -1427,13 +1476,19 @@ function firstBluetoothUpdater(deviceID: string | null, hasBluetooth: boolean | 
         console.log("deviceID === null");
         return;
     }
+    if (hasBluetooth === null) {
+        console.log("bluetooth status still loading.");
+        dispatch(setDeviceStatusString("bluetooth status not known yet."));
+        return;
+    }
     if (hasBluetooth === false) {
         console.log("!hasBluetooth (before first scan)");
-        dispatch(setDeviceStatusString("User has NOT granted bluetooth permissions. Beginning first read over bluetooth anyways..."));
+        dispatch(setDeviceStatusString("User has NOT granted bluetooth permissions."));
+        return;
     }
-    else {
-        dispatch(setDeviceStatusString(`Beginning first read over bluetooth... device known: ${knownDeviceBluetooth}`));
-    }
+    const beginStr = `Beginning first read over bluetooth... device known: ${knownDeviceBluetooth}`;
+    dispatch(setDeviceStatusString(beginStr));
+    console.log(beginStr);
 
     if (knownDeviceBluetooth === null) {
         const str = `Not yet sure if device is known on the server... (knownDeviceBluetooth === null)`;
@@ -1441,6 +1496,15 @@ function firstBluetoothUpdater(deviceID: string | null, hasBluetooth: boolean | 
         dispatch(setDeviceStatusString(str));
         return;
     }
+
+    if (subscribedOSBluetoothState !== State.PoweredOn) {
+        const str = `Bluetooth state is ${subscribedOSBluetoothState}, will not try first update until in 'PoweredOn' state.`;
+        console.warn(str);
+        dispatch(setDeviceStatusString(str));
+        return;
+    }
+
+
 
     console.log(`First bluetooth read ${firstUpdateDone}, deviceID ${deviceID}`);
     if (firstUpdateDone) {
@@ -1500,7 +1564,9 @@ export const useBluetoothConnectAndPollAranet = () => {
     }, []);
 
     useEffect(() => {
-        iosBluetoothChecks(dispatch, subscribedOSBluetoothState)
+        if (Platform.OS === 'ios') {
+            iosBluetoothChecks(dispatch, subscribedOSBluetoothState)
+        }
     }, [dispatch, subscribedOSBluetoothState])
 
     useEffect(() => {
@@ -1508,12 +1574,23 @@ export const useBluetoothConnectAndPollAranet = () => {
             console.log("!hasBluetooth (before scan)");
             return;
         }
+        if (hasBluetooth === null) {
+            console.log('waiting for bluetooth state...');
+            return;
+        }
         if (needsBluetoothTurnOn) {
             console.log("needsBluetoothTurnOn (before scan)");
             return;
         }
+        if (subscribedOSBluetoothState !== State.PoweredOn) {
+            console.log(`won't scan and identify yet, os bluetooth state is: ${subscribedOSBluetoothState}`);
+            return;
+        }
+        
+        console.log(`before first scan: os bluetooth state: ${subscribedOSBluetoothState}`);
+        console.log(`before first scan: has bluetooth? ${hasBluetooth}`);
         scanAndIdentify(dispatch);
-    }, [hasBluetooth, needsBluetoothTurnOn, dispatch]);
+    }, [hasBluetooth, needsBluetoothTurnOn, dispatch, subscribedOSBluetoothState]);
 
 
 
@@ -1575,6 +1652,13 @@ export const useBluetoothConnectAndPollAranet = () => {
             console.log("First update not complete yet...")
             return;
         }
+        if (hasBluetooth === null) {
+            console.log("Bluetooth not known yet");
+            return;
+        }
+        if (!hasBluetooth) {
+            console.log("Bluetooth unavailable, no polling possible.");
+        }
 
         const lastMeasurementTimeDate = (lastMeasurementTime !== null) ? new Date(lastMeasurementTime) : new Date(Date.now());
         const timerTime = maybeNextMeasurementInOrDefault(measurementInterval, lastMeasurementTimeDate);
@@ -1592,7 +1676,7 @@ export const useBluetoothConnectAndPollAranet = () => {
                 clearTimeout(handle);
             }
         }
-    }, [deviceID, timeoutHandle, knownDeviceBluetooth, backgroundPollingEnabled, supportedDevices, dispatch, lastMeasurementTime, loggedIn, measurementInterval, firstUpdateDone])
+    }, [deviceID, timeoutHandle, knownDeviceBluetooth, backgroundPollingEnabled, supportedDevices, dispatch, lastMeasurementTime, loggedIn, measurementInterval, firstUpdateDone, hasBluetooth])
 
 
     return { measurement };
@@ -1984,7 +2068,7 @@ const BluetoothMaybeNeedsTurnOn:React.FC<{}> = () => {
         return (
             <>
                 <MaybeIfValue text="Native errors turning bluetooth on: " value={nativeOSBluetoothStateListenerErrors}/>
-                <MaybeIfValue text="Bluetooth state: " value={subscribedOSBluetoothState} />
+                <MaybeIfValueNot text="Bluetooth state: " value={subscribedOSBluetoothState} compareAgainst={State.PoweredOn}/>
                 <Button title="Turn Bluetooth on" onPress={(ev) => {turnOn(ev, dispatch)}}/>
             </>
         );
@@ -1992,7 +2076,7 @@ const BluetoothMaybeNeedsTurnOn:React.FC<{}> = () => {
 
     return (
         <>
-            <MaybeIfValue text="Bluetooth state: " value={subscribedOSBluetoothState} />
+            <MaybeIfValueNot text="Bluetooth state: " value={subscribedOSBluetoothState} compareAgainst={State.PoweredOn}/>
             <MaybeIfValue text="Native errors checking/turning bluetooth on: " value={nativeOSBluetoothStateListenerErrors}/>
         </>
     );

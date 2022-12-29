@@ -11,7 +11,7 @@ import { StatusBar } from 'expo-status-bar';
 import * as TaskManager from 'expo-task-manager';
 import * as WebBrowser from 'expo-web-browser';
 import {useEffect, useState} from 'react';
-import { StyleSheet, Button, Text, ViewStyle } from 'react-native';
+import { StyleSheet, Button, Text, ViewStyle, Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import * as Sentry from 'sentry-expo';
@@ -478,7 +478,7 @@ function HomeScreen() {
   const supportedDevices = useSelector(selectSupportedDevices);
   const serialNumber = useSelector(selectDeviceSerialNumberString);
   // const authState = useSelector(selectAuthState);  
-  const [isIOSBackgroundTaskRegistered, setIsIOSBackgroundTaskRegistered] = useState(false);
+  const [isIOSBackgroundTaskRegistered, setIsIOSBackgroundTaskRegistered] = useState(null as (boolean | null));
   const [iOSBackgroundTaskStatus, setIOSBackgroundTaskStatus] = useState(null as (BackgroundFetchStatus | null));
 
   const [nativeErrors, setNativeErrors] = useState(null as (string | null));
@@ -486,14 +486,16 @@ function HomeScreen() {
 
 
   useEffect(() => {
-    checkStatusAsync(setIsIOSBackgroundTaskRegistered, setIOSBackgroundTaskStatus).then((undefinedOrError) => {
-      if (undefinedOrError) {
-        setNativeErrors(undefinedOrError);
-      }
-      return;
-    }).catch((maybeError) => {
-      setNativeErrors(unknownNativeErrorTryFormat(maybeError));
-    });
+    if (Platform.OS === 'ios') {
+      checkStatusAsync(setIsIOSBackgroundTaskRegistered, setIOSBackgroundTaskStatus).then((undefinedOrError) => {
+        if (undefinedOrError) {
+          setNativeErrors(undefinedOrError);
+        }
+        return;
+      }).catch((maybeError) => {
+        setNativeErrors(unknownNativeErrorTryFormat(maybeError));
+      });
+    }
   }, []);
   
   

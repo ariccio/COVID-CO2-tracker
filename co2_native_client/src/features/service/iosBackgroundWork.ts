@@ -4,7 +4,7 @@ import * as BackgroundFetch from 'expo-background-fetch';
 import * as TaskManager from 'expo-task-manager';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import { UserInfoDevice } from '../../../../co2_client/src/utils/DeviceInfoTypes';
 import { UserSettings } from '../../../../co2_client/src/utils/UserSettings';
@@ -13,9 +13,10 @@ import { useIsLoggedIn } from '../../utils/UseLoggedIn';
 import { MeasurementDataForUpload } from '../Measurement/MeasurementTypes';
 import { uploadMeasurementHeadless } from '../Measurement/MeasurementUpload';
 import { onHeadlessTaskTriggerBluetooth } from '../bluetooth/Bluetooth';
-import { selectDeviceID } from '../bluetooth/bluetoothSlice';
+import { incrementUpdates, selectDeviceID } from '../bluetooth/bluetoothSlice';
 import { selectSupportedDevices } from '../userInfo/devicesSlice';
 import { selectUserSettings } from '../userInfo/userInfoSlice';
+import { AppDispatch } from '../../app/store';
 
 export const BACKGROUND_FETCH_TASK = 'background-fetch';
 
@@ -26,6 +27,7 @@ interface TaskStateGlobal {
     userSettings: UserSettings;
     jwt: string;
     shouldUpload: boolean;
+    dispatch: AppDispatch;
 
 }
 
@@ -47,9 +49,9 @@ const backgroundFetchTaskCallback = async () => {
     console.log(`Starting headless task with deviceID: ${taskStateGlobal.deviceID}, supportedDevices: ${JSON.stringify(taskStateGlobal.supportedDevices)}`);
     const result: MeasurementDataForUpload | null = await onHeadlessTaskTriggerBluetooth(taskStateGlobal.deviceID, taskStateGlobal.supportedDevices);
 
-
+    taskStateGlobal.dispatch(incrementUpdates());
     console.log(`Read this value!\n\t${JSON.stringify(await result)}`);
-    await uploadMeasurementHeadless(result, taskStateGlobal.userSettings, taskStateGlobal.jwt, taskStateGlobal.shouldUpload);
+    await uploadMeasurementHeadless(result, taskStateGlobal.userSettings, taskStateGlobal.jwt, taskStateGlobal.shouldUpload, taskStateGlobal.dispatch);
 
 
 
@@ -91,6 +93,7 @@ export function useIosBackgroundTaskToReadBluetoothAranet4() {
     const supportedDevices = useSelector(selectSupportedDevices);
     const deviceID = useSelector(selectDeviceID);
     const userSettings = useSelector(selectUserSettings);
+    const dispatch = useDispatch();
     
     useEffect(() => {
         if (!loggedIn) {
@@ -131,12 +134,15 @@ export function useIosBackgroundTaskToReadBluetoothAranet4() {
             jwt,
             shouldUpload,
             supportedDevices,
-            userSettings
+            userSettings,
+            dispatch
         };
-        return;
+        return (() => {
+            taskStateGlobal = null;
+        });
 
 
-    }, [loggedIn, jwt])
+    }, [loggedIn, jwt, deviceID, shouldUpload, supportedDevices, userSettings, dispatch])
 
     return;
 

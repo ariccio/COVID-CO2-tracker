@@ -77,7 +77,7 @@ export interface BluetoothState {
 }
 
 const initialState: BluetoothState = {
-    hasBluetooth: false,
+    hasBluetooth: null,
     device: {
         measurementData: {
             barometricPressure: null,

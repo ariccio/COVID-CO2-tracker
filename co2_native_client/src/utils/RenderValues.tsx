@@ -37,6 +37,25 @@ export const MaybeIfValueLessThan: React.FC<{text: string, value: any, compareAg
   );
 }
 
+export const MaybeIfValueNot: React.FC<{text: string, value: any, compareAgainst: any, suffix?: string}> = ({text, value, compareAgainst, suffix}) => {
+  if (value === undefined) {
+    // console.error("value missing?");
+    return null;
+  }
+  if (value === null) {
+    return null;
+  }
+
+  if (value === compareAgainst) {
+    return null;
+  }
+  return (
+    <Text>
+        {text}{value}{suffix}
+    </Text>
+  );
+}
+
 
 export const MaybeIfValueTrue: React.FC<{text: string, value: any, suffix?: string}> = ({text, value, suffix}) => {
   if (value === undefined) {
