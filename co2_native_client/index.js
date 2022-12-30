@@ -1,13 +1,14 @@
 import './shim';
 import 'expo-dev-client';
 
+import notifee from '@notifee/react-native';
 import {registerRootComponent} from 'expo';
 
 import AppContainer from './App';
 
-
 console.log(`--------------\n\n\n\nRUNNING JAVASCRIPT\n\n\n\n--------------`)
-
+console.log(`notifee notifications (seems like expo dev restart DOES NOT) clear?`)
+console.log(await notifee.getTriggerNotifications());
 
 // registerRootComponent calls AppRegistry.registerComponent('main', () => App);
 // It also ensures that whether you load the app in Expo Go or in a native build,

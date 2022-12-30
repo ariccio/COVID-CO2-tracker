@@ -36,8 +36,8 @@ import { selectUploadStatus, setUploadStatus } from './src/features/Uploading/up
 import { UserSettingsMaybeDisplay } from './src/features/UserSettings/UserSettingsDisplay';
 import { BluetoothData, isSupportedDevice, useAranet4NextMeasurementTime, useBluetoothConnectAndPollAranet, useOSBluetoothStateListener } from './src/features/bluetooth/Bluetooth';
 import { selectDeviceID, selectDeviceSerialNumberString } from './src/features/bluetooth/bluetoothSlice';
-import { NotifeeNotificationHookState, useNotifeeNotifications, NotificationInfo, stopServiceAndClearNotifications, StartOrStopButton, booleanIsBackroundPollingUploadingForButton } from './src/features/service/Notification';
-import { selectNotificationState, setNotificationState } from './src/features/service/serviceSlice';
+import { NotifeeNotificationHookState, useNotifeeNotifications, NotificationInfo, stopUploadingAndPolling, StartOrStopButton, booleanIsBackroundPollingUploadingForButton } from './src/features/service/Notification';
+import { selectForegroundServiceNotificationID, selectNotificationState, setNotificationState } from './src/features/service/serviceSlice';
 import { initialUserDevicesState, selectSupportedDevices, selectUserDeviceSettingsStatus, setSupportedDevices, setUNSupportedDevices, setUserDeviceSettingsStatus } from './src/features/userInfo/devicesSlice';
 import { selectUserName, selectUserSettings, setUserSettings, setUserSettingsErrors } from './src/features/userInfo/userInfoSlice';
 import { unknownNativeErrorTryFormat } from './src/utils/FormatUnknownNativeError';
@@ -656,8 +656,9 @@ function AllSet() {
 function MaybeStartText() {
   const notificationState = useSelector(selectNotificationState);
   const {loggedIn} = useIsLoggedIn();
+  const foregroundServiceNotificationID = useSelector(selectForegroundServiceNotificationID);
 
-  const isBackroundPollingUploadingForButton = booleanIsBackroundPollingUploadingForButton(notificationState);
+  const isBackroundPollingUploadingForButton = booleanIsBackroundPollingUploadingForButton(foregroundServiceNotificationID, notificationState);
   if (!loggedIn) {
     return (
       <>
@@ -779,7 +780,6 @@ function App() {
     }
   }, [])
 
-
   // useEffect(() => {
   //   dispatch(setAuthState(authState));
   // }, [authState])
@@ -818,12 +818,12 @@ function App() {
     measurementChange(measurement, userSettings, jwt, dispatch, shouldUpload);
   }, [measurement, userSettings, jwt, shouldUpload, dispatch])
 
-  useEffect(() => {
-    return () => {
-      console.log("clearn notif service from app destructor");
-      stopServiceAndClearNotifications();
-    }
-  }, [])
+  // useEffect(() => {
+  //   return () => {
+  //     // console.log("clearn notif service from app destructor");
+  //     // stopUploadingAndPolling();
+  //   }
+  // }, [])
 
   // console.log(batteryOptimizationEnabled);
 
