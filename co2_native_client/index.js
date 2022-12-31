@@ -8,9 +8,19 @@ import AppContainer from './App';
 
 console.log(`--------------\n\n\n\nRUNNING JAVASCRIPT\n\n\n\n--------------`);
 console.log(`notifee notifications (seems like expo dev restart DOES NOT) clear?`);
+
+
+// This line isn't
 // eslint-disable-next-line promise/catch-or-return
-// notifee.getTriggerNotifications().then((result) => {console.log(`trigger notifs: ${result}`)});
-console.log(await notifee.getTriggerNotifications())
+notifee.getTriggerNotifications().then((result) => {console.log(`trigger notifs: ${result}`)});
+
+// This line is broken
+// 
+// TO MY GREAT INITIAL CONFUSION, in the bundled code, this gets translated as:
+// console.log(await _reactNative.default.getTriggerNotifications());
+// It's the ONLY instance of await that is *not* transpiled.
+// It's incorrect - is that why it's not transpiled?
+// console.log(await notifee.getTriggerNotifications());
 
 // registerRootComponent calls AppRegistry.registerComponent('main', () => App);
 // It also ensures that whether you load the app in Expo Go or in a native build,

@@ -50,6 +50,7 @@ import { useIsLoggedIn } from './src/utils/UseLoggedIn';
 import { isLoggedIn, isNullString, isUndefinedString } from './src/utils/isLoggedIn';
 import { BACKGROUND_FETCH_TASK, registerBackgroundFetchAsync, unregisterBackgroundFetchAsync, useIosBackgroundTaskToReadBluetoothAranet4 } from './src/features/service/iosBackgroundWork';
 
+// console.log(await notifee.getTriggerNotifications());
 
 
 
@@ -658,6 +659,7 @@ function MaybeStartText() {
   const {loggedIn} = useIsLoggedIn();
   const foregroundServiceNotificationID = useSelector(selectForegroundServiceNotificationID);
 
+  console.error("TODO! Expected 3 arguments, but got 2.")
   const isBackroundPollingUploadingForButton = booleanIsBackroundPollingUploadingForButton(foregroundServiceNotificationID, notificationState);
   if (!loggedIn) {
     return (
