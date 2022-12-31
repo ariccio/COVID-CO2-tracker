@@ -11,7 +11,7 @@
   "dependencies": {
     "@config-plugins/react-native-ble-plx": "^4.0.0",
     "@expo/cli": "0.4.10",
-    "@notifee/react-native": "5.7.0",
+    "@notifee/react-native": "7.3.0",
     "@react-navigation/material-top-tabs": "^6.1.1",
     "@react-navigation/native": "^6.0.8",
     "@reduxjs/toolkit": "^1.7.1",

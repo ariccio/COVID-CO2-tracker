@@ -34,10 +34,10 @@ interface TaskStateGlobal {
 let taskStateGlobal: TaskStateGlobal | null = null;
 
 const backgroundFetchTaskCallback = async () => {
-    if (Platform.OS === 'android') {
-        console.log(`Use different background mechanism for android, not expo background fetch :)`);
-        return;
-    }
+    // if (Platform.OS === 'android') {
+    //     console.log(`Use different background mechanism for android, not expo background fetch :)`);
+    //     return;
+    // }
     const now = Date.now();
   
     console.log(`Got background fetch call at date: ${new Date(now).toISOString()}`);
@@ -59,11 +59,11 @@ const backgroundFetchTaskCallback = async () => {
     return BackgroundFetch.BackgroundFetchResult.NewData;
 }
 
-if (Platform.OS === 'ios') {
-    // 1. Define the task by providing a name and the function that should be executed
-    // Note: This needs to be called in the global scope (e.g outside of your React components)
-    TaskManager.defineTask(BACKGROUND_FETCH_TASK, backgroundFetchTaskCallback);
-}
+// if (Platform.OS === 'ios') {
+//     // 1. Define the task by providing a name and the function that should be executed
+//     // Note: This needs to be called in the global scope (e.g outside of your React components)
+// }
+TaskManager.defineTask(BACKGROUND_FETCH_TASK, backgroundFetchTaskCallback);
 
 
 

@@ -692,8 +692,36 @@ function MaybeStartText() {
 
 }
 
-function GetStartedScreen() {
+const openBatteryOptimizationSettings = () => {notifee.openBatteryOptimizationSettings()}
+
+const MaybeOpenBatteryOptimizationScreen: React.FC<{batteryOptimizationEnabled: boolean | null}> = ({batteryOptimizationEnabled}) => {
+
+  if (batteryOptimizationEnabled === null) {
+    return null;
+  }
+
+  if (!batteryOptimizationEnabled) {
+    return null;
+  }
+  return (
+    <>
+      <Button title="Open battery optimization settings" onPress={openBatteryOptimizationSettings}/>
+    </>
+  )
+}
+
+function MaybeBatteryOptimization () {
   const batteryOptimizationEnabled = useSelector(selectBatteryOptimizationEnabled);
+
+  return (
+    <>
+      <MaybeTextIfValueTrue value={batteryOptimizationEnabled} text="WARNING: Battery optimization is enabled. App may not update in background if &quot;Batter Saver&quot; is enabled."/>
+      <MaybeOpenBatteryOptimizationScreen batteryOptimizationEnabled={batteryOptimizationEnabled}/> 
+    </>
+  )
+}
+
+function GetStartedScreen() {
   return (
     <>
       <SafeAreaProvider>
@@ -701,7 +729,7 @@ function GetStartedScreen() {
         <LogInIfNot/>
         <CreateDeviceIfNotYet/>
         <RealtimeUploadSettings/>
-        <MaybeTextIfValueTrue value={batteryOptimizationEnabled} text="WARNING: Battery optimization is enabled. App may not update in background if &quot;Batter Saver&quot; is enabled."/>
+        <MaybeBatteryOptimization/>
         <AllSet/>
 
       </SafeAreaProvider>
@@ -721,7 +749,7 @@ const NAVIGATOR_SCREEN_OPTIONS = {
 };
 
 
-const checkStatusAsync = async (setIsIOSBackgroundTaskRegistered: React.Dispatch<React.SetStateAction<boolean>>, setIOSBackgroundTaskStatus: React.Dispatch<React.SetStateAction<BackgroundFetchStatus | null>>) => {
+const checkStatusAsync = async (setIsIOSBackgroundTaskRegistered: React.Dispatch<React.SetStateAction<boolean | null>>, setIOSBackgroundTaskStatus: React.Dispatch<React.SetStateAction<BackgroundFetchStatus | null>>) => {
   try {
     const isRegistered = await TaskManager.isTaskRegisteredAsync(BACKGROUND_FETCH_TASK);
     setIsIOSBackgroundTaskRegistered(isRegistered);

@@ -6,9 +6,11 @@ import {registerRootComponent} from 'expo';
 
 import AppContainer from './App';
 
-console.log(`--------------\n\n\n\nRUNNING JAVASCRIPT\n\n\n\n--------------`)
-console.log(`notifee notifications (seems like expo dev restart DOES NOT) clear?`)
-console.log(await notifee.getTriggerNotifications());
+console.log(`--------------\n\n\n\nRUNNING JAVASCRIPT\n\n\n\n--------------`);
+console.log(`notifee notifications (seems like expo dev restart DOES NOT) clear?`);
+// eslint-disable-next-line promise/catch-or-return
+// notifee.getTriggerNotifications().then((result) => {console.log(`trigger notifs: ${result}`)});
+console.log(await notifee.getTriggerNotifications())
 
 // registerRootComponent calls AppRegistry.registerComponent('main', () => App);
 // It also ensures that whether you load the app in Expo Go or in a native build,

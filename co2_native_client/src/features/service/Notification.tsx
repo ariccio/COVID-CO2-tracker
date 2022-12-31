@@ -550,24 +550,33 @@ const onClickStopNotificationButton = (dispatch: AppDispatch, triggerNotificatio
     clickStopNotification(dispatch, triggerNotificationID, serviceNotificationID);
 }
 
-export function booleanIsBackroundPollingUploadingForButton(foregroundServiceNotificationID: string | null, notificationState: NotifeeNotificationHookState | undefined): boolean | null {
+export function booleanIsBackroundPollingUploadingForButton(foregroundServiceNotificationID: string | null, notificationState: NotifeeNotificationHookState | undefined, triggerNotificationID: string | null): boolean | null {
 
     if (notificationState === undefined) {
         return null;
     }
-
-    if (
-        (notificationState !== undefined ) && 
-        foregroundServiceNotificationID && notificationState.triggerNotification) {
-        // && 
-        const os = Platform.OS;
-        if (os === 'android') {
-            if (!notificationState.channelID) {
-                return false;
-            }
-        }
-        return true;
+    if (foregroundServiceNotificationID === null) {
+        return false;
     }
+
+    if (notificationState.triggerNotification === null) {
+        if (triggerNotificationID !== null) {
+            console.warn(`Inconsistent state? ${triggerNotificationID}`);
+        }
+        return false;
+    }
+
+    if (triggerNotificationID === null) {
+        return false;
+    }
+    const os = Platform.OS;
+    if (os === 'android') {
+        if (!notificationState.channelID) {
+            return false;
+        }
+    }
+    return true;
+
     // console.log(`notificationState.notificationID: ${notificationState.notificationID}, notificationState.triggerNotification: ${notificationState.triggerNotification}, notificationState.channelID:  ${notificationState.channelID}`)
     return false;
 
@@ -589,7 +598,7 @@ export const StartOrStopButton = (props: {onPressAction?: () => any}) => {
         }
     }
 
-    const isBackroundPollingUploadingForButton = booleanIsBackroundPollingUploadingForButton(foregroundServiceNotificationID, notificationState);
+    const isBackroundPollingUploadingForButton = booleanIsBackroundPollingUploadingForButton(foregroundServiceNotificationID, notificationState, triggerNotificationID);
     if (isBackroundPollingUploadingForButton === null) {
         return null;
     }
@@ -769,6 +778,15 @@ const _handleAppStateChange = (nextAppState: AppStateStatus, appState: React.Mut
     appState.current = nextAppState;
     setAppStateVisible(appState.current);
     console.log('AppState', appState.current);
+    if (nextAppState === 'background') {
+        // eslint-disable-next-line promise/catch-or-return
+        notifee.getTriggerNotificationIds().then((triggerIDs) => {
+            console.log(`trigger IDs: ${JSON.stringify(triggerIDs)}`);
+            return;
+        })
+        // const triggers = notifee
+        
+    }
   };
 
 
