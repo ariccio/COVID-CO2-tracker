@@ -3,7 +3,7 @@
     "name": "co2_native_client",
     "slug": "co2_native_client",
     "jsEngine": "hermes",
-    "version": "1.0.24",
+    "version": "1.0.25",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -19,7 +19,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "buildNumber": "1.0.24",
+      "buildNumber": "1.0.25",
       "bundleIdentifier": "riccio.co2.client"
     },
     "android": {
