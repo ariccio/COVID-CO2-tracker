@@ -455,7 +455,7 @@ async function startForegroundService(setDisplayNotificationErrors: React.Dispat
         console.assert(result !== null);
         console.assert(result !== undefined);
         console.assert(typeof result === 'string');
-        console.log("Sucessfully displayed notifee notification.");
+        console.log("Successfully displayed notifee notification.");
         setDisplayNotificationErrors(null);
         dispatch(setForegroundServiceNotificationID(result));
         // return result;
@@ -528,7 +528,7 @@ async function createTriggerNotification(dispatch: AppDispatch, channelId: strin
 // }
 
 const onClickStartNotificationButton = (dispatch: AppDispatch, notificationChannelID: string | null, triggerNotificationID: string | null, setErrorState: React.Dispatch<React.SetStateAction<string | null>>) => {
-    console.log("Setting notification action to StartNotification");
+    // console.log("Setting notification action to StartNotification");
     dispatch(setShouldUpload(true));
     // dispatch(setNotificationAction(NotificationAction.StartNotification));
     // handleClickDisplayNotification();
@@ -540,7 +540,7 @@ const onClickStartNotificationButton = (dispatch: AppDispatch, notificationChann
         return;
     }
     dispatch(setBackgroundPollingEnabled(true));
-    createTriggerNotification(dispatch, notificationChannelID, triggerNotificationID);
+    // createTriggerNotification(dispatch, notificationChannelID, triggerNotificationID);
 }
 
 
@@ -689,22 +689,22 @@ const init = async (channelID: string, dispatch: AppDispatch, triggerNotificatio
     // if (result !== undefined) {
     //     setNotificationID(result);
     // }
-    if (triggerNotificationID !== null) {
-        // console.warn(`Trigger notification already set! (${triggerNotificationID})(init)`);
-        // // await notifee.cancelTriggerNotification(triggerNotificationID);
-        // await notifee.cancelTriggerNotifications();
-        return;
-    }
+    // if (triggerNotificationID !== null) {
+    //     // console.warn(`Trigger notification already set! (${triggerNotificationID})(init)`);
+    //     // // await notifee.cancelTriggerNotification(triggerNotificationID);
+    //     // await notifee.cancelTriggerNotifications();
+    //     return;
+    // }
     
-    console.warn(`trigger init`);
-    // console.warn("TODO: create trigger here?")
-    const triggerResult = await createTriggerNotification(dispatch, channelID, triggerNotificationID);
-    if (triggerResult !== triggerNotificationID) {
-        if (triggerResult !== undefined) {
-            dispatch(setTriggerNotificationID(triggerResult));
-        }
-        // console.warn(`created trigger notification ${triggerResult}`)
-    }
+    // console.warn(`trigger init`);
+    // // console.warn("TODO: create trigger here?")
+    // const triggerResult = await createTriggerNotification(dispatch, channelID, triggerNotificationID);
+    // if (triggerResult !== triggerNotificationID) {
+    //     if (triggerResult !== undefined) {
+    //         dispatch(setTriggerNotificationID(triggerResult));
+    //     }
+    //     // console.warn(`created trigger notification ${triggerResult}`)
+    // }
     dispatch(setBackgroundPollingEnabled(true));
 }
 

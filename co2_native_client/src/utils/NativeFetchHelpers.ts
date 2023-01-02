@@ -270,18 +270,18 @@ export async function fetchJSONWithChecks(input: RequestInfo, init: RequestInit,
                 // rawResponseForErrorsMessage.
                 dumpResponse(rawResponseForErrorsMessage);
                 // debugger;
-                throw new Error(`Error during fetch, network layer: ${rawResponseForErrorsMessage.text()}, lower level error: ${awaitError}`);
+                throw new Error(`(${input}) Error during fetch, network layer: ${rawResponseForErrorsMessage.text()}, lower level error: ${awaitError}`);
             }
         }).catch((catchError) => {
             //YESS
-            console.error("Network error OR error in fetch callback, ultimate cause: ");
+            console.error(`(${input}) Network error OR error in fetch callback, ultimate cause: `);
             // debugger;
             console.error(catchError);
             throw new Error(catchError);
         })
     }
     catch(error) {
-        console.warn(`last chance bailed? (${input.toString()})`)
+        console.warn(`(${input}) last chance bailed? (${input.toString()})`)
         // eslint-disable-next-line no-debugger
         debugger;
         fetchFilter(error);

@@ -2,18 +2,18 @@
 
 import * as BackgroundFetch from 'expo-background-fetch';
 import * as TaskManager from 'expo-task-manager';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { UserInfoDevice } from '../../../../co2_client/src/utils/DeviceInfoTypes';
 import { UserSettings } from '../../../../co2_client/src/utils/UserSettings';
-import { selectShouldUpload } from '../../app/globalSlice';
+import { selectBackgroundPollingEnabled, selectShouldUpload } from '../../app/globalSlice';
 import { useIsLoggedIn } from '../../utils/UseLoggedIn';
 import { MeasurementDataForUpload } from '../Measurement/MeasurementTypes';
 import { uploadMeasurementHeadless } from '../Measurement/MeasurementUpload';
 import { onHeadlessTaskTriggerBluetooth } from '../bluetooth/Bluetooth';
-import { incrementUpdates, selectDeviceID } from '../bluetooth/bluetoothSlice';
+import { incrementUpdates, selectDeviceID, selectHasBluetooth } from '../bluetooth/bluetoothSlice';
 import { selectSupportedDevices } from '../userInfo/devicesSlice';
 import { selectUserSettings } from '../userInfo/userInfoSlice';
 import { AppDispatch } from '../../app/store';
@@ -40,7 +40,7 @@ const backgroundFetchTaskCallback = async () => {
     // }
     const now = Date.now();
   
-    console.log(`Got background fetch call at date: ${new Date(now).toISOString()}`);
+    console.log(`Got background fetch call at date: ${new Date(now).toTimeString()}`);
     if (taskStateGlobal === null) {
         console.warn(`taskStateGlobal is null. God I feel like a C programmer using qsort. Bailing.`);
         return;
@@ -67,13 +67,25 @@ TaskManager.defineTask(BACKGROUND_FETCH_TASK, backgroundFetchTaskCallback);
 
 
 
+function minimumInterval(): number {
+    const devMinimumInterval = (60 * 1);
+    const prodMinInterval = (60 * 15);
+    if (__DEV__) {
+        console.log(`setting minimum interval to shorter development time of ${devMinimumInterval/60} minutes`);
+        return devMinimumInterval;
+    }
+    return prodMinInterval;
+}
+
 
 // 2. Register the task at some point in your app by providing the same name,
 // and some configuration options for how the background fetch should behave
 // Note: This does NOT need to be in the global scope and CAN be used in your React components!
 export async function registerBackgroundFetchAsync() {
+    console.log(`registering background "fetch" task`);
+
     return BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
-      minimumInterval: 60 * 15, // 15 minutes
+      minimumInterval: minimumInterval(), // 15 minutes
       stopOnTerminate: false, // android only,
       startOnBoot: true, // android only
     });
@@ -89,14 +101,29 @@ export async function unregisterBackgroundFetchAsync() {
 }
 
 
-export function useIosBackgroundTaskToReadBluetoothAranet4() {
+export function useBackgroundTaskToReadBluetoothAranet4() {
     const shouldUpload = useSelector(selectShouldUpload);
     const {loggedIn, jwt} = useIsLoggedIn();
+
+    const hasBluetooth = useSelector(selectHasBluetooth);
+    const backgroundPollingEnabled = useSelector(selectBackgroundPollingEnabled);
 
     const supportedDevices = useSelector(selectSupportedDevices);
     const deviceID = useSelector(selectDeviceID);
     const userSettings = useSelector(selectUserSettings);
     const dispatch = useDispatch();
+    
+    const [backgroundFetchStatus, setBackgroundFetchStatus] = useState(null as (BackgroundFetch.BackgroundFetchStatus | null));
+
+
+    useEffect(() => {
+        // eslint-disable-next-line promise/catch-or-return
+        BackgroundFetch.getStatusAsync().then((status) => {
+            setBackgroundFetchStatus(status);
+            return;
+        })
+    })
+    
     
     useEffect(() => {
         if (!loggedIn) {
@@ -147,6 +174,6 @@ export function useIosBackgroundTaskToReadBluetoothAranet4() {
 
     }, [loggedIn, jwt, deviceID, shouldUpload, supportedDevices, userSettings, dispatch])
 
-    return;
+    return {backgroundFetchStatus};
 
 }

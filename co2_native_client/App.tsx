@@ -37,7 +37,7 @@ import { UserSettingsMaybeDisplay } from './src/features/UserSettings/UserSettin
 import { BluetoothData, isSupportedDevice, useAranet4NextMeasurementTime, useBluetoothConnectAndPollAranet, useOSBluetoothStateListener } from './src/features/bluetooth/Bluetooth';
 import { selectDeviceID, selectDeviceSerialNumberString } from './src/features/bluetooth/bluetoothSlice';
 import { NotifeeNotificationHookState, useNotifeeNotifications, NotificationInfo, stopUploadingAndPolling, StartOrStopButton, booleanIsBackroundPollingUploadingForButton } from './src/features/service/Notification';
-import { selectForegroundServiceNotificationID, selectNotificationState, setNotificationState } from './src/features/service/serviceSlice';
+import { selectForegroundServiceNotificationID, selectNotificationState, selectTriggerNotificationID, setNotificationState } from './src/features/service/serviceSlice';
 import { initialUserDevicesState, selectSupportedDevices, selectUserDeviceSettingsStatus, setSupportedDevices, setUNSupportedDevices, setUserDeviceSettingsStatus } from './src/features/userInfo/devicesSlice';
 import { selectUserName, selectUserSettings, setUserSettings, setUserSettingsErrors } from './src/features/userInfo/userInfoSlice';
 import { unknownNativeErrorTryFormat } from './src/utils/FormatUnknownNativeError';
@@ -48,7 +48,7 @@ import { timeNowAsString } from './src/utils/TimeNow';
 import { COVID_CO2_TRACKER_DEVICES_URL, COVID_CO2_TRACKER_HOME_URL, USER_DEVICES_URL_NATIVE, USER_SETTINGS_URL_NATIVE } from './src/utils/UrlPaths';
 import { useIsLoggedIn } from './src/utils/UseLoggedIn';
 import { isLoggedIn, isNullString, isUndefinedString } from './src/utils/isLoggedIn';
-import { BACKGROUND_FETCH_TASK, registerBackgroundFetchAsync, unregisterBackgroundFetchAsync, useIosBackgroundTaskToReadBluetoothAranet4 } from './src/features/service/iosBackgroundWork';
+import { BACKGROUND_FETCH_TASK, registerBackgroundFetchAsync, unregisterBackgroundFetchAsync, useBackgroundTaskToReadBluetoothAranet4 } from './src/features/service/iosBackgroundWork';
 
 // console.log(await notifee.getTriggerNotifications());
 
@@ -172,7 +172,7 @@ const fetchMyDevicesFailedCallback = async (awaitedResponse: Response): Promise<
 };
 
 
-const fetchMyDevicesSucessCallback = async (awaitedResponse: Response): Promise<UserDevicesInfo> => {
+const fetchMyDevicesSuccessCallback = async (awaitedResponse: Response): Promise<UserDevicesInfo> => {
   // console.log("Fetching devices suceeded!");
   const response = awaitedResponse.json();
   return userDevicesInfoResponseToStrongType(await response);
@@ -195,7 +195,7 @@ const get_my_devices = (jwt: string | null, userName?: string | null) => {
   }
   // console.log("Getting devices...");
   const deviceRequestOptions = initDeviceRequestOptions(jwt);
-  const result = fetchJSONWithChecks(USER_DEVICES_URL_NATIVE, deviceRequestOptions, 200, true, fetchMyDevicesFailedCallback, fetchMyDevicesSucessCallback) as Promise<UserDevicesInfo>;
+  const result = fetchJSONWithChecks(USER_DEVICES_URL_NATIVE, deviceRequestOptions, 200, true, fetchMyDevicesFailedCallback, fetchMyDevicesSuccessCallback) as Promise<UserDevicesInfo>;
   return result;
 };
 
@@ -658,9 +658,9 @@ function MaybeStartText() {
   const notificationState = useSelector(selectNotificationState);
   const {loggedIn} = useIsLoggedIn();
   const foregroundServiceNotificationID = useSelector(selectForegroundServiceNotificationID);
+  const triggerNotificationID = useSelector(selectTriggerNotificationID);
 
-  console.error("TODO! Expected 3 arguments, but got 2.")
-  const isBackroundPollingUploadingForButton = booleanIsBackroundPollingUploadingForButton(foregroundServiceNotificationID, notificationState);
+  const isBackroundPollingUploadingForButton = booleanIsBackroundPollingUploadingForButton(foregroundServiceNotificationID, notificationState, triggerNotificationID);
   if (!loggedIn) {
     return (
       <>
@@ -797,16 +797,15 @@ function App() {
   const notificationState: NotifeeNotificationHookState = useNotifeeNotifications(supportedDevices, deviceID);
   const authState = useGoogleAuthForCO2Tracker();
   const _unused_bluetoothListener = useOSBluetoothStateListener();
-  useIosBackgroundTaskToReadBluetoothAranet4();
+  const unused_void = useBackgroundTaskToReadBluetoothAranet4();
 
 
 
   useEffect( () => {
-    if (Platform.OS === 'ios') {
-      registerBackgroundFetchAsync();
-      return () => {
-        unregisterBackgroundFetchAsync();
-      }
+    registerBackgroundFetchAsync();
+    return () => {
+      console.log("Unregistering background fetch task");
+      unregisterBackgroundFetchAsync();
     }
   }, [])
 

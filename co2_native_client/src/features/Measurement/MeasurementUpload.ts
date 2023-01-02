@@ -75,11 +75,11 @@ export function uploadMeasurementHeadless(measurement: MeasurementDataForUpload 
         console.log("User has not requested to begin uploading.");
         return;
     }
-    // dispatch(setUploadStatus(`Uploading new measurement (${measurement.co2ppm})...`));
+    dispatch(setUploadStatus(`Uploading new measurement (${measurement.co2ppm})...`));
     realtimeUpload(jwt, measurement, userSettings).then((response) => {
         if (response.errors) {
             // debugger;
-            const str = `Headless upload errors: ${formatErrors(response.errors)}`;
+            const str = `Headless upload errors: ${formatErrors(response.errors)}, rest as json: ${JSON.stringify(response)}`;
             console.error(str);
             Sentry.Native.captureMessage(str);
             dispatch(setUploadStatus(`Uploading failed: ${formatErrors(response.errors)}`));
@@ -89,7 +89,9 @@ export function uploadMeasurementHeadless(measurement: MeasurementDataForUpload 
             return;
         }
         // eslint-disable-next-line no-useless-return
-        console.log('SUCESSFUL MEASUREMENT UPLOAD!');
+        console.log('SUCCESSFUL MEASUREMENT UPLOAD!');
+        const now = Date.now();
+        console.log(`finished background fetch call at date: ${new Date(now).toTimeString()}`);
         dispatch(incrementSuccessfulUploads());
         // eslint-disable-next-line no-useless-return
         return;

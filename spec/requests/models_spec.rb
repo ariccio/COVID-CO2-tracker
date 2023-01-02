@@ -6,11 +6,11 @@ RSpec.describe("Models", type: :request) do
     let(:new_model_name) {Faker::Device.model_name}
     # https://www.devroom.io/2009/08/20/once-and-for-all-rails-migrations-integer-limit-option/
     
-    context("Sucessfully create model") do
+    context("Successfully create model") do
       before(:each) do
         @user_headers = new_valid_empty_user_req
       end
-      it("Sucessfully creates a new model") do
+      it("Successfully creates a new model") do
         post(api_v1_manufacturers_path, headers: @user_headers, params: reasonable_manufacturer_params)
         check_no_error(response, json_response, :created)
         manufacturer_create_response = json_response

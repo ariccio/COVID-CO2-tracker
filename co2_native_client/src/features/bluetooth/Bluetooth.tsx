@@ -52,6 +52,10 @@ const bluetoothDebugDumps = false;
 if (__DEV__) {
     console.log("setting ble loglevel high.");
     manager.setLogLevel(LogLevel.Debug);
+
+    // pidof -s riccio.co2.client
+    // adb logcat --pid= ...
+    console.log('see comment for logcat instructions.');
 }
 
 // const BleManagerModule = NativeModules.BleManager;
@@ -369,23 +373,24 @@ const checkBluetoothScanPermissions = async(dispatch: AppDispatch): Promise<bool
     const os = Platform.OS;
     if (os === 'ios') {
         // console.log("No bluetooth scan permissions needed on ios?.");
-        const state = await manager.state();
-        switch (state) {
-            case (State.PoweredOn):
-                return false;
-            case (State.Unauthorized):
-            case (State.PoweredOff):
-            case (State.Unknown):
-            case (State.Resetting):
-                return true;
-            default:
-                return true;
+        return true;
+        // const state = await manager.state();
+        // switch (state) {
+        //     case (State.PoweredOn):
+        //         return false;
+        //     case (State.Unauthorized):
+        //     case (State.PoweredOff):
+        //     case (State.Unknown):
+        //     case (State.Resetting):
+        //         return true;
+        //     default:
+        //         return true;
 
-        }
-        // eslint-disable-next-line no-unreachable
-        console.error(`UNREACHABLE code!`);
-        throw new Error("UNREACHABLE");
-        return false;
+        // }
+        // // eslint-disable-next-line no-unreachable
+        // console.error(`UNREACHABLE code!`);
+        // throw new Error("UNREACHABLE");
+        // return false;
     }
 
     try {
@@ -420,7 +425,9 @@ const requestFineLocationPermission = async(dispatch: AppDispatch): Promise<Shou
         console.log("No location permissions needed on ios?.");
         return {shouldReturn: false, permissionsGranted: true};
     }
-    dispatch(setScanningStatusString('Requesting fine location permission (needed for bluetooth low energy)...'));
+    const fineLocStr = 'Requesting fine location permission (needed for bluetooth low energy)...';
+    dispatch(setScanningStatusString(fineLocStr));
+    console.log(fineLocStr);
 
 
     //https://reactnative.dev/docs/permissionsandroid
@@ -445,6 +452,14 @@ const requestFineLocationPermission = async(dispatch: AppDispatch): Promise<Shou
         }    
     }
     catch(error) {
+        const coerced = (error as any);
+        if (coerced && coerced.code) {
+            if (coerced.code === 'E_INVALID_ACTIVITY') {
+                console.log("React is idiotic, and that means that sometimes by the time I call PermissionsAndroid.request, the component is no longer mounted or associated with an activity. Android just threw E_INVALID_ACTIVITY in response.");
+                return {shouldReturn: true, permissionsGranted: false};
+            }
+        }
+        
         const errStr = `Some kind of unexpected error when requesting location permission: ${unknownNativeErrorTryFormat(error)}`;
         dispatch(setScanningStatusString(errStr));
         console.error(errStr);
@@ -933,8 +948,8 @@ async function readAranet4SpecificInformation(deviceID: string, dispatch: AppDis
 
 
 const headlessForegroundScanConnectRead = async (deviceID: string, supportedDevices: UserInfoDevice[]): Promise<Aranet4GenericAndSpecificInformation | boolean> => {    
+    let lastOperation = null;
     try {
-
 
         const connectedDevice = await connectOrAlreadyConnected(deviceID);
 
@@ -953,6 +968,7 @@ const headlessForegroundScanConnectRead = async (deviceID: string, supportedDevi
         }
     
         console.log("Discovering services and characteristics...");
+        lastOperation = 'discovering';
         const deviceWithServicesAndCharacteristics = await connectedDevice.discoverAllServicesAndCharacteristics();
         
         console.log("Connected to aranet4, services discovered!");
@@ -963,13 +979,15 @@ const headlessForegroundScanConnectRead = async (deviceID: string, supportedDevi
             console.warn("Missing aranet4 service?");
         }
     
+        lastOperation = 'reading generic information';
         const genericInfo = await readGenericBluetoothInformation(deviceID);
         // const aranet4Info = await readAranet4SpecificInformation(deviceID, dispatch);
         
-        
+        lastOperation = 'reading co2 characteristic';
         const co2CharacteristicValue = await readAranet4Co2Characteristic(deviceID);
         
         
+        lastOperation = 'reading seconds since last measurement'
         const secondsSinceLastMeasurement = await readAranet4SecondsSinceLastMeasurementCharacteristic(deviceID)
         const now = Date.now();
         const seconds = secondsSinceLastMeasurement * 1000;
@@ -978,6 +996,7 @@ const headlessForegroundScanConnectRead = async (deviceID: string, supportedDevi
         // console.log(`Last measurement taken: ${lastMeasurementTimeAsUTC.toUTCString()} (UTC)`);
     
     
+        lastOperation = 'reading measurement interval';
         const measurementInterval = await readAranet4MeasurementInterval(deviceID);
     
         /*
@@ -1009,7 +1028,7 @@ const headlessForegroundScanConnectRead = async (deviceID: string, supportedDevi
 
     }
     catch(error) {
-        const filtered = headlessFilterBleReadError(error, deviceID);
+        const filtered = headlessFilterBleReadError(error, deviceID, lastOperation);
         if (!filtered.retry) {
             Sentry.Native.captureMessage(`NON-RETRYABLE ble error: ${filtered.message}`);
         }
@@ -1122,6 +1141,43 @@ const beginWithDeviceConnection = async (deviceID: string | null, dispatch: AppD
     }
 
     dispatch(setScanningStatusString(`Connected to aranet4 ${deviceID}). Discovering services and characteristics...`));
+
+    /**
+        https://github.com/dotintent/MultiPlatformBleAdapter/blob/4c959b56eff9b4e63492da0cbb41f0f9900f790a/android/library/src/main/java/com/polidea/multiplatformbleadapter/BleModule.java#L1411
+        
+        https://github.com/dariuszseweryn/RxAndroidBle/blob/90d729e9dae97195b842331fb048514b916d862c/rxandroidble/src/main/java/com/polidea/rxandroidble2/RxBleConnection.java#L251
+
+        https://github.com/dariuszseweryn/RxAndroidBle/blob/f7f64d77784a8ae6cd7dfa44a332815fbf67d60f/rxandroidble/src/main/java/com/polidea/rxandroidble2/internal/connection/RxBleConnectionImpl.java#L133
+
+        https://github.com/dariuszseweryn/RxAndroidBle/blob/f7f64d77784a8ae6cd7dfa44a332815fbf67d60f/rxandroidble/src/main/java/com/polidea/rxandroidble2/internal/connection/ServiceDiscoveryManager.java#L32
+
+        https://github.com/dariuszseweryn/RxAndroidBle/blob/10c3bb7164579ff5b3f4d2a965dbf24f05774abc/rxandroidble/src/main/java/com/polidea/rxandroidble2/internal/operations/ServiceDiscoveryOperation.java#L39
+
+        https://github.com/dariuszseweryn/RxAndroidBle/blob/10c3bb7164579ff5b3f4d2a965dbf24f05774abc/rxandroidble/src/main/java/com/polidea/rxandroidble2/internal/SingleResponseOperation.java#L61
+
+        https://github.com/dariuszseweryn/RxAndroidBle/blob/10c3bb7164579ff5b3f4d2a965dbf24f05774abc/rxandroidble/src/main/java/com/polidea/rxandroidble2/internal/operations/ServiceDiscoveryOperation.java#L45
+
+        https://developer.android.com/reference/android/bluetooth/BluetoothGatt#discoverServices()
+
+        https://android.googlesource.com/platform/frameworks/base/+/9908112fd085d8b0d91e0562d32eebd1884f09a5/core/java/android/bluetooth/BluetoothGatt.java#818
+        https://android.googlesource.com/platform/packages/apps/Bluetooth/+/7c405bac41fc4ebb5c9cc7b5c896b023f7b1e9fc/src/com/android/bluetooth/gatt/GattService.java#1369
+
+
+        https://android.googlesource.com/platform/packages/apps/Bluetooth/+/android-4.4.2_r2/jni/com_android_bluetooth_gatt.cpp#806
+        https://android.googlesource.com/platform/packages/apps/Bluetooth/+/master/jni/com_android_bluetooth_gatt.cpp#1265
+        https://android.googlesource.com/platform/packages/apps/Bluetooth/+/master/jni/com_android_bluetooth_gatt.cpp#1272
+        https://android.googlesource.com/platform/hardware/libhardware/+/android-4.4.4_r1/include/hardware/bt_gatt_client.h#210
+        https://android.googlesource.com/platform/hardware/libhardware/+/kitkat-release/include/hardware/bt_gatt.h#53
+        https://source.android.com/reference/hal/structbtgatt__client__interface__t
+
+        interesting:
+
+        https://github.com/Emill/android_bluetooth/blob/master/service/low_energy_client.cpp
+
+
+        Maybe original impl?:
+        https://android.googlesource.com/platform/frameworks/base.git/+/365522a828f529593aa87e4d5a22f0cf2460c45a/core/jni/android_server_BluetoothService.cpp#923
+     */
     const deviceWithServicesAndCharacteristics = await connectedDevice.discoverAllServicesAndCharacteristics();
 
     dispatch(setScanningStatusString("Connected to aranet4, services discovered!"));
@@ -1180,8 +1236,8 @@ interface BleErrorInfo {
 
 }
 
-function headlessFilterBleReadError(error: unknown, deviceID: string | null): BleErrorInfo {
-    console.log("Filtering headless error");
+function headlessFilterBleReadError(error: unknown, deviceID: string | null, lastOperation: string | null): BleErrorInfo {
+    console.log(`Filtering headless error for device: (${deviceID}), last attempted operation: ${lastOperation}`);
     if (error instanceof BleError) {
         if (error.errorCode === BleErrorCode.OperationCancelled) {
             return {
@@ -1206,7 +1262,7 @@ function headlessFilterBleReadError(error: unknown, deviceID: string | null): Bl
         if (error.errorCode === BleErrorCode.DeviceAlreadyConnected) {
             console.log(`Device ${deviceID} already connected!`);
             return {
-                message: null,
+                message: `Device ${deviceID} already connected!`,
                 retry: true
             }
         }
@@ -1275,6 +1331,8 @@ function headlessFilterBleReadError(error: unknown, deviceID: string | null): Bl
 
 function filterBleReadError(error: unknown, dispatch: AppDispatch, deviceID: string | null): void | boolean {
     if (error instanceof BleError) {
+        // https://github.com/dotintent/MultiPlatformBleAdapter/blob/master/android/library/src/main/java/com/polidea/multiplatformbleadapter/errors/BleErrorCode.java
+
         if (error.errorCode === BleErrorCode.OperationCancelled) {
             dispatch(setDeviceStatusString('Bluetooth read was cancelled for some reason. Might try again.'));
             return false;
@@ -1337,6 +1395,12 @@ function filterBleReadError(error: unknown, dispatch: AppDispatch, deviceID: str
             dispatch(setDeviceStatusString('Read failed, authentication failed or you cancelled it... Will try again..'));
             return true;
         }
+        // if (error.errorCode === BleErrorCode.OperationStartFailed) {
+        // https://github.com/dotintent/MultiPlatformBleAdapter/blob/4c959b56eff9b4e63492da0cbb41f0f9900f790a/android/library/src/main/java/com/polidea/multiplatformbleadapter/errors/ErrorConverter.java#L105
+        //     console.warn(`Error code 4/BleErrorCode.OperationStartFailed - Bluetooth module says "Native module couldn't start operation due to internal state, which doesn't allow to do that"`);
+        //     dispatch(setDeviceStatusString(`react-native-ble-plx reports BleErrorCode.OperationStartFailed!`));
+        //     return false;
+        // }
         const unexpectedStr = `Unexpected bluetooth error while reading from device: ${bleErrorToUsefulString(error)}`;
         console.error(unexpectedStr);
         dispatch(setDeviceStatusString(unexpectedStr));

@@ -410,8 +410,16 @@ async function handleAsyncStoreResult(maybeJWT: string | null, dispatch: AppDisp
     try {
       const emailResponse = await nativeGetEmail(maybeJWT);
       if (emailResponse.errors !== undefined) {
-        dispatch(setLoginErrors(`Failed to get email. May be okay to proceed? Errors: ${formatErrors(emailResponse.errors)}`));
+        const errStr = `Failed to get email. May be okay to proceed? Errors: ${formatErrors(emailResponse.errors)}`;
+        dispatch(setLoginErrors(errStr));
+        console.warn(errStr);
         Sentry.Native.captureMessage(`Failure getting email: ${formatErrors(emailResponse.errors)}`);
+        if (emailResponse.errors[0].message[0].includes('decoding error')) {
+          console.warn(`Error decoding token! JWT: ${maybeJWT}`);
+          console.log('Will clear JWT?');
+          dispatch(setJWT(null));
+          deleteJWTFromAsyncStore(dispatch);
+        }
         return;
       }
       // console.log(`Server responds with email response: ${JSON.stringify(emailResponse)}`);

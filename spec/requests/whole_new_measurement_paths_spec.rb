@@ -8,7 +8,7 @@ RSpec.describe("WholeNewMeasurementPaths", type: :request) do
     let(:invalid_request_google_places) {{"status" => "INVALID_REQUEST"}}
     let(:new_serial_name){Faker::Device.serial}
 
-    context("sucessful new measurement") do
+    context("successful new measurement") do
       let(:reasonable_manufacturer_params) {{manufacturer: {name: Faker::Company.name}}}
       it("can create user, then manufacturer, then model, then device, then place, then measurement") do
         user_headers = new_valid_empty_user_req
