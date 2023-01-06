@@ -532,7 +532,11 @@ export const useGoogleAuthForCO2Tracker = () => {
 
   
   useEffect(() => {
+    console.log(`google auth request state: ${request ? request : "request is null or falsy"}`);
     if (requestPromptAsync === CallPromptAsyncStateAction.TriggerCallPromptAsync) {
+      if (request === null) {
+        console.error("BUG: should not start prompt yet.");
+      }
       promptAsync().then((result) => {
         dispatch(setLoginProgress(AuthLoginProgressState.ParsingGoogleResponse));
         if (result.type === 'success') {

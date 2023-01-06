@@ -218,7 +218,8 @@ interface AutoCompleteRenderProps {
     autoCompleteLoad: autocompleteLoadType,
     placeChange: placeChangeType,
     map: google.maps.Map | null,
-    mapLoaded: boolean
+    mapLoaded: boolean,
+    mapBounds: google.maps.LatLngBounds | null
 }
 
 const formFieldSubmitHandler = (event: React.FormEvent<HTMLInputElement>) => {
@@ -245,16 +246,19 @@ const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (pr
     if (props.map === null) {
         return (<div>Maps STILL loading</div>);
     }
-    const bounds = props.map.getBounds();
-    if (bounds === undefined) {
+
+    console.log(`parent-passed-bounds: ${props.mapBounds}`);
+
+    // const bounds = props.map.getBounds();
+    if (props.mapBounds === undefined) {
         // throw new Error("invariant");
-        console.log("no bounds yet (undefined), maps not ready yet.");
+        console.warn("no bounds yet (undefined), maps not ready yet.");
         if (props.mapLoaded) {
             console.error("hmm, we should have bounds by now.");
         }
         return (null);
     }
-    if (bounds === null) {
+    if (props.mapBounds === null) {
         // throw new Error("invariant");
         console.log("no bounds yet (null), maps not ready yet.");
         if (props.mapLoaded) {
@@ -263,11 +267,13 @@ const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (pr
         return (null);
     }
 
+    // console.log(`bounds: ${props.mapBounds}`);
+    
     //Warning: If you do not specify at least one field with a request, or if you omit the fields parameter from a request, ALL possible fields will be returned, and you will be billed accordingly. This applies only to Place Details requests (including Place Details requests made from the Place Autocomplete widget).
     //https://developers.google.com/maps/documentation/javascript/places-autocomplete
 
     return (
-        <Autocomplete onLoad={props.autoCompleteLoad} onPlaceChanged={props.placeChange} bounds={bounds} fields={INTERESTING_FIELDS}>
+        <Autocomplete onLoad={props.autoCompleteLoad} onPlaceChanged={props.placeChange} bounds={props.mapBounds} fields={INTERESTING_FIELDS}>
                 <Form onSubmit={formSubmitHandler}>
                     <Form.Group>
                         <Form.Control type="text" onSubmit={formFieldSubmitHandler}/>
@@ -645,7 +651,8 @@ const GoogleMapInContainer = (props: {
     setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral | google.maps.LatLng>>,
     mapLoaded: boolean,
     setMapLoaded: React.Dispatch<React.SetStateAction<boolean>>,
-    service: google.maps.places.PlacesService | null
+    service: google.maps.places.PlacesService | null,
+    setMapBounds: React.Dispatch<React.SetStateAction<google.maps.LatLngBounds | null>>
     }) => {
     // console.log("rerender map")
     const {setCenter} = props;
@@ -683,6 +690,12 @@ const GoogleMapInContainer = (props: {
                     onClick={(e: google.maps.MapMouseEvent) => {onClickMaps(e, setCenter, dispatch, props.service); updateMarkers(props.map, dispatch)}}
                     onIdle={() => onMapIdle(props.map, props.mapLoaded, props.setMapLoaded, dispatch)}
                     /*onTilesLoaded={() => {console.log("tiles loaded"); updateMarkers(map, dispatch)}}*/
+                    onBoundsChanged={() => {
+                        const newBounds = props.map?.getBounds();
+                        if (newBounds === undefined) {
+                            return;
+                        }
+                        props.setMapBounds(newBounds)}}
                     >
                         <Markers placeMarkersFromDatabase={placeMarkersFromDatabase} placeMarkerErrors={placeMarkerErrors} service={props.service}/>
                 </GoogleMap>
@@ -710,7 +723,8 @@ interface AutocompleteElementProps {
     map: google.maps.Map | null,
     setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral | google.maps.LatLng>>,
     mapLoaded: boolean,
-    service: google.maps.places.PlacesService | null
+    service: google.maps.places.PlacesService | null,
+    mapBounds: google.maps.LatLngBounds | null
 }
 
 const renderErrorsAutocomplete = (autocompleteErrorState: string) => {
@@ -733,7 +747,7 @@ const AutocompleteElement: React.FC<AutocompleteElementProps> = (props) => {
     return (
         <div>
             {renderErrorsAutocomplete(autocompleteErrorState)}
-            <RenderAutoComplete autoCompleteLoad={(event) => autoCompleteLoadThunk(event, setAutocomplete)} placeChange={() => placeChangeHandler(autocomplete, dispatch, props.map, props.setCenter, setAutocompleteErrorState, props.service)} map={props.map} mapLoaded={props.mapLoaded} />
+            <RenderAutoComplete autoCompleteLoad={(event) => autoCompleteLoadThunk(event, setAutocomplete)} placeChange={() => placeChangeHandler(autocomplete, dispatch, props.map, props.setCenter, setAutocompleteErrorState, props.service)} map={props.map} mapLoaded={props.mapLoaded} mapBounds={props.mapBounds} />
         </div>
     );
 }
@@ -911,6 +925,7 @@ export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) =
     const [map, setMap] = useState(null as google.maps.Map | null);
     const [service, setService] = useState(null as google.maps.places.PlacesService | null);
     const [mapLoaded, setMapLoaded] = useState(false);
+    const [mapBounds, setMapBounds] = useState(null as (null | google.maps.LatLngBounds));
 
     
     const username = useSelector(selectUsername);
@@ -1009,10 +1024,10 @@ export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) =
 
         return (
             <div>
-                <GoogleMapInContainer onLoad={(mapLoaded) => handleMapLoaded(mapLoaded, setMap, setService)} onUnmount={() => handleMapUnmount(map, setMap, setMapLoaded)} map={map} setCenter={setCenter} mapLoaded={mapLoaded} setMapLoaded={setMapLoaded} service={service}/>
+                <GoogleMapInContainer onLoad={(mapLoaded) => handleMapLoaded(mapLoaded, setMap, setService)} onUnmount={() => handleMapUnmount(map, setMap, setMapLoaded)} map={map} setCenter={setCenter} mapLoaded={mapLoaded} setMapLoaded={setMapLoaded} service={service} setMapBounds={setMapBounds}/>
                 <PlaceMarkersDataDebugText/>
                 <br/>
-                <AutocompleteElement map={map} setCenter={setCenter} mapLoaded={mapLoaded} service={service}/>
+                <AutocompleteElement map={map} setCenter={setCenter} mapLoaded={mapLoaded} service={service} mapBounds={mapBounds}/>
                 <GeolocationButton setCenter={setCenter} /><br/>
                 <PlacesServiceStatus/>
             </div>
