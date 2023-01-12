@@ -4,6 +4,7 @@ export const API_URL = "/api/v1";
 export const YOUTUBE_VIDEO_INSTRUCTIONS_URL = "https://youtu.be/FhT3X9emqJk";
 export const ABOUT_ME_ARICCIO_URL = "https://about.me/ariccio";
 
+export const GOOGLE_FORMS_SURVEY_URL = "https://docs.google.com/forms/d/e/1FAIpQLScJQwuzLeyzYIMgS1Qy0-d3dM-_CM9qn87u5EFHwbzgdPLTJA/viewform?usp=sf_link";
 
 
 const SHOW_MEASUREMENT_ACTION = '/measurement';

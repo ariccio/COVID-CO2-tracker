@@ -18,7 +18,7 @@ import {selectPlacesInfoFromDatabase, selectPlacesInfoErrors, SelectedPlaceDatab
 
 import {NewMeasurementButton} from './NewMeasurementButton';
 import {ChoosePlaceAsDefault} from '../nativeClientInterfaces/ChoosePlaceAsDefault';
-import { YOUTUBE_VIDEO_INSTRUCTIONS_URL } from '../../utils/UrlPath';
+import { GOOGLE_FORMS_SURVEY_URL, YOUTUBE_VIDEO_INSTRUCTIONS_URL } from '../../utils/UrlPath';
 import { RenderFromDatabaseNoGoogleParam } from '../places/RenderPlaceFromDatabase';
 import { RenderSelectedPlaceInfo } from '../places/RenderPlaceInfo';
 import { AppStatsContainer } from '../stats/Stats';
@@ -209,7 +209,8 @@ const HomePage = () => {
         <div>
             <h3>{translate('welcome-header')}</h3>
             <br/>
-            <Button href={YOUTUBE_VIDEO_INSTRUCTIONS_URL}>{translate('Instruction video')}</Button>
+            <Button href={YOUTUBE_VIDEO_INSTRUCTIONS_URL}>{translate('Instruction video')}</Button>&nbsp;
+            <Button href={GOOGLE_FORMS_SURVEY_URL}>{translate('survey-button-text')}</Button>
             <br/><br/><br/>
             <Container>
                 <Row className="show-grid">
