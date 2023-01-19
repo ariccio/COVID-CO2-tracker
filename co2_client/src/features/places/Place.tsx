@@ -1,3 +1,6 @@
+import * as Sentry from "@sentry/browser"; // for manual error reporting.
+
+
 import {useEffect, useRef, Suspense} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {useParams} from 'react-router-dom';
@@ -41,6 +44,7 @@ export const Place = () => {
             dispatch(setMapsAaaPeeEyeKey(key));
         }).catch((error) => {
             dispatch(setMapsAaaPeeEyeKeyErrorState(error.message));
+            Sentry.captureException(error);
         });
     }, [dispatch, mapsAaPeeEyeKey]);
 

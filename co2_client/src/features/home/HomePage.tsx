@@ -1,3 +1,5 @@
+import * as Sentry from "@sentry/browser"; // for manual error reporting.
+
 import {useEffect, useState, useRef, Suspense} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {useLocation} from 'react-router-dom';
@@ -176,6 +178,7 @@ const HomePage = () => {
         getGoogleMapsJavascriptAaaaPeeEyeKey().then((key: string) => {
             dispatch(setMapsAaaPeeEyeKey(key));
         }).catch((error) => {
+            Sentry.captureException(error);
             dispatch(setMapsAaaPeeEyeKeyErrorState(error.message));
         });
     }, [dispatch, mapsAaaPeeEyeKey]);

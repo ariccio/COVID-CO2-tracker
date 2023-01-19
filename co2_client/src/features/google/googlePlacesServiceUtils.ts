@@ -62,7 +62,7 @@ const reportWeirdness = (result: google.maps.places.PlaceResult | null, status: 
     }
     if (status === google.maps.places.PlacesServiceStatus.REQUEST_DENIED) {
         Sentry.captureMessage("Google Places service request denied (REQUEST_DENIED)");
-        alert("Something is wrong with the API key or GCP permissions used by this app. This issue has been automatically reported, but the app won't work correctly until I fix it.");
+        alert("Something is wrong with the API key or GCP permissions used by this app. Alternatively, this may be a bug or an undetected/unhandled error. This issue has been automatically reported, but the app won't work correctly until I fix it.");
         return;
     }
     if (status === google.maps.places.PlacesServiceStatus.UNKNOWN_ERROR) {

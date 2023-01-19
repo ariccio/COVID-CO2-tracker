@@ -1,3 +1,5 @@
+import * as Sentry from "@sentry/browser"; // for manual error reporting.
+
 import {API_URL} from './UrlPath';
 import {formatErrors} from './ErrorObject';
 import {fetchJSONWithChecks} from './FetchHelpers';
@@ -32,7 +34,20 @@ export async function getGoogleMapsJavascriptAaaaPeeEyeKey(): Promise<string> {
     throw new Error(`API key fetch failed: ${formatErrors(jsonResponse.errors)}`);
   }
   const fetchSuccessCallback = async (awaitedResponse: Response): Promise<string> => {
-    return (await awaitedResponse.json()).key;
+    const rawJSONResponse = (await awaitedResponse.json());
+    if (rawJSONResponse.key === undefined) {
+      console.error(`API key fetch succeeded but key field is 'undefined'. Response: ${JSON.stringify(rawJSONResponse.clone())}`);
+      console.warn("TODO: Throwing here is the WRONG action.");
+      Sentry.captureMessage(`API key fetch failed: key undefined`);
+      throw new Error(`API key fetch failed: key undefined`);
+    }
+    if (rawJSONResponse.key === null) {
+      console.error(`API key fetch succeeded but key field is 'null'. Response: ${JSON.stringify(rawJSONResponse.clone())}`);
+      console.warn("TODO: Throwing here is the WRONG action.");
+      Sentry.captureMessage(`API key fetch failed: key null`);
+      throw new Error(`API key fetch failed: key null`);
+    }
+    return rawJSONResponse.key;
   }
 
   // debugger;
