@@ -138,7 +138,8 @@ function GoogleOAuthProviderWrapper({children}: GoogleOAuthProviderWrapperProps)
     console.warn("No login api key yet.")
     return (
       <>
-      loading...
+      loading login api key...
+      {children}
       </>
     )
   }

@@ -16,7 +16,7 @@ import { getGoogleLoginClientAaaPeeeEyeKey } from '../../utils/GoogleAPIKeys';
 // import { profilePath } from '../../paths/paths';
 import { LOGIN_URL } from '../../utils/UrlPath';
 
-import { setGoogleAuthResponse, setGoogleProfile } from './loginSlice';
+import { setGoogleProfile } from './loginSlice';
 import { AppDispatch } from '../../app/store';
 import { formatErrors } from '../../utils/ErrorObject';
 import { Button } from 'react-bootstrap';
@@ -266,7 +266,7 @@ const googleLoginSuccessCallback = (originalResponse: CredentialResponse, dispat
         console.log(`Hello, ${result.email}!`);
         const parsedResponse = jwtDecode(castedResponse.credential) as GoogleProfile;
         console.warn("TODO: strong type for google profile.");
-        debugger;
+        // debugger;
         dispatch(setGoogleProfile(parsedResponse));
         // dispatch(setGoogleAuthResponse(castedResponse.getAuthResponse()));
         dispatch(setUsername(parsedResponse.name));
@@ -372,7 +372,7 @@ export const useLoginApiKey = () => {
             dispatch(setAaaPeeEyeKeyErrorState(error.message));
         });
 
-    }, [dispatch, loginAaaPeeEyeKey])
+    }, [dispatch, loginAaaPeeEyeKey, aapeeEyeKeyErrorState])
 
     return;
 }
@@ -440,7 +440,7 @@ export const GoogleLoginLogoutContainer = () => {
             <GoogleLogin onSuccess={(response) => googleLoginSuccessCallback(response, dispatch)}
             /* onError={(error) => googleLoginFailedCallback(error, setGoogleLoginErrorState)} */
             onError={() => googleLoginFailedInIdentityServicesCallback(setGoogleLoginErrorState)}
-            useOneTap />
+            useOneTap auto_select/>
 
         </div>
     )
