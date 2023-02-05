@@ -6,7 +6,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 // import {RootState} from './app/rootReducer';
 // import {selectUsername, setUsername} from './features/login/loginSlice';
 import {NavBar} from './features/nav/Nav';
-import {HomePageContainer} from './features/home/HomePage';
+import {HomePageContainer, useLoadMapsApiKey} from './features/home/HomePage';
 import {Profile} from './features/profile/Profile';
 // import {LoginComponent, SignupComponent} from './features/login/Login';
 import {Devices, Device} from './features/devices/Devices';
@@ -20,10 +20,12 @@ import {placesPath, homePath, devicesPath, profilePath, deviceModelsPath, moreIn
 import './App.css';
 import { BottomNav } from './features/nav/BottomNav';
 import { BluetoothTesting } from './features/bluetooth/bluetoothDev';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { selectLoginAaaPeeEyeKey } from './features/login/loginSlice';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { useLoginApiKey } from './features/login/Login';
+import { defaultMapBounds, useBareFetchOfPlacesFromBackendForEarlyLoad } from './features/google/GoogleMaps';
+import { queryPlacesInBoundsFromBackendLiteral } from './utils/QueryPlacesInfo';
 
 
 const NotFound = () => {
@@ -157,6 +159,7 @@ function GoogleOAuthProviderWrapper({children}: GoogleOAuthProviderWrapperProps)
 // TODO: how to display network errors? some component to render above it?
 export function App(): JSX.Element {
   checkLanguages();
+  const earlyLoadMapsApiKey = useLoadMapsApiKey();
 
   //TODO: https://docs.sentry.io/platforms/javascript/guides/react/enriching-events/user-feedback/
   //https://docs.sentry.io/platforms/javascript/guides/react/components/errorboundary/

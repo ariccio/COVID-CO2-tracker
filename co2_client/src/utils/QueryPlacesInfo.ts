@@ -124,6 +124,22 @@ function inBoundsQueryString(northEast: google.maps.LatLng, southWest: google.ma
     return `?east=${northEast.lng()}&north=${northEast.lat()}&south=${southWest.lat()}&west=${southWest.lng()}`;   
 }
 
+function inBoundsQueryStringLiteral(northEast: google.maps.LatLngLiteral, southWest: google.maps.LatLngLiteral): string {
+    // const place = {
+    //     place: {
+    //         east: String(northEast.lng()),
+    //         north: String(northEast.lat()),
+    //         south: String(southWest.lat()),
+    //         west: String(southWest.lng())
+    //     }
+    // };
+    // const params = new URLSearchParams(place)
+    // const encodedString = `?${stringify(place)}`;
+    // return encodedString;
+    return `?east=${northEast.lng}&north=${northEast.lat}&south=${southWest.lat}&west=${southWest.lng}`;   
+}
+
+
 // function inBoundsPlaceRequestInit(): RequestInit {
 //     const defaultOptions = userRequestOptions();
 //     // const place = {
@@ -192,6 +208,26 @@ export const queryPlacesInBoundsFromBackend = (northEast: google.maps.LatLng, so
     const result = fetchJSONWithChecks(placesInBoundsURLWithQueryString, userRequestOptions(), 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<nearbyPlacesResponseType>;
     return nearbyResultsFetchedCallback(result, dispatch);
 }
+
+export const queryPlacesInBoundsFromBackendLiteral = (northEast: google.maps.LatLngLiteral, southWest: google.maps.LatLngLiteral, dispatch: AppDispatch) => {
+    const fetchFailedCallback = async (awaitedResponse: Response): Promise<nearbyPlacesResponseType> => {
+        dispatch(setPlaceMarkersFetchFinishMS(performance.now()));
+        console.error("Failed to find nearby places!");
+        return awaitedResponse.json();
+    }
+    const fetchSuccessCallback = async (awaitedResponse: Response): Promise<nearbyPlacesResponseType> => {
+        dispatch(setPlaceMarkersFetchFinishMS(performance.now()));
+        console.log(`Fetched places early?`);
+        return awaitedResponse.json();
+    }
+
+    const stringifiedBounds = inBoundsQueryStringLiteral(northEast, southWest);
+    const placesInBoundsURLWithQueryString = (PLACES_IN_BOUNDS + stringifiedBounds)
+    dispatch(setPlaceMarkersFetchStartMS(performance.now()));
+    const result = fetchJSONWithChecks(placesInBoundsURLWithQueryString, userRequestOptions(), 200, true, fetchFailedCallback, fetchSuccessCallback) as Promise<nearbyPlacesResponseType>;
+    return nearbyResultsFetchedCallback(result, dispatch);
+}
+
 
 const nearbyResultsFetchedCallback = (result: Promise<nearbyPlacesResponseType>, dispatch: AppDispatch) => {
     return result.then((response) => {

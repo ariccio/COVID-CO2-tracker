@@ -16,7 +16,7 @@ import {selectSelectedPlace, selectPlacesServiceStatus, autocompleteSelectedPlac
 
 import {setSelectedPlace, INTERESTING_FIELDS, setMapCenter} from './googleSlice';
 
-import {updatePlacesInfoFromBackend, queryPlacesInBoundsFromBackend} from '../../utils/QueryPlacesInfo';
+import {updatePlacesInfoFromBackend, queryPlacesInBoundsFromBackend, queryPlacesInBoundsFromBackendLiteral} from '../../utils/QueryPlacesInfo';
 import { defaultPlaceMarkers, EachPlaceFromDatabaseForMarker, placesFromDatabaseForMarker, selectPlaceMarkersFromDatabase, selectPlacesMarkersErrors, selectPlaceMarkersFetchInProgress, setPlaceMarkersFetchInProgress, selectPlaceMarkersFetchStartMS, selectPlaceMarkersFetchFinishMS } from '../places/placesSlice';
 import { setSublocationSelectedLocationID } from '../sublocationsDropdown/sublocationSlice';
 import { updatePlacesServiceDetailsOnNewPlace } from './googlePlacesServiceUtils';
@@ -528,7 +528,7 @@ const Markers = (props: {placeMarkersFromDatabase: placesFromDatabaseForMarker, 
         console.log("No markers.");
         return null;
     }
-    // console.log(`Rendering ${placeMarkersFromDatabase.places.length} markers...`);
+    // console.log(`Rendering ${props.placeMarkersFromDatabase.places.length} markers...`);
     return (
         <MarkerClusterer averageCenter={true} minimumClusterSize={2} maxZoom={14}>
             {(clusterer) => {
@@ -563,6 +563,48 @@ const updateMarkers = (map: google.maps.Map | null, dispatch: AppDispatch) => {
     const ne = bounds.getNorthEast();
     const sw = bounds.getSouthWest();
     queryPlacesInBoundsFromBackend(ne, sw, dispatch);
+}
+
+type bounds = {
+    ne: google.maps.LatLngLiteral,
+    sw: google.maps.LatLngLiteral
+}
+
+export const defaultMapBounds: bounds = {
+    ne: {
+        lat: 40.75807564963092,
+        lng: -73.97236007946778
+    },
+    
+    sw: {
+        lat: 40.775237242416054,
+        lng: -73.94506592053223
+    }
+};
+
+
+// Ugly temporary hack :)
+export const useBareFetchOfPlacesFromBackendForEarlyLoad = () => {
+    const dispatch = useDispatch();
+    const placeMarkerErrors = useSelector(selectPlacesMarkersErrors);
+
+
+    //TODO: Does this really need to be in redux?
+    const placeMarkersFromDatabase = useSelector(selectPlaceMarkersFromDatabase);
+
+    useEffect(() => {
+        if (placeMarkersFromDatabase !== defaultPlaceMarkers) {
+            console.log("already set.");
+            return;
+        }
+        if (placeMarkerErrors !== '') {
+            console.log("error already set.");
+            return;
+        }
+        // dispatch(setPlaceMarkersFetchInProgress(true));
+        queryPlacesInBoundsFromBackendLiteral(defaultMapBounds.ne, defaultMapBounds.sw, dispatch);
+    }, [placeMarkersFromDatabase, placeMarkerErrors])
+
 }
 
 const onMapIdle = (map: google.maps.Map | null, mapLoaded: boolean, setMapLoaded: React.Dispatch<React.SetStateAction<boolean>>, dispatch: AppDispatch) => {
@@ -929,7 +971,6 @@ export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) =
 
     
     const username = useSelector(selectUsername);
-    
     //Should be useRef
     const selectedPlace = useSelector(selectSelectedPlace);
     

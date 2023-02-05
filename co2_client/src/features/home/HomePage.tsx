@@ -153,6 +153,25 @@ function renderWelcomeLoading() {
     );
 }
 
+export const useLoadMapsApiKey = () => {
+    const mapsAaaPeeEyeKey = useSelector(selectMapsAaPeEyeKey);
+    const mapsAaPeeEyeKeyErrorState = useSelector(selectMapsAaaPeeEyeKeyErrorState);
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        if (mapsAaaPeeEyeKey !== '') {
+            return;
+        }
+        getGoogleMapsJavascriptAaaaPeeEyeKey().then((key: string) => {
+            dispatch(setMapsAaaPeeEyeKey(key));
+        }).catch((error) => {
+            Sentry.captureException(error);
+            dispatch(setMapsAaaPeeEyeKeyErrorState(error.message));
+        });
+    }, [dispatch, mapsAaaPeeEyeKey]);
+
+}
+
 const HomePage = () => {
     
     // TODO: when navigating BACK to home page from place, pan map to that place.
@@ -171,17 +190,18 @@ const HomePage = () => {
     const mapsAaPeeEyeKeyErrorState = useSelector(selectMapsAaaPeeEyeKeyErrorState);
 
     const infoRef = useRef<HTMLDivElement | null>(null);
-    useEffect(() => {
-        if (mapsAaaPeeEyeKey !== '') {
-            return;
-        }
-        getGoogleMapsJavascriptAaaaPeeEyeKey().then((key: string) => {
-            dispatch(setMapsAaaPeeEyeKey(key));
-        }).catch((error) => {
-            Sentry.captureException(error);
-            dispatch(setMapsAaaPeeEyeKeyErrorState(error.message));
-        });
-    }, [dispatch, mapsAaaPeeEyeKey]);
+    const mapsApiHook = useLoadMapsApiKey();
+    // useEffect(() => {
+    //     if (mapsAaaPeeEyeKey !== '') {
+    //         return;
+    //     }
+    //     getGoogleMapsJavascriptAaaaPeeEyeKey().then((key: string) => {
+    //         dispatch(setMapsAaaPeeEyeKey(key));
+    //     }).catch((error) => {
+    //         Sentry.captureException(error);
+    //         dispatch(setMapsAaaPeeEyeKeyErrorState(error.message));
+    //     });
+    // }, [dispatch, mapsAaaPeeEyeKey]);
 
     useEffect(() => {
         if ((currentPlace.types) && (currentPlace.types[0] === 'locality')) {
