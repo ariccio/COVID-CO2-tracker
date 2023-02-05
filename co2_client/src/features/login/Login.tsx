@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { GoogleLogin, GoogleLogout, GoogleLoginResponse, GoogleLoginResponseOffline } from 'react-google-login';
+// import { GoogleLogin, GoogleLogout, GoogleLoginResponse, GoogleLoginResponseOffline } from 'react-google-login';
+
+import { CredentialResponse, GoogleLogin, googleLogout } from '@react-oauth/google';
 
 import * as Sentry from "@sentry/browser";
 
-import { setUsername, selectGoogleProfile, selectLoginAaaPeeEyeKey, setLoginAaaPeeEyeKey, setAaaPeeEyeKeyErrorState, selectAaaPeeeEyeKeyErrorState } from './loginSlice';
+import { setUsername, selectGoogleProfile, selectLoginAaaPeeEyeKey, setLoginAaaPeeEyeKey, setAaaPeeEyeKeyErrorState, selectAaaPeeeEyeKeyErrorState, GoogleProfile } from './loginSlice';
 
 import { logout } from '../../utils/Authentication';
 import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
@@ -17,6 +19,8 @@ import { LOGIN_URL } from '../../utils/UrlPath';
 import { setGoogleAuthResponse, setGoogleProfile } from './loginSlice';
 import { AppDispatch } from '../../app/store';
 import { formatErrors } from '../../utils/ErrorObject';
+import { Button } from 'react-bootstrap';
+import jwtDecode from 'jwt-decode';
 
 
 
@@ -203,8 +207,9 @@ const loginWithIDToken = (id_token: string) => {
         }
         else {
             console.log("successfully logged in to server!");
+            // debugger;
         }
-        return;
+        return response;
 
     }).catch((error) => {
         console.error(error);
@@ -214,35 +219,60 @@ const loginWithIDToken = (id_token: string) => {
     })
 }
 
-const sendToServer = (response: GoogleLoginResponse) => {
-    const id_token = response.getAuthResponse().id_token;
+const sendToServer = (response: CredentialResponse) => {
+    if (response.credential === undefined) {
+        alert("WTF?");
+        debugger;
+        return new Promise(() => {return;})
+    }
+    const id_token = response.credential;
     return loginWithIDToken(id_token);
 }
 
-const googleLoginSuccessCallback = (originalResponse: GoogleLoginResponse | GoogleLoginResponseOffline, dispatch: AppDispatch) => {
+const googleLoginSuccessCallback = (originalResponse: CredentialResponse, dispatch: AppDispatch) => {
     //https://developers.google.com/identity/sign-in/web/backend-auth
-    // console.log(originalResponse);
-    console.log("google login success!");
-    if (originalResponse.code) {
-        console.warn("refresh token?");
-        console.warn("https://github.com/anthonyjgrove/react-google-login/blob/master/README.md: If responseType is 'code', callback will return the authorization code that can be used to retrieve a refresh token from the server.");
+    console.log(originalResponse);
+    // console.log("google login success!");
+    // if (originalResponse.code) {
+    //     console.warn("refresh token?");
+    //     console.warn("https://github.com/anthonyjgrove/react-google-login/blob/master/README.md: If responseType is 'code', callback will return the authorization code that can be used to retrieve a refresh token from the server.");
 
-        debugger;
-        return;
-    }
+    //     debugger;
+    //     return;
+    // }
     // If I dont pass a responseType, code is undefined, and thus the type is a GoogleLoginResponse.
     //https://developers.google.com/identity/sign-in/web/reference#gapiauth2authresponse
-    const castedResponse = originalResponse as GoogleLoginResponse;
+
+    const castedResponse = originalResponse;
+    
+    if (castedResponse.credential === undefined) {
+        // console.log(jwtDecode(castedResponse.credential));
+        console.error("Missing credential??");
+        alert("Login error: missing credential?");
+        Sentry.captureMessage(`Missing credential? ${JSON.stringify(castedResponse)}`);
+        return;
+    }
     
     // debugger;
-    sendToServer(castedResponse).then(() => {
+    sendToServer(castedResponse).then((result) => {
+        // Shut up typescript.
+        if (castedResponse.credential === undefined) {
+            console.error("Missing credential??");
+            alert("Login error: missing credential?");
+            Sentry.captureMessage(`Missing credential? ${JSON.stringify(castedResponse)}`);
+            return;
+        }
         console.log("successfully logged in to server, dispatching results to rest of app...");
-        dispatch(setGoogleProfile(castedResponse.profileObj));
-        dispatch(setGoogleAuthResponse(castedResponse.getAuthResponse()));
-        dispatch(setUsername(castedResponse.profileObj.name));
+        console.log(`Hello, ${result.email}!`);
+        const parsedResponse = jwtDecode(castedResponse.credential) as GoogleProfile;
+        console.warn("TODO: strong type for google profile.");
+        debugger;
+        dispatch(setGoogleProfile(parsedResponse));
+        // dispatch(setGoogleAuthResponse(castedResponse.getAuthResponse()));
+        dispatch(setUsername(parsedResponse.name));
         Sentry.setContext("google", {
-            user_name: castedResponse.profileObj.name,
-            user_email: castedResponse.profileObj.email
+            user_name: parsedResponse.name,
+            user_email: parsedResponse.email
         });
     }).catch((error) => {
         Sentry.captureException(error);
@@ -301,6 +331,13 @@ const googleLoginFailedCallback = (error: any, setGoogleLoginErrorState: React.D
     Sentry.captureMessage(`unhandled google login error! Error object, error.error: '${String(error.error)}', error.details: '${String(error.details)}'. Full JSON of error object: ${googleLoginErrorStringified}`);
 }
 
+const googleLoginFailedInIdentityServicesCallback = (setGoogleLoginErrorState: React.Dispatch<React.SetStateAction<string>>) => {
+    console.warn("google login failure!")
+    setGoogleLoginErrorState(`Login failed. react-oauth does not give details.`);
+    alert("Login failed!");
+}
+
+
 const googleLogoutSuccessCallback = (dispatch: AppDispatch) => {
     console.warn("logged out via google.");
     logout();
@@ -308,7 +345,8 @@ const googleLogoutSuccessCallback = (dispatch: AppDispatch) => {
     debugger;
     dispatch(setUsername(''));
     dispatch(setGoogleProfile(null));
-    dispatch(setGoogleAuthResponse(null));
+    // dispatch(setGoogleAuthResponse(null));
+    googleLogout(); // google.accounts.id.disableAutoSelect();
     alert("Logged out. Page will reload.");
     window.location.reload();
     // debugger;
@@ -316,6 +354,28 @@ const googleLogoutSuccessCallback = (dispatch: AppDispatch) => {
 
 // export interface LoginContainerProps {
 // }
+
+export const useLoginApiKey = () => {
+    const aapeeEyeKeyErrorState = useSelector(selectAaaPeeeEyeKeyErrorState);
+    const loginAaaPeeEyeKey = useSelector(selectLoginAaaPeeEyeKey);
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        if (loginAaaPeeEyeKey !== '') {
+            return;
+        }
+        getGoogleLoginClientAaaPeeeEyeKey().then((key: string) => {
+            console.log("got login api key");
+            dispatch(setLoginAaaPeeEyeKey(key));
+        }).catch((error) => {
+            debugger;
+            dispatch(setAaaPeeEyeKeyErrorState(error.message));
+        });
+
+    }, [dispatch, loginAaaPeeEyeKey])
+
+    return;
+}
 
 export const GoogleLoginLogoutContainer = () => {
     const [googleLoginErrorState, setGoogleLoginErrorState] = useState("");
@@ -366,7 +426,10 @@ export const GoogleLoginLogoutContainer = () => {
         // console.log("rendering logout.");
         return (
             <div>
-                <GoogleLogout clientId={loginAaaPeeEyeKey} onLogoutSuccess={() => googleLogoutSuccessCallback(dispatch)} />
+                {/* <GoogleLogout clientId={loginAaaPeeEyeKey} onLogoutSuccess={() => googleLogoutSuccessCallback(dispatch)} /> */}
+                <Button onClick={(event) => {googleLogoutSuccessCallback(dispatch)}}>
+                    Logout of {googleProfile.email}!
+                </Button>
             </div>
         )
     }
@@ -374,7 +437,10 @@ export const GoogleLoginLogoutContainer = () => {
     // debugger;
     return (
         <div>
-            <GoogleLogin onRequest={() => console.log("login request starting....")} clientId={loginAaaPeeEyeKey} onSuccess={(response) => googleLoginSuccessCallback(response, dispatch)} onFailure={(error) => googleLoginFailedCallback(error, setGoogleLoginErrorState)} isSignedIn={true} />
+            <GoogleLogin onSuccess={(response) => googleLoginSuccessCallback(response, dispatch)}
+            /* onError={(error) => googleLoginFailedCallback(error, setGoogleLoginErrorState)} */
+            onError={() => googleLoginFailedInIdentityServicesCallback(setGoogleLoginErrorState)}
+            useOneTap />
 
         </div>
     )

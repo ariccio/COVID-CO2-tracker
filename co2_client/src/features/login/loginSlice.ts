@@ -1,13 +1,23 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
 
+
+
 export interface GoogleProfile {
-    googleId: string;
-    imageUrl: string;
+    aud: string;
+    azp: string;
     email: string;
-    name: string;
-    givenName: string;
+    email_verified: boolean;
+    exp: number;
     familyName: string;
+    givenName: string;
+    iat: number;
+    iss: number;
+    jti: string;
+    name: string;
+    nbf: string;
+    picture: string;
+    sub: string;
 }
 
 interface AuthResponse {

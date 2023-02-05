@@ -1,7 +1,7 @@
 import {Route, Routes, Link, Navigate, useParams} from 'react-router-dom';
 // import {ErrorBoundary, FallbackProps} from 'react-error-boundary';
 import * as Sentry from "@sentry/react";
-
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 // import {RootState} from './app/rootReducer';
 // import {selectUsername, setUsername} from './features/login/loginSlice';
@@ -20,6 +20,10 @@ import {placesPath, homePath, devicesPath, profilePath, deviceModelsPath, moreIn
 import './App.css';
 import { BottomNav } from './features/nav/BottomNav';
 import { BluetoothTesting } from './features/bluetooth/bluetoothDev';
+import { useSelector } from 'react-redux';
+import { selectLoginAaaPeeEyeKey } from './features/login/loginSlice';
+import { ReactNode } from 'react';
+import { useLoginApiKey } from './features/login/Login';
 
 
 const NotFound = () => {
@@ -123,6 +127,32 @@ function checkLanguages(): void {
   // }
 }
 
+interface GoogleOAuthProviderWrapperProps {
+  children: ReactNode;
+}
+
+function GoogleOAuthProviderWrapper({children}: GoogleOAuthProviderWrapperProps) {
+  const loginAaaPeeEyeKey = useSelector(selectLoginAaaPeeEyeKey);
+  const _ = useLoginApiKey();
+  if (loginAaaPeeEyeKey === '') {
+    console.warn("No login api key yet.")
+    return (
+      <>
+      loading...
+      </>
+    )
+  }
+  console.log(`Got api key! ${loginAaaPeeEyeKey}`);
+  return (
+    <>
+      <GoogleOAuthProvider clientId={loginAaaPeeEyeKey}>
+        {children}
+      </GoogleOAuthProvider>
+    </>
+  )
+}
+
+
 // TODO: how to display network errors? some component to render above it?
 export function App(): JSX.Element {
   checkLanguages();
@@ -133,9 +163,11 @@ export function App(): JSX.Element {
     <div>
       <div className="App">
         <Sentry.ErrorBoundary fallback={TopLevelErrorFallback} showDialog dialogOptions={dialogOptionsForSentry}>
-          <NavBar/>
-          <RoutesContainer/>
-          <BottomNav/>
+         <GoogleOAuthProviderWrapper>
+            <NavBar/>
+            <RoutesContainer/>
+            <BottomNav/>
+          </GoogleOAuthProviderWrapper> 
         </Sentry.ErrorBoundary>
       </div>
     </div>
