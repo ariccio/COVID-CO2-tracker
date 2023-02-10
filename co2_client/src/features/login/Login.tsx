@@ -6,7 +6,7 @@ import { CredentialResponse, GoogleLogin, googleLogout } from '@react-oauth/goog
 
 import * as Sentry from "@sentry/browser";
 
-import { setUsername, selectGoogleProfile, selectLoginAaaPeeEyeKey, setLoginAaaPeeEyeKey, setAaaPeeEyeKeyErrorState, selectAaaPeeeEyeKeyErrorState, GoogleProfile } from './loginSlice';
+import { setUsername, selectGoogleProfile, selectLoginAaaPeeEyeKey, setLoginAaaPeeEyeKey, setAaaPeeEyeKeyErrorState, selectAaaPeeeEyeKeyErrorState, GoogleProfile, selectGSIScriptLoadState, GSIScriptLoadStates } from './loginSlice';
 
 import { logout } from '../../utils/Authentication';
 import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
@@ -333,7 +333,7 @@ const googleLoginFailedCallback = (error: any, setGoogleLoginErrorState: React.D
 
 const googleLoginFailedInIdentityServicesCallback = (setGoogleLoginErrorState: React.Dispatch<React.SetStateAction<string>>) => {
     console.warn("google login failure!")
-    setGoogleLoginErrorState(`Login failed. react-oauth does not give details.`);
+    setGoogleLoginErrorState(`Login failed. Google Identity Services does not give details, sadly.`);
     alert("Login failed!");
 }
 
@@ -377,11 +377,33 @@ export const useLoginApiKey = () => {
     return;
 }
 
+const GSIState = () => {
+    const gsiSciptLoadState = useSelector(selectGSIScriptLoadState);
+    if (gsiSciptLoadState === GSIScriptLoadStates.Error) {
+        return (
+            <>
+                Failed to load Google Identity Services scripts/libraries.
+            </>
+        )
+    }
+    if (gsiSciptLoadState === GSIScriptLoadStates.NoneOrNotLoadedYet) {
+        return (
+            <>
+                Loading Google Identity Services Libraries...
+            </>
+        )
+    }
+    debugger;
+    return null;
+
+}
+
 export const GoogleLoginLogoutContainer = () => {
     const [googleLoginErrorState, setGoogleLoginErrorState] = useState("");
     const aapeeEyeKeyErrorState = useSelector(selectAaaPeeeEyeKeyErrorState);
     const loginAaaPeeEyeKey = useSelector(selectLoginAaaPeeEyeKey);
     const googleProfile = useSelector(selectGoogleProfile);
+    
 
     const dispatch = useDispatch();
     // debugger;
@@ -403,6 +425,7 @@ export const GoogleLoginLogoutContainer = () => {
     if (loginAaaPeeEyeKey === '') {
         return (
             <div>
+                <GSIState/>
                 Loading google auth api key...
             </div>
         );
@@ -410,6 +433,7 @@ export const GoogleLoginLogoutContainer = () => {
     if (aapeeEyeKeyErrorState !== '') {
         return (
             <div>
+                <GSIState/>
                 Error loading google auth api key: {aapeeEyeKeyErrorState}
             </div>
         );
@@ -417,6 +441,7 @@ export const GoogleLoginLogoutContainer = () => {
     if (googleLoginErrorState !== '') {
         return (
             <div>
+                <GSIState/>
                 Error logging in with google: {googleLoginErrorState}
             </div>
         )
@@ -426,6 +451,7 @@ export const GoogleLoginLogoutContainer = () => {
         // console.log("rendering logout.");
         return (
             <div>
+                <GSIState/>
                 {/* <GoogleLogout clientId={loginAaaPeeEyeKey} onLogoutSuccess={() => googleLogoutSuccessCallback(dispatch)} /> */}
                 <Button onClick={(event) => {googleLogoutSuccessCallback(dispatch)}}>
                     Logout of {googleProfile.email}!
@@ -437,6 +463,7 @@ export const GoogleLoginLogoutContainer = () => {
     // debugger;
     return (
         <div>
+            <GSIState/>
             <GoogleLogin onSuccess={(response) => googleLoginSuccessCallback(response, dispatch)}
             /* onError={(error) => googleLoginFailedCallback(error, setGoogleLoginErrorState)} */
             onError={() => googleLoginFailedInIdentityServicesCallback(setGoogleLoginErrorState)}

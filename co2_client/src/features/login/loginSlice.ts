@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { Root } from 'react-dom/client';
 import { RootState } from '../../app/store';
 
 
@@ -31,12 +32,20 @@ interface AuthResponse {
   }
   
 
+export const enum GSIScriptLoadStates {
+    NoneOrNotLoadedYet,
+    Success,
+    Error
+}
+
 interface LoginState {
     username: string;
     googleProfile: GoogleProfile | null;
     googleAuthResponse: AuthResponse | null;
     loginAaaPeeEyeKey: string;
     aapeeeyeKeyErrorState: string;
+    gSIScriptLoadState: GSIScriptLoadStates;
+
 }
 
 const initialState: LoginState = {
@@ -44,7 +53,8 @@ const initialState: LoginState = {
     googleProfile: null,
     googleAuthResponse: null,
     loginAaaPeeEyeKey: '',
-    aapeeeyeKeyErrorState: ''
+    aapeeeyeKeyErrorState: '',
+    gSIScriptLoadState: GSIScriptLoadStates.NoneOrNotLoadedYet
 }
 
 
@@ -66,15 +76,19 @@ export const loginSlice = createSlice({
         },
         setAaaPeeEyeKeyErrorState: (state, action: PayloadAction<string>) => {
             state.aapeeeyeKeyErrorState = action.payload;
+        },
+        setGSIScriptLoadState: (state, action: PayloadAction<GSIScriptLoadStates>) => {
+            state.gSIScriptLoadState = action.payload;
         }
     }
 })
 
-export const {setUsername, setGoogleProfile, setGoogleAuthResponse, setLoginAaaPeeEyeKey, setAaaPeeEyeKeyErrorState} = loginSlice.actions;
+export const {setUsername, setGoogleProfile, setGoogleAuthResponse, setLoginAaaPeeEyeKey, setAaaPeeEyeKeyErrorState, setGSIScriptLoadState} = loginSlice.actions;
 
 export const selectUsername = (state: RootState) => state.login.username;
 export const selectGoogleProfile = (state: RootState) => state.login.googleProfile;
 export const selectGoogleAuthResponse = (state: RootState) => state.login.googleAuthResponse;
 export const selectLoginAaaPeeEyeKey = (state: RootState) => state.login.loginAaaPeeEyeKey;
 export const selectAaaPeeeEyeKeyErrorState = (state: RootState) => state.login.aapeeeyeKeyErrorState;
+export const selectGSIScriptLoadState = (state: RootState) => state.login.gSIScriptLoadState;
 export const loginReducer = loginSlice.reducer;

@@ -21,11 +21,12 @@ import './App.css';
 import { BottomNav } from './features/nav/BottomNav';
 import { BluetoothTesting } from './features/bluetooth/bluetoothDev';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectLoginAaaPeeEyeKey } from './features/login/loginSlice';
+import { GSIScriptLoadStates, selectLoginAaaPeeEyeKey, setGSIScriptLoadState } from './features/login/loginSlice';
 import { ReactNode, useEffect } from 'react';
 import { useLoginApiKey } from './features/login/Login';
 import { defaultMapBounds, useBareFetchOfPlacesFromBackendForEarlyLoad } from './features/google/GoogleMaps';
 import { queryPlacesInBoundsFromBackendLiteral } from './utils/QueryPlacesInfo';
+import { AppDispatch } from './app/store';
 
 
 const NotFound = () => {
@@ -133,8 +134,18 @@ interface GoogleOAuthProviderWrapperProps {
   children: ReactNode;
 }
 
+function gsiScriptLoadSuccessCallbackHandler(dispatch: AppDispatch) {
+  dispatch(setGSIScriptLoadState(GSIScriptLoadStates.Success));
+}
+
+function gsiScriptLoadFailureCallbackHandler(dispatch: AppDispatch) {
+  dispatch(setGSIScriptLoadState(GSIScriptLoadStates.Error));
+}
+
 function GoogleOAuthProviderWrapper({children}: GoogleOAuthProviderWrapperProps) {
   const loginAaaPeeEyeKey = useSelector(selectLoginAaaPeeEyeKey);
+  const dispatch = useDispatch();
+
   const _ = useLoginApiKey();
   if (loginAaaPeeEyeKey === '') {
     console.warn("No login api key yet.")
@@ -148,7 +159,7 @@ function GoogleOAuthProviderWrapper({children}: GoogleOAuthProviderWrapperProps)
   console.log(`Got api key! ${loginAaaPeeEyeKey}`);
   return (
     <>
-      <GoogleOAuthProvider clientId={loginAaaPeeEyeKey}>
+      <GoogleOAuthProvider clientId={loginAaaPeeEyeKey} onScriptLoadSuccess={() => gsiScriptLoadSuccessCallbackHandler(dispatch)} onScriptLoadError={() => gsiScriptLoadFailureCallbackHandler(dispatch)}>
         {children}
       </GoogleOAuthProvider>
     </>
