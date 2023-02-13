@@ -16,6 +16,15 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 // import i18n (needs to be bundled ;)) 
 import './i18n';
 
+
+function shouldEnableSentry(): boolean {
+  if (process.env.NODE_ENV === 'production') {
+    return true;
+  }
+  console.warn(`Disabling sentry reporting for process.env.NODE_ENV === '${process.env.NODE_ENV}'!`);
+  return false;
+}
+
 Sentry.init({
   dsn: "https://5c72ea76ca204179b35fa8a3eb847ab0@o584271.ingest.sentry.io/5737166",
   integrations: [new Integrations.BrowserTracing()],
@@ -25,6 +34,7 @@ Sentry.init({
   // of transactions for performance monitoring.
   // We recommend adjusting this value in production
   tracesSampleRate: 0.1,
+  enabled: shouldEnableSentry()
 });
 
 const rootElement = document.getElementById('root');
