@@ -442,7 +442,7 @@ function checkErrors(promptMomentNotification: PromptMomentNotificationResults, 
             dispatch(setGoogleOneTapErrorState(`invalid google one tap client ID, this issue has been reported.`));
             break;
         case 'opt_out_or_no_session':
-            Sentry.captureMessage(`one tap notDisplayedReason: secure_http_required!`);
+            Sentry.captureMessage(`one tap notDisplayedReason: opt_out_or_no_session!`);
             break;
         case 'secure_http_required':
             Sentry.captureMessage(`one tap notDisplayedReason: secure_http_required!`);
