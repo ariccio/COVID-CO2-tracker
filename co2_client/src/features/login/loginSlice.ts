@@ -99,11 +99,14 @@ export const loginSlice = createSlice({
         },
         setPromptMomentNotificationState: (state, action: PayloadAction<PromptMomentNotificationResults>) => {
             state.promptMomentNotificationState = action.payload;
+        },
+        setGoogleOneTapErrorState: (state, action: PayloadAction<string>) => {
+            state.googleOneTapErrorState = action.payload;
         }
     }
 })
 
-export const {setUsername, setGoogleProfile, setGoogleAuthResponse, setLoginAaaPeeEyeKey, setAaaPeeEyeKeyErrorState, setGSIScriptLoadState, setPromptMomentNotificationState} = loginSlice.actions;
+export const {setUsername, setGoogleProfile, setGoogleAuthResponse, setLoginAaaPeeEyeKey, setAaaPeeEyeKeyErrorState, setGSIScriptLoadState, setPromptMomentNotificationState, setGoogleOneTapErrorState} = loginSlice.actions;
 
 export const selectUsername = (state: RootState) => state.login.username;
 export const selectGoogleProfile = (state: RootState) => state.login.googleProfile;
@@ -112,4 +115,5 @@ export const selectLoginAaaPeeEyeKey = (state: RootState) => state.login.loginAa
 export const selectAaaPeeeEyeKeyErrorState = (state: RootState) => state.login.aapeeeyeKeyErrorState;
 export const selectGSIScriptLoadState = (state: RootState) => state.login.gSIScriptLoadState;
 export const selectPromptMomentNotificationState = (state: RootState) => state.login.promptMomentNotificationState;
+export const selectGoogleOneTapErrorState = (state: RootState) => state.login.googleOneTapErrorState;
 export const loginReducer = loginSlice.reducer;

@@ -6,7 +6,7 @@ import { CredentialResponse, GoogleLogin, googleLogout, MomenListener, PromptMom
 
 import * as Sentry from "@sentry/browser";
 
-import { setUsername, selectGoogleProfile, selectLoginAaaPeeEyeKey, setLoginAaaPeeEyeKey, setAaaPeeEyeKeyErrorState, selectAaaPeeeEyeKeyErrorState, GoogleProfile, selectGSIScriptLoadState, GSIScriptLoadStates, PromptMomentNotificationResults, setPromptMomentNotificationState } from './loginSlice';
+import { setUsername, selectGoogleProfile, selectLoginAaaPeeEyeKey, setLoginAaaPeeEyeKey, setAaaPeeEyeKeyErrorState, selectAaaPeeeEyeKeyErrorState, GoogleProfile, selectGSIScriptLoadState, GSIScriptLoadStates, PromptMomentNotificationResults, setPromptMomentNotificationState, setGoogleOneTapErrorState, selectGoogleOneTapErrorState } from './loginSlice';
 
 import { logout } from '../../utils/Authentication';
 import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
@@ -345,7 +345,7 @@ const googleLogoutSuccessCallback = (dispatch: AppDispatch) => {
         if (response.errors !== undefined) {
             console.log(`Logging out failed: ${formatErrors(response.errors)}`);
             Sentry.captureMessage(`Logging out failed: ${formatErrors(response.errors)}. Rest of response: ${JSON.stringify(response)}`);
-            debugger;
+            // debugger;
             alert(`Logging out failed: ${formatErrors(response.errors)}. This issue has been reported.`)
             return;
         }
@@ -431,23 +431,44 @@ function checkErrors(promptMomentNotification: PromptMomentNotificationResults, 
     switch (promptMomentNotification.notDisplayedReason) {
         case 'browser_not_supported':
             Sentry.captureMessage(`one tap notDisplayedReason: browser_not_supported!`);
+            dispatch(setGoogleOneTapErrorState(`Your browser does not support google one tap login.`));
             break;
         case 'invalid_client':
             Sentry.captureMessage(`one tap notDisplayedReason: invalid_client!`);
+            dispatch(setGoogleOneTapErrorState(`invalid google one tap client, this issue has been reported.`));
             break;
         case 'missing_client_id':
             Sentry.captureMessage(`one tap notDisplayedReason: missing_client_id!`);
+            dispatch(setGoogleOneTapErrorState(`invalid google one tap client ID, this issue has been reported.`));
+            break;
+        case 'opt_out_or_no_session':
+            Sentry.captureMessage(`one tap notDisplayedReason: secure_http_required!`);
+            break;
+        case 'secure_http_required':
+            Sentry.captureMessage(`one tap notDisplayedReason: secure_http_required!`);
+            dispatch(setGoogleOneTapErrorState(`Google one tap login does not work from an unencrypted connection. https required.`));
+            break;
+        case 'suppressed_by_user':
+            dispatch(setGoogleOneTapErrorState(''));
             break;
         case 'unregistered_origin':
             Sentry.captureMessage(`one tap notDisplayedReason: unregistered_origin!`);
+            dispatch(setGoogleOneTapErrorState(`unregistered google one tap client origin, this issue has been reported.`));
             break;
         case 'unknown_reason':
             Sentry.captureMessage(`one tap notDisplayedReason: unknown_reason!`);
+            dispatch(setGoogleOneTapErrorState(`Some unknown issue with google one tap login, this issue has been reported.`));
             break;
-
+        case undefined:
+            dispatch(setGoogleOneTapErrorState(''));
+            break;
+        default:
+            dispatch(setGoogleOneTapErrorState(''));
+            break;            
     }
     if (promptMomentNotification.skippedReason === 'issuing_failed') {
         Sentry.captureMessage(`one tap skippedReason: issuing_failed!`);
+        dispatch(setGoogleOneTapErrorState(`google one tap login client reports issuing failed. This issue has been reported.`));
     }
 }
 
@@ -469,11 +490,27 @@ const promptMomentNotificationListener = (promptMomentNotification: PromptMoment
     dispatch(setPromptMomentNotificationState(promptMomentNotificationResults));
 }
 
+const OneTapState = () => {
+    const googleOneTapErrorState = useSelector(selectGoogleOneTapErrorState);
+
+    if (googleOneTapErrorState !== '') {
+        debugger;
+        return (
+            <>
+                {googleOneTapErrorState}
+            </>
+        );
+    }
+    return null;
+
+}
+
 export const GoogleLoginLogoutContainer = () => {
     const [googleLoginErrorState, setGoogleLoginErrorState] = useState("");
     const aapeeEyeKeyErrorState = useSelector(selectAaaPeeeEyeKeyErrorState);
     const loginAaaPeeEyeKey = useSelector(selectLoginAaaPeeEyeKey);
     const googleProfile = useSelector(selectGoogleProfile);
+    
     
 
     const dispatch = useDispatch();
@@ -517,6 +554,7 @@ export const GoogleLoginLogoutContainer = () => {
             </div>
         )
     }
+
     if (googleProfile !== null) {
         //   debugger;
         // console.log("rendering logout.");
@@ -524,6 +562,7 @@ export const GoogleLoginLogoutContainer = () => {
             <div>
                 <GSIState/>
                 {/* <GoogleLogout clientId={loginAaaPeeEyeKey} onLogoutSuccess={() => googleLogoutSuccessCallback(dispatch)} /> */}
+                <OneTapState/>
                 <Button onClick={(event) => {googleLogoutSuccessCallback(dispatch)}}>
                     Logout of {googleProfile.email}!
                 </Button>
@@ -535,6 +574,7 @@ export const GoogleLoginLogoutContainer = () => {
     return (
         <div>
             <GSIState/>
+            <OneTapState/>
             <GoogleLogin onSuccess={(response) => googleLoginSuccessCallback(response, dispatch)}
             /* onError={(error) => googleLoginFailedCallback(error, setGoogleLoginErrorState)} */
             onError={() => googleLoginFailedInIdentityServicesCallback(setGoogleLoginErrorState)}
