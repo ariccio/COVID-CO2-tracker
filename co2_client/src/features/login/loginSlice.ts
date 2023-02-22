@@ -1,3 +1,4 @@
+import { PromptMomentNotification } from '@react-oauth/google';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Root } from 'react-dom/client';
 import { RootState } from '../../app/store';
@@ -38,6 +39,18 @@ export const enum GSIScriptLoadStates {
     Error
 }
 
+export type PromptMomentNotificationResults = { 
+    isDisplayMoment: ReturnType<PromptMomentNotification["isDisplayMoment"]>;
+    isDisplayed: ReturnType<PromptMomentNotification["isDisplayed"]>;
+    isNotDisplayed: ReturnType<PromptMomentNotification["isNotDisplayed"]>;
+    notDisplayedReason: ReturnType<PromptMomentNotification["getNotDisplayedReason"]>;
+    isSkippedMoment: ReturnType<PromptMomentNotification["isSkippedMoment"]>;
+    skippedReason: ReturnType<PromptMomentNotification["getSkippedReason"]>;
+    isDismissedMoment: ReturnType<PromptMomentNotification["isDismissedMoment"]>;
+    dismissedReason: ReturnType<PromptMomentNotification["getDismissedReason"]>;
+    momentType: ReturnType<PromptMomentNotification["getMomentType"]>;
+}
+
 interface LoginState {
     username: string;
     googleProfile: GoogleProfile | null;
@@ -45,6 +58,8 @@ interface LoginState {
     loginAaaPeeEyeKey: string;
     aapeeeyeKeyErrorState: string;
     gSIScriptLoadState: GSIScriptLoadStates;
+    promptMomentNotificationState?: PromptMomentNotificationResults;
+    googleOneTapErrorState: string;
 
 }
 
@@ -54,7 +69,9 @@ const initialState: LoginState = {
     googleAuthResponse: null,
     loginAaaPeeEyeKey: '',
     aapeeeyeKeyErrorState: '',
-    gSIScriptLoadState: GSIScriptLoadStates.NoneOrNotLoadedYet
+    gSIScriptLoadState: GSIScriptLoadStates.NoneOrNotLoadedYet,
+    promptMomentNotificationState: undefined,
+    googleOneTapErrorState: ''
 }
 
 
@@ -79,11 +96,14 @@ export const loginSlice = createSlice({
         },
         setGSIScriptLoadState: (state, action: PayloadAction<GSIScriptLoadStates>) => {
             state.gSIScriptLoadState = action.payload;
+        },
+        setPromptMomentNotificationState: (state, action: PayloadAction<PromptMomentNotificationResults>) => {
+            state.promptMomentNotificationState = action.payload;
         }
     }
 })
 
-export const {setUsername, setGoogleProfile, setGoogleAuthResponse, setLoginAaaPeeEyeKey, setAaaPeeEyeKeyErrorState, setGSIScriptLoadState} = loginSlice.actions;
+export const {setUsername, setGoogleProfile, setGoogleAuthResponse, setLoginAaaPeeEyeKey, setAaaPeeEyeKeyErrorState, setGSIScriptLoadState, setPromptMomentNotificationState} = loginSlice.actions;
 
 export const selectUsername = (state: RootState) => state.login.username;
 export const selectGoogleProfile = (state: RootState) => state.login.googleProfile;
@@ -91,4 +111,5 @@ export const selectGoogleAuthResponse = (state: RootState) => state.login.google
 export const selectLoginAaaPeeEyeKey = (state: RootState) => state.login.loginAaaPeeEyeKey;
 export const selectAaaPeeeEyeKeyErrorState = (state: RootState) => state.login.aapeeeyeKeyErrorState;
 export const selectGSIScriptLoadState = (state: RootState) => state.login.gSIScriptLoadState;
+export const selectPromptMomentNotificationState = (state: RootState) => state.login.promptMomentNotificationState;
 export const loginReducer = loginSlice.reducer;

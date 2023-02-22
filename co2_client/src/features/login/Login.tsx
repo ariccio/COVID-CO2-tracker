@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 // import { GoogleLogin, GoogleLogout, GoogleLoginResponse, GoogleLoginResponseOffline } from 'react-google-login';
 
-import { CredentialResponse, GoogleLogin, googleLogout } from '@react-oauth/google';
+import { CredentialResponse, GoogleLogin, googleLogout, MomenListener, PromptMomentNotification } from '@react-oauth/google';
 
 import * as Sentry from "@sentry/browser";
 
-import { setUsername, selectGoogleProfile, selectLoginAaaPeeEyeKey, setLoginAaaPeeEyeKey, setAaaPeeEyeKeyErrorState, selectAaaPeeeEyeKeyErrorState, GoogleProfile, selectGSIScriptLoadState, GSIScriptLoadStates } from './loginSlice';
+import { setUsername, selectGoogleProfile, selectLoginAaaPeeEyeKey, setLoginAaaPeeEyeKey, setAaaPeeEyeKeyErrorState, selectAaaPeeeEyeKeyErrorState, GoogleProfile, selectGSIScriptLoadState, GSIScriptLoadStates, PromptMomentNotificationResults, setPromptMomentNotificationState } from './loginSlice';
 
 import { logout } from '../../utils/Authentication';
 import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
@@ -340,16 +340,33 @@ const googleLoginFailedInIdentityServicesCallback = (setGoogleLoginErrorState: R
 
 const googleLogoutSuccessCallback = (dispatch: AppDispatch) => {
     console.warn("logged out via google.");
-    logout();
-    console.log("TODO: some kind of memory leak here, on setUsername. It must dispatch an update here.");
-    debugger;
-    dispatch(setUsername(''));
-    dispatch(setGoogleProfile(null));
-    // dispatch(setGoogleAuthResponse(null));
-    googleLogout(); // google.accounts.id.disableAutoSelect();
-    alert("Logged out. Page will reload.");
-    window.location.reload();
-    // debugger;
+    
+    logout().then((response) => {
+        if (response.errors !== undefined) {
+            console.log(`Logging out failed: ${formatErrors(response.errors)}`);
+            Sentry.captureMessage(`Logging out failed: ${formatErrors(response.errors)}. Rest of response: ${JSON.stringify(response)}`);
+            debugger;
+            alert(`Logging out failed: ${formatErrors(response.errors)}. This issue has been reported.`)
+            return;
+        }
+        else {
+            console.log("successfully logged out of server!");
+            // debugger;
+            console.log("TODO: some kind of memory leak here, on setUsername. It must dispatch an update here.");
+            debugger;
+            dispatch(setUsername(''));
+            dispatch(setGoogleProfile(null));
+            // dispatch(setGoogleAuthResponse(null));
+            googleLogout(); // google.accounts.id.disableAutoSelect();
+            alert("Logged out. Page will reload.");
+            window.location.reload();
+            // debugger;
+        }
+    }).catch((error) => {
+        console.log(`Network error logging out.`);
+        Sentry.captureException(error);
+        alert(`Encountered a network error while logging out. Reload the page and try again. Stringified error: ${JSON.stringify(error)}`);
+    })
 }
 
 // export interface LoginContainerProps {
@@ -393,9 +410,63 @@ const GSIState = () => {
             </>
         )
     }
-    debugger;
     return null;
 
+}
+
+function dumpPromptMomentNotificationState(promptMomentNotification: PromptMomentNotification): void {
+    console.log(`one tap state: ----`)
+    console.log(`\tone tap isDismissedMoment: ${promptMomentNotification.isDismissedMoment()}`);
+    console.log(`\tone tap isDisplayed: ${promptMomentNotification.isDisplayMoment()}`);
+    console.log(`\tone tap isNotDisplayed: ${promptMomentNotification.isNotDisplayed()}`);
+    console.log(`\tone tap isSkippedMoment: ${promptMomentNotification.isSkippedMoment()}`);
+    console.log(`\tone tap isDismissedMoment: ${promptMomentNotification.isDismissedMoment()}`);
+    console.log(`\tone tap getMomentType: ${promptMomentNotification.getMomentType()}`);
+    console.log(`\tone tap getDismissedReason: ${promptMomentNotification.getDismissedReason()}`);
+    console.log(`\tone tap getSkippedReason: ${promptMomentNotification.getSkippedReason()}`);
+    console.log(`\tone tap getNotDisplayedReason: ${promptMomentNotification.getNotDisplayedReason()}`);
+}
+
+function checkErrors(promptMomentNotification: PromptMomentNotificationResults, dispatch: AppDispatch) {
+    switch (promptMomentNotification.notDisplayedReason) {
+        case 'browser_not_supported':
+            Sentry.captureMessage(`one tap notDisplayedReason: browser_not_supported!`);
+            break;
+        case 'invalid_client':
+            Sentry.captureMessage(`one tap notDisplayedReason: invalid_client!`);
+            break;
+        case 'missing_client_id':
+            Sentry.captureMessage(`one tap notDisplayedReason: missing_client_id!`);
+            break;
+        case 'unregistered_origin':
+            Sentry.captureMessage(`one tap notDisplayedReason: unregistered_origin!`);
+            break;
+        case 'unknown_reason':
+            Sentry.captureMessage(`one tap notDisplayedReason: unknown_reason!`);
+            break;
+
+    }
+    if (promptMomentNotification.skippedReason === 'issuing_failed') {
+        Sentry.captureMessage(`one tap skippedReason: issuing_failed!`);
+    }
+}
+
+const promptMomentNotificationListener = (promptMomentNotification: PromptMomentNotification, dispatch: AppDispatch) => {
+    dumpPromptMomentNotificationState(promptMomentNotification);
+    const promptMomentNotificationResults: PromptMomentNotificationResults = {
+        isDisplayMoment: promptMomentNotification.isDisplayMoment(),
+        isDisplayed: promptMomentNotification.isDisplayed(),
+        isNotDisplayed: promptMomentNotification.isNotDisplayed(),
+        notDisplayedReason: promptMomentNotification.getNotDisplayedReason(),
+        isSkippedMoment: promptMomentNotification.isSkippedMoment(),
+        skippedReason: promptMomentNotification.getSkippedReason(),
+        isDismissedMoment: promptMomentNotification.isDismissedMoment(),
+        dismissedReason: promptMomentNotification.getDismissedReason(),
+        momentType: promptMomentNotification.getMomentType()
+    }
+    checkErrors(promptMomentNotificationResults, dispatch);
+
+    dispatch(setPromptMomentNotificationState(promptMomentNotificationResults));
 }
 
 export const GoogleLoginLogoutContainer = () => {
@@ -467,7 +538,7 @@ export const GoogleLoginLogoutContainer = () => {
             <GoogleLogin onSuccess={(response) => googleLoginSuccessCallback(response, dispatch)}
             /* onError={(error) => googleLoginFailedCallback(error, setGoogleLoginErrorState)} */
             onError={() => googleLoginFailedInIdentityServicesCallback(setGoogleLoginErrorState)}
-            useOneTap auto_select/>
+            useOneTap auto_select promptMomentNotification={(notification) => promptMomentNotificationListener(notification, dispatch)}/>
 
         </div>
     )
