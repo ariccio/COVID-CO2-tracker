@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 // import { GoogleLogin, GoogleLogout, GoogleLoginResponse, GoogleLoginResponseOffline } from 'react-google-login';
 
-import { CredentialResponse, GoogleLogin, googleLogout, MomenListener, PromptMomentNotification } from '@react-oauth/google';
+import { CredentialResponse, GoogleLogin, googleLogout, MomentListener, PromptMomentNotification } from '@react-oauth/google';
 
 import * as Sentry from "@sentry/browser";
 

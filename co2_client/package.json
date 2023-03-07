@@ -6,7 +6,7 @@
     "@babel/plugin-syntax-flow": "^7.17.12",
     "@babel/plugin-transform-react-jsx": "^7.17.12",
     "@react-google-maps/api": "^2.7.0",
-    "@react-oauth/google": "^0.6.1",
+    "@react-oauth/google": "^0.8.0",
     "@reduxjs/toolkit": "^1.6.2",
     "@sentry/react": "^7.14.1",
     "@sentry/tracing": "^7.14.1",
