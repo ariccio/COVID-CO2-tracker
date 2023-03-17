@@ -51,7 +51,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "e2e-test": "cypress open"
   },
   "browserslist": {
     "production": [
@@ -68,6 +69,7 @@
   "proxy": "http://localhost:3000",
   "devDependencies": {
     "@eslint/create-config": "^0.4.1",
+    "cypress": "^12.8.1",
     "eslint": "^8.17.0",
     "eslint-plugin-jsx-a11y": "^6.5.1"
   }
