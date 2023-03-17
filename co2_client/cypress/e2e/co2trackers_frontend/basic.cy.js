@@ -6,5 +6,7 @@ describe('fartipelago', () => {
     })
     it('goofy placeholder text', () => {
         cy.contains('welcome');
+        // cy.title().log();
+        cy.log(cy.title().debug())
     })
 })
