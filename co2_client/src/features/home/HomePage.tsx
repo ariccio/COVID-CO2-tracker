@@ -230,7 +230,7 @@ const HomePage = () => {
 
     return (
         <div>
-            <h3>{translate('welcome-header')}</h3>
+            <h3 id='welcome-header'>{translate('welcome-header')}</h3>
             <br/>
             <Button href={YOUTUBE_VIDEO_INSTRUCTIONS_URL}>{translate('Instruction video')}</Button>&nbsp;
             <Button href={GOOGLE_FORMS_SURVEY_URL}>{translate('survey-button-text')}</Button>
