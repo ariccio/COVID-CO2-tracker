@@ -192,6 +192,7 @@ const loadEmail = (dispatch: AppDispatch, username: string) => {
   }).catch((error) => {
     console.error(`Failed to get email from server! fetch itself failed with error '${error}'`);
     debugger;
+    Sentry.captureException(error);
     // alert(`Failed to get your email. Did you interrupt the fetch with a refresh or abort? Is your connection bad? Error message: ${error.message}`);
     // debugger;
     // throw error;

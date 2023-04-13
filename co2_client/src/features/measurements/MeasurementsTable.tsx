@@ -49,6 +49,10 @@ const MeasurementTableHeader = (props: {withDelete?: boolean, innerLocation?: In
 function measurementRowKey(measurement_id: number): string {
     return `profile-measurement-entry-key-${measurement_id}`;
 }
+
+function measurementMapKey(measurement_id: number): string {
+    return `profile-measurement-map-key-${measurement_id}`;
+}
     
 interface DeleteDeviceResponse {
     errors?: Array<ErrorObjectType>
@@ -205,13 +209,19 @@ const TableCellWithIDLink = (props: {id: number}) => {
     )
 }
 
+let warnedAlready = false;
+
 const DeviceIDOrSerialWithLink = (props: {id: number | null, deviceSerials?: Array<SerializedSingleDeviceSerial>}) => {
     // debugger;
     if (props.id === null) {
         throw new Error("Rendering empty device?");
     }
     if (props.deviceSerials === undefined) {
-        debugger;
+        // debugger;
+        if (!warnedAlready) {
+            console.warn("This is not a bug. Device serials aren't necessarily provided with every call. That said, I believe It's a missing feature.")
+            warnedAlready = true;
+        }
         return (
             <TableCellWithIDLink id={props.id}/>
         );    
@@ -257,7 +267,7 @@ const MapMeasurementsToTableBody = (props: {measurements: Array<SerializedSingle
         throw new Error(`measurements is undefined! This is a bug in MeasurementsTable.tsx. deviceSerials: ${props.deviceSerials?.toString()}`);
     }
     if (props.measurements.length === 0) {
-        debugger;
+        // debugger;
         return null;
     }
 
@@ -266,7 +276,7 @@ const MapMeasurementsToTableBody = (props: {measurements: Array<SerializedSingle
             return badMeasurement(measurement);
         }
         return (
-            <SingleMeasurementTableRow measurement={measurement} setSelectedMeasurement={props.setSelectedMeasurement} setShowMeasurementModal={props.setShowMeasurementModal} deviceSerials={props.deviceSerials} innerLocation={props.innerLocation} withDelete={props.withDelete} withDevice={props.withDevice} />
+            <SingleMeasurementTableRow measurement={measurement} setSelectedMeasurement={props.setSelectedMeasurement} setShowMeasurementModal={props.setShowMeasurementModal} deviceSerials={props.deviceSerials} innerLocation={props.innerLocation} withDelete={props.withDelete} withDevice={props.withDevice} key={measurementMapKey(measurement.id)}/>
         );
     };
     return (

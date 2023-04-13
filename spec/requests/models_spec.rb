@@ -25,6 +25,36 @@ RSpec.describe("Models", type: :request) do
         
         expected_model = {"model_id"=> model_response["model_id"], "manufacturer_id"=> created_manufacturer_id, "name"=> new_model_name, "count"=>0}
         expect(json_response["models"]).to(eq([expected_model]))
+        # pp json_response["models"]
+
+        get(api_v1_model_path(expected_model["model_id"]))
+        show_model_response = json_response
+        check_no_error(response, show_model_response, :ok)
+        expect(show_model_response["name"]).to(eq(new_model_name))
+        expect(show_model_response["count"]).to(eq(0))
+        expect(show_model_response["measurement_count"]).to(eq(0))
+        expect(show_model_response).to( include("admin_comments"))
+        expect(show_model_response).not_to( include("admin_comment_farts"))
+        # pp show_model_response
+
+        created = ::AdminUser.first_or_create!(email: 'alexander@pooper', password: 'password', password_confirmation: 'password')
+
+        nonsense_comment = Faker::Lorem.sentence
+        # ActiveAdmin::Author.find(created.id)
+        model_resource = Model.find(expected_model["model_id"])
+        created_comment = ActiveAdmin::Comment.first_or_create!(resource: model_resource, namespace: 'admin', author: created, body: nonsense_comment)
+        # pp created_comment
+
+        get(api_v1_model_path(expected_model["model_id"]))
+        show_model_response_with_activeadmin_comment = json_response
+        expect(show_model_response_with_activeadmin_comment).to( include("admin_comments"))
+
+        expected_admin_comment_author_id = created.id
+        expected_admin_comment_body = nonsense_comment
+        expect(show_model_response_with_activeadmin_comment["admin_comments"][0]["author_id"]).to(eq(expected_admin_comment_author_id))
+        expect(show_model_response_with_activeadmin_comment["admin_comments"][0]["body"]).to(eq(expected_admin_comment_body))
+        # pp show_model_response_with_activeadmin_comment
+        # byebug
 
       end
   

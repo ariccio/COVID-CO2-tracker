@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import {userRequestOptions} from '../../utils/DefaultRequestOptions';
 import { fetchJSONWithChecks } from '../../utils/FetchHelpers';
 import {API_URL} from '../../utils/UrlPath';
-import {ErrorObjectType, formatErrors} from '../../utils/ErrorObject';
+import {ErrorObjectType, exceptionToErrorObject, formatErrors} from '../../utils/ErrorObject';
 
 import {CreateDeviceModelModalDialog} from '../create/CreateDeviceModel';
 import { SerializedSingleMeasurement } from '../../utils/DeviceInfoTypes';
@@ -20,7 +20,19 @@ import { MeasurementsTable } from '../measurements/MeasurementsTable';
 const SHOW_DEVICE_MODEL_URL = (API_URL + '/model');
 
 
+interface DeviceModelAdminComments {
+
+    /*
+        admin_comments: Array(1)
+            0: {id: 1, body: 'hey hoe', author_id: 1}
+     */
+    id: number,
+    body: string,
+    author_id: number
+}
+
 interface QueryDeviceModelInfoResponse {
+    admin_comments: DeviceModelAdminComments[] | null,
     model_id: number,
     name: string,
     manufacturer: number,
@@ -32,6 +44,7 @@ interface QueryDeviceModelInfoResponse {
 }
 
 const defaultQueryDeviceModelInfoResponse: QueryDeviceModelInfoResponse = {
+    admin_comments: null,
     model_id: -1,
     name: '',
     manufacturer: -1,
@@ -44,27 +57,23 @@ const defaultQueryDeviceModelInfoResponse: QueryDeviceModelInfoResponse = {
 async function queryDeviceModelInfo(deviceModelId: string): Promise<any> {
 
     const fetchCallback = async (awaitedResponse: Response): Promise<any> => {
-        console.log("TODO: strong types")
+        console.log("TODO: strong types");
+
+        /*
+            {model_id: 2, name: 'Contoso 1', manufacturer: 3, count: 1, measurement_count: 0, …}
+            admin_comments: Array(1)
+                0: {id: 1, body: 'hey hoe', author_id: 1}
+            count: 1
+            manufacturer: 3
+            manufacturer_name: "Contoso"
+            measurement_count: 0
+            model_id: 2
+            name: "Contoso 1"
+        */
         return await awaitedResponse.json();
     }
     const result = fetchJSONWithChecks(`${SHOW_DEVICE_MODEL_URL}/${deviceModelId}`, userRequestOptions(), 200, true, fetchCallback, fetchCallback);
     return result;
-    // try {
-    //     // debugger;
-    //     const rawResponse: Promise<Response> = fetch(`${SHOW_DEVICE_MODEL_URL}/${deviceModelId}`, userRequestOptions());
-    //     const awaitedResponse = await rawResponse;
-    //     // const jsonResponse = awaitedResponse.json();
-    //     // const parsedJSONResponse = await jsonResponse;
-    //     // console.log(parsedJSONResponse);
-    //     if(fetchFailed(awaitedResponse, 200, true)) {
-    //         debugger;
-    //     }
-
-    //     return await awaitedResponse.json();
-    // }
-    // catch(error) {
-    //     fetchFilter(error);
-    // }
 }
 
 interface ModelMeasurementsResponse {
@@ -81,6 +90,29 @@ const queryDeviceModelMeasurements = (url: string): Promise<ModelMeasurementsRes
     return fetchJSONWithChecks(url, userRequestOptions(), 200, true, fetchCallback, fetchCallback) as Promise<ModelMeasurementsResponse>;
 }
 
+
+const AdminComment = (comment: DeviceModelAdminComments) => {
+    return (
+        <>
+            Admin #{comment.author_id} comment #{comment.id}: {comment.body} <br/> 
+        </>
+    )
+}
+
+const MaybeAdminComments = (props: {admin_comments: DeviceModelAdminComments[] | null}) => {
+    if (props.admin_comments === null) {
+        return null;
+    }
+    if (props.admin_comments.length === 0) {
+        return null;
+    }
+    return (
+        <>
+        {props.admin_comments.map((comment) => AdminComment(comment))}
+        </>
+    );
+}
+
 const BasicDeviceModelInfo = (props: {deviceModelInfo: QueryDeviceModelInfoResponse}) => {
     const [translate] = useTranslation();
     if (props.deviceModelInfo !== defaultQueryDeviceModelInfoResponse) {
@@ -92,6 +124,7 @@ const BasicDeviceModelInfo = (props: {deviceModelInfo: QueryDeviceModelInfoRespo
                 {translate('made by:')} {props.deviceModelInfo.manufacturer_name}, <br/>
                 {translate("total-models-in-database")} {props.deviceModelInfo.count}, <br/>
                 {translate("total-modelmeasurement")} {props.deviceModelInfo.measurement_count} <br/>
+                <MaybeAdminComments admin_comments={props.deviceModelInfo.admin_comments}/>
             </span>
         );
     }
@@ -153,14 +186,14 @@ export const DeviceModels = () => {
             }
             queryDeviceModelInfo(deviceModelId).then(response => {
                 setDeviceModelInfo(response);
+                // debugger;
                 if (response.errors !== undefined) {
+                    debugger;
                     setErrorState(formatErrors(response.errors));
                 }
+            }).catch((error) => {
                 // debugger;
-            }).catch((errors) => {
-                // debugger;
-                setErrorState(errors.message);
-                // debugger;
+                setErrorState(error.message);
             })
         }
     }, [deviceModelId]);
@@ -199,7 +232,7 @@ export const DeviceModels = () => {
             <div>
                 <span>
                     <br/>
-                    Error: {errorState}
+                    Error! Message: {errorState}
                     <br/>
                     <br/>
                 </span>

@@ -193,7 +193,7 @@ const fetchSuccessCallback = async (awaitedResponse: Response): Promise<any> => 
 }
 
 
-const loginWithIDToken = (id_token: string) => {
+const loginWithIDToken = (id_token: string): Promise<void> => {
     const options = loginRequestInit(id_token);
     console.log("logging in to server!")
     // const url = (API_URL + '/google_login_token');
@@ -263,8 +263,13 @@ const googleLoginSuccessCallback = (originalResponse: CredentialResponse, dispat
             return;
         }
         console.log("successfully logged in to server, dispatching results to rest of app...");
-        console.log(`Hello, ${result.email}!`);
         const parsedResponse = jwtDecode(castedResponse.credential) as GoogleProfile;
+        //Driveby found bug - javascript is fucking absurd. I had "result" here instead of "castedResponse".
+        if (parsedResponse.email === undefined) {
+            debugger;
+        }
+        console.log(`Hello, ${parsedResponse.email}!`);
+        // debugger;
         console.warn("TODO: strong type for google profile.");
         // debugger;
         dispatch(setGoogleProfile(parsedResponse));

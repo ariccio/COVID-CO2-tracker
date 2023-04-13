@@ -41,6 +41,7 @@ module Api
 
       def show
         @model = ::Model.find(params.fetch(:id))
+        # byebug
         render(
           json: ::Model.show_as_json(@model),
           status: :ok

@@ -15,7 +15,7 @@ return if ::ENV.fetch('RAILS_ENV', 'development') != 'development'
 
 contoso = ::Manufacturer.find_or_create_by!(name: 'Contoso')
 
-first_user = ::User.find_or_create_by!(email: 'alexander@alexander')
+first_user = ::User.find_or_create_by!(email: 'alexander@goofball', name: 'alexander', sub_google_uid: '1234')
 
 contoso_one =
   ::Model.find_or_create_by!(name: 'Contoso 1') do |dm|
@@ -30,7 +30,7 @@ first_device =
 
 ::Rails.logger.info(first_device)
 
-me = ::User.find_by!(email: 'alexander@alexander')
+me = ::User.find_by!(email: 'alexander@goofball')
 
 # a_place = ::Place.find_or_create_by!(google_place_id: 'lfasieufielaiejf;aiewefjeoif;wief;jewfiwof;afewijf;aief;wef', last_fetched: Time.now)
 # me.devices.first.measurement.create!(co2ppm: 500, place_id: a_place.id)
@@ -43,4 +43,7 @@ me = ::User.find_by!(email: 'alexander@alexander')
 #   Measurement Create (1.4ms)  INSERT INTO "measurements" ("device_id", "co2ppm", "created_at", "updated_at") VALUES (?, ?, ?, ?)  [["device_id", 1], ["co2ppm", 400], ["created_at", "2021-02-16 01:09:54.353737"], ["updated_at", "2021-02-16 01:09:54.353737"]]
 #   TRANSACTION (102.4ms)  commit transaction
 # => #<Measurement id: 2, device_id: 1, co2ppm: 400, measurementtime: nil, created_at: "2021-02-16 01:09:54.353737000 +0000", updated_at: "2021-02-16 01:09:54.353737000 +0000">
-::AdminUser.create!(email: 'admin@example.com', password: 'password', password_confirmation: 'password') if ::Rails.env.development?
+
+::Rails.logger.info("Creating admin user for DEV env. ")
+::AdminUser.create!(email: 'alexander@pooper', password: 'password', password_confirmation: 'password') if ::Rails.env.development?
+::Rails.logger.info(::AdminUser.all)
