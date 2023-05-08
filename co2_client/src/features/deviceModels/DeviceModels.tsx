@@ -94,7 +94,7 @@ const queryDeviceModelMeasurements = (url: string): Promise<ModelMeasurementsRes
 const AdminComment = (comment: DeviceModelAdminComments) => {
     return (
         <>
-            Admin #{comment.author_id} comment #{comment.id}: {comment.body} <br/> 
+            Admin comment #{comment.id}: {comment.body} <br/> 
         </>
     )
 }
