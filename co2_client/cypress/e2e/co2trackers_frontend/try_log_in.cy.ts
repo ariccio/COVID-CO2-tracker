@@ -6,9 +6,10 @@ describe('try logging in', () => {
         cy.loginByGoogleApi();
     })
     it('shows correct stuff', () => {
+        cy.visit('/');
         cy.visit('http://localhost:3001/devices');
         cy.contains("Add your devices and view stats").should("be.visible");
         // cy.contains("logging in...").should("not.exist");
-        cy.visit('/');
+        cy.visit('/profile');
     })
 })
