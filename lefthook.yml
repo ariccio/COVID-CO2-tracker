@@ -28,9 +28,12 @@ pre-push:
     #   tags: frontend security
     #   run: yarn audit
 #
-# pre-commit:
-#   parallel: true
-#   commands:
+pre-commit:
+  parallel: true
+  commands:
+    brakeman:
+      run: |
+        bundle exec brakeman -w3
 #     eslint:
 #       glob: "*.{js,ts,jsx,tsx}"
 #       run: yarn eslint {staged_files}
