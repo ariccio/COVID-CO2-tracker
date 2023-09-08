@@ -25,6 +25,7 @@ import {CreateMyDeviceInstance} from '../create/CreateDeviceInstance';
 import { updateUserInfo } from '../profile/Profile';
 import { selectUserInfoErrorState, selectUserInfoState } from '../profile/profileSlice';
 import { deviceModelsPath } from '../../paths/paths';
+import { selectGoogleProfile } from '../login/loginSlice';
 // import { selectSelectedManufacturer } from '../manufacturers/manufacturerSlice';
 
 
@@ -185,6 +186,7 @@ const DevicesContainer = () => {
     // const selectedManufacturer = useSelector(selectSelectedManufacturer);
     const userInfo = useSelector(selectUserInfoState);
     const errorState = useSelector(selectUserInfoErrorState);
+    const googleProfile = useSelector(selectGoogleProfile);
 
 
     //Buggy. It might be better if these were in redux anyways.
@@ -192,7 +194,8 @@ const DevicesContainer = () => {
     const dispatch = useDispatch();
     useEffect(() => {
         updateUserInfo(dispatch);
-    }, [dispatch])
+        //google profile to fix unauth error
+    }, [dispatch, googleProfile])
     // debugger;
     if (userInfo === defaultUserInfo) {
         if (errorState !== '') {
