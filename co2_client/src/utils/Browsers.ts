@@ -60,3 +60,47 @@ export function isMobileFacebookBrowser(): boolean {
     }
     return false;
 }
+
+
+export function isMacosChrome(): boolean {
+    // For some reason, google one tap often does not display on macos chrome, with no known reason?!
+    // https://covid-co2-tracker.sentry.io/share/issue/8a22358856724a1dabe69b0bc9213cb6/
+    const ua = window.navigator.userAgent;
+    const chrome = ua.match(/Chrome/i);
+    const mac = ua.match(/Macintosh/i);
+    if (chrome === null) {
+        return false;
+    }
+    if (mac === null) {
+        return false;
+    }
+    return true;   
+}
+
+export function isTwitterAppBrowser(): boolean {
+    // Apparently can't display one-tap sign in for twitter.
+    // https://covid-co2-tracker.sentry.io/share/issue/ab438756ce49405d871617f2947d5927/
+    const isTwitterBrowser = window.navigator.userAgent.match(/Twitter for iPhone/i);
+    if (isTwitterBrowser) {
+        return true;
+    }
+    return false;
+}
+
+export function isInstagramAppBrowser(): boolean {
+    // may not be able to display for instagram app browser?
+
+    const isInstagramBrowser = window.navigator.userAgent.match(/Instagram/i);
+    if (isInstagramBrowser !== null) {
+        return true;
+    }
+    return false;
+}
+
+export function isAhrefsbot(): boolean {
+    const isFuckingAhrefsBot = window.navigator.userAgent.match(/AhrefsBot/i);
+    if (isFuckingAhrefsBot !== null) {
+        return true;
+    }
+    return false;
+}

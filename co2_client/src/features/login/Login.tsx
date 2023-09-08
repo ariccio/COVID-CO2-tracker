@@ -21,6 +21,7 @@ import { AppDispatch } from '../../app/store';
 import { formatErrors } from '../../utils/ErrorObject';
 import { Button } from 'react-bootstrap';
 import jwtDecode from 'jwt-decode';
+import { isAhrefsbot, isMacosChrome, isMobileFacebookBrowser, isTwitterAppBrowser } from '../../utils/Browsers';
 
 
 
@@ -435,6 +436,18 @@ function dumpPromptMomentNotificationState(promptMomentNotification: PromptMomen
 function checkErrors(promptMomentNotification: PromptMomentNotificationResults, dispatch: AppDispatch) {
     switch (promptMomentNotification.notDisplayedReason) {
         case 'browser_not_supported':
+            if (isTwitterAppBrowser()) {
+                dispatch(setGoogleOneTapErrorState(`Twitter/"X" browser may not support google one tap login. Open in your browser if you have issues.`));
+                break;
+            }
+            if (isMobileFacebookBrowser()) {
+                dispatch(setGoogleOneTapErrorState(`Facebook browser may not support google one tap login. Open in your browser.`));
+                break;
+            }
+            if (isAhrefsbot()) {
+                console.log("You cause so many issues, fuck off lmao");
+                break;
+            }
             Sentry.captureMessage(`one tap notDisplayedReason: browser_not_supported!`);
             dispatch(setGoogleOneTapErrorState(`Your browser does not support google one tap login.`));
             break;
@@ -447,7 +460,7 @@ function checkErrors(promptMomentNotification: PromptMomentNotificationResults, 
             dispatch(setGoogleOneTapErrorState(`invalid google one tap client ID, this issue has been reported.`));
             break;
         case 'opt_out_or_no_session':
-            Sentry.captureMessage(`one tap notDisplayedReason: opt_out_or_no_session!`);
+            // Sentry.captureMessage(`one tap notDisplayedReason: opt_out_or_no_session!`);
             break;
         case 'secure_http_required':
             Sentry.captureMessage(`one tap notDisplayedReason: secure_http_required!`);
@@ -461,6 +474,10 @@ function checkErrors(promptMomentNotification: PromptMomentNotificationResults, 
             dispatch(setGoogleOneTapErrorState(`unregistered google one tap client origin, this issue has been reported.`));
             break;
         case 'unknown_reason':
+            if (isMacosChrome()) {
+                dispatch(setGoogleOneTapErrorState(`Some unknown issue with google one tap login, this occurs a lot on macos Chrome for some unknown reason.`));
+                break;
+            }
             Sentry.captureMessage(`one tap notDisplayedReason: unknown_reason!`);
             dispatch(setGoogleOneTapErrorState(`Some unknown issue with google one tap login, this issue has been reported.`));
             break;
@@ -469,6 +486,7 @@ function checkErrors(promptMomentNotification: PromptMomentNotificationResults, 
             break;
         default:
             dispatch(setGoogleOneTapErrorState(''));
+            Sentry.captureMessage(`one tap notDisplayedReason: ${promptMomentNotification.notDisplayedReason}, serialized just in case: ${JSON.stringify(promptMomentNotification.notDisplayedReason)}`);
             break;            
     }
     if (promptMomentNotification.skippedReason === 'issuing_failed') {
