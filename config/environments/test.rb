@@ -64,9 +64,12 @@ require 'active_support/core_ext/integer/time'
   # pp "turning ActiveRecord SQL query logs on"
   # # config.active_record.verbose_query_logs = true
   # config.log_level = :warn
-  
-  # https://edgeguides.rubyonrails.org/configuring.html#config-active-record-db-warnings-action
-  config.active_record.db_warnings_action = :report
+
+  if (RAILS::VERSION::MAJOR >= 7) && (RAILS::VERSION::MINOR >= 1)
+    # https://edgeguides.rubyonrails.org/configuring.html#config-active-record-db-warnings-action
+    config.active_record.db_warnings_action = :report
+  end
+
 
 
   # Rails.logger = Logger.new(STDOUT)

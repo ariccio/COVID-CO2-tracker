@@ -66,8 +66,10 @@ require 'active_support/core_ext/integer/time'
   # Highlight code that triggered database queries in logs.
   config.active_record.verbose_query_logs = true
 
-  # https://edgeguides.rubyonrails.org/configuring.html#config-active-record-db-warnings-action
-  config.active_record.db_warnings_action = :report
+  if (RAILS::VERSION::MAJOR >= 7) && (RAILS::VERSION::MINOR >= 1)
+    # https://edgeguides.rubyonrails.org/configuring.html#config-active-record-db-warnings-action
+    config.active_record.db_warnings_action = :report
+  end
 
   # Raises error for missing translations.
   # config.i18n.raise_on_missing_translations = true
