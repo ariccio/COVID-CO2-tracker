@@ -94,6 +94,9 @@ require 'active_support/core_ext/integer/time'
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
 
+  # https://edgeguides.rubyonrails.org/configuring.html#config-active-record-db-warnings-action
+  config.active_record.db_warnings_action = :report
+
   # Inserts middleware to perform automatic connection switching.
   # The `database_selector` hash is used to pass options to the DatabaseSelector
   # middleware. The `delay` is used to determine how long to wait after a write
