@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class Place < ApplicationRecord
+  # TODO: add normalizer https://edgeguides.rubyonrails.org/7_1_release_notes.html#add-activerecord-base-normalizes
   has_many :sub_location, dependent: :restrict_with_exception
   has_many :measurement, dependent: :restrict_with_exception, through: :sub_location
 

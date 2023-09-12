@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class Measurement < ApplicationRecord
+  # TODO: add normalizer https://edgeguides.rubyonrails.org/7_1_release_notes.html#add-activerecord-base-normalizes
   belongs_to :device
   belongs_to :sub_location
   belongs_to :extra_measurement_info, optional: true, inverse_of: :measurement
