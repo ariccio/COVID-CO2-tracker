@@ -95,7 +95,7 @@ require 'active_support/core_ext/integer/time'
   config.active_record.dump_schema_after_migration = false
 
 
-  if (RAILS::VERSION::MAJOR >= 7) && (RAILS::VERSION::MINOR >= 1)
+  if Rails.version != "7.0.8"
     # https://edgeguides.rubyonrails.org/configuring.html#config-active-record-db-warnings-action
     config.active_record.db_warnings_action = :report
   end
