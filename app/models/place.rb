@@ -7,6 +7,17 @@ class Place < ApplicationRecord
 
   acts_as_mappable(default_units: :miles, default_formula: :sphere, distance_field_name: :distance, lat_column_name: :place_lat, lng_column_name: :place_lng)
 
+  def self.ransackable_attributes(auth_object = nil)
+    # https://activerecord-hackery.github.io/ransack/going-further/other-notes/#authorization-allowlistingdenylisting
+    if auth_object == :admin
+      # whitelist all attributes for admin
+      super
+    else
+      # whitelist only the title and body attributes for other users
+      super & %w(title body)
+    end
+  end
+
   def place_measurementtime_desc
     # TODO: This SUCKS
     sub_location.includes(:measurement).find_each.map do |loc|
