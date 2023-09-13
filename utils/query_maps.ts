@@ -60,6 +60,7 @@ function successfulPlaceDetailsRequest(value: PlaceDetailsResponse) {
 
 function main() {
     const originalFile = process.argv[2];
+    
     const ids = cleanFile(originalFile);
     console.log(ids);
 
@@ -68,6 +69,9 @@ function main() {
     console.log(`querying ${id}...`);
 
     const key = fs.readFileSync(`analysis_key.key`).toString();
+    
+    const outputFile = originalFile + "_places_types.json";
+    
     const client = new Client({});
     const request: PlaceDetailsRequest = placeDetailsRequestForPlace(key, id);
     

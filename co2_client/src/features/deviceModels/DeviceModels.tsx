@@ -113,6 +113,18 @@ const MaybeAdminComments = (props: {admin_comments: DeviceModelAdminComments[] |
     );
 }
 
+const MaybeShowLimitNote = (props: {measurement_count: number}) => {
+    if (props.measurement_count > 200) {
+        return (
+            <>
+                {/* TODO: FIX */}
+                Currently showing only up to 200 until I speed up THIS part of the backend a bit :) <br/>
+            </>
+        )
+    }
+    return null;
+}
+
 const BasicDeviceModelInfo = (props: {deviceModelInfo: QueryDeviceModelInfoResponse}) => {
     const [translate] = useTranslation();
     if (props.deviceModelInfo !== defaultQueryDeviceModelInfoResponse) {
@@ -125,6 +137,7 @@ const BasicDeviceModelInfo = (props: {deviceModelInfo: QueryDeviceModelInfoRespo
                 {translate("total-models-in-database")} {props.deviceModelInfo.count}, <br/>
                 {translate("total-modelmeasurement")} {props.deviceModelInfo.measurement_count} <br/>
                 <MaybeAdminComments admin_comments={props.deviceModelInfo.admin_comments}/>
+                <MaybeShowLimitNote measurement_count={props.deviceModelInfo.measurement_count}/>
             </span>
         );
     }
