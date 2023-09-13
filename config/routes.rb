@@ -17,7 +17,7 @@
       resources :device, only: [:create, :show, :destroy]
       resources :manufacturers, only: [:create, :show]
       resources :model, only: [:create, :show]
-      resources :places, only: [:show, :create]
+      resources :places, only: [:show, :create, :index]
       resources :measurement, only: [:create, :destroy, :show]
       resources :realtime_measurement, only: [:create]
 

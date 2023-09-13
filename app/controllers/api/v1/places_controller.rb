@@ -11,12 +11,15 @@ module Api
       # before_action :set_place, only: [:show, :update, :destroy]
       # Don't want much of the scaffolding generated stuff
 
-      # # GET /places
-      # def index
-      #   @places = Place.all
-
-      #   render json: @places
-      # end
+      def index
+        @places = Place.all.select(:google_place_id)
+        pms = ::GooglePlaceIDSerializer.new(@places).serializable_hash
+        render(
+          json: {
+            places: pms[:data]
+          }, status: :ok
+        )
+      end
 
       def refresh_latlng_from_google
         # byebug

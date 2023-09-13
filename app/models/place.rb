@@ -17,6 +17,9 @@ class Place < ApplicationRecord
       super & %w(title body)
     end
   end
+  def self.ransackable_associations(auth_object = nil)
+    ["measurement", "sub_location"]
+  end
 
   def place_measurementtime_desc
     # TODO: This SUCKS
