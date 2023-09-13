@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class GooglePlaceIDSerializer
+class GooglePlaceIdSerializer
     include ::JSONAPI::Serializer
     attributes :google_place_id
   
