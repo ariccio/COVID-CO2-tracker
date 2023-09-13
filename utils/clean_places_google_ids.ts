@@ -3,9 +3,9 @@ import * as fs from 'fs';
 
 
 
-function main() {
-    console.log(`Opening: ${process.argv[2]}`);
-    const fileContentsAsBuffer = fs.readFileSync(process.argv[2]);
+export function cleanFile(file: string): any {
+    console.log(`Opening: ${file}`);
+    const fileContentsAsBuffer = fs.readFileSync(file);
     console.log(fileContentsAsBuffer.subarray(0, 1000).toString());
     console.log(`Length of read file contents: ${fileContentsAsBuffer.byteLength}`);
 
@@ -17,10 +17,11 @@ function main() {
         return value;
     }
     
-    const parsed = JSON.parse(fileContentsAsBuffer.toString(), transform );
+    JSON.parse(fileContentsAsBuffer.toString(), transform );
     console.log(ids)
+    return ids;
 
 }
 
 
-main();
+// main();
