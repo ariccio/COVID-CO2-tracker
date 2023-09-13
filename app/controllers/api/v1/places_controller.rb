@@ -13,7 +13,7 @@ module Api
 
       def index
         @places = Place.all.select(:google_place_id)
-        pms = ::GooglePlaceIDSerializer.new(@places).serializable_hash
+        pms = ::GooglePlaceIdSerializer.new(@places).serializable_hash
         render(
           json: {
             places: pms[:data]
