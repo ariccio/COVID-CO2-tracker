@@ -2,7 +2,7 @@
     "name": "covid-co2-tracker",
     "license": "MIT",
     "engines": {
-        "node": "16.x",
+        "node": "18.x",
         "yarn": "1.x"
     },
     "scripts": {
@@ -11,9 +11,12 @@
         "heroku-postbuild": "yarn build && yarn deploy"
     },
     "dependencies": {
+        "@types/node": "^20.6.0",
         "i18next": "^21.8.14",
         "i18next-browser-languagedetector": "^6.1.1",
         "i18next-http-backend": "^1.2.4",
-        "react-i18next": "^11.8.15"
+        "react-i18next": "^11.8.15",
+        "ts-node": "^10.9.1",
+        "typescript": "^5.2.2"
     }
 }
