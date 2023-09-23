@@ -1,7 +1,48 @@
 import * as fs from 'fs';
 
-import { cleanFile } from "./clean_places_google_ids";
-import {Client, PlaceDetailsRequest, PlaceDetailsResponse} from "@googlemaps/google-maps-services-js";
+import { cleanIdsFromFile } from "./clean_places_google_ids";
+import {AddressType, Client, PlaceDetailsRequest, PlaceDetailsResponse} from "@googlemaps/google-maps-services-js";
+import { readAlreadySavedData } from './persistent_storage';
+
+const SUGGESTED_FILE_POSTFIX = "_places_types_mapping_for_offline_analytics_only";
+// TODO: If this gets complicated, just use any of:
+//  https://www.npmjs.com/package/meow
+//  https://www.npmjs.com/package/commander
+//  https://www.npmjs.com/package/minimist
+
+const ORIGINAL_INPUT_FILE_ARGV_POSITION = 2;
+const OUTPUT_FILE_ARGV_POSITION = 3;
+
+
+interface OfflineSavedPlaceDetailsForAnalyticsOnly {
+    // many comments below are from @googlemaps/google-maps-services-js/dist/common.d.ts
+    // See also: https://developers.google.com/maps/documentation/places/web-service/details#PlaceDetailsResponses
+    // /**
+    //  * contains the human-readable name for the returned result.
+    //  * For establishment results, this is usually the canonicalized business name.
+    //  */
+    // name: string;
+    /**
+     * contains an array of feature types describing the given result.
+     * XML responses include multiple `<type>` elements if more than one type is assigned to the result.
+     */
+    types: AddressType[];
+
+    // /**
+    //  * contains the URL of the official Google page for this place.
+    //  * This will be the Google-owned page that contains the best available information about the place.
+    //  * Applications must link to or embed this page on any screen that shows detailed results about the place to the user.
+    //  */
+    // url: string;
+}
+
+type ArrayOfPlaceIDs = string[];
+
+interface SavedAllDataForPlacesOfflineAnalysisOnly {
+    places_with_details_types: OfflineSavedPlaceDetailsForAnalyticsOnly[]
+    places_by_type: Map<AddressType, ArrayOfPlaceIDs>;
+}
+
 
 
 function placeDetailsRequestForPlace(key: string, id: string): PlaceDetailsRequest {
@@ -57,21 +98,65 @@ function successfulPlaceDetailsRequest(value: PlaceDetailsResponse) {
 
 }
 
+function defaultNewOutputFileName(originalFile: string) {
+
+    const outputFile = originalFile + `${SUGGESTED_FILE_POSTFIX}.json`;
+    return outputFile;
+}
+
+
+
+function defaultOutputFileOrChosenFile(originalInputFile: string): string | null {    
+    const defaultOutputFile = defaultNewOutputFileName(originalInputFile);
+    if (process.argv.length <= OUTPUT_FILE_ARGV_POSITION) {
+        console.log('No output file specified. Will use default.');
+        return defaultOutputFile;
+    }
+    const outputFromCommandLineIfAny = process.argv[OUTPUT_FILE_ARGV_POSITION]
+    console.log(`Supplied '${outputFromCommandLineIfAny}' as output file in argv[${OUTPUT_FILE_ARGV_POSITION}]`);
+    if (outputFromCommandLineIfAny.length === 0) {
+        console.warn(`specified output file name length is zero, will use default`);
+        return defaultOutputFile;
+    }
+
+    if (!outputFromCommandLineIfAny.includes(SUGGESTED_FILE_POSTFIX)) {
+        console.warn(`The specified output file does not end in the recommended postfix.`);
+        return null;
+    }
+
+    return outputFromCommandLineIfAny;
+}
+
 
 function main() {
-    const originalFile = process.argv[2];
-    
-    const ids = cleanFile(originalFile);
-    console.log(ids);
+    const originalFile = process.argv[ORIGINAL_INPUT_FILE_ARGV_POSITION];
+    console.log(`Supplied '${originalFile}' as input file in argv[${ORIGINAL_INPUT_FILE_ARGV_POSITION}]`);
+    const ids = cleanIdsFromFile(originalFile);
+    if (ids === null) {
+        return -1;
+    }
+
+    console.log(`first ten IDs from input file: ${ids.slice(0, 10)}`);
+
+
+    const key = fs.readFileSync(`analysis_key.key`).toString();
+    if (key.length === 0) {
+        console.error(`no API key!`);
+        return -1;
+    }
 
     // console.log(ids[0]);
     const id = String(ids[0]);
     console.log(`querying ${id}...`);
 
-    const key = fs.readFileSync(`analysis_key.key`).toString();
-    
-    const outputFile = originalFile + "_places_types.json";
-    
+    const outputFile = defaultOutputFileOrChosenFile(originalFile);
+    if (outputFile === null) {
+        return -1;
+    }
+    console.log(`Output file name (saving not yet impl): '${outputFile}'`);
+
+    const alreadySavedData = readAlreadySavedData(outputFile);
+
     const client = new Client({});
     const request: PlaceDetailsRequest = placeDetailsRequestForPlace(key, id);
     
