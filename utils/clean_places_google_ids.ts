@@ -28,6 +28,7 @@ export function cleanIdsFromFile(file: string): string[] | null {
     const unused = JSON.parse(fileContentsAsBuffer.toString(), transform );
     console.log("first ten IDs extracted:")
     console.log(ids.slice(0, 10))
+    console.log(`Number of IDs: ${ids.length}`);
     return ids;
 }
 

@@ -1,10 +1,12 @@
 import * as fs from 'fs';
 
 import { cleanIdsFromFile } from "./clean_places_google_ids";
-import {Client, PlaceDetailsRequest, PlaceDetailsResponse} from "@googlemaps/google-maps-services-js";
+import {AddressType, Client, PlaceDetailsRequest, PlaceDetailsResponse} from "@googlemaps/google-maps-services-js";
 import { readAlreadySavedData } from './persistent_storage';
 import { request } from 'http';
-import { AddressTypeWithMissingTypes } from './typescript_fucking_annoyances';
+// import { AddressTypeWithMissingTypes } from './typescript_fucking_annoyances';
+
+// type AddressTypeWithMissingTypes = AddressType;
 
 const SUGGESTED_FILE_POSTFIX = "_places_types_mapping_for_offline_analytics_only";
 // TODO: If this gets complicated, just use any of:
@@ -29,7 +31,8 @@ interface OfflineSavedPlaceDetailsForAnalyticsOnly {
      * contains an array of feature types describing the given result.
      * XML responses include multiple `<type>` elements if more than one type is assigned to the result.
      */
-    types: AddressTypeWithMissingTypes[];
+    // types: AddressTypeWithMissingTypes[];
+    types: AddressType[];
 
     // /**
     //  * contains the URL of the official Google page for this place.
@@ -41,11 +44,21 @@ interface OfflineSavedPlaceDetailsForAnalyticsOnly {
 
 type ArrayOfPlaceIDs = string[];
 
-type fancyMappedTypeForPlacesByType = {[placeType in AddressTypeWithMissingTypes] : string[]}
+// type fancyMappedTypeForPlacesByType = {[placeType in AddressTypeWithMissingTypes] : string[]}
+type fancyMappedTypeForPlacesByType = {[placeType in AddressType] : string[]}
 interface SavedAllDataForPlacesOfflineAnalysisOnly {
     places_with_details_types: Map<string, OfflineSavedPlaceDetailsForAnalyticsOnly>;
     places_by_type: fancyMappedTypeForPlacesByType;
 }
+type serializedPlacesWithDetailsTypes = {
+    [key: string]: OfflineSavedPlaceDetailsForAnalyticsOnly
+}
+
+interface SavedAllSerializedDataForPlacesOfflineAnalysisOnly {
+    places_with_details_types: serializedPlacesWithDetailsTypes
+    places_by_type: fancyMappedTypeForPlacesByType;
+}
+
 
 function dumpMap(map: Map<string, OfflineSavedPlaceDetailsForAnalyticsOnly>) {
     console.log(`Map values:`);
@@ -55,7 +68,8 @@ function dumpMap(map: Map<string, OfflineSavedPlaceDetailsForAnalyticsOnly>) {
 }
 
 function dumpPlacesByType(places_by_type: fancyMappedTypeForPlacesByType) {
-    (Object.keys(places_by_type)as Array<keyof typeof AddressTypeWithMissingTypes>).forEach((key) => {
+    // (Object.keys(places_by_type)as Array<keyof typeof AddressTypeWithMissingTypes>).forEach((key) => {
+    (Object.keys(places_by_type)as Array<keyof typeof AddressType>).forEach((key) => {
         if ((places_by_type as fancyMappedTypeForPlacesByType)[key].length > 0) {
             console.log(`place type: ${String(key)}: ${(places_by_type as fancyMappedTypeForPlacesByType)[key]}`);
         }
@@ -81,7 +95,7 @@ function successfulPlaceDetailsRequest(value: PlaceDetailsResponse, collectedPla
         return;
     }
     if (!Array.isArray(value.data.result)) {
-        // console.log(`result ${JSON.stringify(value.data.result)} not array.`);
+        console.log(`result ${JSON.stringify(value.data.result)} not array.`);
         if (value.data.result.address_components !== null) {
             delete value.data.result.address_components;
         }
@@ -144,7 +158,28 @@ function successfulPlaceDetailsRequest(value: PlaceDetailsResponse, collectedPla
             console.log(`pushing second...`);
             // console.log(`value.data.result.types.length: ${value.data.result.types.length}`);
             console.log(`The type to push: ${value.data.result.types[1]}`)
-            collectedPlacesData.places_by_type[value.data.result.types[1]].push(requestedPlaceID);
+            console.log(`typeof collectedPlacesData.places_by_type[value.data.result.types[1]]: ${typeof(collectedPlacesData.places_by_type[value.data.result.types[1]])}`);
+            
+            if (typeof(collectedPlacesData.places_by_type[value.data.result.types[1]]) === "undefined") {
+                console.log(`branch entry`)
+                const newType = value.data.result.types[1] as string;
+                console.log(`new type created...`);
+                const newObjFromJSON = JSON.parse(`{"${newType}": ["${requestedPlaceID}"]}`);
+                console.log(`JSON.stringify(newObjFromJSON): ${JSON.stringify(newObjFromJSON)}`)
+                // const newObj = Object.assign({
+                //     newType: [requestedPlaceID]
+                // });
+                console.log(`merging...`);
+                collectedPlacesData.places_by_type = {
+                    ...collectedPlacesData.places_by_type,
+                    ...newObjFromJSON
+                    
+                } as fancyMappedTypeForPlacesByType;
+            }
+            else {
+                console.log("other branch")
+                collectedPlacesData.places_by_type[value.data.result.types[1]].push(requestedPlaceID);
+            }
             // console.log(`Added ${value.data.result.types[0]} and ${value.data.result.types[1]}`)
         }
         console.log(`next`);
@@ -204,7 +239,8 @@ function defaultOutputFileOrChosenFile(originalInputFile: string): string | null
 function initializeCollectedPlacesData(): SavedAllDataForPlacesOfflineAnalysisOnly {
     const initializedPlacesByType = new Object();
 
-    (Object.keys(AddressTypeWithMissingTypes)as Array<keyof typeof AddressTypeWithMissingTypes>).forEach((key) => {
+    // (Object.keys(AddressTypeWithMissingTypes)as Array<keyof typeof AddressTypeWithMissingTypes>).forEach((key) => {
+    (Object.keys(AddressType)as Array<keyof typeof AddressType>).forEach((key) => {
         (initializedPlacesByType as fancyMappedTypeForPlacesByType)[key] = new Array<string>;
     })
     
@@ -228,8 +264,85 @@ async function wrappedRequest(client: Client, request: PlaceDetailsRequest): Pro
 }
 
 
-async function queryAllDataAndSaveAsync(key: string, client: Client, collectedPlacesData: SavedAllDataForPlacesOfflineAnalysisOnly, ids: string[]) {
-    for (let i = 0; i < 5; ++i) {
+function saveDataSerialized(collectedPlacesData: SavedAllDataForPlacesOfflineAnalysisOnly, outputFile: string) {
+    const initializedPlacesByType = new Object();
+
+
+    /*
+        (Object.keys(places_by_type)as Array<keyof typeof AddressType>).forEach((key) => {
+        if ((places_by_type as fancyMappedTypeForPlacesByType)[key].length > 0) {
+            console.log(`place type: ${String(key)}: ${(places_by_type as fancyMappedTypeForPlacesByType)[key]}`);
+        }
+    })
+
+    */
+
+    // (Object.keys(AddressTypeWithMissingTypes)as Array<keyof typeof AddressTypeWithMissingTypes>).forEach((key) => {
+    (Object.keys(AddressType) as Array<keyof typeof AddressType>).forEach((key) => {
+        if ((collectedPlacesData.places_by_type as fancyMappedTypeForPlacesByType)[key].length > 0) {
+            (initializedPlacesByType as fancyMappedTypeForPlacesByType)[key] = (collectedPlacesData.places_by_type as fancyMappedTypeForPlacesByType)[key];
+        }
+    });
+    console.log(`cursed iterator done`);
+
+    const serializedData: SavedAllSerializedDataForPlacesOfflineAnalysisOnly = {
+        places_with_details_types: {},
+        places_by_type: initializedPlacesByType as fancyMappedTypeForPlacesByType
+    };
+
+    console.log(`walking each place`)
+
+    collectedPlacesData.places_with_details_types.forEach((value, key, theMap) => {
+        console.log(`Map['${key}']: ${theMap.get(key)?.types}`)
+        const values = theMap.get(key);
+        if (values === undefined) {
+            console.warn("missing values in map - cannot persist?!?");
+            return;
+        }
+        console.log(`key: ${key}`);
+        console.log(JSON.stringify(serializedData.places_with_details_types));
+        console.log(Object.keys(serializedData.places_with_details_types));
+        console.log(`serializedData.places_with_details_types[key]: ${serializedData.places_with_details_types[key]}`);
+        // if (Object.keys(serializedData.places_with_details_types).length === 0) {
+
+        // }
+        const newTypes = values.types;
+
+        let newTypesAsJSON = `[`;
+        for (let i = 0; i < newTypes.length; ++i) {
+            newTypesAsJSON += `"${newTypes[i]}",`;
+        }
+        newTypesAsJSON = newTypesAsJSON.slice(0, -1);
+        newTypesAsJSON += "]"
+
+        const newKey = `{
+            "${key}": {
+                "types": 
+                    ${newTypesAsJSON}
+                
+            }
+        }`
+        console.log(`newkey as json: ${newKey}`);
+        serializedData.places_with_details_types = {
+            ...serializedData.places_with_details_types,
+            ...JSON.parse(newKey)
+        }
+        // serializedData.places_with_details_types[key].types = values.types;
+    })
+
+    try {
+        fs.writeFileSync(outputFile, JSON.stringify(serializedData));
+    }
+    catch (error) {
+        console.error(`Failed to write data!! ${JSON.stringify(error)}, err.message: ${(error as any)?.message}, stack: ${(error as any)?.stack}`);
+    }
+
+
+}
+
+
+async function queryAllDataAndSaveAsync(key: string, client: Client, collectedPlacesData: SavedAllDataForPlacesOfflineAnalysisOnly, ids: string[], outputFile: string) {
+    for (let i = 0; i < ids.length; ++i) {
         const thisID = ids[i];
 
         if (collectedPlacesData.places_with_details_types.has(thisID)) {
@@ -272,9 +385,19 @@ async function queryAllDataAndSaveAsync(key: string, client: Client, collectedPl
         //     });
 
     }
+    try {
+        console.log(`Trying to save...`)
+        saveDataSerialized(collectedPlacesData, outputFile);
+    }
+    catch (error) {
+        console.error(`Failed to save data: ${JSON.stringify(error)}, message: ${(error as any)?.message}, stack: ${(error as any)?.stack}`);
+    }
+    
     dumpMap(collectedPlacesData.places_with_details_types);
     dumpPlacesByType(collectedPlacesData.places_by_type);
+
 }
+
 
 
 
@@ -315,10 +438,11 @@ function main() {
     }
 
     const client = new Client({});
-    queryAllDataAndSaveAsync(key, client, collectedPlacesData, ids).then((result) => {
+    queryAllDataAndSaveAsync(key, client, collectedPlacesData, ids, outputFile).then((result) => {
+        console.log("Done writing data.");
         return;
     }).catch((error) => {
-        console.error(`Promise failed! ${JSON.stringify(error)}`);
+        console.error(`query data and save failed! ${JSON.stringify(error)}`);
     });
 
     
