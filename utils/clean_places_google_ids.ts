@@ -3,7 +3,7 @@ import * as fs from 'fs';
 
 
 
-export function cleanIdsFromFile(file: string): String[] | null {
+export function cleanIdsFromFile(file: string): string[] | null {
     if (file.length === 0) {
         console.warn("Empty file name");
         return null;
@@ -14,10 +14,10 @@ export function cleanIdsFromFile(file: string): String[] | null {
         console.warn("no IDs");
         return null;
     }
-    console.log(fileContentsAsBuffer.subarray(0, 1000).toString());
+    console.log(`dump of beginning of file: '${fileContentsAsBuffer.subarray(0, 400).toString()}'`);
     console.log(`Length of read file contents: ${fileContentsAsBuffer.byteLength}`);
 
-    let ids = new Array<String>;
+    let ids = new Array<string>;
     function transform(this: any, key: string, value: any) {
         if (key === "google_place_id") {
             ids.push(value)
@@ -25,10 +25,10 @@ export function cleanIdsFromFile(file: string): String[] | null {
         return value;
     }
     
-    JSON.parse(fileContentsAsBuffer.toString(), transform );
-    console.log(ids)
+    const unused = JSON.parse(fileContentsAsBuffer.toString(), transform );
+    console.log("first ten IDs extracted:")
+    console.log(ids.slice(0, 10))
     return ids;
-
 }
 
 

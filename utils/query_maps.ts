@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import { cleanIdsFromFile } from "./clean_places_google_ids";
 import {AddressType, Client, PlaceDetailsRequest, PlaceDetailsResponse} from "@googlemaps/google-maps-services-js";
 import { readAlreadySavedData } from './persistent_storage';
+import { request } from 'http';
 
 const SUGGESTED_FILE_POSTFIX = "_places_types_mapping_for_offline_analytics_only";
 // TODO: If this gets complicated, just use any of:
@@ -13,6 +14,13 @@ const SUGGESTED_FILE_POSTFIX = "_places_types_mapping_for_offline_analytics_only
 const ORIGINAL_INPUT_FILE_ARGV_POSITION = 2;
 const OUTPUT_FILE_ARGV_POSITION = 3;
 
+
+declare enum MissingTypes {
+    grocery_or_supermarket = "grocery_or_supermarket"
+}
+
+declare const AddressTypeWithMissingTypes: typeof AddressType & typeof MissingTypes;
+type AddressTypeWithMissingTypes = AddressType | MissingTypes;
 
 interface OfflineSavedPlaceDetailsForAnalyticsOnly {
     // many comments below are from @googlemaps/google-maps-services-js/dist/common.d.ts
@@ -26,7 +34,7 @@ interface OfflineSavedPlaceDetailsForAnalyticsOnly {
      * contains an array of feature types describing the given result.
      * XML responses include multiple `<type>` elements if more than one type is assigned to the result.
      */
-    types: AddressType[];
+    types: AddressTypeWithMissingTypes[];
 
     // /**
     //  * contains the URL of the official Google page for this place.
@@ -38,11 +46,26 @@ interface OfflineSavedPlaceDetailsForAnalyticsOnly {
 
 type ArrayOfPlaceIDs = string[];
 
+type fancyMappedTypeForPlacesByType = {[placeType in AddressTypeWithMissingTypes] : string[]}
 interface SavedAllDataForPlacesOfflineAnalysisOnly {
-    places_with_details_types: OfflineSavedPlaceDetailsForAnalyticsOnly[]
-    places_by_type: Map<AddressType, ArrayOfPlaceIDs>;
+    places_with_details_types: Map<string, OfflineSavedPlaceDetailsForAnalyticsOnly>;
+    places_by_type: fancyMappedTypeForPlacesByType;
 }
 
+function dumpMap(map: Map<string, OfflineSavedPlaceDetailsForAnalyticsOnly>) {
+    console.log(`Map values:`);
+    map.forEach((value, key, theMap) => {
+        console.log(`Map['${key}']: ${map.get(key)?.types}`)
+    })
+}
+
+function dumpPlacesByType(places_by_type: fancyMappedTypeForPlacesByType) {
+    (Object.keys(places_by_type)as Array<keyof typeof AddressTypeWithMissingTypes>).forEach((key) => {
+        if ((places_by_type as fancyMappedTypeForPlacesByType)[key].length > 0) {
+            console.log(`place type: ${key}: ${(places_by_type as fancyMappedTypeForPlacesByType)[key]}`);
+        }
+    })
+}
 
 
 function placeDetailsRequestForPlace(key: string, id: string): PlaceDetailsRequest {
@@ -56,8 +79,8 @@ function placeDetailsRequestForPlace(key: string, id: string): PlaceDetailsReque
 }
 
 
-function successfulPlaceDetailsRequest(value: PlaceDetailsResponse) {
-    console.log(`response succeeded, data:`);
+function successfulPlaceDetailsRequest(value: PlaceDetailsResponse, collectedPlacesData: SavedAllDataForPlacesOfflineAnalysisOnly, requestedPlaceID: string) {
+    // console.log(`response succeeded, data:`);
     if (value.data.result === undefined) {
         console.log("resutls undefined");
         return;
@@ -74,15 +97,66 @@ function successfulPlaceDetailsRequest(value: PlaceDetailsResponse) {
             delete value.data.result.reviews;
         }
 
-        Object.entries(value.data.result).forEach(([key, value]) => {
-            if (typeof(value) === "object") {
-                console.log(`key ${key}, object as JSON instead: ${JSON.stringify(value)}`)
+        Object.entries(value.data.result).forEach(([key, entryValue]) => {
+            if (Array.isArray(entryValue)) {
+                console.log(`key '${key}' is an array. Values: ${entryValue.toString()}`);
+            }
+            else if (typeof(entryValue) === "object") {
+                console.log(`key '${key}' has fancy types, object as JSON instead: ${JSON.stringify(entryValue)}`)
             }
             else {
-                console.log(`key '${key}', value: '${value}'`); // "a 5", "b 7", "c 9"
+                console.log(`key '${key}', value: '${entryValue}'`); // "a 5", "b 7", "c 9"
             }
         })
+        if (value.data.result.place_id === undefined) {
+            // Happens. I dunno why right now. Probably just not requesting it?
+            // console.warn(`response for place request for ${requestedPlaceID} is missing... the place id`);
+            // return;
+        }
+        if (value.data.result.place_id !== undefined) {
+            if (value.data.result.place_id !== requestedPlaceID) {
+                console.error(`response contains different place ID than request`);
+                throw new Error(`response (${value.data.result.place_id}) contains different place ID than request (${requestedPlaceID}).`);
+            }
+        }
 
+        if (value.data.result.types === undefined) {
+            console.warn(`result.types of ${requestedPlaceID} is undefined!`)
+            return;
+        }
+        if (!Array.isArray(value.data.result.types)) {
+            console.warn(`response for place request for ${requestedPlaceID} contains non-array place types: ${typeof(value.data.result.types)}: as JSON: '${JSON.stringify(value.data.result.types)}'`);
+            return;
+        }
+        if (value.data.result.types.length > 2) {
+            value.data.result.types = value.data.result.types.slice(0, 2);
+        }
+        if (value.data.result.types.length === 0) {
+            console.warn(`response for place request for ${requestedPlaceID} has empty place types array?`);
+            return;
+        }
+        if (value.data.result.types.length === 1) {
+            console.warn(`place ${requestedPlaceID} has only one place type?`);
+        }
+        if(collectedPlacesData.places_with_details_types.has(requestedPlaceID)) {
+            console.warn(`map already has ${requestedPlaceID}??`);
+        }
+        else {
+            // console.log(`new place for array`);
+            collectedPlacesData.places_with_details_types.set(requestedPlaceID, {types: value.data.result.types})
+            console.log(`pushing first...`);
+            collectedPlacesData.places_by_type[value.data.result.types[0]].push(requestedPlaceID);
+            console.log(`pushing second...`);
+            // console.log(`value.data.result.types.length: ${value.data.result.types.length}`);
+            console.log(`The type to push: ${value.data.result.types[1]}`)
+            collectedPlacesData.places_by_type[value.data.result.types[1]].push(requestedPlaceID);
+            // console.log(`Added ${value.data.result.types[0]} and ${value.data.result.types[1]}`)
+        }
+        console.log(`next`);
+
+        // dumpMap(collectedPlacesData.places_with_details_types);
+        // console.log(`collectedPlacesData.places_by_type: ${JSON.stringify(collectedPlacesData.places_by_type)}`)
+        // dumpPlacesByType(collectedPlacesData.places_by_type);
         return;
     }
 
@@ -91,10 +165,13 @@ function successfulPlaceDetailsRequest(value: PlaceDetailsResponse) {
         return;
     }
     for (let i = 0; i < value.data.result[0].data.keys.length; ++i) {
+        console.log(`-- what is this for? --`)
         console.log(`key ${i}: ${value.data.result[0].keys[i]}`);
     }
     // console.table(value.data);
+    console.log(`---what gets here? ---`)
     console.log(`response succeeded, data: ${JSON.stringify(value.data)}`);
+
 
 }
 
@@ -124,8 +201,86 @@ function defaultOutputFileOrChosenFile(originalInputFile: string): string | null
         return null;
     }
 
+    console.log(`Output file name (saving not yet impl): '${outputFromCommandLineIfAny}'`);
     return outputFromCommandLineIfAny;
 }
+
+
+function initializeCollectedPlacesData(): SavedAllDataForPlacesOfflineAnalysisOnly {
+    const initializedPlacesByType = new Object();
+
+    (Object.keys(AddressTypeWithMissingTypes)as Array<keyof typeof AddressTypeWithMissingTypes>).forEach((key) => {
+        (initializedPlacesByType as fancyMappedTypeForPlacesByType)[key] = new Array<string>;
+    })
+    
+    
+    const collectedPlacesData: SavedAllDataForPlacesOfflineAnalysisOnly = {
+        places_with_details_types: new Map(),
+        places_by_type: initializedPlacesByType as fancyMappedTypeForPlacesByType
+    };
+    // console.log(collectedPlacesData);
+    return collectedPlacesData;
+}
+
+async function wrappedRequest(client: Client, request: PlaceDetailsRequest): Promise<PlaceDetailsResponse | null> {
+    try {
+        return await client.placeDetails(request);
+    }
+    catch (error) {
+        console.error(`Error requesting place details: ${JSON.stringify(error)}`);
+        return null;
+    }
+}
+
+
+async function queryAllDataAndSaveAsync(key: string, client: Client, collectedPlacesData: SavedAllDataForPlacesOfflineAnalysisOnly, ids: string[]) {
+    for (let i = 0; i < 5; ++i) {
+        const thisID = ids[i];
+
+        if (collectedPlacesData.places_with_details_types.has(thisID)) {
+            const thisIDDetails = collectedPlacesData.places_with_details_types.get(thisID);
+            if (thisIDDetails === undefined) {
+                console.error('thisIDDetails === undefined')
+                throw new Error("OK, this makes no sense.");
+            }
+
+            // I could do this, but it seems slow. Leave for now.
+            // if (collectedPlacesData.places_by_type[thisIDDetails.types[0]])
+            continue;
+        }
+
+        const request: PlaceDetailsRequest = placeDetailsRequestForPlace(key, thisID);
+    
+        console.log(`querying ${thisID}...`);
+        const requestResult = await wrappedRequest(client, request);
+        if (requestResult === null) {
+            continue;
+        }
+        if (requestResult.status !== 200) {
+            console.error(`request response is NOT OK: ${requestResult.status}`);
+            console.error(`Request status: ${requestResult.statusText}`);
+        }
+        // console.log(`parsing...`);
+
+        // https://developers.google.com/maps/documentation/places/web-service/details
+        try {
+            successfulPlaceDetailsRequest(requestResult, collectedPlacesData, thisID)
+        }
+        catch ( error ) {
+            console.error(`Some kind of error parsing the place response?: ${JSON.stringify(error)}`);
+            // throw error;
+        }
+        
+        // .then((value) => 
+        //     .catch((e) => {
+        //         console.log(e.response.data.error_message);
+        //     });
+
+    }
+    dumpMap(collectedPlacesData.places_with_details_types);
+    dumpPlacesByType(collectedPlacesData.places_by_type);
+}
+
 
 
 function main() {
@@ -135,8 +290,12 @@ function main() {
     if (ids === null) {
         return -1;
     }
+    if (ids.length < 1) {
+        console.error(`No IDs to query.`);
+        return -1;
+    }
 
-    console.log(`first ten IDs from input file: ${ids.slice(0, 10)}`);
+    // console.log(`first ten IDs from input file: ${ids.slice(0, 10)}`);
 
 
     const key = fs.readFileSync(`analysis_key.key`).toString();
@@ -146,26 +305,30 @@ function main() {
     }
 
     // console.log(ids[0]);
-    const id = String(ids[0]);
-    console.log(`querying ${id}...`);
+    // const firstID = String(ids[0]);
 
     const outputFile = defaultOutputFileOrChosenFile(originalFile);
     if (outputFile === null) {
         return -1;
     }
-    console.log(`Output file name (saving not yet impl): '${outputFile}'`);
 
+    const collectedPlacesData = initializeCollectedPlacesData();
     const alreadySavedData = readAlreadySavedData(outputFile);
+    let needsNewSavefile = false;
+    if (alreadySavedData === undefined) {
+        needsNewSavefile = true;
+    }
 
     const client = new Client({});
-    const request: PlaceDetailsRequest = placeDetailsRequestForPlace(key, id);
-    
-    // https://developers.google.com/maps/documentation/places/web-service/details
-    client.placeDetails(request).then(successfulPlaceDetailsRequest)
-    .catch((e) => {
-        console.log(e.response.data.error_message);
+    queryAllDataAndSaveAsync(key, client, collectedPlacesData, ids).then((result) => {
+        return;
+    }).catch((error) => {
+        console.error(`Promise failed! ${JSON.stringify(error)}`);
     });
+
+    
 }
 
 
 main()
+
