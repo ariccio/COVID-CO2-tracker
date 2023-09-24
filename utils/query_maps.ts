@@ -1,9 +1,10 @@
 import * as fs from 'fs';
 
 import { cleanIdsFromFile } from "./clean_places_google_ids";
-import {AddressType, Client, PlaceDetailsRequest, PlaceDetailsResponse} from "@googlemaps/google-maps-services-js";
+import {Client, PlaceDetailsRequest, PlaceDetailsResponse} from "@googlemaps/google-maps-services-js";
 import { readAlreadySavedData } from './persistent_storage';
 import { request } from 'http';
+import { AddressTypeWithMissingTypes } from './typescript_fucking_annoyances';
 
 const SUGGESTED_FILE_POSTFIX = "_places_types_mapping_for_offline_analytics_only";
 // TODO: If this gets complicated, just use any of:
@@ -15,12 +16,6 @@ const ORIGINAL_INPUT_FILE_ARGV_POSITION = 2;
 const OUTPUT_FILE_ARGV_POSITION = 3;
 
 
-declare enum MissingTypes {
-    grocery_or_supermarket = "grocery_or_supermarket"
-}
-
-declare const AddressTypeWithMissingTypes: typeof AddressType & typeof MissingTypes;
-type AddressTypeWithMissingTypes = AddressType | MissingTypes;
 
 interface OfflineSavedPlaceDetailsForAnalyticsOnly {
     // many comments below are from @googlemaps/google-maps-services-js/dist/common.d.ts
@@ -62,7 +57,7 @@ function dumpMap(map: Map<string, OfflineSavedPlaceDetailsForAnalyticsOnly>) {
 function dumpPlacesByType(places_by_type: fancyMappedTypeForPlacesByType) {
     (Object.keys(places_by_type)as Array<keyof typeof AddressTypeWithMissingTypes>).forEach((key) => {
         if ((places_by_type as fancyMappedTypeForPlacesByType)[key].length > 0) {
-            console.log(`place type: ${key}: ${(places_by_type as fancyMappedTypeForPlacesByType)[key]}`);
+            console.log(`place type: ${String(key)}: ${(places_by_type as fancyMappedTypeForPlacesByType)[key]}`);
         }
     })
 }
