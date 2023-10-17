@@ -20,7 +20,7 @@
       resources :places, only: [:show, :create, :index]
       resources :measurement, only: [:create, :destroy, :show]
       resources :realtime_measurement, only: [:create]
-
+      resources :open_ai_chat_gpt, only: [:post]
       # Hmm, not used yet.
       # resources :sub_locations
 
