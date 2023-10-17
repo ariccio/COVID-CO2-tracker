@@ -25,6 +25,13 @@ module Api
             },
             status: :ok
           )
+          when 'OPENAI_API_KEY'
+            render(
+              json: {
+                key: ::Rails.application.credentials.openai![:openai_api_key]
+              },
+              status: :ok
+            )
         else
           ::Sentry.capture_message("unknown api name: #{api_name_requested}")
           render(

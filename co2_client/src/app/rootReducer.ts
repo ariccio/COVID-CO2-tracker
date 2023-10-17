@@ -8,6 +8,7 @@ import {placesInfoReducer} from '../features/places/placesSlice';
 import { profileReducer } from '../features/profile/profileSlice';
 import { sublocationReducer } from '../features/sublocationsDropdown/sublocationSlice';
 import {bluetoothReducer} from '../features/bluetooth/bluetoothSlice';
+import { openAIReducer } from '../features/openai/openAiSlice';
 
 export const rootReducer = combineReducers({
     login: loginReducer,
@@ -18,7 +19,8 @@ export const rootReducer = combineReducers({
     placesInfo: placesInfoReducer,
     profile: profileReducer,
     sublocation: sublocationReducer,
-    bluetooth: bluetoothReducer
+    bluetooth: bluetoothReducer,
+    openAI: openAIReducer
 });
 
 export type RootState = ReturnType<typeof rootReducer>;
