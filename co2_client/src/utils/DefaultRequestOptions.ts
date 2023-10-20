@@ -31,5 +31,15 @@ export function postRequestOptions(): RequestInit {
         },
     }
     return requestOptions;
+}
 
+export function patchRequestOptions(): RequestInit {
+    const requestOptions: RequestInit = {
+        method: 'PATCH',
+        credentials: includeCreds,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    }
+    return requestOptions;
 }
