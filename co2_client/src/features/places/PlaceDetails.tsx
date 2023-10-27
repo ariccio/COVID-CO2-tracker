@@ -6,6 +6,7 @@ import { useJsApiLoader } from '@react-google-maps/api';
 import { GOOGLE_LIBRARIES } from '../google/GoogleMaps';
 
 import { selectPlacesServiceStatus, selectSelectedPlace } from '../google/googleSlice';
+import { ChatComponent } from '../openai/ChatGPTEmbed';
 
 
 interface PlaceDetailsProps {
@@ -61,6 +62,7 @@ export const PlaceDetails: React.FC<PlaceDetailsProps> = (props) => {
     return (
         <div>
             <RenderSelectedPlaceInfo currentPlace={selectedPlace} placesServiceStatus={placesServiceStatus}/>
+            <ChatComponent/>
         </div>
     );
 }

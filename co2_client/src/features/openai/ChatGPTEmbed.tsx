@@ -6,7 +6,7 @@ import { AppDispatch } from '../../app/store';
 import { ChatGPTMessage, defaultChatGPTMessageState, selectOpenAIChatGPTErrors, selectOpenAIChatGPTMessages, selectOpenAIKeyErrors, selectOpenAIPlatformKey, selectSubmittingInProgress, setChatGPTMessages, setOpenAIChatGPTErrorString, setOpenAIKeyErrors, setOpenAIPlatformKey, setSubmittingInProgress } from './openAiSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { MaybeIfValueNot } from '../../utils/RenderValues';
-import { proxyChatGPTThroughBackendForWhateverReasonTheyAllWannaDoThis } from './openAiUtil';
+// import { proxyChatGPTThroughBackendForWhateverReasonTheyAllWannaDoThis } from './openAiUtil';
 import { userRequestOptions } from '../../utils/DefaultRequestOptions';
 import { formatErrors } from '../../utils/ErrorObject';
 import { fetchJSONWithChecks } from "../../utils/FetchHelpers";
@@ -18,12 +18,224 @@ import { API_URL } from "../../utils/UrlPath";
 
 const GET_API_KEY_URL = API_URL + '/keys';
 const OPENAI_KEY = '/OPENAI_API_KEY';
-const OPENAI_KEY_URL = (GET_API_KEY_URL + OPENAI_KEY)
+const OPENAI_KEY_URL = (GET_API_KEY_URL + OPENAI_KEY);
+const OPENAI_COMPLETION_URL = "https://api.openai.com/v1/chat/completions";
 
-interface ChatGPTCompletionRequest {
+interface ChatGPTCompletionRequestBody {
     model: string;
     messages: ChatGPTMessage[];
-    temperature: number;
+    temperature?: number;
+}
+
+export interface ChatGPTContentFunctionCall {
+    arguments: string;
+    name: string;
+}
+
+interface ChatGPTMessageResponse {
+    content: string | null;
+    role: string;
+    function_call: ChatGPTContentFunctionCall;
+}
+
+interface ChatGPTChoice {
+    finish_reason: string;
+    index: number;
+    message: ChatGPTMessageResponse;
+
+}
+
+interface ChatGPTUsageObject {
+    completion_tokens: number;
+    prompt_tokens: number;
+    total_tokens: number;
+}
+
+// https://platform.openai.com/docs/api-reference/chat/object
+interface ChatGPTCompletionResponse {
+    id: string;
+    choices: ChatGPTChoice[];
+    object: string;
+    usage: ChatGPTUsageObject;
+}
+
+// Why doesn't typescript have macros yet? https://github.com/microsoft/TypeScript/issues/4892
+function chatGPTCompletionResponseToStrongType(response: unknown, dispatch: AppDispatch): ChatGPTCompletionResponse | null {
+    if (response === null) {
+        dispatch(setOpenAIChatGPTErrorString('response from chatGPT is null.'));
+        return null;
+    }
+    if (response === undefined) {
+        dispatch(setOpenAIChatGPTErrorString('response from chatGPT is undefined.'));
+        return null;
+    }
+    const someResponse: any = response;
+    if (someResponse.id === undefined) {
+        dispatch(setOpenAIChatGPTErrorString('response from chatGPT is missing id (undefined).'));
+        return null;
+    }
+    if (someResponse.id === null) {
+        dispatch(setOpenAIChatGPTErrorString('response from chatGPT is missing id (null).'));
+        return null;
+    }
+    if (someResponse.choices === undefined) {
+        dispatch(setOpenAIChatGPTErrorString('response from chatGPT is missing choices (undefined).'));
+        return null;
+    }
+    if (someResponse.choices === null) {
+        dispatch(setOpenAIChatGPTErrorString('response from chatGPT is missing choices (null).'));
+        return null;
+    }
+    const maybeChoices = someResponse.choices;
+    if (maybeChoices.length === undefined) {
+        dispatch(setOpenAIChatGPTErrorString('response from chatGPT is missing choices.length (undefined).'));
+        return null;
+    }
+    if (maybeChoices.length === null) {
+        dispatch(setOpenAIChatGPTErrorString('response from chatGPT is missing choices.length (null).'));
+        return null;
+    }
+    console.log(`choices: ${maybeChoices.length}`);
+    if (maybeChoices.length === 0) {
+        return null;
+    }
+    for (let i = 0; i < maybeChoices.length; ++i) {
+        if (maybeChoices[i] === null) {
+            dispatch(setOpenAIChatGPTErrorString(`response from chatGPT is missing choices[${i}] (null).`));
+            return null;
+        }
+        if (maybeChoices[i] === undefined) {
+            dispatch(setOpenAIChatGPTErrorString(`response from chatGPT is missing choices[${i}] (undefined).`));
+            return null;
+        }
+        if (maybeChoices[i].finish_reason === undefined) {
+            dispatch(setOpenAIChatGPTErrorString(`response from chatGPT is missing choices[${i}].finish_reason (undefined).`));
+            return null;
+        }
+        if (maybeChoices[i].finish_reason === null) {
+            dispatch(setOpenAIChatGPTErrorString(`response from chatGPT is missing choices[${i}].finish_reason (null).`));
+            return null;
+        }
+        console.log(`Choice ${i} finish reason: ${maybeChoices[i].finish_reason}`);
+        if (maybeChoices[i].index === undefined) {
+            dispatch(setOpenAIChatGPTErrorString(`response from chatGPT is missing choices[${i}].index (undefined).`));
+            return null;
+        }
+        if (maybeChoices[i].index === null) {
+            dispatch(setOpenAIChatGPTErrorString(`response from chatGPT is missing choices[${i}].index (null).`));
+            return null;
+        }
+        if (maybeChoices[i].message === undefined) {
+            dispatch(setOpenAIChatGPTErrorString(`response from chatGPT is missing choices[${i}].message (undefined).`));
+            return null;
+        }
+        if (maybeChoices[i].message === null) {
+            dispatch(setOpenAIChatGPTErrorString(`response from chatGPT is missing choices[${i}].message (null).`));
+            return null;
+        }
+        if (maybeChoices[i].message.content === undefined) {
+            dispatch(setOpenAIChatGPTErrorString(`response from chatGPT is missing choices[${i}].message.content (undefined).`));
+            return null;
+        }
+        if (maybeChoices[i].message.content === null) {
+            dispatch(setOpenAIChatGPTErrorString(`response from chatGPT is missing choices[${i}].message.content (null).`));
+            return null;
+        }
+        console.log(`Choice ${i} message content: ${maybeChoices[i].message.content}`);
+        if (maybeChoices[i].message.role === undefined) {
+            dispatch(setOpenAIChatGPTErrorString(`response from chatGPT is missing choices[${i}].message.role (undefined).`));
+            return null;
+        }
+        if (maybeChoices[i].message.role === null) {
+            dispatch(setOpenAIChatGPTErrorString(`response from chatGPT is missing choices[${i}].message.role (null).`));
+            return null;
+        }
+        console.log(`Choice ${i} message role: ${maybeChoices[i].message.role}`);
+        if (maybeChoices[i].message.function_call === undefined) {
+            console.log(`Choice ${i} function call undefined`);
+            
+        }
+        if (maybeChoices[i].message.function_call === null) {
+            console.log(`Choice ${i} function call null`);
+        }
+        
+        if (maybeChoices[i].message.function_call.arguments === undefined) {
+            console.log(`Choice ${i} function call arguments undefined`);
+        }
+        if (maybeChoices[i].message.function_call.arguments === null) {
+            console.log(`Choice ${i} function call arguments null`);
+        }
+        console.log(`Choice ${i} function call arguments: ${maybeChoices[i].message.function_call.arguments}`);
+        if (maybeChoices[i].message.function_call.name === undefined) {
+            console.log(`Choice ${i} function call arguments undefined`);
+        }
+        if (maybeChoices[i].message.function_call.name === null) {
+            console.log(`Choice ${i} function call arguments null`);
+        }
+        console.log(`Choice ${i} function call arguments: ${maybeChoices[i].message.function_call.name}`);
+    }
+    if (someResponse.object === undefined) {
+        dispatch(setOpenAIChatGPTErrorString('response from chatGPT is missing object (undefined).'));
+        return null;
+    }
+    if (someResponse.object === null) {
+        dispatch(setOpenAIChatGPTErrorString('response from chatGPT is missing object (null).'));
+        return null;
+    }
+    if (someResponse.usage === undefined) {
+        dispatch(setOpenAIChatGPTErrorString('response from chatGPT is missing usage (undefined).'));
+        return null;
+    }
+    if (someResponse.usage === null) {
+        dispatch(setOpenAIChatGPTErrorString('response from chatGPT is missing usage (null).'));
+        return null;
+    }
+    if (someResponse.usage.completion_tokens === undefined) {
+        dispatch(setOpenAIChatGPTErrorString('response from chatGPT is missing usage.completion_tokens (undefined).'));
+        return null;
+    }
+    if (someResponse.usage.completion_tokens === null) {
+        dispatch(setOpenAIChatGPTErrorString('response from chatGPT is missing usage.completion_tokens (null).'));
+        return null;
+    }
+    if (someResponse.usage.prompt_tokens === undefined) {
+        dispatch(setOpenAIChatGPTErrorString('response from chatGPT is missing usage.prompt_tokens (undefined).'));
+        return null;
+    }
+    if (someResponse.usage.prompt_tokens === null) {
+        dispatch(setOpenAIChatGPTErrorString('response from chatGPT is missing usage.prompt_tokens (null).'));
+        return null;
+    }
+
+    if (someResponse.usage.total_tokens === undefined) {
+        dispatch(setOpenAIChatGPTErrorString('response from chatGPT is missing usage.total_tokens (undefined).'));
+        return null;
+    }
+    if (someResponse.usage.total_tokens === null) {
+        dispatch(setOpenAIChatGPTErrorString('response from chatGPT is missing usage.total_tokens (null).'));
+        return null;
+    }
+    return someResponse;
+}
+
+function appendMessageAndReturnMessagesForQuery(chatGPTMessages: ChatGPTMessage[] | null, dispatch: AppDispatch, messageTextToSend: string) {
+    if (chatGPTMessages === null) {
+        const newChatGPTMessage: ChatGPTMessage = { role: 'user', content: messageTextToSend }
+        const newMessages = [newChatGPTMessage];
+        dispatch(setChatGPTMessages(newMessages));
+        return newMessages;
+    }
+    else if (chatGPTMessages === defaultChatGPTMessageState) {
+        const newChatGPTMessage: ChatGPTMessage = { role: 'user', content: messageTextToSend };
+        const newMessages = [newChatGPTMessage];
+        dispatch(setChatGPTMessages(newMessages));
+        return newMessages;
+    }
+    // Add user message to chat
+    const newChatGPTMessage: ChatGPTMessage = { role: 'user', content: messageTextToSend };
+    const newMessages = [...chatGPTMessages, newChatGPTMessage];
+    dispatch(setChatGPTMessages(newMessages));
+    return newMessages;
 }
 
 
@@ -35,25 +247,65 @@ const sendMessageToBackendOrChatGPT = async (dispatch: AppDispatch, chatGPTMessa
     dispatch(setSubmittingInProgress(true))
     setInputValue('');
     
-    if (chatGPTMessages === null) {
-        dispatch(setChatGPTMessages([{ sender: 'user', content: messageTextToSend }]));
-    }
-    else if (chatGPTMessages === defaultChatGPTMessageState) {
-        dispatch(setChatGPTMessages([{ sender: 'user', content: messageTextToSend }]));
-    }
-    else {
-        // Add user message to chat
-        dispatch(setChatGPTMessages([...chatGPTMessages, { sender: 'user', content: messageTextToSend }]));
-    }
+    const newMessages = appendMessageAndReturnMessagesForQuery(chatGPTMessages, dispatch, messageTextToSend);
 
+    const chatGPTBody: ChatGPTCompletionRequestBody = {
+        model: "gpt-3.5-turbo",
+        messages: newMessages,
+    }
 
     const chatGPTPostRequest: RequestInit = {
         method: "POST",
         headers: {
             "Authorization": "Bearer " + openAIPlatformKey,
             "Content-Type": "application/json",    
-        }
+        },
+        body: JSON.stringify(chatGPTBody)
+    };
+
+    const fetchFailedCallback = async (awaitedResponse: Response): Promise<ChatGPTCompletionResponse | null> => {
+        console.error("failed to send chat to ChatGPT!");
+        return chatGPTCompletionResponseToStrongType(awaitedResponse.json(), dispatch);
     }
+    const fetchSuccessCallback = async (awaitedResponse: Response): Promise<ChatGPTCompletionResponse | null> => {
+        console.log("fetch to send chat to chatGPT!");
+        return chatGPTCompletionResponseToStrongType(awaitedResponse.json(), dispatch);
+    }
+
+
+    const response = fetchJSONWithChecks(OPENAI_COMPLETION_URL, chatGPTPostRequest, 200, false, fetchFailedCallback, fetchSuccessCallback) as Promise<ChatGPTCompletionResponse | null>;
+
+    response.then((chatGPTResponse) => {
+        debugger;
+        if (chatGPTResponse === null) {
+            const newChatGPTMessage: ChatGPTMessage = { role: 'invalid', content: "ERROR" };
+            const messagesWithReply = [...newMessages, newChatGPTMessage];
+            
+            // is there a risk of a race here?
+            dispatch(setChatGPTMessages(messagesWithReply));
+            dispatch(setSubmittingInProgress(false));
+            return;
+        }
+        // const newChatGPTMessage: ChatGPTMessage = { sender: 'invalid', content: "ERROR" };
+        chatGPTResponse.choices[0].finish_reason 
+        const newChatGPTMessage: ChatGPTMessage = {
+            role: "chatgpt",
+            content: chatGPTResponse.choices[0].message.content,
+            finish_reason: chatGPTResponse.choices[0].finish_reason,
+            function_call: chatGPTResponse.choices[0].message.function_call
+        }
+        const messagesWithReply = [...newMessages, newChatGPTMessage];
+        
+        // is there a risk of a race here?
+        dispatch(setChatGPTMessages(messagesWithReply));
+        dispatch(setSubmittingInProgress(false));
+        return;
+    }).catch((error) => {
+        dispatch(setOpenAIChatGPTErrorString(`Network error: ${JSON.stringify(error)}`));
+        dispatch(setSubmittingInProgress(false));
+    })
+
+    
     // // Send message to backend
     // const response = await fetch('/api/chat', {
     //     method: 'POST',
@@ -77,6 +329,7 @@ const sendMessage = (dispatch: AppDispatch, chatGPTMessages: ChatGPTMessage[] | 
 }
 
 
+
 function ChatGPTMessagesListGroup(props: {chatGPTMessages: ChatGPTMessage[] | null}) {
     if (props.chatGPTMessages === null) {
         return null;
@@ -86,8 +339,9 @@ function ChatGPTMessagesListGroup(props: {chatGPTMessages: ChatGPTMessage[] | nu
     <ListGroup>
         {props.chatGPTMessages.map(
             (message, index) => (
-                <ListGroup.Item key={`chatgpt-message-entry-${index}`} className={message.sender}>
+                <ListGroup.Item key={`chatgpt-message-entry-${index}`} className={message.role}>
                     {message.content}
+                    
                 </ListGroup.Item>
                 )
         )}

@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
+import { ChatGPTContentFunctionCall } from './ChatGPTEmbed';
 
 
 export interface openAIState {
@@ -13,12 +14,14 @@ export const defaultOpenAIState: openAIState = {
 };
 
 export interface ChatGPTMessage {
-    sender: 'user' | 'chatgpt' | 'invalid';
-    content: string;
+    role: 'user' | 'chatgpt' | 'invalid';
+    content: string | null;
+    finish_reason?: string;
+    function_call?: ChatGPTContentFunctionCall;
 }
 
 export const defaultChatGPTMessageState: ChatGPTMessage[] = [{
-    sender: 'invalid',
+    role: 'invalid',
     content: ''
 }]
 
