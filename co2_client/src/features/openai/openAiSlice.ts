@@ -14,7 +14,7 @@ export const defaultOpenAIState: openAIState = {
 };
 
 export interface ChatGPTMessage {
-    role: 'user' | 'chatgpt' | 'invalid';
+    role: 'user' | 'assistant' | 'system' | 'invalid';
     content: string | null;
     finish_reason?: string;
     function_call?: ChatGPTContentFunctionCall;
@@ -30,14 +30,16 @@ export interface OpenAISlice {
     openAI: openAIState,
     messages: ChatGPTMessage[] | null,
     errorString: string | null,
-    submittingInProgress: boolean
+    submittingInProgress: boolean,
+    chatGPTSystemMessage: string | null
 }
 
 const initialState: OpenAISlice = {
     openAI: defaultOpenAIState,
     messages: defaultChatGPTMessageState,
     errorString: null,
-    submittingInProgress: false
+    submittingInProgress: false,
+    chatGPTSystemMessage: null
 };
 
 export const openAISlice = createSlice({
@@ -58,15 +60,19 @@ export const openAISlice = createSlice({
         },
         setOpenAIKeyErrors: (state, action: PayloadAction<string | null>) => {
             state.openAI.openAI_key_errors = action.payload;
+        },
+        setChatGPTSystemMessage: (state, action: PayloadAction<string | null>) => {
+            state.chatGPTSystemMessage = action.payload;
         }
     }
 })
 
-export const {setOpenAIPlatformKey, setChatGPTMessages, setOpenAIChatGPTErrorString, setSubmittingInProgress, setOpenAIKeyErrors} = openAISlice.actions;
+export const {setOpenAIPlatformKey, setChatGPTMessages, setOpenAIChatGPTErrorString, setSubmittingInProgress, setOpenAIKeyErrors, setChatGPTSystemMessage} = openAISlice.actions;
 
 export const selectOpenAIPlatformKey = (state: RootState) => state.openAI.openAI.openAI_platform_key;
 export const selectOpenAIChatGPTMessages = (state: RootState) => state.openAI.messages;
 export const selectOpenAIChatGPTErrors = (state: RootState) => state.openAI.errorString;
 export const selectSubmittingInProgress = (state: RootState) => state.openAI.submittingInProgress;
 export const selectOpenAIKeyErrors = (state: RootState) => state.openAI.openAI.openAI_key_errors
+export const selectChatGPTSystemMessage = (state: RootState) => state.openAI.chatGPTSystemMessage;
 export const openAIReducer = openAISlice.reducer;
