@@ -12,6 +12,7 @@ import { formatErrors } from '../../utils/ErrorObject';
 import { fetchJSONWithChecks } from "../../utils/FetchHelpers";
 import { API_URL } from "../../utils/UrlPath";
 import { placeResultWithTranslatedType, selectPlacesServiceStatus, selectSelectedPlace } from "../google/googleSlice";
+import { SelectedPlaceDatabaseInfo, selectPlacesInfoFromDatabase } from "../places/placesSlice";
 
 
 // ChatGPT generated the draft of this, lets see if it's any good :)
@@ -286,7 +287,6 @@ const sendMessageToBackendOrChatGPT = async (dispatch: AppDispatch, chatGPTMessa
         return chatGPTCompletionResponseToStrongType(await awaitedResponse.json(), dispatch);
     }
 
-
     const response = fetchJSONWithChecks(OPENAI_COMPLETION_URL, chatGPTPostRequest, 200, false, fetchFailedCallback, fetchSuccessCallback) as Promise<ChatGPTCompletionResponse | null>;
 
     response.then((chatGPTResponse) => {
@@ -495,15 +495,26 @@ ${JSON.stringify(selectedPlace)}
     return str;
 }
 
-function buildChatGPTGuidingPrompt(placesServiceStatus: google.maps.places.PlacesServiceStatus | null, selectedPlace: placeResultWithTranslatedType): string {
+function rawDatabaseData(selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo): string {
+    const str = `Here is what is in my databse about this place, it's an array of CO2 measurements taken by users, as a serialized JSON object: 
+    ----
+${JSON.stringify(selectedPlaceInfoFromDatabase)}
+    ----
+    `;
+    return str;
+}
+
+function buildChatGPTGuidingPrompt(placesServiceStatus: google.maps.places.PlacesServiceStatus | null, selectedPlace: placeResultWithTranslatedType, selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo): string {
     const str_constant_beginning = `This is the begining of a prompt that will be used to assist the user of a webapp that helps people and businesses understand indoor air quality as it relates to the risk of infectious disease spread through the use of CO2 monitoring. The user is looking at a page showing some information from a database and from google places.`;
     const placesStatusStr = googlePlacesServiceStatusForChatGPT(placesServiceStatus);
 
     const shortPlaceInfo = (shortPlacesInfoForChatGPT(placesServiceStatus, selectedPlace));
     const entirePlaceInfo = longPlacesInfo(placesServiceStatus, selectedPlace);
+    const placeData = rawDatabaseData(selectedPlaceInfoFromDatabase);
 
 
-    return `${str_constant_beginning} ${placesStatusStr} ${shortPlaceInfo} ${entirePlaceInfo}`;
+    const reminder = `Remember, the user is using an application that is intended to inform them about the risks of airborne disease transmission. Consider those CO2 measurements in the context of ventilation as a mitigation for airborne disease transmission. In addition, provide at least 2 bullet points about how they might be interested and what action they might want to take.`
+    return `${str_constant_beginning} ${placesStatusStr} ${shortPlaceInfo} ${entirePlaceInfo} ${placeData} ${reminder}`;
 }
 
 
@@ -517,16 +528,18 @@ export const ChatComponent: React.FC = () => {
     const placesServiceStatus = useSelector(selectPlacesServiceStatus);
     const selectedPlace = useSelector(selectSelectedPlace);
     const systemMessage = useSelector(selectChatGPTSystemMessage);
+    const selectedPlaceInfoFromDatabase = useSelector(selectPlacesInfoFromDatabase);
 
+    
     // const [submittingMessage, setSubmittingMessage] = useState<boolean>(false);
 
     useEffect(() => {
-        const system_message = buildChatGPTGuidingPrompt(placesServiceStatus, selectedPlace);
+        const system_message = buildChatGPTGuidingPrompt(placesServiceStatus, selectedPlace, selectedPlaceInfoFromDatabase);
         dispatch(setChatGPTSystemMessage(system_message));
         return (() => {
             dispatch(setChatGPTSystemMessage(null));
         })
-    }, [placesServiceStatus, selectedPlace, dispatch])
+    }, [placesServiceStatus, selectedPlace, dispatch, selectedPlaceInfoFromDatabase])
 
 
     useEffect(() => {
