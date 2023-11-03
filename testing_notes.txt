@@ -1,3 +1,8 @@
 The tests use rspec.
 
 Running rspec can take a minute with very few tests on my machine because ruby is wildly slow. 
+
+
+end-to-end-test.rb is one of the attempts to automate.
+
+run_e2e.ts successfully launches the frontend and backend.
