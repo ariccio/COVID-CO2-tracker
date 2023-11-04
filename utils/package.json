@@ -5,9 +5,9 @@
   "license": "MIT",
   "dependencies": {
     "@googlemaps/google-maps-services-js": "^3.3.38",
+    "@types/teen_process": "^2.0.2",
+    "teen_process": "^2.0.73",
     "ts-node": "^10.9.1"
   },
-  "devDependencies": {
-    "exec-sh": "^0.4.0"
-  }
+  "devDependencies": {}
 }
