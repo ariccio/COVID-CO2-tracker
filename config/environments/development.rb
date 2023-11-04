@@ -4,14 +4,22 @@ puts "#{Time.now.strftime("%H:%M:%S:%L")}: Start of config/environments/developm
 require 'active_support/core_ext/integer/time'
 
 ::Rails.application.configure do
+
+if ::ENV['IsEndToEndBackendServerSoSTFUWithTheLogs']
+  puts "Must be in cypress mode - turning off a bunch of verbosity!"
+end
+
+
   config.after_initialize do
     ::Bullet.enable        = true
   # Bullet.alert         = true
   # Bullet.bullet_logger = true
   # Bullet.console       = true
   # Bullet.growl         = true
-    ::Bullet.rails_logger  = true
-  # Bullet.add_footer    = true
+    unless ::ENV['IsEndToEndBackendServerSoSTFUWithTheLogs']
+      ::Bullet.rails_logger  = true
+    end
+    # Bullet.add_footer    = true
   end
 
   # Settings specified here will take precedence over those in config/application.rb.
@@ -64,7 +72,9 @@ require 'active_support/core_ext/integer/time'
   config.active_record.migration_error = :page_load
 
   # Highlight code that triggered database queries in logs.
-  config.active_record.verbose_query_logs = true
+  unless ::ENV['IsEndToEndBackendServerSoSTFUWithTheLogs']
+    config.active_record.verbose_query_logs = true
+  end
 
   if Rails.version != "7.0.8"
     # https://edgeguides.rubyonrails.org/configuring.html#config-active-record-db-warnings-action
@@ -86,11 +96,19 @@ require 'active_support/core_ext/integer/time'
 
 
 
-
-  config.log_level = :debug
+  if ::ENV['IsEndToEndBackendServerSoSTFUWithTheLogs']
+    config.log_level = :warn
+  else
+    config.log_level = :debug
+  end
   
   Rails.logger = Logger.new(STDOUT)
-  Rails.logger.level = Logger::DEBUG
+
+  if ::ENV['IsEndToEndBackendServerSoSTFUWithTheLogs']
+    Rails.logger.level = Logger::WARN
+  else
+    Rails.logger.level = Logger::DEBUG
+  end
 
   # config.after_initialize() do
   #   pp 'ENV["PORT\"]: ', ENV["PORT"]

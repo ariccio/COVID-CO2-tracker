@@ -14,7 +14,7 @@ const DEFAULT_RAILS_PORT = 3000;
 const DEFAULT_FRONTEND_PORT = 3001;
 
 let rails: procHandle;
-let react: procHandle;
+let cypress: procHandle;
 
 
 
@@ -25,10 +25,10 @@ const railsStartDetector: startDetector = (stdout, stderr) => {
         checkPorts();
         throw new Error("Server already running.");
     }
-    if (stderr.length > 0) {
-        console.warn(`stdout for backend is > 0 (stderr: '${stderr}') assuming failure.`);
-        // throw new Error(`stdout for backend is > 0, assuming failure.`);
-    }
+    // if (stderr.length > 0) {
+    //     // console.warn(`stdout for backend is > 0 (stderr: '${stderr}') assuming failure.`);
+    //     // throw new Error(`stdout for backend is > 0, assuming failure.`);
+    // }
     if (/Listening on http/.test(stdout)) {
         return true;
     }
@@ -47,7 +47,7 @@ function checkPorts() {
         const result3000 = child_process.spawnSync('lsof', [`-i :3000 -P`], spawnOpts);
         if (result3000.status === 0) {
             console.log(`current rails pid: ${rails?.pid}`);
-            console.log(`current frontend pid: ${react?.pid}`);
+            console.log(`current frontend pid: ${cypress?.pid}`);
             console.log(`processes on 3000:\r\n${result3000.output.toString()}`);
         }
         else {
@@ -59,7 +59,7 @@ function checkPorts() {
         const result3001 = child_process.spawnSync('lsof', [`-i :3001 -P`], spawnOpts);
         if (result3001.status === 0) {
             console.log(`current rails pid: ${rails?.pid}`);
-            console.log(`current frontend pid: ${react?.pid}`);
+            console.log(`current frontend pid: ${cypress?.pid}`);
             console.log(`process on 3001:\r\n${result3001.output.toString()}`);
         }
         else {
@@ -73,16 +73,16 @@ function checkPorts() {
 }
 
 const frontendStartDetector: startDetector = (stdout, stderr) => {
-    if (stderr.length > 0) {
-        console.warn(`stdout for frontend is > 0 (stderr: '${stderr}') assuming failure.`);
-        // throw new Error(`stdout for frontend is > 0, assuming failure.`);
-    }
+    // if (stderr.length > 0) {
+    //     // console.warn(`stdout for frontend is > 0 (stderr: '${stderr}') assuming failure.`);
+    //     // throw new Error(`stdout for frontend is > 0, assuming failure.`);
+    // }
     if (/Something is already running on port/.test(stdout)) {
         checkPorts();
         throw new Error(`Port issue!`);
     }
-    if (/No issues found./.test(stdout)) {
-        console.log(`frontend seems started: ${stdout}`);
+    if (/(Run Starting)/.test(stdout)) {
+        console.log(`frontend seems to have started: ${stdout}`);
         return true;
     }
     
@@ -91,10 +91,11 @@ const frontendStartDetector: startDetector = (stdout, stderr) => {
 
 
 async function main() {
-    console.log('|||||||||||||||||||||||||||')
+    console.log('\n\n\n\n');
     // rails = execSh.promise("rails s", undefined)
     let backendEnv = JSON.parse(JSON.stringify(process.env));
     backendEnv.PORT = '3000';
+    backendEnv.IsEndToEndBackendServerSoSTFUWithTheLogs = 'yes';
     const rails_opts: SubProcessOptions = {
         shell: true,
         env: backendEnv
@@ -110,20 +111,20 @@ async function main() {
     let frontendEnv = JSON.parse(JSON.stringify(process.env));
     frontendEnv.PORT = '3001';
 
-    const reactDir = process.cwd() + '/co2_client';
-    frontendEnv.cwd = reactDir;
-    console.log(reactDir)
+    const frontendDir = process.cwd() + '/co2_client';
+    frontendEnv.cwd = frontendDir;
+    console.log(frontendDir)
     // react = execSh.promise("yarn start", modifiedEnv);
     // rails.then(dump)
     // react.then(dump);
-    const react_opts: SubProcessOptions = {
+    const frontend_opts: SubProcessOptions = {
         shell: true,
         env: frontendEnv,
-        cwd: reactDir
+        cwd: frontendDir
     };
 
-    react = new SubProcess('yarn start', undefined, react_opts);
-    react.on('stream-line', line => {
+    cypress = new SubProcess('yarn cypress run', undefined, frontend_opts);
+    cypress.on('stream-line', line => {
         console.log(`frontend: ${line}`);
         // [STDOUT] foo
     });
@@ -134,12 +135,17 @@ async function main() {
     });
 
     await rails.start(railsStartDetector);
-    await react.start(frontendStartDetector);
-      
+    await cypress.start(frontendStartDetector);
+    console.log(`cypress running...`);
+    return await cypress.join();
+
 }
 
 async function politeCtrlC(proc: SubProcess) {
-    process.stdout.write(`sending ctrl-c to ${proc.cmd}...`);
+    if (!(proc.isRunning)) {
+        return;
+    }
+    console.log(`sending ctrl-c to ${proc.cmd}...`);
     await proc.stop('SIGINT', 1000);
     console.log(`process quit!`);
 }
@@ -166,6 +172,10 @@ async function killProc(proc: SubProcess) {
 
 async function ensureClosed(proc?: SubProcess) {
     if (proc === undefined) {
+        return;
+    }
+    if (!(proc.isRunning)) {
+        // console.log(`${proc.cmd} already stopped.`);
         return;
     }
     try {
@@ -238,30 +248,34 @@ function exceptionDump(e_: unknown) {
 }
 
 main().then(
-    () => {
-        console.log(`DONE! Processes started.`);
-        return ensureClosed(react).then(() => {
+    (result) => {
+        console.log(`DONE!`);
+        return ensureClosed(cypress).then(() => {
             return ensureClosed(rails);
+        }).then(() => {
+            return result;
         })
     },
     (e) => {
         console.log(`done with EXCEPTION (1)! Exiting...`);
         exceptionDump(e)
-        return ensureClosed(react).then(() => {
+        return ensureClosed(cypress).then(() => {
             return ensureClosed(rails);
-        })
+        }).then(() => process.exit(1));
     }
 ).catch((e) => {
     console.log(`done with EXCEPTION (2)! Exiting...`);
     exceptionDump(e);
-    return ensureClosed(react).then(() => {
+    return ensureClosed(cypress).then(() => {
         return ensureClosed(rails);
-    })
+    }).then(() => process.exit(2));
 }).finally(() => {
-    return ensureClosed(react).then(() => {
+    return ensureClosed(cypress).then(() => {
         return ensureClosed(rails);
     })
-}).then(() => {
-    console.log(`all done!`);
-    process.exit(0);
+}).then((result) => {
+    console.assert(!(rails?.isRunning), `${rails?.cmd} is still running!!! See ${rails?.pid}`);
+    console.assert(!(cypress?.isRunning), `${cypress?.cmd} is stil running!! see ${cypress?.pid}`);
+    console.log(`all done! result: ${result}`);
+    process.exit(result);
 })
