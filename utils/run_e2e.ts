@@ -103,6 +103,29 @@ const webpackStartDetector: startDetector = (stdout, stderr) => {
         throw new Error("Server already running.");
     }
     return false;
+
+
+}
+
+
+function setupFollowerHooks(proc: procHandle, name: string): void {
+    if (proc === undefined) {
+        console.log(`Proc ${name} is undefined!`);
+        return;
+    }
+    proc.on("exit", (code, signal) => {
+        console.log(`${name} exit: ${code}, ${signal}`)
+    });
+    proc.on("stop", (code, signal) => {
+        console.log(`${name} stop: ${code}, ${signal}`)
+    });
+    proc.on("end", (code, signal) => {
+        console.log(`${name} end: ${code}, ${signal}`)
+    });
+    proc.on("die", (code, signal) => {
+        console.log(`${name} die: ${code}, ${signal}`)
+    });
+
 }
 
 
@@ -119,18 +142,20 @@ async function main() {
     rails = new SubProcess('rails s', undefined, rails_opts);
 
 
-    rails.on("exit", (code, signal) => {
-        console.log(`rails exit: ${code}, ${signal}`)
-    });
-    rails.on("stop", (code, signal) => {
-        console.log(`rails stop: ${code}, ${signal}`)
-    });
-    rails.on("end", (code, signal) => {
-        console.log(`webpack end: ${code}, ${signal}`)
-    });
-    rails.on("die", (code, signal) => {
-        console.log(`rails die: ${code}, ${signal}`)
-    });
+    setupFollowerHooks(rails, "rails");
+
+    // rails.on("exit", (code, signal) => {
+    //     console.log(`rails exit: ${code}, ${signal}`)
+    // });
+    // rails.on("stop", (code, signal) => {
+    //     console.log(`rails stop: ${code}, ${signal}`)
+    // });
+    // rails.on("end", (code, signal) => {
+    //     console.log(`rails end: ${code}, ${signal}`)
+    // });
+    // rails.on("die", (code, signal) => {
+    //     console.log(`rails die: ${code}, ${signal}`)
+    // });
 
 
     const dump = (value: {stderr: string, stdout: string}) => {
@@ -171,18 +196,19 @@ async function main() {
         // [STDOUT] foo
     });
 
-    webpack.on("exit", (code, signal) => {
-        console.log(`webpack exit: ${code}, ${signal}`)
-    });
-    webpack.on("stop", (code, signal) => {
-        console.log(`webpack stop: ${code}, ${signal}`)
-    });
-    webpack.on("end", (code, signal) => {
-        console.log(`webpack end: ${code}, ${signal}`)
-    });
-    webpack.on("die", (code, signal) => {
-        console.log(`webpack die: ${code}, ${signal}`)
-    });
+    setupFollowerHooks(webpack, "webpack");
+    // webpack.on("exit", (code, signal) => {
+    //     console.log(`webpack exit: ${code}, ${signal}`)
+    // });
+    // webpack.on("stop", (code, signal) => {
+    //     console.log(`webpack stop: ${code}, ${signal}`)
+    // });
+    // webpack.on("end", (code, signal) => {
+    //     console.log(`webpack end: ${code}, ${signal}`)
+    // });
+    // webpack.on("die", (code, signal) => {
+    //     console.log(`webpack die: ${code}, ${signal}`)
+    // });
 
 
 
@@ -198,18 +224,20 @@ async function main() {
         // [STDOUT] foo
     });
 
-    cypress.on("exit", (code, signal) => {
-        console.log(`Cypress exit: ${code}, ${signal}`)
-    });
-    cypress.on("stop", (code, signal) => {
-        console.log(`Cypress stop: ${code}, ${signal}`)
-    });
-    cypress.on("end", (code, signal) => {
-        console.log(`Cypress end: ${code}, ${signal}`)
-    });
-    cypress.on("die", (code, signal) => {
-        console.log(`Cypress die: ${code}, ${signal}`)
-    });
+    setupFollowerHooks(cypress, "cypress");
+
+    // cypress.on("exit", (code, signal) => {
+    //     console.log(`Cypress exit: ${code}, ${signal}`)
+    // });
+    // cypress.on("stop", (code, signal) => {
+    //     console.log(`Cypress stop: ${code}, ${signal}`)
+    // });
+    // cypress.on("end", (code, signal) => {
+    //     console.log(`Cypress end: ${code}, ${signal}`)
+    // });
+    // cypress.on("die", (code, signal) => {
+    //     console.log(`Cypress die: ${code}, ${signal}`)
+    // });
 
 
     await rails.start(railsStartDetector);
