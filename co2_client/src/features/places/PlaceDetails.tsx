@@ -62,7 +62,7 @@ export const PlaceDetails: React.FC<PlaceDetailsProps> = (props) => {
     return (
         <div>
             <RenderSelectedPlaceInfo currentPlace={selectedPlace} placesServiceStatus={placesServiceStatus}/>
-            <ChatComponent/>
+            {/* <ChatComponent/> */}
         </div>
     );
 }
