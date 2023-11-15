@@ -619,7 +619,8 @@ function RealtimeUploadSettings() {
       <>
         <Text>The last two things you need to do are:</Text>
         <Text>1. Manually create a single measurement in the web console for the location you want to use</Text>
-        <Text>2. Click &quot;Choose place for realtime upload&quot;</Text>
+        <Text>2. Expand the dropdown with the name of the address.</Text>
+        <Text>3. Click &quot;Choose place for realtime upload&quot;</Text>
         <LinkButton url={COVID_CO2_TRACKER_HOME_URL} title="Open web console"/>
       </>
     );

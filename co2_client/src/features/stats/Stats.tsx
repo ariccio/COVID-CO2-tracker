@@ -27,19 +27,23 @@ const AppStats: React.FC<{appStatsResponse: AppStatsResponse, errorState: string
 
     return (
         <div>
-            {translate('total-users')}: {props.appStatsResponse.users}
-            <br/>
-            {translate('total-measurements')}: {props.appStatsResponse.measurements}
-            <br/>
-            {translate('total-devices')}: {props.appStatsResponse.devices}
-            <br/>
-            {translate('total-manufacturers')}: {props.appStatsResponse.manufacturers}
-            <br/>
-            {translate('total-models')}: {props.appStatsResponse.models}
-            <br/>
-            {translate('total-places')}: {props.appStatsResponse.places}
-            <br/>
-            {translate('total-sublocations')}: {props.appStatsResponse.sublocations}
+            <details>
+                <summary>
+                    {translate('total-measurements')}: {props.appStatsResponse.measurements}        
+                </summary>
+                {translate('total-users')}: {props.appStatsResponse.users}
+                <br/>
+                {translate('total-devices')}: {props.appStatsResponse.devices}
+                <br/>
+                {translate('total-manufacturers')}: {props.appStatsResponse.manufacturers}
+                <br/>
+                {translate('total-models')}: {props.appStatsResponse.models}
+                <br/>
+                {translate('total-places')}: {props.appStatsResponse.places}
+                <br/>
+                {translate('total-sublocations')}: {props.appStatsResponse.sublocations}
+
+            </details>
         </div>
     )
 

@@ -4,15 +4,19 @@ import { Link } from 'react-router-dom';
 
 import { placesPath } from '../../paths/paths';
 import { defaultGooglePlacesState } from '../google/googleSlice';
+import { useEffect, useState } from 'react';
+import { Accordion, Col, Container, Row } from 'react-bootstrap';
+import AccordionBody from 'react-bootstrap/esm/AccordionBody';
+import { ChoosePlaceAsDefault } from '../nativeClientInterfaces/ChoosePlaceAsDefault';
 
 const RenderPlacesServiceStatus = (props: {placesServiceStatus: google.maps.places.PlacesServiceStatus}) => {
     return (
-        <div>
+        <>
             <span>
                 Google Places service status: {props.placesServiceStatus}
                 <br/>
             </span>
-        </div>
+        </>
     );
 }
 
@@ -31,7 +35,20 @@ const RenderPlacesServiceStatusWithHighlight = (props: {placesServiceStatus: goo
         <div>
             <RenderPlacesServiceStatus placesServiceStatus={props.placesServiceStatus}/>
         </div>
-    )
+    );
+}
+
+const MaybeRenderPlacesServiceStatusWithHighlight = (props: {placesServiceStatus: google.maps.places.PlacesServiceStatus}) => {
+    if (props.placesServiceStatus === google.maps.places.PlacesServiceStatus.OK) {
+        return null;
+    }
+    return (
+        <>
+            <b><i><u>
+                <RenderPlacesServiceStatus placesServiceStatus={props.placesServiceStatus}/>
+            </u></i></b>
+        </>
+    );
 }
 
 const RenderName = (props: {name?: string}) => {
@@ -53,6 +70,29 @@ const RenderName = (props: {name?: string}) => {
     return null;
 }
 
+const RenderNameAccordionHeader = (props: {placeName?: string, types?: string[]}) => {
+    if (props.placeName === undefined) {
+        return (
+            <>
+                Missing place name!
+            </>
+        );
+    }
+    if (props.types === undefined) {
+        return (
+            <>
+                Missing place types!
+            </>
+        );
+    }
+    // const style = {justifyContent: 'center', display: }
+    return (
+        <i>{props.placeName}<RenderFirstType types={props.types}/></i>
+    );
+    return null;
+}
+
+
 const RenderFormattedAddress = (props: {formatted_address?: string}) => {
     if (props.formatted_address === undefined) {
         return (
@@ -70,7 +110,62 @@ const RenderFormattedAddress = (props: {formatted_address?: string}) => {
     );
 }
 
+function typesToShortStr(types?: string[]): string {
+    if (types === undefined) {
+        return "No types! Types undefined.";
+    }
+    if (types.length === 0) {
+        return "No types! Types empty.";
+    }
+    return types[0];
+}
+
+function typesToLongStr(types?: string[]): string {
+    if (types === undefined) {
+        return "No types! Types undefined.";
+    }
+    if (types.length === 0) {
+        return "No types! Types empty.";
+    }
+    return types.join(', ');
+}
+
+const MaybeRenderFirstType = (props: {types?: string[]}) => {
+    const [shortStr, setShortStr] = useState(typesToShortStr(props.types));
+    useEffect(() => {
+        setShortStr(typesToShortStr(props.types));
+    }, [props.types])
+    return <>
+        type: {shortStr}
+    </>;
+}
+
+
+const RenderFirstType = (props: {types: string[]}) => {
+    const [shortStr, setShortStr] = useState(typesToShortStr(props.types));
+    useEffect(() => {
+        setShortStr(typesToShortStr(props.types));
+    }, [props.types])
+    if (props.types.length === 0) {
+        return null;
+    }
+    if (props.types[0] === "premise") {
+        return null;
+    }
+    return <>
+        , type: {shortStr}
+    </>;
+}
+
+
 const RenderTypes = (props: {types?: string[]}) => {
+    const [longStr, setLongStr] = useState(typesToLongStr(props.types));
+
+    useEffect(() => {
+        setLongStr(typesToLongStr(props.types));
+    }, [props.types])
+
+
     if (props.types === undefined) {
         return (
             <div>
@@ -87,7 +182,7 @@ const RenderTypes = (props: {types?: string[]}) => {
     );
 }
 
-const RenderLinkWithName = (props: {url?: string, name?: string}) => {
+const RenderLinkToGoogleMapsWithName = (props: {url?: string, name?: string}) => {
     if (props.url === undefined) {
         return (
             <div>
@@ -105,12 +200,12 @@ const RenderLinkWithName = (props: {url?: string, name?: string}) => {
         );
     }
     return (
-        <div>
+        <>
             <a href={props.url}>
                 <b>{props.name} in Google Maps</b>
             </a>
             <br/>
-        </div>
+        </>
     );
 }
 
@@ -163,14 +258,10 @@ const RenderVicinity = (props: {vicinity?: string}) => {
     );
 }
 
+
 export const RenderSelectedPlaceInfo = (props: {currentPlace: google.maps.places.PlaceResult, placesServiceStatus: google.maps.places.PlacesServiceStatus | null}) => {
     if (props.currentPlace === defaultGooglePlacesState.selected) {
         return null;
-        // return (
-        //     <>
-        //         No place selected.
-        //     </>
-        // );
     }
     if (props.placesServiceStatus === null) {
         return (
@@ -179,26 +270,35 @@ export const RenderSelectedPlaceInfo = (props: {currentPlace: google.maps.places
             </div>
         )
     }
-    // if (props.placesServiceStatus !== google.maps.places.PlacesServiceStatus.OK) {
-    //     return (
-    //         <>
-
-    //         </>
-    //     )
-    // }
     return (
         <div>
-            <RenderPlacesServiceStatusWithHighlight placesServiceStatus={props.placesServiceStatus}/>
-            <RenderLinkWithName url={props.currentPlace.url} name={props.currentPlace.name}/>
-            <RenderLinkToPlacesWithName place_id={props.currentPlace.place_id} name={props.currentPlace.name}/>
-            {/* {renderPlaceId(currentPlace.place_id)} */}
-            <RenderFormattedAddress formatted_address={props.currentPlace.formatted_address}/>
-            {/* {currentPlace.icon ? `currentPlace.icon: ${currentPlace.icon}` : null} 
-            {currentPlace.icon ? <img src={currentPlace.icon} alt={`google supplied icon for ${currentPlace.name}`}/> : null}
-            <br/> */}
-            <RenderTypes types={props.currentPlace.types}/>
-            <RenderVicinity vicinity={props.currentPlace.vicinity}/>
-            <RenderName name={props.currentPlace.name}/>
+            <Accordion >
+                <Accordion.Item eventKey="0">
+                    <Accordion.Header>
+                        <RenderNameAccordionHeader placeName={props.currentPlace.name} types={props.currentPlace.types}/>
+                    </Accordion.Header>
+                    <AccordionBody>
+                        <RenderLinkToPlacesWithName place_id={props.currentPlace.place_id} name={props.currentPlace.name}/>
+                        <RenderFormattedAddress formatted_address={props.currentPlace.formatted_address}/>
+                        <MaybeRenderPlacesServiceStatusWithHighlight placesServiceStatus={props.placesServiceStatus}/>
+                        <ChoosePlaceAsDefault place_id={props.currentPlace.place_id}/>
+                        <Accordion>
+                            <Accordion.Item eventKey="0">
+                                <Accordion.Header>
+                                    Google places details:
+                                </Accordion.Header>
+                                <AccordionBody>
+                                    <RenderTypes types={props.currentPlace.types} />
+                                    <RenderVicinity vicinity={props.currentPlace.vicinity}/>
+                                    <RenderLinkToGoogleMapsWithName url={props.currentPlace.url} name={props.currentPlace.name}/>
+                                    <RenderPlacesServiceStatusWithHighlight placesServiceStatus={props.placesServiceStatus}/>
+                                </AccordionBody>
+                            </Accordion.Item>
+                        </Accordion>
+                    </AccordionBody>
+                </Accordion.Item>
+            </Accordion>
+            {/* {props.currentPlace.icon ? <img src={props.currentPlace.icon} alt={`google supplied icon for ${props.currentPlace.name}`}/> : null} */}
             <br/>
         </div>
     )

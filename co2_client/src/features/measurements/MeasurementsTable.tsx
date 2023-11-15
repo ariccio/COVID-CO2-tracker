@@ -33,7 +33,7 @@ const MeasurementTableHeader = (props: {withDelete?: boolean, innerLocation?: In
             <tr>
                 <th>{translate('id-and-details')}</th>
                 {props.withDevice ? (<th>{translate('Device')}</th>) : null}
-                <th>{translate('co2-ppm')}</th>
+                <th>CO2&#8346;&#8346;&#8344;</th>
                 <th>{translate('time')}</th>
                 <th>{translate('crowding')}</th>
                 <th>{translate('danger level')}</th>
@@ -258,7 +258,7 @@ const RebreathedFraction = (props: {co2ppm: number}) => {
 
 const ShowMeasurementButtonTableData = (props: {setShowMeasurementModal: React.Dispatch<React.SetStateAction<boolean>>, setSelectedMeasurement: React.Dispatch<React.SetStateAction<number | null>>, id: number}) => {
     return (
-        <td><Button variant="primary" onClick={() => {props.setShowMeasurementModal(true); props.setSelectedMeasurement(props.id)}}>{props.id} details</Button></td>
+        <td><Button variant="primary" onClick={() => {props.setShowMeasurementModal(true); props.setSelectedMeasurement(props.id)}}>#{props.id}</Button></td>
     );
 }
 
@@ -379,7 +379,7 @@ function badMeasurement(measurement: SerializedSingleMeasurement) {
 const DateTimeData = (props: {measurementtime: string}) => {
     /* Displays the measurement as if it were taken in the timezone where the user currently is. It's painful to adjust the timezone according to the google places time offset, so this works for now. */
     return (
-        <td>{new Date(props.measurementtime).toString()}</td>
+        <td>{new Date(props.measurementtime).toLocaleString()}</td>
     );
 }
 

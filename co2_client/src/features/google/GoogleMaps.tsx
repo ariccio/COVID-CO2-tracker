@@ -509,6 +509,7 @@ const clustererCallback = (placeMarkersFromDatabase: placesFromDatabaseForMarker
 
 const Markers = (props: {placeMarkersFromDatabase: placesFromDatabaseForMarker, placeMarkerErrors: string, service: google.maps.places.PlacesService | null}) => {
     const dispatch = useDispatch();
+    console.log(`Rendering ${props.placeMarkersFromDatabase.places?.length} markers`)
     if (props.placeMarkerErrors !== '') {
         console.error("cant render markers, got errors:");
         console.error(props.placeMarkerErrors);

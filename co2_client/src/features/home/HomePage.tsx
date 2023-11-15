@@ -19,7 +19,6 @@ import {CreateNewMeasurementModal} from '../create/CreateMeasurement';
 import {selectPlacesInfoFromDatabase, selectPlacesInfoErrors, SelectedPlaceDatabaseInfo, selectPlaceExistsInDatabase} from '../places/placesSlice';
 
 import {NewMeasurementButton} from './NewMeasurementButton';
-import {ChoosePlaceAsDefault} from '../nativeClientInterfaces/ChoosePlaceAsDefault';
 import { GOOGLE_FORMS_SURVEY_URL, YOUTUBE_VIDEO_INSTRUCTIONS_URL } from '../../utils/UrlPath';
 import { RenderFromDatabaseNoGoogleParam } from '../places/RenderPlaceFromDatabase';
 import { RenderSelectedPlaceInfo } from '../places/RenderPlaceInfo';
@@ -119,7 +118,7 @@ const RenderPlace: React.FC<RenderPlaceProps> = (props: RenderPlaceProps) => {
             {maybeWarningString(props.localitySelectedWarningString)}
             <Suspense fallback="loading translation">
                 <NewMeasurementButton currentPlace_place_id={props.currentPlace.place_id} location={props.location} setShowCreateNewMeasurement={props.setShowCreateNewMeasurement} showCreateNewMeasurement={props.showCreateNewMeasurement} currentPlace_name={props.currentPlace.name}/>
-                <ChoosePlaceAsDefault place_id={props.currentPlace.place_id}/>
+                
             </Suspense>
             <br/>
             <br/>

@@ -11,7 +11,7 @@ import { selectSelectedPlace } from '../google/googleSlice';
 
 
 import {SelectedPlaceDatabaseInfo, defaultPlaceInfo, SublocationMeasurements} from '../places/placesSlice';
-import { SelectedSublocationForDropdownDisplay, SublocationsDropdown } from '../sublocationsDropdown/SublocationsDropdown';
+import { SelectedSublocationForDropdownDisplay, SubLocationsDropdownProps, SublocationsDropdown } from '../sublocationsDropdown/SublocationsDropdown';
 import { selectSublocationSelectedLocationID } from '../sublocationsDropdown/sublocationSlice';
 
 
@@ -25,7 +25,7 @@ const maybeDescription = (location: SublocationMeasurements, withDescription: bo
     if (withDescription) {
         return (
             <div>
-                Inner location description: {location.description} - ({location.measurements.data.length} measurements)
+                {location.description} - ({location.measurements.data.length} measurements)
             </div>
         );
     }
@@ -155,6 +155,17 @@ export const findSelected = (measurements_by_sublocation: Array<SublocationMeasu
     return selected_;
 }
 
+const MaybeSublocationsIfMoreThanOne = (props: SubLocationsDropdownProps) => {
+    if (props.measurements_by_sublocation.length === 1) {
+        return null;
+    }
+    return (
+        <>
+            <SublocationsDropdown measurements_by_sublocation={props.measurements_by_sublocation} nothingSelectedText={ALL_MEASUREMENTS_STR} nothingSelectedItem={<NothingSelectedItem/>} selectedSublocationDisplayData={props.selectedSublocationDisplayData} setGlobal={true}/>
+        </>
+    )
+}
+
 const ALL_MEASUREMENTS_STR = "All measurements:";
 export const MeasurementsByDropdown: React.FC<MeasurementsByDropdownProps> = (props: MeasurementsByDropdownProps): JSX.Element => {
     const [translate] = useTranslation();
@@ -237,7 +248,7 @@ export const MeasurementsByDropdown: React.FC<MeasurementsByDropdownProps> = (pr
     // const selected = findSelected(measurements_by_sublocation, selectedSubLocation);
     return (
         <div>
-            <SublocationsDropdown measurements_by_sublocation={measurements_by_sublocation} nothingSelectedText={ALL_MEASUREMENTS_STR} nothingSelectedItem={<NothingSelectedItem/>} selectedSublocationDisplayData={selected} setGlobal={true}/>
+            <MaybeSublocationsIfMoreThanOne measurements_by_sublocation={measurements_by_sublocation} nothingSelectedText={ALL_MEASUREMENTS_STR} nothingSelectedItem={<NothingSelectedItem/>} selectedSublocationDisplayData={selected} setGlobal={true}/>
             {measurements(measurements_by_sublocation, selectedSubLocation, deviceSerials)}
             {/* <MeasurementsTable measurements={props.selectedPlaceInfoFromDatabase}/> */}
         </div>
