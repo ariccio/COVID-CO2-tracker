@@ -113,6 +113,11 @@ function setupFollowerHooks(proc: procHandle, name: string): void {
         console.log(`Proc ${name} is undefined!`);
         return;
     }
+    proc.on('stream-line', line => {
+        console.log(`${name}: ${line}`);
+        // [STDOUT] foo
+    });
+
     proc.on("exit", (code, signal) => {
         console.log(`${name} exit: ${code}, ${signal}`)
     });
@@ -140,23 +145,7 @@ async function main() {
         env: backendEnv
     }
     rails = new SubProcess('rails s', undefined, rails_opts);
-
-
     setupFollowerHooks(rails, "rails");
-
-    // rails.on("exit", (code, signal) => {
-    //     console.log(`rails exit: ${code}, ${signal}`)
-    // });
-    // rails.on("stop", (code, signal) => {
-    //     console.log(`rails stop: ${code}, ${signal}`)
-    // });
-    // rails.on("end", (code, signal) => {
-    //     console.log(`rails end: ${code}, ${signal}`)
-    // });
-    // rails.on("die", (code, signal) => {
-    //     console.log(`rails die: ${code}, ${signal}`)
-    // });
-
 
     const dump = (value: {stderr: string, stdout: string}) => {
         console.log('----------------------');
@@ -173,6 +162,7 @@ async function main() {
     // react = execSh.promise("yarn start", modifiedEnv);
     // rails.then(dump)
     // react.then(dump);
+
     const frontend_opts: SubProcessOptions = {
         shell: true,
         env: frontendEnv,
@@ -190,54 +180,10 @@ async function main() {
     };
 
     webpack = new SubProcess('yarn start', undefined, webpack_opts);
-
-    webpack.on('stream-line', line => {
-        console.log(`webpack: ${line}`);
-        // [STDOUT] foo
-    });
-
     setupFollowerHooks(webpack, "webpack");
-    // webpack.on("exit", (code, signal) => {
-    //     console.log(`webpack exit: ${code}, ${signal}`)
-    // });
-    // webpack.on("stop", (code, signal) => {
-    //     console.log(`webpack stop: ${code}, ${signal}`)
-    // });
-    // webpack.on("end", (code, signal) => {
-    //     console.log(`webpack end: ${code}, ${signal}`)
-    // });
-    // webpack.on("die", (code, signal) => {
-    //     console.log(`webpack die: ${code}, ${signal}`)
-    // });
-
-
-
 
     cypress = new SubProcess('yarn cypress run', undefined, frontend_opts);
-    cypress.on('stream-line', line => {
-        console.log(`frontend: ${line}`);
-        // [STDOUT] foo
-    });
-
-    rails.on('stream-line', line => {
-        console.log(`backend: ${line}`);
-        // [STDOUT] foo
-    });
-
     setupFollowerHooks(cypress, "cypress");
-
-    // cypress.on("exit", (code, signal) => {
-    //     console.log(`Cypress exit: ${code}, ${signal}`)
-    // });
-    // cypress.on("stop", (code, signal) => {
-    //     console.log(`Cypress stop: ${code}, ${signal}`)
-    // });
-    // cypress.on("end", (code, signal) => {
-    //     console.log(`Cypress end: ${code}, ${signal}`)
-    // });
-    // cypress.on("die", (code, signal) => {
-    //     console.log(`Cypress die: ${code}, ${signal}`)
-    // });
 
 
     await rails.start(railsStartDetector);
@@ -305,7 +251,6 @@ async function ensureClosed(proc?: SubProcess) {
     try {
         await politeCtrlC(proc);
     }
-
     catch(e) {
         if (e) {
             if ((e as any).message) {
@@ -314,7 +259,6 @@ async function ensureClosed(proc?: SubProcess) {
                 }
             }
         }
-
     }
 
     try {
@@ -333,13 +277,6 @@ async function ensureClosed(proc?: SubProcess) {
         console.log(`${proc.cmd} killed?`);
         return;
     }
-
-    // try {
-    //     await politeCtrlC(proc);
-    // }
-    // catch (e) {
-    //     console.log(`proc ${proc?.cmd} did NOT politely stop with ctrl-c.`);
-    // }
     return;
 }
 
