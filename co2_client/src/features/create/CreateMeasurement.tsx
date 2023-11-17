@@ -1,4 +1,4 @@
-import {useState, useEffect, Suspense} from 'react';
+import {useState, useEffect, Suspense, useRef} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 import {Modal, Button, Form, Dropdown, ToggleButtonGroup, ToggleButton, Spinner} from 'react-bootstrap';
 import DatePicker from 'react-datepicker';
@@ -777,6 +777,22 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
     const dispatch = useDispatch();
 
     const selectedPlaceExistsInDatabase = props.selectedPlaceExistsInDatabase;
+    const dialogRef = useRef<(HTMLDivElement) | null>(null);
+
+    useEffect(() => {
+        if (!dialogRef) {
+            return;
+        }
+        if (dialogRef.current === null) {
+            return;
+        }
+        if (!(props.showCreateNewMeasurement)) {
+            return;
+        }
+        dialogRef.current.scrollIntoView();
+    }, [props.showCreateNewMeasurement])
+
+    
 
     useEffect(() => {
         const selected_ = findSelected(measurements_by_sublocation, selectedSubLocationIDModalOnly);
@@ -854,6 +870,7 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
     }, [dispatch, placesInfoFromDatabase]);
 
 
+
     // useEffect(() => {
     // }, []);
 
@@ -895,7 +912,7 @@ export const CreateNewMeasurementModal: React.FC<CreateNewMeasurementProps> = (p
                 <Suspense fallback="Loading translations...">
                     <ModalHeader placeName={props.selectedPlace.name}/>
                 </Suspense>
-                <Modal.Body>
+                <Modal.Body  ref={dialogRef}>
                     <span>
                         {renderErrors(errorState)}
                     </span>

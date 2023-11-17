@@ -50,7 +50,7 @@ const singleLocation = (location: SublocationMeasurements, withDescription: bool
     return (
         <div key={locationKey(location)}>
             {maybeDescription(location, withDescription)}
-            <MeasurementsTable measurements={location.measurements.data} deviceSerials={deviceSerials} withDevice/>
+            <MeasurementsTable measurements={location.measurements.data} deviceSerials={deviceSerials}/>
         </div>
     );
 
