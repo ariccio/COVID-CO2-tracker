@@ -29,6 +29,35 @@ i18n
     interpolation: {
       escapeValue: false, // not needed for react as it escapes by default
     }
+
+    // https://github.com/atroo/i18next-resource-store-loader
+    // "we don't activley use this package anymore as now overloading has become way more easy by requiring json data directly. By flattening key and exploding seperate files into the "resources structure" you can basically achieve the same if you want you i18next ressource bundled"
+    /*
+    import germanBaseTrans from './translation-gen/de/de-base.json';
+    import englishBaseTrans from './translation-gen/en/en-base.json';
+
+    const germanTrans = {
+      ...germanBaseTrans,
+    };
+
+    const englishTrans = {
+      ...englishBaseTrans,
+    };
+
+    ...
+      i18n
+        .init({
+          resources: {
+            de: {
+              translation: germanTrans,
+            },
+            en: {
+              translation: englishTrans,
+            },
+          },
+          ...
+        })
+    */
   });
 
 i18n.on('failedLoading', (lng, ns, msg) => {
