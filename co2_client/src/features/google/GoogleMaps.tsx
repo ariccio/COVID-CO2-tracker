@@ -5,7 +5,7 @@ import {useSelector} from 'react-redux';
 import * as Sentry from "@sentry/browser"; // for manual error reporting.
 
 
-import { GoogleMap, useJsApiLoader, Autocomplete, Marker, MarkerClusterer } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, Autocomplete, Marker, MarkerClusterer, Libraries } from '@react-google-maps/api';
 import { Button, Form } from 'react-bootstrap';
 
 
@@ -33,7 +33,8 @@ import { AppDispatch } from '../../app/store';
 
 
 //decls:
-type Libraries = ("drawing" | "geometry" | "localContext" | "places" | "visualization")[];
+// type Libraries = ("drawing" | "geometry" | "localContext" | "places" | "visualization")[];
+
 export const GOOGLE_LIBRARIES: Libraries = ["places"];
 
 

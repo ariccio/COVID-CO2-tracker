@@ -85,15 +85,30 @@ const frontendStartDetector: startDetector = (stdout, stderr) => {
     if (/Cypress failed/.test(stdout)) {
         throw new Error("Some cypress issue.");
     }
+    if (/ERROR in/.test(stdout)) {
+        console.log("(stdout) Possible compilation error!");
+        throw new Error("(stdout) some kind of error - maybe compilation?");
+    }
+    if (/ERROR in/.test(stderr)) {
+        console.log("(stderr) Possible compilation error!");
+        throw new Error("(stderr) some kind of error - maybe compilation?");
+    }
     if (/(Run Starting)/.test(stdout)) {
         console.log(`frontend seems to have started: ${stdout}`);
         return true;
-    }
-    
+    }    
     return false;
 }
 
 const webpackStartDetector: startDetector = (stdout, stderr) => {
+    if (/ERROR in/.test(stdout)) {
+        console.log("(stdout) Possible compilation error!");
+        throw new Error("(stdout) some kind of error - maybe compilation?");
+    }
+    if (/ERROR in/.test(stderr)) {
+        console.log("(stderr) Possible compilation error!");
+        throw new Error("(stderr) some kind of error - maybe compilation?");
+    }
     if (/No issues found./.test(stdout)) {
         console.log(`Webpack seems ready: ${stdout}`);
         return true;
