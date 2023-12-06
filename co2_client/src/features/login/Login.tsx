@@ -20,7 +20,7 @@ import { setGoogleProfile } from './loginSlice';
 import { AppDispatch } from '../../app/store';
 import { formatErrors } from '../../utils/ErrorObject';
 import { Button } from 'react-bootstrap';
-import jwtDecode from 'jwt-decode';
+import { jwtDecode } from "jwt-decode";
 import { isAhrefsbot, isMacosChrome, isMobileFacebookBrowser, isTwitterAppBrowser } from '../../utils/Browsers';
 
 
