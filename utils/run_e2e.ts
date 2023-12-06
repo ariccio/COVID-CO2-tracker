@@ -169,7 +169,7 @@ async function main() {
         console.log('----------------------');
     }
     let frontendEnv = JSON.parse(JSON.stringify(process.env));
-    frontendEnv.PORT = '3001';
+    frontendEnv.PORT = '3002';
 
     const frontendDir = process.cwd() + '/co2_client';
     frontendEnv.cwd = frontendDir;
