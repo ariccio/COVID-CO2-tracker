@@ -72,7 +72,15 @@ async function queryDeviceModelInfo(deviceModelId: string): Promise<any> {
         */
         return await awaitedResponse.json();
     }
-    const result = fetchJSONWithChecks(`${SHOW_DEVICE_MODEL_URL}/${deviceModelId}`, userRequestOptions(), 200, true, fetchCallback, fetchCallback);
+
+    const fetchFailedCallback = async (awaitedResponse: Response): Promise<any> => {
+        
+        //enclosing function does not expect throw here, checks for errors itself.
+        return await awaitedResponse.json();
+    }
+
+    //throw new Error(`API key fetch failed: ${formatErrors(jsonResponse.errors)}`);
+    const result = fetchJSONWithChecks(`${SHOW_DEVICE_MODEL_URL}/${deviceModelId}`, userRequestOptions(), 200, true, fetchFailedCallback, fetchCallback);
     return result;
 }
 
@@ -206,7 +214,7 @@ export const DeviceModels = () => {
                 }
             }).catch((error) => {
                 // debugger;
-                setErrorState(error.message);
+                setErrorState(formatErrors([exceptionToErrorObject(error)]));
             })
         }
     }, [deviceModelId]);
@@ -225,7 +233,7 @@ export const DeviceModels = () => {
             setModelMeasurements(result);
         }).catch((error) => {
             // debugger;
-            setErrorState(error.message);
+            setErrorState(formatErrors([exceptionToErrorObject(error)]));
             // debugger;
         })
     }, [deviceModelInfo])
