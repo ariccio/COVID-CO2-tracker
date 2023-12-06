@@ -32,7 +32,7 @@ module.exports = {
         "no-debugger": "off",
         "react/prop-types": "off",
         "@typescript-eslint/no-explicit-any": "off",
-
+        "@typescript-eslint/no-unused-vars": "warn",
         // Shh. I'm a C++ guy at heart!
         "@typescript-eslint/no-inferrable-types": "off",
         "react-perf/jsx-no-new-function-as-prop": "off",

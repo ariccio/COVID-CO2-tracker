@@ -21,7 +21,7 @@
     "@types/react-datepicker": "^4.3.2",
     "@types/react-dom": "^18.0.5",
     "@types/react-redux": "^7.1.20",
-    "@types/react-router-bootstrap": "^0.24.5",
+    "@types/react-router-bootstrap": "^0.26.6",
     "@types/react-router-dom": "^5.3.2",
     "@types/web-bluetooth": "^0.0.20",
     "@typescript-eslint/eslint-plugin": "^6.13.2",
