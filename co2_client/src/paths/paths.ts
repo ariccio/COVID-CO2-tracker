@@ -3,6 +3,8 @@
 
 export const manufacturersPath: string = '/manufacturers';
 export const homePath: string = '/home';
+
+export const homePathWithParam: string = '/home/:placeId';
 export const devicesPath: string = '/devices';
 export const devicesCreateFromHome = 'createUserDevice';
 

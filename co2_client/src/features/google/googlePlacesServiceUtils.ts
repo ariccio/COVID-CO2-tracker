@@ -88,7 +88,7 @@ const getDetailsCallback = (result: google.maps.places.PlaceResult | null, statu
         return;
     }
     const placeForAction = autocompleteSelectedPlaceToAction(result);
-    console.log(`selecting place: ${placeForAction.name}`);
+    console.warn(`selecting place: ${placeForAction.name}`);
     dispatch(setSelectedPlace(placeForAction));
     if (placeForAction.place_id === undefined) {
         throw new Error('autocomplete place_id is undefined! Hmm.');

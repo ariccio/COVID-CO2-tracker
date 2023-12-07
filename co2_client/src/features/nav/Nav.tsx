@@ -117,9 +117,9 @@ const UserNav: React.FC<UserNavProps> = ({username}) => {
                 <LinkContainer to={deviceModelsPath}>
                   <Nav.Link>{translate('Models')}</Nav.Link>
                 </LinkContainer>
-                <LinkContainer to={placesPath}>
+                {/* <LinkContainer to={placesPath}>
                   <Nav.Link>{translate('Places')}</Nav.Link>
-                </LinkContainer>
+                </LinkContainer> */}
                 <LinkContainer to={moreInfoPath}>
                   <Nav.Link>{translate("more-info")}</Nav.Link>
                 </LinkContainer>

@@ -233,7 +233,7 @@ const RenderLinkToPlacesWithName = (props: {place_id?: string, name?: string}) =
                 <b>{name}</b>
             </a> */}
             <Link to={`${placesPath}/${props.place_id}`}>
-                <b>See detailed info for {props.name}</b>
+                <b>Link for {props.name}</b>
             </Link>
             <br/>
         </div>
@@ -261,6 +261,7 @@ const RenderVicinity = (props: {vicinity?: string}) => {
 
 export const RenderSelectedPlaceInfo = (props: {currentPlace: google.maps.places.PlaceResult, placesServiceStatus: google.maps.places.PlacesServiceStatus | null}) => {
     if (props.currentPlace === defaultGooglePlacesState.selected) {
+        // debugger;
         return null;
     }
     if (props.placesServiceStatus === null) {

@@ -45,13 +45,13 @@ const NotFound = () => {
 const RoutesContainer = () =>
   <Routes>
     <Route path={homePath} element={<HomePageContainer/>}/>
-    <Route  path={profilePath} element={<Profile/>}/>
-    <Route path={placesPathWithParam} element={<Place/>}/>
+    <Route path={profilePath} element={<Profile/>}/>
+    <Route path={placesPathWithParam} element={<HomePageContainer/>}/>
     <Route path={deviceModelsPathWithParam} element={<DeviceModels/>}/>
     <Route path={devicesPathWithParam} element={<Device/>}/>
     <Route path={devicesPathWithCreate} element={<Devices/>}/>
     <Route path={devicesPath} element={<Devices/>}/>
-    <Route path={placesPath} element={<Place/>}/>
+    <Route path={placesPath} element={<Navigate to={homePath}/>}/>
     <Route path={deviceModelsPath} element={<DeviceModels/>}/>
     <Route path={moreInfoPath} element={<MoreInfo/>}/>
     <Route path={bluetoothPath} element={<BluetoothTesting/>}/>

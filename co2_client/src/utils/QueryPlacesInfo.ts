@@ -60,6 +60,7 @@ const checkIfExists = (place_id: string, dispatch: AppDispatch): Promise<boolean
 }
 
 export const updatePlacesInfoFromBackend = (place_id: string, dispatch: AppDispatch) => {
+    console.log(`updating places info from backend...`);
     dispatch(setPlacesInfoFromDatabase(defaultPlaceInfo));
     dispatch(setPlacesInfoErrors(''));
     

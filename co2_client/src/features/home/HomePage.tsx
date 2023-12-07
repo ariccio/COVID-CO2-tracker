@@ -1,15 +1,15 @@
 import * as Sentry from "@sentry/browser"; // for manual error reporting.
 
-import {useEffect, useState, useRef, Suspense} from 'react';
+import {useEffect, useState, useRef, Suspense, Dispatch, SetStateAction} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-import {useLocation} from 'react-router-dom';
+import {useLocation, useNavigate, useParams} from 'react-router-dom';
 import Button from 'react-bootstrap/Button';
 
 import { useTranslation } from 'react-i18next';
 
 import {Container, Row, Col} from 'react-bootstrap';
 
-import {selectSelectedPlace, defaultGooglePlacesState, selectPlacesServiceStatus, selectMapsAaPeEyeKey, selectMapsAaaPeeEyeKeyErrorState, setMapsAaaPeeEyeKey, setMapsAaaPeeEyeKeyErrorState} from '../google/googleSlice';
+import {selectSelectedPlace, defaultGooglePlacesState, selectPlacesServiceStatus, selectMapsAaPeEyeKey, selectMapsAaaPeeEyeKeyErrorState, setMapsAaaPeeEyeKey, setMapsAaaPeeEyeKeyErrorState, setSelectedPlace} from '../google/googleSlice';
 import {getGoogleMapsJavascriptAaaaPeeEyeKey} from '../../utils/GoogleAPIKeys';
 
 import {GoogleMapsContainer} from '../google/GoogleMaps';
@@ -23,16 +23,18 @@ import { GOOGLE_FORMS_SURVEY_URL, YOUTUBE_VIDEO_INSTRUCTIONS_URL } from '../../u
 import { RenderFromDatabaseNoGoogleParam } from '../places/RenderPlaceFromDatabase';
 import { RenderSelectedPlaceInfo } from '../places/RenderPlaceInfo';
 import { AppStatsContainer } from '../stats/Stats';
+import { updatePlacesInfoFromBackend } from "../../utils/QueryPlacesInfo";
+import { updatePlacesServiceDetailsOnNewPlace } from "../google/googlePlacesServiceUtils";
 
 
 
 
-const renderMapsWhenLoaded = (mapsAaaPeeEyeKey: string) => {
+const renderMapsWhenLoaded = (mapsAaaPeeEyeKey: string, service: google.maps.places.PlacesService | null, setService: Dispatch<SetStateAction<google.maps.places.PlacesService | null>>) => {
     if (mapsAaaPeeEyeKey !== '') {
         return (
             <div>
                 <Suspense fallback="google maps container loading translations...">
-                    <GoogleMapsContainer definitely_not_an_apeeeye_key={mapsAaaPeeEyeKey}/>
+                    <GoogleMapsContainer definitely_not_an_apeeeye_key={mapsAaaPeeEyeKey} service={service} setService={setService}/>
                 </Suspense>
             </div>
         )
@@ -59,7 +61,8 @@ const renderMapsWhenLoaded = (mapsAaaPeeEyeKey: string) => {
 
 const renderInfoFromDatabase = (selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo, selectedPlaceInfoErrors: string, currentPlace: google.maps.places.PlaceResult, selectedPlaceExistsInDatabase: boolean | null) => {
     if (currentPlace === defaultGooglePlacesState.selected) {
-        //No place selected yet.
+        console.log(`No place selected yet.`);
+        // debugger;
         return null;
     }
     if (selectedPlaceInfoFromDatabase.measurements_by_sublocation === undefined) {
@@ -188,8 +191,19 @@ const HomePage = () => {
     const mapsAaaPeeEyeKey = useSelector(selectMapsAaPeEyeKey);
     const mapsAaPeeEyeKeyErrorState = useSelector(selectMapsAaaPeeEyeKeyErrorState);
 
+    const [service, setService] = useState(null as google.maps.places.PlacesService | null);
+
     const infoRef = useRef<HTMLDivElement | null>(null);
+
+    const navigate = useNavigate();
+    const {placeId} = useParams();
     const mapsApiHook = useLoadMapsApiKey();
+
+    // useEffect(() => {
+    //     if (placeId === undefined) {
+    //         return;
+    //     }
+    // [])
     // useEffect(() => {
     //     if (mapsAaaPeeEyeKey !== '') {
     //         return;
@@ -211,6 +225,22 @@ const HomePage = () => {
             setLocalitySelectedWarningString('');
         }
     }, [currentPlace.types, translate]);
+
+    useEffect(() => {
+        console.log(`placeId: ${placeId}`);
+        console.log(`mapsAaaPeeEyeKey: ${mapsAaaPeeEyeKey}`);
+        if (placeId === undefined) {
+            return;
+        }
+        if (placeId === '') {
+            return;
+        }
+        // debugger;
+        updatePlacesServiceDetailsOnNewPlace(service, dispatch, placeId);
+        updatePlacesInfoFromBackend(placeId, dispatch);
+        
+    }, [dispatch, placeId, mapsAaaPeeEyeKey, service]);
+
 
     useEffect(() => {
         if (infoRef && infoRef.current) {
@@ -237,7 +267,7 @@ const HomePage = () => {
             <Container>
                 <Row className="show-grid">
                     <Col md={6} xs={12}>
-                        {renderMapsWhenLoaded(mapsAaaPeeEyeKey)}
+                        {renderMapsWhenLoaded(mapsAaaPeeEyeKey, service, setService)}
                         <br/>
                         {mapsAaPeeEyeKeyErrorState}
                         <br/><br/>

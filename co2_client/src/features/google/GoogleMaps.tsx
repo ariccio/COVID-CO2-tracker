@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, SetStateAction, Dispatch } from 'react';
 import {useDispatch} from 'react-redux';
 import {useSelector} from 'react-redux';
 
@@ -29,6 +29,8 @@ import { selectUsername } from '../login/loginSlice';
 import { formatErrors, withErrors } from '../../utils/ErrorObject';
 import {isMobileSafari, isMobileFacebookBrowser} from '../../utils/Browsers';
 import { AppDispatch } from '../../app/store';
+import { NavigateFunction, useNavigate } from 'react-router-dom';
+import { homePath, placesPath } from '../../paths/paths';
 // import { setSelectedDevice } from '../deviceModels/deviceModelsSlice';
 
 
@@ -39,7 +41,9 @@ export const GOOGLE_LIBRARIES: Libraries = ["places"];
 
 
 interface MapsProps {
-    definitely_not_an_apeeeye_key: string
+    definitely_not_an_apeeeye_key: string;
+    service: google.maps.places.PlacesService | null;
+    setService: Dispatch<SetStateAction<google.maps.places.PlacesService | null>>;
 }
 
 
@@ -284,7 +288,7 @@ const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (pr
     );
 }
 
-const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null, dispatch: AppDispatch, map: google.maps.Map | null, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral | google.maps.LatLng>>, setAutocompleteErrorState: React.Dispatch<React.SetStateAction<string>>, service: google.maps.places.PlacesService | null) => {
+const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null, dispatch: AppDispatch, map: google.maps.Map | null, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral | google.maps.LatLng>>, setAutocompleteErrorState: React.Dispatch<React.SetStateAction<string>>, service: google.maps.places.PlacesService | null, navigate: NavigateFunction) => {
     if (autocomplete === null) {
         console.log("No autocomplete, but autocomplete place change handler?");
         return;
@@ -318,6 +322,7 @@ const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null
     updatePlacesInfoFromBackend(placeId, dispatch);
     updatePlacesServiceDetailsOnNewPlace(service, dispatch, placeId);
     setAutocompleteErrorState('');
+    navigate(placesPath + `/${placeId}`)
 }
 
 // This event is fired when the user clicks on the map.
@@ -325,7 +330,7 @@ const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null
 // IconMouseEvent and ApiMouseEvent are identical, except that IconMouseEvent has the placeId field.
 // The event can always be treated as an ApiMouseEvent when the placeId is not important.
 // The click event is not fired if a Marker or InfoWindow was clicked.
-const onClickMaps = (e: google.maps.MapMouseEvent, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral | google.maps.LatLng>>, dispatch: AppDispatch, service: google.maps.places.PlacesService | null) => {
+const onClickMaps = (e: google.maps.MapMouseEvent, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral | google.maps.LatLng>>, dispatch: AppDispatch, service: google.maps.places.PlacesService | null, navigate: NavigateFunction) => {
     // console.log(`dynamic type of event: ${typeof e}?`)
 
     //ApiMouseEvent appears to just be an IconMouseEvent? Now we have the types for it, yay!
@@ -365,6 +370,7 @@ const onClickMaps = (e: google.maps.MapMouseEvent, setCenter: React.Dispatch<Rea
     }
     console.log("Maps clicked, updating for new place?");
     updatePlacesServiceDetailsOnNewPlace(service, dispatch, (e as any).placeId);
+    navigate(homePath + `/${(e as any).placeId}`)
 }
 
 const containerStyle = {
@@ -455,7 +461,7 @@ function markerKey(lat: number, lng: number, index: number): string {
     return `marker-${lat}-${lng}-${index}-key`;
 }
 
-const renderEachMarker = (place: EachPlaceFromDatabaseForMarker, index: number, clusterer: /*clusterType*/ any, dispatch: AppDispatch, service: google.maps.places.PlacesService | null, placesSize: number) => {
+const renderEachMarker = (place: EachPlaceFromDatabaseForMarker, index: number, clusterer: /*clusterType*/ any, dispatch: AppDispatch, service: google.maps.places.PlacesService | null, placesSize: number, navigate: NavigateFunction) => {
     // eslint-disable-next-line react-perf/jsx-no-new-object-as-prop
     const pos: google.maps.LatLngLiteral = {
         lat: parseFloat(place.attributes.place_lat),
@@ -471,6 +477,8 @@ const renderEachMarker = (place: EachPlaceFromDatabaseForMarker, index: number, 
         }
         console.log("Marker click handler: updating on new place?");
         updatePlacesServiceDetailsOnNewPlace(service, dispatch, place.attributes.google_place_id);
+        navigate(placesPath + `/${place.attributes.google_place_id}`);
+
     }
     // debugger;
     let noClustererRedraw = undefined;
@@ -487,7 +495,7 @@ const renderEachMarker = (place: EachPlaceFromDatabaseForMarker, index: number, 
     )
 }
 
-const clustererCallback = (placeMarkersFromDatabase: placesFromDatabaseForMarker, dispatch: AppDispatch, clusterer: /*Clusterer*/ any, service: google.maps.places.PlacesService | null) => {
+const clustererCallback = (placeMarkersFromDatabase: placesFromDatabaseForMarker, dispatch: AppDispatch, clusterer: /*Clusterer*/ any, service: google.maps.places.PlacesService | null, navigate: NavigateFunction) => {
     console.assert(placeMarkersFromDatabase.places !== null);
     if (placeMarkersFromDatabase.places === null) {
         return (
@@ -501,15 +509,24 @@ const clustererCallback = (placeMarkersFromDatabase: placesFromDatabaseForMarker
 
     return (
         <>
-            {placeMarkersFromDatabase.places.map((place, index) => {return renderEachMarker(place, index, clusterer, dispatch, service, placesSize)})}
+            {placeMarkersFromDatabase.places.map((place, index) => {return renderEachMarker(place, index, clusterer, dispatch, service, placesSize, navigate)})}
         </>
     );
     
 
 }
 
-const Markers = (props: {placeMarkersFromDatabase: placesFromDatabaseForMarker, placeMarkerErrors: string, service: google.maps.places.PlacesService | null}) => {
+const Markers = (props: {placeMarkersFromDatabase: placesFromDatabaseForMarker, placeMarkerErrors: string, service: google.maps.places.PlacesService | null, navigate: NavigateFunction}) => {
     const dispatch = useDispatch();
+    if (props.placeMarkersFromDatabase.places === undefined) {
+        // debugger;
+        console.error(`props.placeMarkersFromDatabase.places === undefined`);
+    }
+    if (props.placeMarkersFromDatabase.places === null) {
+        // debugger;
+        console.error(`props.placeMarkersFromDatabase.places === null`);
+    }
+
     console.log(`Rendering ${props.placeMarkersFromDatabase.places?.length} markers`)
     if (props.placeMarkerErrors !== '') {
         console.error("cant render markers, got errors:");
@@ -534,7 +551,7 @@ const Markers = (props: {placeMarkersFromDatabase: placesFromDatabaseForMarker, 
     return (
         <MarkerClusterer averageCenter={true} minimumClusterSize={2} maxZoom={14}>
             {(clusterer) => {
-                return clustererCallback(props.placeMarkersFromDatabase, dispatch, clusterer, props.service);
+                return clustererCallback(props.placeMarkersFromDatabase, dispatch, clusterer, props.service, props.navigate);
             }}
         </MarkerClusterer>
     )
@@ -701,6 +718,7 @@ const GoogleMapInContainer = (props: {
     // console.log("rerender map")
     const {setCenter} = props;
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const placeMarkerErrors = useSelector(selectPlacesMarkersErrors);
 
 
@@ -731,7 +749,7 @@ const GoogleMapInContainer = (props: {
                 <GoogleMap 
                     mapContainerStyle={containerStyle} onLoad={props.onLoad} onUnmount={props.onUnmount} options={options}
                     
-                    onClick={(e: google.maps.MapMouseEvent) => {onClickMaps(e, setCenter, dispatch, props.service); updateMarkers(props.map, dispatch)}}
+                    onClick={(e: google.maps.MapMouseEvent) => {onClickMaps(e, setCenter, dispatch, props.service, navigate); updateMarkers(props.map, dispatch)}}
                     onIdle={() => onMapIdle(props.map, props.mapLoaded, props.setMapLoaded, dispatch)}
                     /*onTilesLoaded={() => {console.log("tiles loaded"); updateMarkers(map, dispatch)}}*/
                     onBoundsChanged={() => {
@@ -741,7 +759,7 @@ const GoogleMapInContainer = (props: {
                         }
                         props.setMapBounds(newBounds)}}
                     >
-                        <Markers placeMarkersFromDatabase={placeMarkersFromDatabase} placeMarkerErrors={placeMarkerErrors} service={props.service}/>
+                        <Markers placeMarkersFromDatabase={placeMarkersFromDatabase} placeMarkerErrors={placeMarkerErrors} service={props.service} navigate={navigate}/>
                 </GoogleMap>
             </div>
         </div>
@@ -788,10 +806,11 @@ const AutocompleteElement: React.FC<AutocompleteElementProps> = (props) => {
     const [autocomplete, setAutocomplete] = useState(null as google.maps.places.Autocomplete | null);
     const [autocompleteErrorState, setAutocompleteErrorState] = useState('');
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     return (
         <div>
             {renderErrorsAutocomplete(autocompleteErrorState)}
-            <RenderAutoComplete autoCompleteLoad={(event) => autoCompleteLoadThunk(event, setAutocomplete)} placeChange={() => placeChangeHandler(autocomplete, dispatch, props.map, props.setCenter, setAutocompleteErrorState, props.service)} map={props.map} mapLoaded={props.mapLoaded} mapBounds={props.mapBounds} />
+            <RenderAutoComplete autoCompleteLoad={(event) => autoCompleteLoadThunk(event, setAutocomplete)} placeChange={() => placeChangeHandler(autocomplete, dispatch, props.map, props.setCenter, setAutocompleteErrorState, props.service, navigate)} map={props.map} mapLoaded={props.mapLoaded} mapBounds={props.mapBounds} />
         </div>
     );
 }
@@ -967,7 +986,6 @@ export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) =
 
     const [center, setCenter] = useState(defaultCenter as google.maps.LatLngLiteral | google.maps.LatLng );
     const [map, setMap] = useState(null as google.maps.Map | null);
-    const [service, setService] = useState(null as google.maps.places.PlacesService | null);
     const [mapLoaded, setMapLoaded] = useState(false);
     const [mapBounds, setMapBounds] = useState(null as (null | google.maps.LatLngBounds));
 
@@ -1067,10 +1085,10 @@ export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) =
 
         return (
             <div>
-                <GoogleMapInContainer onLoad={(mapLoaded) => handleMapLoaded(mapLoaded, setMap, setService)} onUnmount={() => handleMapUnmount(map, setMap, setMapLoaded)} map={map} setCenter={setCenter} mapLoaded={mapLoaded} setMapLoaded={setMapLoaded} service={service} setMapBounds={setMapBounds}/>
+                <GoogleMapInContainer onLoad={(mapLoaded) => handleMapLoaded(mapLoaded, setMap, props.setService)} onUnmount={() => handleMapUnmount(map, setMap, setMapLoaded)} map={map} setCenter={setCenter} mapLoaded={mapLoaded} setMapLoaded={setMapLoaded} service={props.service} setMapBounds={setMapBounds}/>
                 <PlaceMarkersDataDebugText/>
                 <br/>
-                <AutocompleteElement map={map} setCenter={setCenter} mapLoaded={mapLoaded} service={service} mapBounds={mapBounds}/>
+                <AutocompleteElement map={map} setCenter={setCenter} mapLoaded={mapLoaded} service={props.service} mapBounds={mapBounds}/>
                 <GeolocationButton setCenter={setCenter} /><br/>
                 <PlacesServiceStatus/>
             </div>
