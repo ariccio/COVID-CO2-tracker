@@ -495,7 +495,24 @@ const renderEachMarker = (place: EachPlaceFromDatabaseForMarker, index: number, 
     )
 }
 
-const clustererCallback = (placeMarkersFromDatabase: placesFromDatabaseForMarker, dispatch: AppDispatch, clusterer: /*Clusterer*/ any, service: google.maps.places.PlacesService | null, navigate: NavigateFunction) => {
+const clustererCallback = (placeMarkersFromDatabase: placesFromDatabaseForMarker | null, dispatch: AppDispatch, clusterer: /*Clusterer*/ any, service: google.maps.places.PlacesService | null, navigate: NavigateFunction) => {
+    if (placeMarkersFromDatabase === defaultPlaceMarkers) {
+        console.log("Place markers unintialized.");
+        console.assert(placeMarkersFromDatabase.places === null);
+        return (
+            <>
+            </>
+        );
+    }
+
+    if (placeMarkersFromDatabase === null) {
+        console.warn(`apparently null place markers?`);
+        return (
+            <>
+            </>
+        );
+    }
+
     console.assert(placeMarkersFromDatabase.places !== null);
     if (placeMarkersFromDatabase.places === null) {
         return (
@@ -516,14 +533,23 @@ const clustererCallback = (placeMarkersFromDatabase: placesFromDatabaseForMarker
 
 }
 
-const Markers = (props: {placeMarkersFromDatabase: placesFromDatabaseForMarker, placeMarkerErrors: string, service: google.maps.places.PlacesService | null, navigate: NavigateFunction}) => {
+const Markers = (props: {placeMarkersFromDatabase: placesFromDatabaseForMarker | null, placeMarkerErrors: string, service: google.maps.places.PlacesService | null, navigate: NavigateFunction}) => {
     const dispatch = useDispatch();
+    if (props.placeMarkersFromDatabase === null) {
+        console.warn("null markers, nothing to render on map.")
+        return;
+    }
+    if (props.placeMarkersFromDatabase === defaultPlaceMarkers) {
+        console.log(`placeMarkers unitialized...`);
+        console.assert(props.placeMarkersFromDatabase.places === null);
+        return;
+    }
     if (props.placeMarkersFromDatabase.places === undefined) {
-        // debugger;
+        debugger;
         console.error(`props.placeMarkersFromDatabase.places === undefined`);
     }
     if (props.placeMarkersFromDatabase.places === null) {
-        // debugger;
+        debugger;
         console.error(`props.placeMarkersFromDatabase.places === null`);
     }
 
@@ -682,6 +708,13 @@ const PlaceMarkersDataDebugText = () => {
         //Map not loaded yet.
         return null;
     }
+    if (placeMarkersFromDatabase === null) {
+        console.warn(`Place markers is null?!`);
+        debugger;
+        return (
+            <>Place markers null.</>
+        )
+    }
 
     if (placeMarkersFromDatabase.places === null) {
         console.log("No markers.");
@@ -742,6 +775,21 @@ const GoogleMapInContainer = (props: {
     if (props.map === null) {
         console.log("map is null as passed to the map container function. Not loaded yet.");
         // debugger;
+    }
+    if (placeMarkersFromDatabase !== null) {
+        if (placeMarkersFromDatabase === defaultPlaceMarkers) {
+            console.log(`place markers not yet initialized...`);
+        }
+        else {
+            if (placeMarkersFromDatabase.places === undefined) {
+                debugger;
+                console.error(`props.placeMarkersFromDatabase.places === undefined`);
+            }
+            if (placeMarkersFromDatabase.places === null) {
+                debugger;
+                console.error(`props.placeMarkersFromDatabase.places === null`);
+            }
+        }
     }
     return (
         <div className="map">

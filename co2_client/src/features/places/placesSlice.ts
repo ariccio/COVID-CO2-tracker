@@ -66,7 +66,7 @@ export interface PlacesSlice {
     placesInfoFromDatabase: SelectedPlaceDatabaseInfo,
     placesInfoErrors: string,
     placeExistsInDatabase: boolean | null,
-    placeMarkersFromDatabase: placesFromDatabaseForMarker,
+    placeMarkersFromDatabase: placesFromDatabaseForMarker | null,
     placeMarkersErrors: string,
     placeMarkersFetchInProgress: boolean,
     placeMarkersFetchStartMS: number | null,
@@ -98,7 +98,7 @@ export const placesSlice = createSlice({
         setPlaceExistsInDatabase: (state, action: PayloadAction<boolean>) => {
             state.placeExistsInDatabase = action.payload;
         },
-        setPlaceMarkersFromDatabase: (state, action: PayloadAction<placesFromDatabaseForMarker>) => {
+        setPlaceMarkersFromDatabase: (state, action: PayloadAction<placesFromDatabaseForMarker | null>) => {
             state.placeMarkersFromDatabase = action.payload;
         },
         setPlaceMarkersErrors: (state, action: PayloadAction<string>) => {

@@ -236,7 +236,7 @@ const nearbyResultsFetchedCallback = (result: Promise<nearbyPlacesResponseType>,
         if (response.errors !== undefined) {
             console.warn("some kind of error while fetching place markers")
             dispatch(setPlaceMarkersErrors(formatErrors(response.errors)));
-            dispatch(setPlaceMarkersFromDatabase(defaultPlaceMarkers));
+            dispatch(setPlaceMarkersFromDatabase(null));
         }
         else {
             // debugger;
@@ -244,8 +244,15 @@ const nearbyResultsFetchedCallback = (result: Promise<nearbyPlacesResponseType>,
             if (response.places === undefined) {
                 throw new Error("missing data for places in bounds!")
             }
+            if (response.places === null) {
+                debugger;
+            }
+            else if (response.places.length === 0) {
+                console.log("hmm, places not null, but empty!");
+            }
             // console.log("successfully queried place markers");
             dispatch(setPlaceMarkersFromDatabase(response));
+
             // debugger;
         }
         // debugger;
