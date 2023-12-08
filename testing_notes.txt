@@ -6,3 +6,6 @@ Running rspec can take a minute with very few tests on my machine because ruby i
 end-to-end-test.rb is one of the attempts to automate.
 
 run_e2e.ts successfully launches the frontend and backend AND runs cypress e2e tests. Use like: `alexanderriccio@Alexanders-MacBook-Pro COVID-CO2-tracker % yarn run ts-node utils/run_e2e.ts`
+
+
+To manually open cypress, start rails (rails s), in a different terminal start webpack with yarn (yarn run start), and then in a different terminal, start cypress (yarn run cypress open).

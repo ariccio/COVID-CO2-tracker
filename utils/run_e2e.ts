@@ -154,12 +154,13 @@ async function main() {
     // rails = execSh.promise("rails s", undefined)
     let backendEnv = JSON.parse(JSON.stringify(process.env));
     backendEnv.PORT = '3000';
+    backendEnv.ENV = 'test';
     backendEnv.IsEndToEndBackendServerSoSTFUWithTheLogs = 'yes';
     const rails_opts: SubProcessOptions = {
         shell: true,
         env: backendEnv
     }
-    rails = new SubProcess('rails s', undefined, rails_opts);
+    rails = new SubProcess('rails s -e test', undefined, rails_opts);
     setupFollowerHooks(rails, "rails");
 
     const dump = (value: {stderr: string, stdout: string}) => {

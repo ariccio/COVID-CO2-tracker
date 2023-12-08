@@ -71,6 +71,14 @@ require 'active_support/core_ext/integer/time'
   end
 
 
+  config.log_level = :debug
+  
+  Rails.logger = Logger.new(STDOUT)
+
+    Rails.logger.level = Logger::WARN
+  # else
+  #   Rails.logger.level = Logger::DEBUG
+  # end
 
   # Rails.logger = Logger.new(STDOUT)
   # Rails.logger.level = Logger::INFO

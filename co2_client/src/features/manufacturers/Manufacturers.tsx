@@ -131,7 +131,7 @@ const RenderDropdown = (props: {manufacturerModels: SingleManufacturerInfoRespon
                     {props.manufacturerModels.name === '' ? "Select manufacturer:" : props.manufacturerModels.name}
                 </span>
             </Dropdown.Toggle>
-            <Dropdown.Menu>
+            <Dropdown.Menu id="dropdown-for-testing-basic-id">
                 {manufacturersToDropdown(props.knownManufacturers)}
                 <Dropdown.Item eventKey={"-1"}>
                     {/* TODO: this is not valid? Dropdown.item might be a link itself */}

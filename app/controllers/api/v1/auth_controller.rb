@@ -155,7 +155,7 @@ module Api
 
       # Note to self: https://philna.sh/blog/2020/01/15/test-signed-cookies-in-rails/
       def create
-        if Rails.env === 'test'
+        if (Rails.env === 'test')
           ::Rails.logger.warn("test auth path")
           # No encryption for test env
           # byebug

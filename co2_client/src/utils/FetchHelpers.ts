@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/browser"; // for manual error reporting.
 
 
 import {formatErrors} from './ErrorObject';
+import { unknownErrorTryFormat } from "./FormatUnknownObject";
 
 function dumpHeaders(headers: Headers, asError: boolean): void {
     //forEach(callbackfn: (value: string, key: string, parent: Headers) => void, thisArg?: any): void;
@@ -167,6 +168,8 @@ async function checkJSONparsingErrors(awaitedResponseOriginal: Response): Promis
 //  "Connection lost."
 //
 //  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/modules/webtransport/quic_transport.cc;l=843?q=CreateTypeError&ss=chromium%2Fchromium%2Fsrc&start=21
+//  now
+//  https://source.chromium.org/chromium/chromium/src/+/main:third_party/blink/renderer/modules/webtransport/web_transport.cc;l=1442?q=%22Failed%20to%20create%20send%20stream.%22&ss=chromium%2Fchromium%2Fsrc
 //  "Failed to create send stream."
 //
 //  https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/modules/webtransport/quic_transport.cc;l=881?q=CreateTypeError&ss=chromium%2Fchromium%2Fsrc&start=21
@@ -194,6 +197,7 @@ export async function fetchFailed(awaitedResponseOriginal: Response, expectedSta
 
     const parsedJSONResponse = await checkJSONparsingErrors(awaitedResponseCloned);
     if ((!awaitedResponseCloned.ok) || (parsedJSONResponse.errors !== undefined) ) {
+        console.warn(`fetchFailed found SOME kind of possible error.`);
         if (parsedJSONResponse.error !== undefined) {
             console.error("maybe internal server error?");
             console.error(parsedJSONResponse.error);
@@ -257,9 +261,9 @@ export function fetchFilter(error: any): never {
     }
     if (error instanceof SyntaxError) {
         console.error("JSON parsing error, likely a network error anyways.");
-
     }
     else if (error instanceof TypeError) {
+        console.log(`error is a TypeError (error instanceof TypeError)`)
         console.log(`TypeError message: ${error.message}`);
         console.log(`TypeError name: ${error.name}`);
         if (error.message === 'cancelled') {
@@ -291,6 +295,9 @@ export function fetchFilter(error: any): never {
     else if (error instanceof DOMException) {
         console.error(`fetch iself failed! Error: ${error}`);
     }
+
+    const allPropertiesAndInfo = unknownErrorTryFormat(error);
+    console.error(allPropertiesAndInfo);
     throw error;
 }
 
@@ -377,14 +384,22 @@ export async function fetchJSONWithChecks(input: RequestInfo, init: RequestInit,
         }).catch((catchError) => {
             //YESS
             console.error(`Network error OR error in fetch callback for ${input}, ultimate cause: `);
-            // debugger;
+            debugger;
             console.error(catchError);
             throw new Error(catchError);
         })
     }
     catch(error) {
         console.warn(`last chance bailed for ${input}? (${input.toString()})`);
-        debugger;
+        // I dunno, cypress is causing a lot of failures on spec startup when interactive lmao.
+        if (((window as any).Cypress) === undefined) {
+            debugger;
+        }
+        else {
+            if (((window as any).Cypress.browser.isHeadless)) {
+                debugger;
+            }
+        }
         fetchFilter(error);
     }
 }

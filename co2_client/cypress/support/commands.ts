@@ -68,6 +68,7 @@ function idBody(tokenResponseBody: any) {
 }
 
 function getUserInfo(tokenResponseBody) {
+    cy.log("getting user info...");
     if (tokenResponseBody === null) {
         cy.log("Body null!");
         // return;
