@@ -22,7 +22,7 @@ const DivElem = (props: {elementRef: React.MutableRefObject<HTMLDivElement | nul
     );
 }
 
-export const Place = () => {
+const Place = () => {
     // console.log("place")
     // const location = useLocation();
     const dispatch = useDispatch();
@@ -101,7 +101,7 @@ export const Place = () => {
             <Suspense fallback="loading translations...">
                 <DivElem elementRef={elementRef}/>
                 <PlaceDetails mapsAaPeeEyeKey={mapsAaPeeEyeKey} placeId={placeId} divRef={elementRef}/>
-                <RenderFromDatabaseNoGoogleParam selectedPlaceInfoFromDatabase={selectedPlaceInfoFromDatabase} selectedPlaceInfoErrors={selectedPlaceInfoFromDatabaseErrors} selectedPlaceExistsInDatabase={selectedPlaceExistsInDatabase}/>
+                {/* <RenderFromDatabaseNoGoogleParam selectedPlaceInfoFromDatabase={selectedPlaceInfoFromDatabase} selectedPlaceInfoErrors={selectedPlaceInfoFromDatabaseErrors} selectedPlaceExistsInDatabase={selectedPlaceExistsInDatabase}/> */}
             </Suspense>
             <br/>
             There will be graphs and risk analysis here, eventually.

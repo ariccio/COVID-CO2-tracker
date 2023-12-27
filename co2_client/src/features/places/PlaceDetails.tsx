@@ -1,7 +1,7 @@
 import {useEffect, useState} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RenderSelectedPlaceInfo } from './RenderPlaceInfo';
-import { updatePlacesServiceDetailsOnNewPlace } from '../google/googlePlacesServiceUtils';
+import { getPlacesServiceDetailsForMeasurement, updatePlacesServiceDetailsOnNewPlace } from '../google/googlePlacesServiceUtils';
 import { useJsApiLoader } from '@react-google-maps/api';
 import { GOOGLE_LIBRARIES } from '../google/GoogleMaps';
 
@@ -13,6 +13,12 @@ interface PlaceDetailsProps {
     mapsAaPeeEyeKey: string,
     placeId: string,
     divRef: React.MutableRefObject<HTMLDivElement | null>
+}
+
+interface PlaceDetailsMeasurementFromSinglePlaceProps {
+    mapsAaPeeEyeKey: string,
+    placeId: string,
+    currentPlaceIfFromSingleParentLocation: google.maps.places.PlaceResult
 }
 
 export const PlaceDetails: React.FC<PlaceDetailsProps> = (props) => {
@@ -62,6 +68,19 @@ export const PlaceDetails: React.FC<PlaceDetailsProps> = (props) => {
     return (
         <div>
             <RenderSelectedPlaceInfo currentPlace={selectedPlace} placesServiceStatus={placesServiceStatus}/>
+            {/* <ChatComponent/> */}
+        </div>
+    );
+}
+
+
+export const PlaceDetailsSingleMeasurement: React.FC<PlaceDetailsMeasurementFromSinglePlaceProps> = (props) => {
+    const placesServiceStatus = useSelector(selectPlacesServiceStatus);
+
+
+    return (
+        <div>
+            <RenderSelectedPlaceInfo currentPlace={props.currentPlaceIfFromSingleParentLocation} placesServiceStatus={placesServiceStatus}/>
             {/* <ChatComponent/> */}
         </div>
     );

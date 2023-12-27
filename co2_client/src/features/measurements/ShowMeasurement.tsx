@@ -18,12 +18,14 @@ import { selectMapsAaPeEyeKey, selectMapsAaaPeeEyeKeyErrorState } from '../googl
 // import { PlaceDetails } from '../places/PlaceDetails';
 import {placesPath} from '../../paths/paths';
 import { percentRebreathedFromPPM, rebreathedToString } from '../../utils/Rebreathed';
+import { PlaceDetails, PlaceDetailsSingleMeasurement } from '../places/PlaceDetails';
 
 interface ShowMeasurementModalProps {
     showMeasurementModal: boolean,
     setShowMeasurementModal: React.Dispatch<React.SetStateAction<boolean>>,
     selectedMeasurement: number | null,
     setSelectedMeasurement: React.Dispatch<React.SetStateAction<number | null>>,
+    currentPlaceIfFromSingleParentLocation?: google.maps.places.PlaceResult
 }
 const ModalHeader = (props: {measurementID: number | null}) => {
     if (props.measurementID === null) {
@@ -96,7 +98,17 @@ function MaybeApiKeyError(props: {mapsAaaPeeEyeKey: string, mapsAaaPeeEyeKeyErro
     return null;
 }
 
-const renderPlaceDetails = (measurementInfo: ShowMeasurementResponse, elementRef: React.MutableRefObject<HTMLDivElement | null>, mapsAaaPeeEyeKey: string, mapsAaaPeeEyeKeyErrorState: string) => {
+
+const renderPlaceDetailsWithPlaceInfoFromParent = (measurementInfo: ShowMeasurementResponse, mapsAaaPeeEyeKey: string, mapsAaaPeeEyeKeyErrorState: string, currentPlaceIfFromSingleParentLocation: google.maps.places.PlaceResult) => {
+    return (
+        <div>
+            <MaybeApiKeyError mapsAaaPeeEyeKey={mapsAaaPeeEyeKey} mapsAaaPeeEyeKeyErrorState={mapsAaaPeeEyeKeyErrorState}/>
+            <PlaceDetailsSingleMeasurement placeId={measurementInfo.place_id} mapsAaPeeEyeKey={mapsAaaPeeEyeKey} currentPlaceIfFromSingleParentLocation={currentPlaceIfFromSingleParentLocation}/>
+        </div>
+    )
+}
+
+const renderPlaceDetails = (measurementInfo: ShowMeasurementResponse, elementRef: React.MutableRefObject<HTMLDivElement | null>, mapsAaaPeeEyeKey: string, mapsAaaPeeEyeKeyErrorState: string, currentPlaceIfFromSingleParentLocation?: google.maps.places.PlaceResult) => {
     if (elementRef === null) {
         return (
             <div>
@@ -104,17 +116,20 @@ const renderPlaceDetails = (measurementInfo: ShowMeasurementResponse, elementRef
             </div>
         )
     }
+    if (currentPlaceIfFromSingleParentLocation !== undefined) {
+        return renderPlaceDetailsWithPlaceInfoFromParent(measurementInfo, mapsAaaPeeEyeKey, mapsAaaPeeEyeKeyErrorState, currentPlaceIfFromSingleParentLocation);
+    }
+    debugger;
     return (
         <div>
-            Will have PROPER place data here when I fix the damn bug.
-            In mean time, here&apos;s a link to it: <Link to={`${placesPath}/${measurementInfo.place_id}`}>{measurementInfo.place_id}</Link>
+            {/* <Link to={`${placesPath}/${measurementInfo.place_id}`}>{measurementInfo.place_id}</Link> */}
             <MaybeApiKeyError mapsAaaPeeEyeKey={mapsAaaPeeEyeKey} mapsAaaPeeEyeKeyErrorState={mapsAaaPeeEyeKeyErrorState}/>
-            {/* <PlaceDetails placeId={measurementInfo.place_id} divRef={elementRef}/> */}
+            <PlaceDetails placeId={measurementInfo.place_id} divRef={elementRef} mapsAaPeeEyeKey={mapsAaaPeeEyeKey}/>
         </div>
     )
 }
 
-const RenderModalBody = (props: {errors: string, measurementInfo: ShowMeasurementResponse, deviceSerials: Array<SerializedSingleDeviceSerial>, deviceSerialsErrorState: string, elementRef: React.MutableRefObject<HTMLDivElement | null>, mapsAaaPeeEyeKey: string, mapsAaaPeeEyeKeyErrorState: string}) => {
+const RenderModalBody = (props: {errors: string, measurementInfo: ShowMeasurementResponse, deviceSerials: Array<SerializedSingleDeviceSerial>, deviceSerialsErrorState: string, elementRef: React.MutableRefObject<HTMLDivElement | null>, mapsAaaPeeEyeKey: string, mapsAaaPeeEyeKeyErrorState: string, currentPlaceIfFromSingleParentLocation?: google.maps.places.PlaceResult}) => {
     const [translate] = useTranslation();
     const percent = percentRebreathedFromPPM(props.measurementInfo.data.data.attributes.co2ppm);
     const displayRebreathed = rebreathedToString(percent);
@@ -167,7 +182,7 @@ const RenderModalBody = (props: {errors: string, measurementInfo: ShowMeasuremen
                 
                 <br/>
                 <br/>
-                {renderPlaceDetails(props.measurementInfo, props.elementRef, props.mapsAaaPeeEyeKey, props.mapsAaaPeeEyeKeyErrorState)}
+                {renderPlaceDetails(props.measurementInfo, props.elementRef, props.mapsAaaPeeEyeKey, props.mapsAaaPeeEyeKeyErrorState, props.currentPlaceIfFromSingleParentLocation)}
             </Modal.Body>
 
         </div>
@@ -244,13 +259,14 @@ export const ShowMeasurementModal: React.FC<ShowMeasurementModalProps> = (props:
     //         </Modal>
     //     );
     // }
+
     return (
         <div>
             <Modal show={props.showMeasurementModal} onHide={() => {props.setShowMeasurementModal(false);} }>
                 <ModalHeader measurementID={props.selectedMeasurement}/>
                 <DivElem elementRef={elementRef}/>
                 <Suspense fallback="Loading translation">
-                    <RenderModalBody errors={errors} measurementInfo={measurementInfo} deviceSerials={deviceSerials} deviceSerialsErrorState={deviceSerialsErrorState} elementRef={elementRef} mapsAaaPeeEyeKey={mapsAaPeeEyeKey} mapsAaaPeeEyeKeyErrorState={mapsAaaPeeEyeKeyErrorState}/>
+                    <RenderModalBody errors={errors} measurementInfo={measurementInfo} deviceSerials={deviceSerials} deviceSerialsErrorState={deviceSerialsErrorState} elementRef={elementRef} mapsAaaPeeEyeKey={mapsAaPeeEyeKey} mapsAaaPeeEyeKeyErrorState={mapsAaaPeeEyeKeyErrorState} currentPlaceIfFromSingleParentLocation={props.currentPlaceIfFromSingleParentLocation}/>
                 </Suspense>
             </Modal>
 

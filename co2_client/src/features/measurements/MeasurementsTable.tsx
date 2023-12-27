@@ -304,7 +304,8 @@ interface MeasurementsTableProps {
     withDelete?: boolean,
     innerLocation?: InnerLocationDetails,
     deviceSerials?: Array<SerializedSingleDeviceSerial>,
-    withDevice?: boolean
+    withDevice?: boolean,
+    currentPlaceIfFromSingleParentLocation?: google.maps.places.PlaceResult
 }
 
 // function testingFetch(measurementID: number): void {
@@ -361,7 +362,7 @@ export const MeasurementsTable: React.FC<MeasurementsTableProps> = (props: Measu
                     <MeasurementTableHeader withDelete={props.withDelete} innerLocation={props.innerLocation} withDevice={props.withDevice} />
                     <MeasureTableBody measurements={props.measurements} setShowMeasurementModal={setShowMeasurementModal} setSelectedMeasurement={setSelectedMeasurement} withDelete={props.withDelete} innerLocation={props.innerLocation} deviceSerials={props.deviceSerials} withDevice={props.withDevice}/>
                 </Table>
-                <ShowMeasurementModal showMeasurementModal={showMeasurementModal} setShowMeasurementModal={setShowMeasurementModal} selectedMeasurement={selectedMeasurement} setSelectedMeasurement={setSelectedMeasurement}/>
+                <ShowMeasurementModal showMeasurementModal={showMeasurementModal} setShowMeasurementModal={setShowMeasurementModal} selectedMeasurement={selectedMeasurement} setSelectedMeasurement={setSelectedMeasurement} currentPlaceIfFromSingleParentLocation={props.currentPlaceIfFromSingleParentLocation}/>
             </Suspense>
         </div>
     )

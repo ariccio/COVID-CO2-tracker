@@ -12,7 +12,7 @@ import {Profile} from './features/profile/Profile';
 import {Devices, Device} from './features/devices/Devices';
 // import {get_email} from './utils/Authentication';
 import {DeviceModels} from './features/deviceModels/DeviceModels';
-import {Place} from './features/places/Place';
+// import {Place} from './features/places/Place';
 import {MoreInfo} from './features/moreInfoPage/MoreInfo';
 
 import {placesPath, homePath, devicesPath, profilePath, deviceModelsPath, moreInfoPath, bluetoothPath, devicesPathWithParam, deviceModelsPathWithParam, placesPathWithParam, devicesPathWithCreate} from './paths/paths';

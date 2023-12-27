@@ -18,7 +18,8 @@ import { selectSublocationSelectedLocationID } from '../sublocationsDropdown/sub
 import {MeasurementsTable} from './MeasurementsTable';
 
 interface MeasurementsByDropdownProps {
-    selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo
+    selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo;
+    currentPlace: google.maps.places.PlaceResult;
 }
 
 const maybeDescription = (location: SublocationMeasurements, withDescription: boolean) => {
@@ -36,7 +37,7 @@ function locationKey(location: SublocationMeasurements): string {
     return `measurement-table-sub-location-table-key-${location.sub_location_id}-${location.measurements.data.length}`
 }
 
-const singleLocation = (location: SublocationMeasurements, withDescription: boolean, deviceSerials?: Array<SerializedSingleDeviceSerial>) => {
+const singleLocation = (location: SublocationMeasurements, withDescription: boolean, currentPlace: google.maps.places.PlaceResult, deviceSerials?: Array<SerializedSingleDeviceSerial>) => {
 
     if (location.measurements.data === undefined) {
         console.log("measurements array is null, this is a bug, and this is an ugly hack to work around it. (MeasurementsByDropdown.tsx)");
@@ -50,18 +51,18 @@ const singleLocation = (location: SublocationMeasurements, withDescription: bool
     return (
         <div key={locationKey(location)}>
             {maybeDescription(location, withDescription)}
-            <MeasurementsTable measurements={location.measurements.data} deviceSerials={deviceSerials}/>
+            <MeasurementsTable measurements={location.measurements.data} deviceSerials={deviceSerials} currentPlaceIfFromSingleParentLocation={currentPlace}/>
         </div>
     );
 
 }
 
-const allMeasurements = (sublocations: Array<SublocationMeasurements>, deviceSerials?: Array<SerializedSingleDeviceSerial>) => {
+const allMeasurements = (sublocations: Array<SublocationMeasurements>, currentPlace: google.maps.places.PlaceResult, deviceSerials?: Array<SerializedSingleDeviceSerial>) => {
     return sublocations.map((location) => {
         if (location.measurements === undefined) {
             debugger;
         }
-        return singleLocation(location, true, deviceSerials);
+        return singleLocation(location, true, currentPlace, deviceSerials);
     })
 
 }
@@ -72,7 +73,7 @@ function findByID(sublocations: Array<SublocationMeasurements>, selected: number
     });
 }
 
-const measurements = (sublocations: Array<SublocationMeasurements>, selected: number, deviceSerials?: Array<SerializedSingleDeviceSerial>) => {
+const measurements = (sublocations: Array<SublocationMeasurements>, selected: number, currentPlace: google.maps.places.PlaceResult, deviceSerials?: Array<SerializedSingleDeviceSerial>) => {
     // if (sublocations === undefined) {
     //     debugger;
     // }
@@ -81,7 +82,7 @@ const measurements = (sublocations: Array<SublocationMeasurements>, selected: nu
             throw new Error(`sublocations is undefined! This is a bug in MeasurementsByDropdown.tsx. selected: ${selected}, deviceSerials: ${deviceSerials?.toString()}`)
         }
         // console.log("rendering all measurements for this location.");
-        return allMeasurements(sublocations, deviceSerials);
+        return allMeasurements(sublocations, currentPlace, deviceSerials);
     }
     const foundSelected = findByID(sublocations, selected)
     if (foundSelected === undefined) {
@@ -93,7 +94,7 @@ const measurements = (sublocations: Array<SublocationMeasurements>, selected: nu
             </div>
         );
     }
-    return singleLocation(foundSelected, false, deviceSerials);
+    return singleLocation(foundSelected, false, currentPlace, deviceSerials);
 }
 
 const NothingSelectedItem = () => {
@@ -249,7 +250,7 @@ export const MeasurementsByDropdown: React.FC<MeasurementsByDropdownProps> = (pr
     return (
         <div>
             <MaybeSublocationsIfMoreThanOne measurements_by_sublocation={measurements_by_sublocation} nothingSelectedText={ALL_MEASUREMENTS_STR} nothingSelectedItem={<NothingSelectedItem/>} selectedSublocationDisplayData={selected} setGlobal={true}/>
-            {measurements(measurements_by_sublocation, selectedSubLocation, deviceSerials)}
+            {measurements(measurements_by_sublocation, selectedSubLocation, props.currentPlace, deviceSerials)}
             {/* <MeasurementsTable measurements={props.selectedPlaceInfoFromDatabase}/> */}
         </div>
     );

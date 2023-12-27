@@ -9,7 +9,7 @@ import { MeasurementsByDropdown } from '../measurements/MeasurementsByDropdown';
 import { defaultPlaceInfo, SelectedPlaceDatabaseInfo } from './placesSlice';
 
 
-export const RenderFromDatabaseNoGoogleParam = (props: {selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo, selectedPlaceInfoErrors: string, selectedPlaceExistsInDatabase: boolean | null}) => {
+export const RenderFromDatabaseNoGoogleParam = (props: {selectedPlaceInfoFromDatabase: SelectedPlaceDatabaseInfo, selectedPlaceInfoErrors: string, selectedPlaceExistsInDatabase: boolean | null, currentPlace: google.maps.places.PlaceResult}) => {
     const [translate] = useTranslation();
 
     if (props.selectedPlaceInfoErrors !== '') {
@@ -74,7 +74,7 @@ export const RenderFromDatabaseNoGoogleParam = (props: {selectedPlaceInfoFromDat
     return (
         <div>
             <Suspense fallback="loading translations...">
-                <MeasurementsByDropdown selectedPlaceInfoFromDatabase={props.selectedPlaceInfoFromDatabase}/>
+                <MeasurementsByDropdown selectedPlaceInfoFromDatabase={props.selectedPlaceInfoFromDatabase} currentPlace={props.currentPlace}/>
             </Suspense>
             
         </div>

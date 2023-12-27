@@ -72,7 +72,7 @@ const renderInfoFromDatabase = (selectedPlaceInfoFromDatabase: SelectedPlaceData
     return (
         <div>
             <Suspense fallback="loading translations...">
-                <RenderFromDatabaseNoGoogleParam selectedPlaceInfoFromDatabase={selectedPlaceInfoFromDatabase} selectedPlaceInfoErrors={selectedPlaceInfoErrors} selectedPlaceExistsInDatabase={selectedPlaceExistsInDatabase} />
+                <RenderFromDatabaseNoGoogleParam selectedPlaceInfoFromDatabase={selectedPlaceInfoFromDatabase} selectedPlaceInfoErrors={selectedPlaceInfoErrors} selectedPlaceExistsInDatabase={selectedPlaceExistsInDatabase} currentPlace={currentPlace}/>
             </Suspense>
         </div>
     )
@@ -171,6 +171,8 @@ export const useLoadMapsApiKey = () => {
             dispatch(setMapsAaaPeeEyeKeyErrorState(error.message));
         });
     }, [dispatch, mapsAaaPeeEyeKey]);
+
+    return 
 
 }
 

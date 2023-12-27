@@ -104,6 +104,35 @@ const getDetailsCallback = (result: google.maps.places.PlaceResult | null, statu
     updatePlacesInfoFromBackend(result.place_id, dispatch);
 }
 
+const getDetailsCallbackSingleMeasurement = (result: google.maps.places.PlaceResult | null, status: google.maps.places.PlacesServiceStatus) => {
+    // dispatch(setPlacesServiceStatus(status));
+    if (status !== google.maps.places.PlacesServiceStatus.OK) {
+        reportWeirdness(result, status);
+        return;
+    }
+    // debugger;
+    // setPlacesServiceStatus(status);
+    if (result === null) {
+        console.error("PlaceResult is null?");
+        return;
+    }
+    const placeForAction = autocompleteSelectedPlaceToAction(result);
+    console.warn(`selecting place: ${placeForAction.name}`);
+    // dispatch(setSelectedPlace(placeForAction));
+    if (placeForAction.place_id === undefined) {
+        throw new Error('autocomplete place_id is undefined! Hmm.');
+    }
+    // dispatch(setSelectedPlaceIdString(placeForAction.place_id))
+    // dispatch(setSublocationSelectedLocationID(-1));
+    if (result.place_id === undefined) {
+        throw new Error("google places result is missing place_id! Something is broken.");
+    }
+    // console.log(result.utc_offset_minutes);
+    // debugger;
+    // result.
+    // updatePlacesInfoFromBackend(result.place_id, dispatch);
+}
+
 
 export const updatePlacesServiceDetailsOnNewPlace = (service: google.maps.places.PlacesService | null, dispatch: AppDispatch, place_id?: string) => {
     if (service === null) {
@@ -127,6 +156,49 @@ export const updatePlacesServiceDetailsOnNewPlace = (service: google.maps.places
     } 
     const detailsCallbackThunk = (result: google.maps.places.PlaceResult | null, status: google.maps.places.PlacesServiceStatus) => {
         getDetailsCallback(result, status, dispatch);
+    }
+    // console.warn("places service request...")
+        /**
+     * Retrieves details about the place identified by the given
+     * <code>placeId</code>.
+         getDetails(
+            request: google.maps.places.PlaceDetailsRequest,
+            callback:
+                (a: google.maps.places.PlaceResult|null,
+                 b: google.maps.places.PlacesServiceStatus) => void): void;
+     */
+    console.log(`Requesting update from google for place '${place_id}'...`);
+    service.getDetails(request, detailsCallbackThunk);
+}
+
+
+export const getPlacesServiceDetailsForMeasurement = (service: google.maps.places.PlacesService | null, place_id?: string) => {
+    // dispatch(setPlacesServiceStatus(status));
+    // dispatch(setSelectedPlace(placeForAction));
+    // dispatch(setSelectedPlaceIdString(placeForAction.place_id))
+    // dispatch(setSublocationSelectedLocationID(-1));
+
+    if (service === null) {
+        // debugger;
+        console.log("places service not ready yet");
+        return;
+    }
+    if (place_id === null) {
+        // debugger;
+        console.warn("place_id is null from autocomplete?");
+        return;
+    }
+    checkInterestingFields(INTERESTING_FIELDS);
+    if (place_id === undefined) {
+        console.log("no place id.");
+        return;
+    }
+    const request: google.maps.places.PlaceDetailsRequest = {
+        placeId: place_id,
+        fields: INTERESTING_FIELDS
+    } 
+    const detailsCallbackThunk = (result: google.maps.places.PlaceResult | null, status: google.maps.places.PlacesServiceStatus) => {
+        getDetailsCallbackSingleMeasurement(result, status);
     }
     // console.warn("places service request...")
         /**

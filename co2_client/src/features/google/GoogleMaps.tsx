@@ -370,7 +370,9 @@ const onClickMaps = (e: google.maps.MapMouseEvent, setCenter: React.Dispatch<Rea
     }
     console.log("Maps clicked, updating for new place?");
     updatePlacesServiceDetailsOnNewPlace(service, dispatch, (e as any).placeId);
-    navigate(homePath + `/${(e as any).placeId}`)
+    
+    // TODO: handle `/home/adwdawdwawfse` properly as a place?
+    navigate(placesPath + `/${(e as any).placeId}`)
 }
 
 const containerStyle = {
