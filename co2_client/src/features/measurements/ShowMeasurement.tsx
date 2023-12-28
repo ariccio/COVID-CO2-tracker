@@ -16,7 +16,7 @@ import {ShowMeasurementResponse, defaultShowMeasurementResponse} from '../../uti
 import { useSelector } from 'react-redux';
 import { selectMapsAaPeEyeKey, selectMapsAaaPeeEyeKeyErrorState } from '../google/googleSlice';
 // import { PlaceDetails } from '../places/PlaceDetails';
-import {placesPath} from '../../paths/paths';
+// import {placesPath} from '../../paths/paths';
 import { percentRebreathedFromPPM, rebreathedToString } from '../../utils/Rebreathed';
 import { PlaceDetails, PlaceDetailsSingleMeasurement } from '../places/PlaceDetails';
 
@@ -166,6 +166,9 @@ const RenderModalBody = (props: {errors: string, measurementInfo: ShowMeasuremen
                 {translate("crowding-level")}: {props.measurementInfo.data.data.attributes.crowding}
                 <br/>
                 <br/>
+                {translate('rebreathed fraction')}: {displayRebreathed}
+                <br/>
+                <br/>
                 {translate("Measurement taken date and time")}: {new Date(props.measurementInfo.data.data.attributes.measurementtime).toString()}
                 <br/>
                 <br/>
@@ -176,9 +179,6 @@ const RenderModalBody = (props: {errors: string, measurementInfo: ShowMeasuremen
                 {/* <br/> */}
                 {/* <br/> */}
                 {/* Measurement place_id: {measurementInfo.place_id} */}
-                <br/>
-                <br/>
-                {translate('rebreathed fraction')}: {displayRebreathed}
                 
                 <br/>
                 <br/>

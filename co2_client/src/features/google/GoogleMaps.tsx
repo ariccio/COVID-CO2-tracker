@@ -30,7 +30,9 @@ import { formatErrors, withErrors } from '../../utils/ErrorObject';
 import {isMobileSafari, isMobileFacebookBrowser} from '../../utils/Browsers';
 import { AppDispatch } from '../../app/store';
 import { NavigateFunction, useNavigate } from 'react-router-dom';
-import { homePath, placesPath } from '../../paths/paths';
+import { 
+    // homePath,
+    placesPath } from '../../paths/paths';
 // import { setSelectedDevice } from '../deviceModels/deviceModelsSlice';
 
 

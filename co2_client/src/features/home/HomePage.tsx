@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 
 import {Container, Row, Col} from 'react-bootstrap';
 
-import {selectSelectedPlace, defaultGooglePlacesState, selectPlacesServiceStatus, selectMapsAaPeEyeKey, selectMapsAaaPeeEyeKeyErrorState, setMapsAaaPeeEyeKey, setMapsAaaPeeEyeKeyErrorState, setSelectedPlace} from '../google/googleSlice';
+import {selectSelectedPlace, defaultGooglePlacesState, selectPlacesServiceStatus, selectMapsAaPeEyeKey, selectMapsAaaPeeEyeKeyErrorState, setMapsAaaPeeEyeKey, setMapsAaaPeeEyeKeyErrorState} from '../google/googleSlice';
 import {getGoogleMapsJavascriptAaaaPeeEyeKey} from '../../utils/GoogleAPIKeys';
 
 import {GoogleMapsContainer} from '../google/GoogleMaps';
@@ -157,7 +157,7 @@ function renderWelcomeLoading() {
 
 export const useLoadMapsApiKey = () => {
     const mapsAaaPeeEyeKey = useSelector(selectMapsAaPeEyeKey);
-    const mapsAaPeeEyeKeyErrorState = useSelector(selectMapsAaaPeeEyeKeyErrorState);
+    // const mapsAaPeeEyeKeyErrorState = useSelector(selectMapsAaaPeeEyeKeyErrorState);
     const dispatch = useDispatch();
 
     useEffect(() => {
