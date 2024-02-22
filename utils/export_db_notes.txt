@@ -1,0 +1,131 @@
+heroku pg:backups:capture 
+
+heroku pg:backups:download
+
+...then copy latest.dump to somewhere ELSE, give it a name that has some meaning
+
+to turn into sql file?:
+
+pg_restore export_1_30_2024.dump -f export_1_30_2024_restored.sql
+
+
+
+from database.yml:
+default: &default
+  encoding: unicode
+
+development:
+  <<: *default
+  database: co2tracker_development
+  host: localhost
+  username: postgres
+  password: <%= Rails.application.credentials.dig(:development, :postgres_password) %>
+
+
+
+ok... following https://stackoverflow.com/a/73557740/625687...
+alexanderriccio@Alexanders-MacBook-Pro export_1_30_2024_data % psql -c "CREATE DATABASE co2tracker_local_export_manual_test WITH ENCODING 'UTF8' TEMPLATE template0" 
+(works, shows the following)
+CREATE DATABASE
+
+psql  -c "CREATE SCHEMA IF NOT EXISTS heroku_ext AUTHORIZATION postgres" co2tracker_local_export_manual_test
+(works, shows the following)
+CREATE SCHEMA
+
+should I use --echo-hidden?
+
+
+
+psql --echo-hidden -c "CREATE extension IF NOT EXISTS <extension> WITH schema heroku_ext"  co2tracker_local_export_manual_test
+that fails because <extension> needs to be replaced by the thingie that errored.
+
+
+...earlier, the following command failed:
+pg_restore --verbose --clean --no-acl --no-owner -h localhost -d testexportdb ../export_1_30_2024.dump
+
+(lots of truncated)
+pg_restore: while PROCESSING TOC:
+pg_restore: from TOC entry 2; 3079 19541047 EXTENSION pg_stat_statements (no owner)
+pg_restore: error: could not execute query: ERROR:  extension "pg_stat_statements" does not exist
+Command was: DROP EXTENSION "pg_stat_statements";
+pg_restore: creating EXTENSION "pg_stat_statements"
+pg_restore: error: could not execute query: ERROR:  schema "heroku_ext" does not exist
+Command was: CREATE EXTENSION IF NOT EXISTS "pg_stat_statements" WITH SCHEMA "heroku_ext";
+
+
+pg_restore: creating COMMENT "EXTENSION "pg_stat_statements""
+pg_restore: from TOC entry 4463; 0 0 COMMENT EXTENSION "pg_stat_statements" 
+pg_restore: error: could not execute query: ERROR:  extension "pg_stat_statements" does not exist
+Command was: COMMENT ON EXTENSION "pg_stat_statements" IS 'track planning and execution statistics of all SQL statements executed';
+
+
+...looks like one <extension>: heroku_ext
+
+...so:
+psql --echo-hidden -c "CREATE extension IF NOT EXISTS heroku_ext WITH schema heroku_ext"  co2tracker_local_export_manual_test
+...fails:
+ERROR:  could not open extension control file "/opt/homebrew/share/postgresql@14/extension/heroku_ext.control": No such file or directory
+
+
+...but this works:
+psql --echo-hidden -c "CREATE extension IF NOT EXISTS pg_stat_statements WITH schema heroku_ext"  co2tracker_local_export_manual_test
+(shows)
+CREATE EXTENSION
+
+...so pg_stat_statements is the extension.
+
+...do:
+
+psql -c "GRANT ALL ON SCHEMA heroku_ext TO public" co2tracker_local_export_manual_test
+psql -c "GRANT USAGE ON SCHEMA heroku_ext TO public" co2tracker_local_export_manual_test
+
+...and then:
+psql -c "SET search_path TO heroku_ext,public" co2tracker_local_export_manual_test
+
+
+...and
+psql -c "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA heroku_ext TO postgres"  co2tracker_local_export_manual_test
+
+
+...lets see if this works now:
+pg_restore --no-acl --no-owner -U postgres -d co2tracker_local_export_manual_test ./export_1_30_2024.dump 
+...nope:
+pg_restore: while PROCESSING TOC:
+pg_restore: from TOC entry 4463; 0 0 COMMENT EXTENSION "pg_stat_statements" 
+pg_restore: error: could not execute query: ERROR:  must be owner of extension pg_stat_statements
+Command was: COMMENT ON EXTENSION "pg_stat_statements" IS 'track planning and execution statistics of all SQL statements executed';
+
+
+pg_restore: warning: errors ignored on restore: 1
+
+
+hmmm.
+
+
+
+....hitting a segfault tonight?!? several hours of bullshit.
+this command:
+pg_restore --no-acl --no-owner -U postgres -d co2tracker_local_export_manual_test --clean -v --no-comments ./export_1_30_2024.dump
+
+
+
+2/1/2023 trying again with a new dump
+
+
+Works, was some weird UTF-8 corruption.
+
+Open in pgadmin 4
+
+clean emails with:
+
+UPDATE users
+    SET email = gen_random_uuid()
+
+delete entire column sub_google_uid
+
+then delete admin_users
+
+
+pg_dump --file emails_uids_and_admin_cleaned_2_1_2024_export.dump --host "localhost" --port "5432" --username "postgres" --no-password --verbose --format=c "co2tracker_local_export_manual_test"
+
+pg_restore emails_uids_and_admin_cleaned_2_1_2024_export.dump -f emails_uids_and_admin_cleaned_2_1_2024_export.sql
