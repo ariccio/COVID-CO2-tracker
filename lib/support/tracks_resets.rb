@@ -15,6 +15,7 @@ module FakeCypressRailsRunner
 
     def reset_state_if_needed(transactional_server)
       if @reset_needed
+        puts("reset needed from backend cypress db manager rails server...")
         ResetsState.new.call(transactional_server: transactional_server)
         @reset_needed = false
       end

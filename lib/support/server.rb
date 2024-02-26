@@ -43,6 +43,7 @@ module FakeCypressRailsRunner
     end
 
     def error
+      puts "lol error"
       middleware.error
     end
 
@@ -56,11 +57,13 @@ module FakeCypressRailsRunner
       res = @checker.request { |http| http.get("/__identify__") }
 
       res.body == app.object_id.to_s if res.is_a?(Net::HTTPSuccess) || res.is_a?(Net::HTTPRedirection)
-    rescue SystemCallError, Net::ReadTimeout, OpenSSL::SSL::SSLError
+    rescue SystemCallError, Net::ReadTimeout, OpenSSL::SSL::SSLError => e
+      puts("NOT responsive! #{e.full_message}")
       false
     end
 
     def wait_for_pending_requests
+      puts("waiting for pending requests...")
       timer = Timer.new(60)
       while pending_requests?
         raise "Requests did not finish in 60 seconds: #{middleware.pending_requests}" if timer.expired?
@@ -74,6 +77,7 @@ module FakeCypressRailsRunner
         Server.ports[port_key] = port
 
         @server_thread = Thread.new {
+          puts("starting puma for backend cypres reset server...")
           Puma.create(middleware, port, host)
         }
 
@@ -106,6 +110,7 @@ module FakeCypressRailsRunner
     def find_available_port(host)
       server = TCPServer.new(host, 0)
       port = server.addr[1]
+      puts("backend cypress db manager find_available_port: #{port}")
       server.close
 
       # Workaround issue where some platforms (mac, ???) when passed a host
@@ -114,7 +119,8 @@ module FakeCypressRailsRunner
       # that port to be available on all ips
       server = TCPServer.new(host, port)
       port
-    rescue Errno::EADDRINUSE
+    rescue Errno::EADDRINUSE => e
+      puts("backend cypress db manager port in use, retrying... #{e.full_message}")
       retry
     ensure
       server&.close

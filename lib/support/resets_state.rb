@@ -13,9 +13,13 @@ module FakeCypressRailsRunner
     end
 
     def call(transactional_server:)
+      
       if transactional_server
+        puts("calling ResetsState for transactional server...")
         @manages_transactions.rollback_transaction
         @manages_transactions.begin_transaction
+      else
+        puts("calling ResetsState for NON-transactional server, skipping setup of transactions...")
       end
       @initializer_hooks.run(:after_state_reset)
     end

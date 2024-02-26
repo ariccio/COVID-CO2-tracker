@@ -45,9 +45,14 @@ module FakeCypressRailsRunner
       
         def run_exit_hooks_if_necessary!(config)
           @at_exit_hooks_have_fired ||= false # avoid warning
-          return if @at_exit_hooks_have_fired
+          if @at_exit_hooks_have_fired
+            puts "at_exit hooks already fired"
+            return
+          end
+          # return if @at_exit_hooks_have_fired
     
           if config.transactional_server
+            puts "running in transactional mode, need to rollback transaction..."
             @manages_transactions.rollback_transaction
           end
           @initializer_hooks.run(:before_server_stop)

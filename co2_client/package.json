@@ -70,6 +70,7 @@
   },
   "proxy": "http://localhost:3000",
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@eslint/create-config": "^0.4.1",
     "concurrently": "^8.2.2",
     "cypress": "^13.6.1",

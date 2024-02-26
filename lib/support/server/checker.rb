@@ -16,7 +16,7 @@ module FakeCypressRailsRunner
         rescue *TRY_HTTPS_ERRORS => e
           res = https_request(&block)
           @ssl = true
-          puts "Exception: #{e.full_message}"
+          puts("Cypress rails db hackwork exception: #{e.full_message}")
           res
         end
   

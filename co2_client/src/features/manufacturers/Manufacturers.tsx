@@ -213,7 +213,7 @@ const renderDeviceModelsOrLoading = (selectedManufacturer: number | null, manufa
         );
     }
     return(
-        <div>
+        <div aria-label='Manufacturer UI errors'>
             {errors}
         </div>
     );

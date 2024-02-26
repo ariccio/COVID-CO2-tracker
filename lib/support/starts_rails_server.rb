@@ -12,6 +12,7 @@ module FakeCypressRailsRunner
     def call(host:, port:, transactional_server:)
       configure_rails_to_run_our_state_reset_on_every_request!(transactional_server)
       app = create_rack_app
+      puts("starting new backend cypress rails db manager server")
       Server.new(app, host: host, port: port).tap do |server|
         server.boot
       end
@@ -24,13 +25,15 @@ module FakeCypressRailsRunner
     end
 
     def create_rack_app
+      puts "creating ugly basic rack app to respond to cypress reset state requests"
       Rack::Builder.new do
+        use Rack::CommonLogger
         map "/cypress_rails_reset_state" do
           run lambda { |env|
             if Rails.env.production?
               raise StandardError, "Logic error - do not continue"
             end
-            puts "\n\n\n\n\nRESETTING DB\n\n\n\n\n"
+            puts("\n\n\n\n\nRESETTING DB\n\n\n\n\n")
             TracksResets.instance.reset_needed!
             [202, {"Content-Type" => "text/plain"}, ["Accepted"]]
           }

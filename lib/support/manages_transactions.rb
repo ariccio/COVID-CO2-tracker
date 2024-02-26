@@ -38,17 +38,45 @@ module FakeCypressRailsRunner
         end
     
         def rollback_transaction
-          return unless @connections.present?
+          puts("rollback_transaction")
+          # return unless @connections.present?
+          unless @connections.present?
+            puts("no connections present to rollback")
+            return
+          end
     
-          ActiveSupport::Notifications.unsubscribe(@connection_subscriber) if @connection_subscriber
+          # ActiveSupport::Notifications.unsubscribe(@connection_subscriber) if @connection_subscriber
+          if @connection_subscriber
+            puts("unsubscribing from connection subscriber")
+            ActiveSupport::Notifications.unsubscribe(@connection_subscriber) 
+          end
     
+          puts("number of connections: #{@connections.length}")
           @connections.each do |connection|
+            # puts connection.connection_db_config
+            # puts connection.connection_specification_name
+            puts("connection.active?: #{connection.active?}")
+            puts("connection.adapter_name: #{connection.adapter_name}")
             connection.rollback_transaction if connection.transaction_open?
             connection.pool.lock_thread = false
+            connection.pool.flush!
+            connection.pool.release_connection
+
           end
+          puts("number of connections: #{@connections.length}")
+          puts("clearing connections")
           @connections.clear
-    
+          ActiveRecord::Base.connection_handler.flush_idle_connections!
           ActiveRecord::Base.connection_handler.clear_active_connections!
+          if ActiveRecord::Base.connection_handler.nil?
+            puts ("connection handler is nil")
+            return
+          end
+          if (ActiveRecord::Base.connection_handler.connection_pool_list.nil?)
+            puts ("connection handler connection pool list is nil")
+            return
+          end
+          puts("number of connections: #{ActiveRecord::Base.connection_handler&.connection_pool_list&.length}")
         end
     
         private
