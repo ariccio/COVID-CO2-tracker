@@ -113,9 +113,8 @@ RSpec.describe("Models", type: :request) do
       it("Cannot create same model more than once") do
         created_manufacturer_id = @manufacturer_create_response["manufacturer_id"]
 
-        static_new_model_name = Faker::Device.model_name
         # try first
-        new_model_params = {model: {name: static_new_model_name, manufacturer_id: created_manufacturer_id}}
+        new_model_params = {model: {name: new_model_name, manufacturer_id: created_manufacturer_id}}
         post(api_v1_model_index_path, headers: @user_headers, params: new_model_params)
         model_response = json_response
         check_no_error(response, model_response, :created)
@@ -123,55 +122,57 @@ RSpec.describe("Models", type: :request) do
 
         get(api_v1_manufacturer_path(created_manufacturer_id), headers: @user_headers)
         
-        expected_model = {"model_id"=> model_response["model_id"], "manufacturer_id"=> created_manufacturer_id, "name"=> static_new_model_name, "count"=>0}
+        expected_model = {"model_id"=> model_response["model_id"], "manufacturer_id"=> created_manufacturer_id, "name"=> new_model_name, "count"=>0}
         expect(json_response["models"]).to(eq([expected_model]))
         # pp json_response["models"]
 
         get(api_v1_model_path(expected_model["model_id"]))
         show_model_response = json_response
         check_no_error(response, show_model_response, :ok)
-        expect(show_model_response["name"]).to(eq(static_new_model_name))
+        expect(show_model_response["name"]).to(eq(new_model_name))
         expect(show_model_response["count"]).to(eq(0))
         expect(show_model_response["measurement_count"]).to(eq(0))
 
 
         first_model_response = show_model_response
-        # try second
-        post(api_v1_model_index_path, headers: @user_headers, params: new_model_params)
-        model_response = json_response
+        3.times do
+          # try second
+          post(api_v1_model_index_path, headers: @user_headers, params: new_model_params)
+          model_response = json_response
+  
+          # error string: 'Name has already been taken', message: 'device model creation failed!'
+          # Create model errors: error string: 'Name has already been taken', message: 'device model creation failed!'
+  
+  
+          # {"errors"=>[{"message"=>["device model creation failed!"], "error"=>["Name has already been taken"]}]}
+          # {"errors"=>[{"message"=>["device model creation failed!"], "error"=>["Name has already been taken"]}]}
+          formatted_error_check_array(response, json_response, :bad_request, "device model creation failed!", ["Name has already been taken"])
+  
+  
+          get(api_v1_manufacturer_path(@manufacturer_create_response["manufacturer_id"]), headers: @user_headers)
+          check_no_error(response, json_response, :ok)
+          pp "----------"
+          pp "----------"
+          pp json_response
+          pp "----------"
+          pp "----------"
+          expect(json_response).to(include("name"))
+          expect(json_response).to(include("manufacturer_id"))
+          expect(json_response).to(include("models"))
+          expect(json_response["name"]).to(eq(reasonable_manufacturer_params[:manufacturer][:name]))
+          expect(json_response["models"]).to(eq(
+            [
+              {
+                "count"=>0,
+                "manufacturer_id"=>@manufacturer_create_response["manufacturer_id"],
+                "model_id"=>first_model_response["model_id"],
+                "name"=>new_model_name
+                }
+            ]))
+        end
 
-        # error string: 'Name has already been taken', message: 'device model creation failed!'
-        # Create model errors: error string: 'Name has already been taken', message: 'device model creation failed!'
-
-
-        # {"errors"=>[{"message"=>["device model creation failed!"], "error"=>["Name has already been taken"]}]}
-        # {"errors"=>[{"message"=>["device model creation failed!"], "error"=>["Name has already been taken"]}]}
-        formatted_error_check_array(response, json_response, :bad_request, "device model creation failed!", ["Name has already been taken"])
-
-
-        get(api_v1_manufacturer_path(@manufacturer_create_response["manufacturer_id"]), headers: @user_headers)
-        check_no_error(response, json_response, :ok)
-        pp "----------"
-        pp "----------"
-        pp json_response
-        pp "----------"
-        pp "----------"
-        expect(json_response).to(include("name"))
-        expect(json_response).to(include("manufacturer_id"))
-        expect(json_response).to(include("models"))
-        expect(json_response["name"]).to(eq(reasonable_manufacturer_params[:manufacturer][:name]))
-        expect(json_response["models"]).to(eq(
-          [
-            {
-              "count"=>0,
-              "manufacturer_id"=>@manufacturer_create_response["manufacturer_id"],
-              "model_id"=>first_model_response["model_id"],
-              "name"=>static_new_model_name
-              }
-          ]))
-
-        num_models = json_response["models"].count { |model| model["name"] == static_new_model_name }
-        pp num_models
+        num_models = json_response["models"].count { |model| model["name"] == new_model_name }
+        expect(num_models).to(eq(1))
       end
     end
   end
