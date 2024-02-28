@@ -37,7 +37,10 @@ describe('Add manufacturer', () => {
         // cy.contains("Add a manufacturer to the database").should('not.exist');
         })
         it('can create a new manufacturer, and it exists after creating it', () => {
-            const spy = cy.spy(window, 'alert');
+            // const spy = cy.spy(window, 'alert');
+            cy.window().then((win: Cypress.AUTWindow) => {
+                cy.spy(win, 'alert').as('winAlertSpy');
+            })
             cy.visit('/');
             cy.visit('http://localhost:3001/devices');
             cy.contains("Add your devices and view stats").should("be.visible");
@@ -53,7 +56,7 @@ describe('Add manufacturer', () => {
             cy.contains("Add a manufacturer to the database").should('not.exist');
             cy.contains("Select manufacturer").click();
             cy.contains("blaaarghhh").should('exist');
-            // spy.notCalled
-            // .to.not.be.called;
+            cy.get('@winAlertSpy').should('not.be.called');
+
         })
 })
