@@ -36,7 +36,7 @@ describe('Add manufacturer', () => {
         // cy.contains('Please reduce administrative burden').should('not.exist');
         // cy.contains("Add a manufacturer to the database").should('not.exist');
         })
-        it('can create a new manufacturer', () => {
+        it('can create a new manufacturer, and it exists after creating it', () => {
             const spy = cy.spy(window, 'alert');
             cy.visit('/');
             cy.visit('http://localhost:3001/devices');
@@ -50,6 +50,10 @@ describe('Add manufacturer', () => {
             cy.contains('Submit').click();
 
             cy.contains('Please reduce administrative burden').should('not.exist');
-            cy.contains("Add a manufacturer to the database").should('not.exist');    
+            cy.contains("Add a manufacturer to the database").should('not.exist');
+            cy.contains("Select manufacturer").click();
+            cy.contains("blaaarghhh").should('exist');
+            spy.notCalled
+            .to.not.be.called;
         })
 })
