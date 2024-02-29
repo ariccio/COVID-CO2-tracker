@@ -192,7 +192,7 @@ const submitHandler = (enteredManufacturerText: string, setShowAddManufacturer: 
     setShowSubmit(false);
     setSubmitting(true);
     const result = createNewManufacturer(enteredManufacturerText);
-    result.then((response) => {
+    return result.then((response) => {
         setShowSubmit(true);
         setSubmitting(false);
         if (response.errors !== undefined) {

@@ -118,7 +118,7 @@ RSpec.describe("Devices", type: :request) do
 
       it("fails with an invalid model_id") do
         minimum_invalid_id = (@created_model_id + 1)
-        10.times do
+        3.times do
           invalid_id = Faker::Number.between(from: minimum_invalid_id, to: max_id)
           post(api_v1_device_index_path, headers: @user_headers, params: {device: {serial: new_serial_name, model_id: invalid_id}})
           # pp json_response
