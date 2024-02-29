@@ -94,7 +94,7 @@ const frontendStartDetector: startDetector = (stdout, stderr) => {
         throw new Error("(stderr) some kind of error - maybe compilation?");
     }
     if (/(Run Starting)/.test(stdout)) {
-        console.log(`frontend seems to have started: ${stdout}`);
+        console.log(`\u001b[1m\u001b[32mfrontend seems to have started: ${stdout}\u001b[0m`);
         return true;
     }    
     return false;

@@ -2,7 +2,7 @@ describe('Add manufacturer', () => {
     beforeEach(() => {
         // https://docs.cypress.io/guides/end-to-end-testing/google-authentication
         cy.loginByGoogleApi();
-        cy.request('http://localhost:3002/cypress_rails_reset_state')
+        cy.request('http://localhost:3002/cypress_rails_reset_state');
     })
     it('cannot create an extant manufacturer', () => {
         const spy = cy.spy(window, 'alert');

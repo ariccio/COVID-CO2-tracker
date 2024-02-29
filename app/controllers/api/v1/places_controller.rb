@@ -161,7 +161,7 @@ module Api
         render(
           json: {
             errors: [google_places_error('place not found on backend?', e)]
-          }
+          }, status: :bad_request
         )
         return nil
       rescue ::GooglePlaces::APIConnectionError => e
@@ -169,9 +169,21 @@ module Api
         render(
           json: {
             errors: [google_places_error('Some kind of lower level API break in google places gem', e)]
-          }
+          }, status: :internal_server_error
         )
         return nil
+      rescue SocketError => e
+        if Rails.env.production?
+          Sentry.capture_exception(e)
+        end
+        render(
+          json: {
+            errors: [multiple_errors("Backend server could not connect to GooglePlace API - network error between the backend and Places API", e)]
+          }, status: :internal_server_error
+        )
+        return nil
+
+
       end
 
       # POST /places

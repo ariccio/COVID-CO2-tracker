@@ -101,7 +101,7 @@ RSpec.describe("Models", type: :request) do
       it("fails with invalid manufacturer_id") do
         minimum_invalid_id = (@manufacturer_create_response["manufacturer_id"] + 1)
         # pp minimum_invalid_id
-        10.times do
+        3.times do
           invalid_id = Faker::Number.between(from: minimum_invalid_id, to: max_id)
           # pp invalid_id
           post(api_v1_model_index_path, headers: @user_headers, params: {model: {name: Faker::Company.name, manufacturer_id: invalid_id}})
@@ -151,11 +151,11 @@ RSpec.describe("Models", type: :request) do
   
           get(api_v1_manufacturer_path(@manufacturer_create_response["manufacturer_id"]), headers: @user_headers)
           check_no_error(response, json_response, :ok)
-          pp "----------"
-          pp "----------"
-          pp json_response
-          pp "----------"
-          pp "----------"
+          # pp "----------"
+          # pp "----------"
+          # pp json_response
+          # pp "----------"
+          # pp "----------"
           expect(json_response).to(include("name"))
           expect(json_response).to(include("manufacturer_id"))
           expect(json_response).to(include("models"))

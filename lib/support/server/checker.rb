@@ -1,6 +1,8 @@
 # https://github.com/testdouble/cypress-rails/blob/402af0e2424b68983216e542e2cc1e9b960f9a7e/lib/cypress-rails/server/checker.rb
 # grr, cranky
 
+SSL_OPTIONS = {use_ssl: true, verify_mode: OpenSSL::SSL::VERIFY_NONE}
+
 module FakeCypressRailsRunner
     class Server
       class Checker
@@ -30,17 +32,21 @@ module FakeCypressRailsRunner
           make_request(read_timeout: 2, &block)
         end
   
+        # def https_request(&block)
+        #   make_request(**ssl_options, &block)
+        # end
         def https_request(&block)
-          make_request(**ssl_options, &block)
+          make_request(**SSL_OPTIONS, &block)
         end
-  
+
+        
         def make_request(**options, &block)
           Net::HTTP.start(@host, @port, options.merge(max_retries: 0), &block)
         end
   
-        def ssl_options
-          {use_ssl: true, verify_mode: OpenSSL::SSL::VERIFY_NONE}
-        end
+        # def ssl_options
+        #   {use_ssl: true, verify_mode: OpenSSL::SSL::VERIFY_NONE}
+        # end
       end
     end
   end

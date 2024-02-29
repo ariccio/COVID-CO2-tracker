@@ -302,7 +302,7 @@ export const CreateManufacturerModalDialog: React.FC<manufacturerDialogProps> = 
         return null;
     }
     return (
-        <Modal show={props.showAddManufacturer} onHide={() => hideHandler(props.setShowAddManufacturer, navigate)}>
+        <Modal show={props.showAddManufacturer} onHide={() => hideHandler(props.setShowAddManufacturer, navigate)} aria-label="manufacturer creation modal">
             <Suspense fallback="loading translations...">
                 <ModalHeader/>
             </Suspense>

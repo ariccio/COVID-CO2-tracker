@@ -30,6 +30,7 @@ module FakeCypressRailsRunner
                 port: config.port,
                 transactional_server: config.transactional_server
               )
+            puts("...CALLED")
             set_exit_hooks!(config)
         end
         def set_exit_hooks!(config)

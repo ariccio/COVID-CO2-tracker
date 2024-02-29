@@ -30,6 +30,9 @@ function modelRowKey(model: number): string {
     return `manufacturer-model-entry-key-${model}`;
 }
 
+function modelRowIdForTesting(model_name: string): string {
+    return `manufacturer-model-entry-id-${model_name}`;
+}
 const pickModel = (model_id: number, name: string, dispatch: AppDispatch) => {
     dispatch(setSelectedModel(model_id));
     dispatch(setSelectedModelName(name));
@@ -40,7 +43,7 @@ const mapModelsToTableBody = (models: Array<ManufacturerModelInfo>, dispatch: Ap
     // debugger;
     return models.map((model: ManufacturerModelInfo, index: number) => {
         return (
-            <tr key={modelRowKey(model.model_id)}>
+            <tr key={modelRowKey(model.model_id)} id={modelRowIdForTesting(model.name)}>
                 <td><Link to={`${deviceModelsPath}/${model.model_id}`}>{index}</Link></td>
                 <td><Link to={`${deviceModelsPath}/${model.model_id}`}>{model.model_id}</Link></td>
                 <td><Link to={`${deviceModelsPath}/${model.model_id}`}>{model.name}</Link></td>
