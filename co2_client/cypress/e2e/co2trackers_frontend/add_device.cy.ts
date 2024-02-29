@@ -1,6 +1,7 @@
 
 
 describe('Add device', () => {
+    const newModelName = "fartipelago2";
     beforeEach(() => {
         // https://docs.cypress.io/guides/end-to-end-testing/google-authentication
         cy.loginByGoogleApi();
@@ -28,7 +29,7 @@ describe('Add device', () => {
         // cy.reload();
         // cy.contains("Select manufacturer").click();
 
-        const newModelName = "fartipelago2";
+        
         cy.get('div.fade.modal.show > div > div > div.modal-body > form > input').should("be.visible");
         cy.get('div.fade.modal.show > div > div > div.modal-body > form > input').type(newModelName);
         cy.contains("Create new model").click();
@@ -51,6 +52,14 @@ describe('Add device', () => {
         cy.get('[id^=manufacturer-model-entry]').log("ids:")
         cy.get(`#manufacturer-model-entry-id-${newModelName}`).should("be.visible");
 
+    })
+
+    it("doesn't leak devices into db when testing", () => {
+        cy.visit('http://localhost:3001/devices');
+        cy.contains("Select manufacturer").click();
+        cy.contains('Create new model for manufacturer Aranet').should('be.visible').click();
+        // cy.contains(newModelName).should("not.exist");
+        cy.contains(newModelName).should("be.visible");
     })
 
 
