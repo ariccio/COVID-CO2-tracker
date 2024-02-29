@@ -57,9 +57,9 @@ describe('Add device', () => {
     it("doesn't leak devices into db when testing", () => {
         cy.visit('http://localhost:3001/devices');
         cy.contains("Select manufacturer").click();
-        cy.contains('Create new model for manufacturer Aranet').should('be.visible').click();
-        // cy.contains(newModelName).should("not.exist");
-        cy.contains(newModelName).should("be.visible");
+        cy.contains('Aranet').should('be.visible').click();
+        cy.contains('aranet4').should("be.visible");
+        cy.contains(newModelName).should("not.exist");
     })
 
 
