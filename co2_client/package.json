@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@babel/plugin-syntax-flow": "^7.17.12",
     "@babel/plugin-transform-react-jsx": "^7.17.12",
     "@react-google-maps/api": "^2.7.0",
@@ -70,7 +71,6 @@
   },
   "proxy": "http://localhost:3000",
   "devDependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@eslint/create-config": "^0.4.1",
     "concurrently": "^8.2.2",
     "cypress": "^13.6.1",
