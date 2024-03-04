@@ -36,7 +36,7 @@ pre-commit:
   commands:
     brakeman:
       run: |
-        bundle exec brakeman -d -w3 --no-progress --no-pager
+        bundle exec brakeman -w3 --no-progress --no-pager
 # maybe also --print_report? https://github.com/presidentbeef/brakeman/blob/ecba05cb50e453256ca7a1f6e60704f8ed0cfbe5/lib/brakeman.rb#L46
 #     eslint:
 #       glob: "*.{js,ts,jsx,tsx}"
