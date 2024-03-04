@@ -68,7 +68,7 @@ module FakeCypressRailsRunner
             # puts payload
             
 
-            logger.debug(color("ATTEMPT beginning transaction for #{spec_name}, #{name}, #{data}", :RED))
+            Rails.logger.debug(color("ATTEMPT beginning transaction for #{name}, #{data}", :RED))
             if payload.key?(:spec_name) && (spec_name = payload[:spec_name])
               setup_shared_connection_pool
     
