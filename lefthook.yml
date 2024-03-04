@@ -10,9 +10,6 @@ pre-push:
     "remind_i18next_typescript.rb":
       runner: ruby  
   commands:
-    test-backend:
-      tags: backend
-      run: rspec ./spec
     test-e2e:
       tags: e2e backend frontend
       run: yarn run ts-node utils/run_e2e.ts

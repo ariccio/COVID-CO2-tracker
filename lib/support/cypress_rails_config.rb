@@ -34,6 +34,10 @@ module FakeCypressRailsRunner
              CYPRESS_RAILS_BASE_PATH...............#{base_path.inspect}
              CYPRESS_RAILS_TRANSACTIONAL_SERVER....#{transactional_server.inspect}
              CYPRESS_RAILS_CYPRESS_OPTS............#{cypress_cli_opts.inspect}
+             -----
+
+             RAILS_MAX_THREADS.....................#{::ENV.fetch('RAILS_MAX_THREADS', '(not set in ENV)')}
+             RAILS_MIN_THREADS.....................#{::ENV.fetch('RAILS_MIN_THREADS', '(not set in ENV)')}
     
           DESC
         end    
