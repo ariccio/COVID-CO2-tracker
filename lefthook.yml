@@ -34,7 +34,7 @@ pre-push:
 pre-commit:
   parallel: true
   commands:
-      test-backend:
+    test-backend:
       tags: backend
       run: rspec ./spec
     brakeman:
