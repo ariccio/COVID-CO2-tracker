@@ -13,6 +13,9 @@ pre-push:
     test-e2e:
       tags: e2e backend frontend
       run: yarn run ts-node utils/run_e2e.ts
+    check-todos:
+      tags: janitorial
+      run: git grep --color "TODO" HEAD
     # test-frontend:
     #   run: yarn --cwd ./co2_client run test --all --watchAll=false --silent
     # "check_if_new_expo_for_notifee.js":
