@@ -89,7 +89,7 @@ gem 'sentry-ruby'
 gem 'sentry-rails'
 
 
-gem 'tzinfo-data'
+# gem 'tzinfo-data'
 
 
 # https://stackoverflow.com/a/70500221/625687
