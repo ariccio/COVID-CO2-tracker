@@ -46,6 +46,15 @@ module COVIDCo2Tracker
     # Initialize configuration defaults for last manually-checked rails version
     config.load_defaults(7.0)
 
+
+    # ##
+    # No longer add autoloaded paths into `$LOAD_PATH`. This means that you won't be able
+    # to manually require files that are managed by the autoloader, which you shouldn't do anyway.
+
+    # This will reduce the size of the load path, making `require` faster if you don't use bootsnap, or reduce the size
+    # of the bootsnap cache if you use it.
+    config.add_autoload_paths_to_load_path = false
+
     # TODO: logging filters for google auth storage and stuff https://guides.rubyonrails.org/v3.0/security.html#logging
 
     config.filter_parameters += ['sub_google_uid']

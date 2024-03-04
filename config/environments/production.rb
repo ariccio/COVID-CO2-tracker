@@ -70,7 +70,7 @@ require 'active_support/core_ext/integer/time'
   config.i18n.fallbacks = true
 
   # Send deprecation notices to registered listeners.
-  config.active_support.deprecation = :notify
+  config.active_support.deprecation = :raise
 
   # Log disallowed deprecations.
   config.active_support.disallowed_deprecation = :log
