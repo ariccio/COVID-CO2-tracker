@@ -8,7 +8,7 @@ require 'active_support/core_ext/integer/time'
   puts "booting in production mode/env!"
 
   # Code is not reloaded between requests.
-  config.cache_classes = true
+  config.enable_reloading = false
 
   # Eager load code on boot. This eager loads most of Rails and
   # your application in memory, allowing both threaded web servers
@@ -19,8 +19,8 @@ require 'active_support/core_ext/integer/time'
   # Full error reports are disabled and caching is turned on.
   config.consider_all_requests_local = false
 
-  # Ensures that a master key has been made available in either ENV["RAILS_MASTER_KEY"]
-  # or in config/master.key. This key is used to decrypt credentials (and other encrypted files).
+  # Ensures that a master key has been made available in ENV["RAILS_MASTER_KEY"], config/master.key, or an environment
+  # key such as config/credentials/production.key. This key is used to decrypt credentials (and other encrypted files).
   # config.require_master_key = true
 
   # Disable serving static files from the `/public` folder by default since
@@ -94,11 +94,8 @@ require 'active_support/core_ext/integer/time'
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
 
-
-  if (Rails.version != "7.0.8") && (Rails.version != "7.0.8.1")
-    # https://edgeguides.rubyonrails.org/configuring.html#config-active-record-db-warnings-action
-    config.active_record.db_warnings_action = :report
-  end
+  # https://edgeguides.rubyonrails.org/configuring.html#config-active-record-db-warnings-action
+  config.active_record.db_warnings_action = :report
 
 
   # Inserts middleware to perform automatic connection switching.

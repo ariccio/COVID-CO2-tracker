@@ -41,7 +41,12 @@ module Api
         )
       rescue ::ActionController::ParameterMissing => e
         Sentry.capture_exception(e)
-        raise
+        render(
+          json: {
+            errors: [create_error("manufacturer creation failed! parameter missing: #{e.param}", e)]
+          },
+          status: :bad_request
+        )
       end
 
       def show

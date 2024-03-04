@@ -11,12 +11,13 @@ require 'active_support/core_ext/integer/time'
 ::Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
-  config.cache_classes = true
+  config.enable_reloading = false
 
-  # Do not eager load code on boot. This avoids loading your whole application
-  # just for the purpose of running a single test. If you are using a tool that
-  # preloads Rails for running tests, you may have to set it to true.
-  config.eager_load = false
+  # Eager loading loads your entire application. When running a single test locally,
+  # this is usually not necessary, and can slow down your test suite. However, it's
+  # recommended that you enable it in continuous integration systems to ensure eager
+  # loading is working properly before deploying your code.
+  config.eager_load = ENV["CI"].present?
 
   # Configure public file server for tests with Cache-Control for performance.
   config.public_file_server.enabled = true
@@ -29,8 +30,8 @@ require 'active_support/core_ext/integer/time'
   config.action_controller.perform_caching = false
   config.cache_store = :null_store
 
-  # Raise exceptions instead of rendering exception templates.
-  config.action_dispatch.show_exceptions = false
+  # Render exception templates for rescuable exceptions and raise for other exceptions.
+  config.action_dispatch.show_exceptions = :rescuable
 
   # Disable request forgery protection in test environment.
   config.action_controller.allow_forgery_protection = false
@@ -60,15 +61,16 @@ require 'active_support/core_ext/integer/time'
   # Annotate rendered view with file names.
   # config.action_view.annotate_rendered_view_with_filenames = true
 
+  # Raise error when a before_action's only/except options reference missing actions
+  config.action_controller.raise_on_missing_callback_actions = true
+
 
   # pp "turning ActiveRecord SQL query logs on"
   # # config.active_record.verbose_query_logs = true
   # config.log_level = :warn
 
-  if (Rails.version != "7.0.8") && (Rails.version != "7.0.8.1")
-    # https://edgeguides.rubyonrails.org/configuring.html#config-active-record-db-warnings-action
-    config.active_record.db_warnings_action = :report
-  end
+  # https://edgeguides.rubyonrails.org/configuring.html#config-active-record-db-warnings-action
+  config.active_record.db_warnings_action = :report
 
 
   config.log_level = :debug

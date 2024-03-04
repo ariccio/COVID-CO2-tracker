@@ -27,7 +27,8 @@ RSpec.describe("Manufacturers", type: :request) do
       
       let(:null_manufacturer_params) {{manufacturer: {name: nil}}}
       let(:blank_manufacturer_params) {{manufacturer: {name: ""}}}
-      let(:empty_manufacturer_params) {{manufacturer: nil}}
+      let(:nil_manufacturer_params) {{manufacturer: nil}}
+      let(:empty_manufacturer_params) {{manufacturer: {}}}
       let(:empty_params) {nil}
       before(:each) do
         @user_headers = new_valid_empty_user_req
@@ -50,17 +51,24 @@ RSpec.describe("Manufacturers", type: :request) do
         post(api_v1_manufacturers_path, headers: @user_headers, params: blank_manufacturer_params)
         formatted_error_check(response, json_response, :bad_request, "manufacturer creation failed!", "Name can't be blank")
       end
-      it("Cannot create empty manufacturer with valid user") do
+      it("Cannot create nil manufacturer with valid user") do
+        post(api_v1_manufacturers_path, headers: @user_headers, params: nil_manufacturer_params)
+        formatted_error_check(response, json_response, :bad_request, "manufacturer creation failed! parameter missing: manufacturer", "param is missing or the value is empty: manufacturer")
         # I expect an error to be raised in production. In production, it will be reported via sentry should this happen.
-        expect {
-          post(api_v1_manufacturers_path, headers: @user_headers, params: empty_manufacturer_params)
-        }.to(raise_error(::ActionController::ParameterMissing))
+        # expect {
+        # }.to(raise_error(::ActionController::ParameterMissing))
       end
       it("Cannot create empty manufacturer with valid user") do
+        post(api_v1_manufacturers_path, headers: @user_headers, params: empty_manufacturer_params)
+        formatted_error_check(response, json_response, :bad_request, "manufacturer creation failed! parameter missing: manufacturer", "param is missing or the value is empty: manufacturer")
+      end
+
+      it("Cannot create empty manufacturer with valid user") do
+        post(api_v1_manufacturers_path, headers: @user_headers, params: empty_params)
+        formatted_error_check(response, json_response, :bad_request, "manufacturer creation failed! parameter missing: manufacturer", "param is missing or the value is empty: manufacturer")
         # I expect an error to be raised in production. In production, it will be reported via sentry should this happen.
-        expect {
-          post(api_v1_manufacturers_path, headers: @user_headers, params: empty_params)
-        }.to(raise_error(::ActionController::ParameterMissing))
+        # expect {
+        # }.to(raise_error(::ActionController::ParameterMissing))
       end
     end
 
