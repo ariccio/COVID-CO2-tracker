@@ -17,6 +17,7 @@ development:
   username: postgres
   password: <%= Rails.application.credentials.dig(:development, :postgres_password) %>
   timeout: 1000
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 10 } %>
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".

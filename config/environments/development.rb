@@ -76,9 +76,10 @@ require 'active_support/core_ext/integer/time'
   config.active_record.migration_error = :page_load
 
   # Highlight code that triggered database queries in logs.
-  unless ::ENV['IsEndToEndBackendServerSoSTFUWithTheLogs']
-    config.active_record.verbose_query_logs = true
-  end
+  # unless ::ENV['IsEndToEndBackendServerSoSTFUWithTheLogs']
+  #   config.active_record.verbose_query_logs = true
+  # end
+  config.active_record.verbose_query_logs = true
 
   # https://edgeguides.rubyonrails.org/configuring.html#config-active-record-db-warnings-action
   config.active_record.db_warnings_action = :report
@@ -102,8 +103,8 @@ require 'active_support/core_ext/integer/time'
 
 
   if ::ENV['IsEndToEndBackendServerSoSTFUWithTheLogs']
-    config.log_level = :warn
-    # config.log_level = :debug
+    # config.log_level = :warn
+    config.log_level = :debug
   else
     config.log_level = :debug
   end

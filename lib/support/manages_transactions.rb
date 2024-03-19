@@ -36,7 +36,7 @@ module FakeCypressRailsRunner
         # https://github.com/rails/rails/blob/3ecc26981476d6a8c4f1ba5bd33bfdeef1659a0f/activesupport/lib/active_support/log_subscriber.rb#L175
         def color(text, color)
           color = COLORS[color] if color.is_a?(Symbol)
-          puts "color: #{color}"
+          # puts "color: #{color}"
           # MODES = {
           #   clear:     0,
           #   bold:      1,
@@ -54,11 +54,23 @@ module FakeCypressRailsRunner
         end
 
         def begin_transaction
-          puts color("-------------Colored-----", :RED)
+          puts (color("connection_pool_names: #{ActiveRecord::Base.connection_handler.connection_pool_names}", :BLUE))
+          ActiveRecord::Base.connection_handler.flush_idle_connections!
+          ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
+          # ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
+          # ActiveRecord::Base.connection_handler.remove_connection
           @connections = gather_connections
-          @connections.each do |connection|
+          @connections.each_with_index do |connection, index|
+            puts(color("#{index} #{connection.pool.stat}", :MAGENTA))
             connection.begin_transaction joinable: false, _lazy: false
             connection.pool.lock_thread = true
+          end
+
+          ActiveRecord::Base.connection_handler.connection_pool_list.each_with_index do |pool, pool_index|
+            pool.connections.each_with_index do |connection, connection_index|
+              puts(color("#{pool_index} #{connection_index} #{connection}", :MAGENTA))
+            end
+
           end
     
           # When connections are established in the future, begin a transaction too
@@ -68,7 +80,7 @@ module FakeCypressRailsRunner
             # puts payload
             
 
-            Rails.logger.debug(color("ATTEMPT beginning transaction for #{name}, #{data}", :RED))
+            Rails.logger.debug(color("ATTEMPT beginning transaction for #{name}, #{started}, #{finished}, #{data}, #{payload}", :RED))
             if payload.key?(:spec_name) && (spec_name = payload[:spec_name])
               setup_shared_connection_pool
     
@@ -76,7 +88,7 @@ module FakeCypressRailsRunner
                 connection = ActiveRecord::Base.connection_handler.retrieve_connection(spec_name)
               rescue ActiveRecord::ConnectionNotEstablished
                 connection = nil
-                puts("connection NOT established for #{spec_name}")
+                puts( color("connection NOT established for #{spec_name}", :RED))
               end
     
               if connection && !@connections.include?(connection)
@@ -92,16 +104,13 @@ module FakeCypressRailsRunner
         end
     
         def rollback_transaction
-          # puts("rollback_transaction")
-          # return unless @connections.present?
           if @connections.present?
-            puts("rollback_transaction: connections present to rollback")
+            # puts("rollback_transaction: connections present to rollback")
           else
-            puts("rollback_transaction: NO connections present to rollback")
+            puts(color("rollback_transaction: NO connections present to rollback", :RED))
             return
           end
     
-          # ActiveSupport::Notifications.unsubscribe(@connection_subscriber) if @connection_subscriber
           if @connection_subscriber
             puts("unsubscribing from connection subscriber")
             ActiveSupport::Notifications.unsubscribe(@connection_subscriber)
@@ -112,37 +121,41 @@ module FakeCypressRailsRunner
           puts("number of connections before rollback, flush, and release: #{@connections.length}")
           @connections.each do |connection|
             # puts connection.connection_db_config
-            # puts connection.connection_specification_name
+            # puts(color("connection_specification_name: #{connection.connection_specification_name}", :BLUE))
+            # puts("owner: #{connection.owner}")
             if connection.active?
               # puts("active connection.adapter_name: #{connection.adapter_name}")
             else 
               puts("NON-active connection.adapter_name: #{connection.adapter_name}")
             end
+            puts(color("current transaction: #{connection.current_transaction}", :RED))
+            puts(color("open transactions: #{connection.open_transactions}", :RED))
             connection.rollback_transaction if connection.transaction_open?
             connection.pool.lock_thread = false
-            connection.pool.flush!
-            connection.pool.release_connection
-
+            # connection.pool.flush!
+            # connection.pool.checkin(connection)
+            # ActiveRecord::Base.connection_handler.remove_connection(connection)
+            puts("Num waiting: #{connection.pool.num_waiting_in_queue}")
           end
           if @connections.length > 0
             puts("number of connections after rollback, flush, and release: #{@connections.length}... clearing")
+            @connections.clear
           else
-            puts ("No connections after rollback, flush, and ... clearing, anyways?")
+            # puts ("No connections after rollback, flush")
           end
-          @connections.clear
           ActiveRecord::Base.connection_handler.flush_idle_connections!
           ActiveRecord::Base.connection_handler.clear_active_connections!
           if ActiveRecord::Base.connection_handler.nil?
             puts ("connection handler is nil")
             return
           else
-            puts ("connection handler NOT nil after flushing and clearing...")
+            # puts ("connection handler NOT nil after flushing and clearing...")
           end
           if (ActiveRecord::Base.connection_handler.connection_pool_list.nil?)
             puts ("connection handler connection pool list is nil")
             return
           else
-            puts ("connection_pool_list NOT nil after flushing and clearing...")
+            # puts ("connection_pool_list NOT nil after flushing and clearing...")
           end
           puts("number of connections after rollback_transaction: #{ActiveRecord::Base.connection_handler&.connection_pool_list&.length}")
         end
