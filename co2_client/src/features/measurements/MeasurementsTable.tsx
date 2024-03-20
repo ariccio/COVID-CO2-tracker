@@ -211,7 +211,7 @@ const TableCellWithIDLink = (props: {id: number}) => {
 
 let warnedAlready = false;
 
-const DeviceIDOrSerialWithLink = (props: {id: number | null, deviceSerials?: Array<SerializedSingleDeviceSerial>}) => {
+export const DeviceIDOrSerialWithLink = (props: {id: number | null, deviceSerials?: Array<SerializedSingleDeviceSerial>}) => {
     // debugger;
     if (props.id === null) {
         throw new Error("Rendering empty device?");

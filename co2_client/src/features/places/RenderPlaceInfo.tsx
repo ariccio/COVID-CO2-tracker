@@ -210,7 +210,7 @@ const RenderLinkToGoogleMapsWithName = (props: {url?: string, name?: string}) =>
 }
 
 
-const RenderLinkToPlacesWithName = (props: {place_id?: string, name?: string}) => {
+export const RenderLinkToPlacesWithName = (props: {place_id?: string, name?: string}) => {
     if (props.place_id === undefined) {
         return (
             <div>

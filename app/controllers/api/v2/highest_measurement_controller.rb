@@ -1,9 +1,10 @@
+COUNT = 50
 class Api::V2::HighestMeasurementController < ApplicationController
   def index
 
-    @ten_measurements = Measurement.order(co2ppm: :desc).select(:id, :device_id, :co2ppm, :measurementtime, :sub_location_id).first(10)
-    @ten_sublocations = SubLocation.joins(:measurement).order(co2ppm: :desc).select(:id, :description, :place_id).uniq.first(10)
-    @ten_places = Place.joins(sub_location: :measurement).order(co2ppm: :desc).select(:id, :google_place_id).uniq.first(10)
+    @ten_measurements = Measurement.order(co2ppm: :desc).select(:id, :device_id, :co2ppm, :measurementtime, :sub_location_id).first(COUNT)
+    @ten_sublocations = SubLocation.joins(:measurement).order(co2ppm: :desc).select(:id, :description, :place_id).uniq.first(COUNT)
+    @ten_places = Place.joins(sub_location: :measurement).order(co2ppm: :desc).select(:id, :google_place_id).uniq.first(COUNT)
     
 
     # ::MeasurementSerializer.new(@measurement).serializable_hash

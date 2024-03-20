@@ -170,54 +170,12 @@ function GoogleOAuthProviderWrapper({children}: GoogleOAuthProviderWrapperProps)
 }
 
 
-function testScoreboardRequestOptions(): RequestInit {
-  const requestOptions = {
-      method: 'get',
-      headers: {
-          'Content-Type': 'application/json'
-      },
-  }
-  return requestOptions;
-}
-
-const fetchFailedCallback = async (awaitedResponse: Response): Promise<unknown> => {
-  const rawJSONResponse = (await awaitedResponse.json());
-  return rawJSONResponse;
-}
-const fetchSuccessCallback = async (awaitedResponse: Response): Promise<any> => {
-  const rawJSONResponse = (await awaitedResponse.json());
-
-  return rawJSONResponse;
-}
 
 
 // TODO: how to display network errors? some component to render above it?
 export function App(): JSX.Element {
   checkLanguages();
   const earlyLoadMapsApiKey = useLoadMapsApiKey();
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      fetchJSONWithChecks(API_V2_URL + '/highest_measurement/index', testScoreboardRequestOptions(), 200, true, fetchFailedCallback, fetchSuccessCallback).then((response) => {
-        console.table(response);
-        if (!response) {
-          return;
-        }
-        if ((response as { ten_places?: any }).ten_places) {
-          console.table((response as { ten_places?: any }).ten_places);
-        }
-        if ((response as { ten_sublocations?: any }).ten_sublocations) {
-          console.table((response as { ten_sublocations?: any }).ten_sublocations);
-        }
-        if ((response as { ten_measurements?: any }).ten_measurements) {
-          console.table((response as { ten_measurements?: any }).ten_measurements);
-        }
-        debugger;
-      }).catch((error) => {
-        console.error(error);
-        debugger;
-      });
-    }
-  }, []);
 
   //TODO: https://docs.sentry.io/platforms/javascript/guides/react/enriching-events/user-feedback/
   //https://docs.sentry.io/platforms/javascript/guides/react/components/errorboundary/

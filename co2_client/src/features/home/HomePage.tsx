@@ -25,6 +25,7 @@ import { RenderSelectedPlaceInfo } from '../places/RenderPlaceInfo';
 import { AppStatsContainer } from '../stats/Stats';
 import { updatePlacesInfoFromBackend } from "../../utils/QueryPlacesInfo";
 import { updatePlacesServiceDetailsOnNewPlace } from "../google/googlePlacesServiceUtils";
+import { HighestMeasurementsContainer } from "../stats/HighestMeasurements";
 
 
 
@@ -278,7 +279,12 @@ const HomePage = () => {
                 </Row>
                 <Row className="show-grid">
                     <Col md={6} xs={12}>
-                        <AppStatsContainer/>
+                        <Row className="show-grid">
+                            <HighestMeasurementsContainer/>
+                        </Row>
+                        <Row className="show-grid">
+                            <AppStatsContainer/>
+                        </Row>
                     </Col>
                 </Row>
             </Container>

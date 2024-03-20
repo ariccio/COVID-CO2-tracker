@@ -102,5 +102,6 @@
     "aranet4-serial-info": "El número de serie de Aranet4 es un número de 12 dígitos detrás de las pilas AA, en el compartimento de las pilas. Los números de serie comunes comienzan con '38', '37' o '31'. También puedes encontrarlo en la aplicación Aranet4 después de emparejar tu dispositivo, haciendo clic en el ícono de ajustes.",
     "set-as-default-place-for-realtime-upload-client": "Elija el lugar para la carga en tiempo real",
     "select-sublocation-to-set-as-default-for-realtime-upload": "¡Elija una sububicación primero para cargar en tiempo real!",
-    "survey-button-text": "¡Cuénteme a mí (y a las empresas) sobre los rastreadores de CO2!"
+    "survey-button-text": "¡Cuénteme a mí (y a las empresas) sobre los rastreadores de CO2!",
+    "largest-measurements": "Mediciones más altas a nivel mundial"
 }
