@@ -131,7 +131,20 @@ const HighestMeasurements: React.FC<{highestMeasurementsResponse: HighestMeasure
 
 }
 
-const HighestMeasurementsContainerDetails = () => {
+const HighestMeasurementPreview: React.FC<{highestMeasurementsResponse: HighestMeasurementsResponse}> = (props) => {
+
+    if (props.highestMeasurementsResponse.ten_measurements === null) {
+        return null;
+    }
+
+    return (
+        <>- ({props.highestMeasurementsResponse.ten_measurements[0].co2ppm}&#8346;&#8346;&#8344;!)</>
+    )
+
+}
+
+export const HighestMeasurementsContainer = () => {
+    const [translate] = useTranslation();
     const [errorState, setErrorState] = useState(null as string | null);
     const [highestMeasurementsResponse, setHighestMeasurementsResponse] = useState(defaultHighestMeasurementsResponse);
 
@@ -142,24 +155,29 @@ const HighestMeasurementsContainerDetails = () => {
     return (
         <div>
             <Suspense fallback="Loading translations...">
-                <HighestMeasurements highestMeasurementsResponse={highestMeasurementsResponse} errorState={errorState}/>
+            <details>
+                <summary>
+                    {translate('largest-measurements')} <HighestMeasurementPreview highestMeasurementsResponse={highestMeasurementsResponse}/>
+                </summary>
+                    <HighestMeasurements highestMeasurementsResponse={highestMeasurementsResponse} errorState={errorState}/>
+                </details>
             </Suspense>
 
         </div>
     );
 }
 
-export const HighestMeasurementsContainer = () => {
-    const [translate] = useTranslation();
+// export const HighestMeasurementsContainer = () => {
+//     const [translate] = useTranslation();
 
-    return (
-        <Suspense fallback="Loading translations...">
-            <details>
-                <summary>
-                    {translate('largest-measurements')}
-                </summary>
-                <HighestMeasurementsContainerDetails/>
-            </details>
-        </Suspense>
-    )
-}
+//     return (
+//         <Suspense fallback="Loading translations...">
+//             <details>
+//                 <summary>
+//                     {translate('largest-measurements')} - (${})
+//                 </summary>
+//                 <HighestMeasurementsContainerDetails/>
+//             </details>
+//         </Suspense>
+//     )
+// }
