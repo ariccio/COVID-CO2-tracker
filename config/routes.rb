@@ -8,6 +8,9 @@
   # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
 
   namespace :api do
+    namespace :v2 do
+      get 'highest_measurement/index'
+    end
     namespace :v1 do
       resources :user_settings, only: [:create]
 

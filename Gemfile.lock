@@ -97,6 +97,7 @@ GEM
     base64 (0.2.0)
     bcrypt (3.1.20)
     bigdecimal (3.1.6)
+    blueprinter (1.0.2)
     bootsnap (1.18.3)
       msgpack (~> 1.2)
     brakeman (6.1.2)
@@ -379,6 +380,7 @@ DEPENDENCIES
   activeadmin
   barnes
   bcrypt (~> 3.1.7)
+  blueprinter (~> 1.0)
   bootsnap (>= 1.4.4)
   brakeman
   bullet
