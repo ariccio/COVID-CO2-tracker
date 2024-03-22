@@ -60,7 +60,7 @@ module FakeCypressRailsRunner
           # ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
           # ActiveRecord::Base.connection_handler.remove_connection
           # @connections = gather_connections
-           @connections ||= gather_connections
+          @connections ||= gather_connections
           @connections.each_with_index do |connection, index|
             puts(color("stat: #{index} #{connection.pool.stat}", :MAGENTA))
             connection.begin_transaction joinable: false, _lazy: false
@@ -85,40 +85,35 @@ module FakeCypressRailsRunner
             puts(color("\tpayload: #{payload}", :BLUE))
 
             puts(color("ATTEMPT beginning transaction for #{name}, #{started}, #{finished}, #{data}, #{payload}", :BLUE))
-            # if payload.key?(:spec_name) && (spec_name = payload[:spec_name])
-            #   setup_shared_connection_pool
+            if payload.key?(:spec_name) && (spec_name = payload[:spec_name])
+              setup_shared_connection_pool
     
-            #   begin
-            #     puts( color("establishing connection for #{spec_name}", :GREEN))
-            #     connection = ActiveRecord::Base.connection_handler.retrieve_connection(spec_name)
-            #   rescue ActiveRecord::ConnectionNotEstablished
-            #     connection = nil
-            #     puts( color("connection NOT established for #{spec_name}", :RED))
-            #   end
+              begin
+                puts( color("establishing connection for #{spec_name}", :GREEN))
+                connection = ActiveRecord::Base.connection_handler.retrieve_connection(spec_name)
+              rescue ActiveRecord::ConnectionNotEstablished
+                connection = nil
+                puts( color("connection NOT established for #{spec_name}", :RED))
+              end
     
-            #   if connection && !@connections.include?(connection)
-            #     puts("beginning transaction for #{spec_name}. Open transactions: #{connection.open_transactions}")
-            #     connection.begin_transaction joinable: false, _lazy: false
-            #     connection.pool.lock_thread = true
-            #     @connections << connection
-            #   end
-            # end
+              if connection && !@connections.include?(connection)
+                puts("beginning transaction for #{spec_name}. Open transactions: #{connection.open_transactions}")
+                connection.begin_transaction joinable: false, _lazy: false
+                connection.pool.lock_thread = true
+                @connections << connection
+              end
+            end
           }
     
           @initializer_hooks.run(:after_transaction_start)
         end
     
         def rollback_transaction
-          if @connections.nil?
-            puts(color("connections are nil", :RED))
-          else
-            puts(color("connections are nonnil", :GREEN))
-          end
           if @connections.present?
-            puts("rollback_transaction: connections present to rollback")
+            # puts("rollback_transaction: connections present to rollback")
           else
             puts(color("rollback_transaction: NO connections present to rollback", :RED))
-            # return
+            return
           end
     
           if @connection_subscriber
@@ -128,9 +123,6 @@ module FakeCypressRailsRunner
             puts ("no connection subscriber to unsubscribe from")
           end
     
-          if @connections.nil?
-            return
-          end
           puts("number of connections before rollback, flush, and release: #{@connections.length}")
           @connections.each do |connection|
             # puts connection.connection_db_config
@@ -153,13 +145,11 @@ module FakeCypressRailsRunner
               connection.rollback_transaction 
             end
             # puts(connection.methods.sort)
-            # connection.pool.release_connection
+            connection.pool.release_connection
             # connection.pretty_print
             # pp connection
             # connection.close
-            # connection.pool.checkin(connection)
             connection.pool.lock_thread = false
-            connection.pool.unpin_connection!
             # connection.pool.flush!
             # connection.pool.checkin(connection)
             # ActiveRecord::Base.connection_handler.remove_connection(connection)
@@ -167,8 +157,8 @@ module FakeCypressRailsRunner
           end
           if @connections.length > 0
             puts("number of connections after rollback, flush, and release: #{@connections.length}... clearing")
-            # @connections.clear
-            # @connections = nil
+            @connections.clear
+            @connections = nil
           else
             # puts ("No connections after rollback, flush")
           end
@@ -200,11 +190,9 @@ module FakeCypressRailsRunner
           conns = []
           # ActiveRecord::Base.connection_handler.connection_pool_list.map(&:connection)
           ActiveRecord::Base.connection_handler.connection_pool_list.each_with_index do | pool, pool_idx|
-            # conn = pool.connection
-            # puts(color("pool: #{pool_idx} connection: #{conn}", :MAGENTA))
-            # conns << conn
-            pool.pin_connection!(lock_threads: true)
-            conns << pool.connection
+            conn = pool.connection
+            puts(color("pool: #{pool_idx} connection: #{conn}", :MAGENTA))
+            conns << conn
           end
           conns
         end
@@ -221,13 +209,13 @@ module FakeCypressRailsRunner
           puts(color("responds to setup_shared_connection_pool", :RED))
           raise "Oh shit, uncomment below:"
 
-          @legacy_saved_pool_configs ||= Hash.new { |hash, key| hash[key] = {} }
-          @saved_pool_configs ||= Hash.new { |hash, key| hash[key] = {} }
-          puts("@legacy_saved_pool_configs: #{@legacy_saved_pool_configs}")
-          puts("@saved_pool_configs: #{@saved_pool_configs}")
+          # @legacy_saved_pool_configs ||= Hash.new { |hash, key| hash[key] = {} }
+          # @saved_pool_configs ||= Hash.new { |hash, key| hash[key] = {} }
+          # puts("@legacy_saved_pool_configs: #{@legacy_saved_pool_configs}")
+          # puts("@saved_pool_configs: #{@saved_pool_configs}")
     
-          puts(self.source_location)
-          ActiveRecord::TestFixtures.instance_method(:setup_shared_connection_pool).bind(self).call
+          # puts(self.source_location)
+          # ActiveRecord::TestFixtures.instance_method(:setup_shared_connection_pool).bind(self).call
         end
       end    
 end
