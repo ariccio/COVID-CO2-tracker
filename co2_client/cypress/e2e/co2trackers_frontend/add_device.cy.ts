@@ -1,7 +1,7 @@
 
 
 describe('Add device', () => {
-    const newModelName = "fartipelago2";
+    const newModelName = "fartipelago8";
     const serial = '123456789';
     beforeEach(() => {
         // https://docs.cypress.io/guides/end-to-end-testing/google-authentication

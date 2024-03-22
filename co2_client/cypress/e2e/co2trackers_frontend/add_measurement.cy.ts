@@ -1,5 +1,5 @@
 describe('Add measurement to new place', () => {
-    const newModelName = "fartipelago2";
+    const newModelName = "fartipelago7";
     const serial = '123456789';
     const addressPrefix = '315 East 69th Street N';
     const fullAddress = '315 East 69th Street New York, NY';
