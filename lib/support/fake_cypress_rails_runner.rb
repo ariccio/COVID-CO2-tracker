@@ -56,7 +56,6 @@ module FakeCypressRailsRunner
             puts "running in transactional mode, need to rollback transaction..."
             @manages_transactions.rollback_transaction
           end
-        ensure
           @initializer_hooks.run(:before_server_stop)
     
           @at_exit_hooks_have_fired = true
