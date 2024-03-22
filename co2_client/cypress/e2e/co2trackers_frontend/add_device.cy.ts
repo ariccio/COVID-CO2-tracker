@@ -2,6 +2,7 @@
 
 describe('Add device', () => {
     const newModelName = "fartipelago2";
+    const serial = '123456789';
     beforeEach(() => {
         // https://docs.cypress.io/guides/end-to-end-testing/google-authentication
         cy.loginByGoogleApi();
@@ -38,7 +39,7 @@ describe('Add device', () => {
         cy.contains(`Add my ${newModelName}:`).click();
 
         cy.get('div.fade.modal.show > div > div > div.modal-body > form > input').should("be.visible");
-        cy.get('div.fade.modal.show > div > div > div.modal-body > form > input').type('123456789');
+        cy.get('div.fade.modal.show > div > div > div.modal-body > form > input').type(serial);
 
         cy.contains(`Add new ${newModelName}`).click();
 
@@ -51,7 +52,11 @@ describe('Add device', () => {
         cy.get('#dropdown-for-testing-basic-id').contains("Aranet").click()
         cy.get('[id^=manufacturer-model-entry]').log("ids:")
         cy.get(`#manufacturer-model-entry-id-${newModelName}`).should("be.visible");
+        cy.get(`#manufacturer-model-entry-id-${newModelName}`).get('button').contains("Pick").click();
 
+        cy.visit('http://localhost:3001/profile');
+        cy.contains(serial).should("be.visible");
+        // cy.contains(`Add my ${newModelName}:`).should("be.visible");
     })
 
     it("doesn't leak devices into db when testing", () => {

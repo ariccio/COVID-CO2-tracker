@@ -626,7 +626,7 @@ const RenderFormIfReady = (props: {
                         {translate("co2-level")}
                     </span>
                 </Form.Label>
-                <Form.Control type="number" placeholder="400" min={350} max={15000} name={CO2_FIELD_ID} isInvalid={props.invalidField.includes(CO2_FIELD_ID)}/> <Suspense fallback="Loading translations..."><MaybeMeasurementNote enteredCO2Text={props.enteredCO2Text} /></Suspense>
+                <Form.Control type="number" placeholder="400" min={350} max={15000} name={CO2_FIELD_ID} isInvalid={props.invalidField.includes(CO2_FIELD_ID)} id={CO2_FIELD_ID}/> <Suspense fallback="Loading translations..."><MaybeMeasurementNote enteredCO2Text={props.enteredCO2Text} /></Suspense>
             </Form>
             <label className="form-label">
                 <span>

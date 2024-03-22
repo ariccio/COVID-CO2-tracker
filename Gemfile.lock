@@ -373,6 +373,7 @@ GEM
 
 PLATFORMS
   arm64-darwin-21
+  arm64-darwin-23
   x64-mingw-ucrt
   x64-mingw32
 
@@ -417,7 +418,7 @@ DEPENDENCIES
   validates_timeliness (>= 7.0.0.beta1)
 
 RUBY VERSION
-   ruby 3.1.2p20
+   ruby 3.2.2p53
 
 BUNDLED WITH
    2.3.18

@@ -283,7 +283,7 @@ const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (pr
         <Autocomplete onLoad={props.autoCompleteLoad} onPlaceChanged={props.placeChange} bounds={props.mapBounds} fields={INTERESTING_FIELDS}>
                 <Form onSubmit={formSubmitHandler}>
                     <Form.Group>
-                        <Form.Control type="text" onSubmit={formFieldSubmitHandler}/>
+                        <Form.Control type="text" onSubmit={formFieldSubmitHandler} id={'co2trackers-places-autocomplete-form'}/>
                     </Form.Group>
                 </Form>
         </Autocomplete>
@@ -1005,7 +1005,12 @@ const PlacesServiceStatus = () => {
             </div>    
         );
     }
-    return null;
+    return (
+
+        <div>
+            Places service status null.
+        </div>
+    )
 }
 
 

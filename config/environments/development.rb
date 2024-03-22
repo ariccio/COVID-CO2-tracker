@@ -103,8 +103,8 @@ require 'active_support/core_ext/integer/time'
 
 
   if ::ENV['IsEndToEndBackendServerSoSTFUWithTheLogs']
-    # config.log_level = :warn
-    config.log_level = :debug
+    config.log_level = :warn
+    # config.log_level = :debug
   else
     config.log_level = :debug
   end

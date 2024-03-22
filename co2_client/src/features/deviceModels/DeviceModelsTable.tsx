@@ -33,6 +33,11 @@ function modelRowKey(model: number): string {
 function modelRowIdForTesting(model_name: string): string {
     return `manufacturer-model-entry-id-${model_name}`;
 }
+
+function modelRowPickForTesting(id: number): string {
+    return `manufacturer-model-entry-id-pick-${id}`;
+}
+
 const pickModel = (model_id: number, name: string, dispatch: AppDispatch) => {
     dispatch(setSelectedModel(model_id));
     dispatch(setSelectedModelName(name));
@@ -48,7 +53,7 @@ const mapModelsToTableBody = (models: Array<ManufacturerModelInfo>, dispatch: Ap
                 <td><Link to={`${deviceModelsPath}/${model.model_id}`}>{model.model_id}</Link></td>
                 <td><Link to={`${deviceModelsPath}/${model.model_id}`}>{model.name}</Link></td>
                 <td><Link to={`${deviceModelsPath}/${model.model_id}`}>{model.count}</Link></td>
-                <td><Button variant="primary" onClick={(event) => {pickModel(model.model_id, model.name, dispatch)}}>Pick</Button></td>
+                <td><Button variant="primary" onClick={() => {pickModel(model.model_id, model.name, dispatch)}} id={modelRowPickForTesting(model.model_id)}>Pick</Button></td>
             </tr>
         )
     })

@@ -154,6 +154,7 @@ async function main() {
     // rails = execSh.promise("rails s", undefined)
     let backendEnv = JSON.parse(JSON.stringify(process.env));
     backendEnv.PORT = '3000';
+    // backendEnv.RAILS_MAX_THREADS = 7;
     // backendEnv.ENV = 'test';
     backendEnv.IsEndToEndBackendServerSoSTFUWithTheLogs = 'yes';
     const rails_opts: SubProcessOptions = {
