@@ -52,10 +52,14 @@ module FakeCypressRailsRunner
     end
 
     def responsive?
-      return false if @server_thread&.join(0)
+      # return false if @server_thread&.join(0)
+      if @server_thread&.join(0)
+        return false
+      end
+
 
       res = @checker.request { |http| http.get("/__identify__") }
-
+      # puts("res: #{res}")
       res.body == app.object_id.to_s if res.is_a?(Net::HTTPSuccess) || res.is_a?(Net::HTTPRedirection)
     rescue SystemCallError, Net::ReadTimeout, OpenSSL::SSL::SSLError => e
       puts("NOT responsive! #{e.full_message}")
@@ -64,7 +68,7 @@ module FakeCypressRailsRunner
 
     def wait_for_pending_requests
       puts("waiting for pending requests...")
-      timer = Timer.new(60)
+      timer = Timer.new(10)
       while pending_requests?
         raise "Requests did not finish in 60 seconds: #{middleware.pending_requests}" if timer.expired?
 
@@ -73,21 +77,31 @@ module FakeCypressRailsRunner
     end
 
     def boot
-      unless responsive?
+      Thread.abort_on_exception = true
+      puts("booting backend cypress db manager server...")
+      is_responsive = responsive?
+      Thread.report_on_exception = true
+      puts("is_responsive: #{is_responsive}")
+      unless is_responsive
+        puts("not responsive, booting server...")
         Server.ports[port_key] = port
 
         @server_thread = Thread.new {
           puts("starting puma for backend cypres reset server...")
           Puma.create(middleware, port, host)
         }
-
+        puts("server thread: #{@server_thread}")
+        puts("server thread status: #{@server_thread.status}")
         timer = Timer.new(60)
         until responsive?
           raise "Rack application timed out during boot" if timer.expired?
 
           @server_thread.join(0.1)
+          puts("server thread: #{@server_thread}")
           @initializer_hooks.run(:after_server_start)
         end
+        puts("server thread: #{@server_thread}")
+        puts("server thread status: #{@server_thread.status}")
       end
 
       self

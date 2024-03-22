@@ -8,6 +8,19 @@ require_relative "tracks_resets"
 require_relative "server"
 
 module FakeCypressRailsRunner
+
+  class Responder
+    def call(env)
+      # puts("env: #{env}")
+      if Rails.env.production?
+        raise StandardError, "Logic error - do not continue"
+      end
+      puts("\n\n\n\n\nRESETTING DB\n\n\n\n\n")
+      TracksResets.instance.reset_needed!
+      [202, {"Content-Type" => "text/plain"}, ["Accepted"]]
+    end
+  end
+
   class StartsRailsServer
     def call(host:, port:, transactional_server:)
       configure_rails_to_run_our_state_reset_on_every_request!(transactional_server)
@@ -29,14 +42,7 @@ module FakeCypressRailsRunner
       Rack::Builder.new do
         use Rack::CommonLogger
         map "/cypress_rails_reset_state" do
-          run lambda { |env|
-            if Rails.env.production?
-              raise StandardError, "Logic error - do not continue"
-            end
-            puts("\n\n\n\n\nRESETTING DB\n\n\n\n\n")
-            TracksResets.instance.reset_needed!
-            [202, {"Content-Type" => "text/plain"}, ["Accepted"]]
-          }
+          run Responder.new
         end
         # map "/" do
         #   run Rails.application

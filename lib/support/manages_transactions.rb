@@ -54,6 +54,17 @@ module FakeCypressRailsRunner
         end
 
         def begin_transaction
+          Thread.list.each_with_index do |t, i|
+            puts("Thread #{i}: alive?: #{t.alive?}")
+            puts("Thread #{i}: stop?: #{t.stop?}")
+            t.backtrace.take(15).each_with_index do |line, index|
+              puts("\t\tbacktrace #{index}: #{line}")
+            end
+            puts("Thread #{i}: group: #{t.group}")
+            puts("Thread #{i}: status: #{t.status}")
+            puts("Thread #{i}: inspect: #{t.inspect}")
+          end
+    
           puts (color("connection_pool_names: #{ActiveRecord::Base.connection_handler.connection_pool_names}", :BLUE))
           ActiveRecord::Base.connection_handler.flush_idle_connections!
           ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
@@ -79,7 +90,17 @@ module FakeCypressRailsRunner
           @connection_subscriber = ActiveSupport::Notifications.subscribe("!connection.active_record") { |name, started, finished, data, payload|
             # puts payload
             
-
+            Thread.list.each_with_index do |t, i|
+              puts("Thread #{i}: alive?: #{t.alive?}")
+              puts("Thread #{i}: stop?: #{t.stop?}")
+              t.backtrace.take(15).each_with_index do |line, index|
+                puts("\t\tbacktrace #{index}: #{line}")
+              end
+                puts("Thread #{i}: group: #{t.group}")
+              puts("Thread #{i}: status: #{t.status}")
+              puts("Thread #{i}: inspect: #{t.inspect}")
+            end
+      
             Rails.logger.debug(color("ATTEMPT beginning transaction for #{name}, #{started}, #{finished}, #{data}, #{payload}", :RED))
             if payload.key?(:spec_name) && (spec_name = payload[:spec_name])
               setup_shared_connection_pool
@@ -104,10 +125,25 @@ module FakeCypressRailsRunner
         end
     
         def rollback_transaction
+          Thread.list.each_with_index do |t, i|
+            puts("Thread #{i}: alive?: #{t.alive?}")
+            puts("Thread #{i}: stop?: #{t.stop?}")
+            t.backtrace.take(15).each_with_index do |line, index|
+              puts("\t\tbacktrace #{index}: #{line}")
+            end
+            puts("Thread #{i}: group: #{t.group}")
+            puts("Thread #{i}: status: #{t.status}")
+            puts("Thread #{i}: inspect: #{t.inspect}")
+          end
+    
           if @connections.present?
             # puts("rollback_transaction: connections present to rollback")
           else
             puts(color("rollback_transaction: NO connections present to rollback", :RED))
+            ActiveRecord::Base.connection_handler.connection_pool_list.each do |pool|
+              pool.reap
+            end
+  
             return
           end
     

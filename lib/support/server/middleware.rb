@@ -39,6 +39,7 @@ module FakeCypressRailsRunner
         end
   
         def pending_requests
+          puts("pending_requests: #{@counter.value}")
           @counter.value
         end
   
@@ -51,6 +52,7 @@ module FakeCypressRailsRunner
         end
   
         def call(env)
+          puts("env: #{env}")
           if env["PATH_INFO"] == "/__identify__"
             [200, {}, [@app.object_id.to_s]]
           else
