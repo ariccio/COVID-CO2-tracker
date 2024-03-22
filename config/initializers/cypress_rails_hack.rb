@@ -7,4 +7,8 @@ if ENV['IsEndToEndBackendServerSoSTFUWithTheLogs']
     puts "File readable? #{readable}"
     require_relative path
     FakeCypressRailsRunner::RunBackend.new.call(transactional_server: true)
+
+    ActiveSupport::Notifications.subscribe("!connection.active_record") { |name, started, finished, data, payload|
+        puts("name: #{name}, started: #{started}, finished: #{finished}, data: #{data}, payload: #{payload}")
+    }
 end
