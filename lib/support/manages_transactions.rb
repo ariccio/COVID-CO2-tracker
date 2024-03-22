@@ -59,32 +59,19 @@ module FakeCypressRailsRunner
           ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
           # ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
           # ActiveRecord::Base.connection_handler.remove_connection
-          @connections ||= []
-          ActiveRecord::Base.connection_handler.connection_pool_list.each_with_index do |pool, pool_idx|
-            puts(color("beginning transaction... #{pool_idx} #{pool.connection}, pool.connection.active?: #{pool.connection.active?}", :MAGENTA))
-            puts("")
-            # next if pool.connection.active?
-            pool.connection.begin_transaction joinable: false, _lazy: false
-            pool.connection.lock_thread = true
-            puts(color("beginning transaction... #{pool_idx} #{pool.connection}, pool.connection.active?: #{pool.connection.active?}", :MAGENTA))
-            puts(color("beginning transaction... #{pool_idx} #{pool.stat}", :MAGENTA))
-            @connections << pool.connection
+          @connections = gather_connections
+          @connections.each_with_index do |connection, index|
+            puts(color("#{index} #{connection.pool.stat}", :MAGENTA))
+            connection.begin_transaction joinable: false, _lazy: false
+            connection.pool.lock_thread = true
           end
-          # @connections = gather_connections
-          # @connections.each_with_index do |connection, index|
-          #   puts(color("beginning transaction... #{index} #{connection.pool.stat}", :MAGENTA))
-          #   next if connection.closed?
-          #   connection.begin_transaction joinable: false, _lazy: false
-          #   connection.pool.lock_thread = true
-          #   puts(color("beginning transaction... #{index} #{connection.pool.stat}", :MAGENTA))
-          # end
 
-          # ActiveRecord::Base.connection_handler.connection_pool_list.each_with_index do |pool, pool_index|
-          #   pool.connections.each_with_index do |connection, connection_index|
-          #     puts(color("#{pool_index} #{connection_index} #{connection}", :MAGENTA))
-          #   end
+          ActiveRecord::Base.connection_handler.connection_pool_list.each_with_index do |pool, pool_index|
+            pool.connections.each_with_index do |connection, connection_index|
+              puts(color("#{pool_index} #{connection_index} #{connection}", :MAGENTA))
+            end
 
-          # end
+          end
     
           # When connections are established in the future, begin a transaction too
           
@@ -93,9 +80,8 @@ module FakeCypressRailsRunner
             # puts payload
             
 
-            puts(color("ATTEMPT beginning transaction for #{name}, #{started}, #{finished}, #{data}, #{payload}", :RED))
+            Rails.logger.debug(color("ATTEMPT beginning transaction for #{name}, #{started}, #{finished}, #{data}, #{payload}", :RED))
             if payload.key?(:spec_name) && (spec_name = payload[:spec_name])
-              puts("payload.key?(:spec_name) && (spec_name = payload[:spec_name])")
               setup_shared_connection_pool
     
               begin
@@ -122,7 +108,7 @@ module FakeCypressRailsRunner
             # puts("rollback_transaction: connections present to rollback")
           else
             puts(color("rollback_transaction: NO connections present to rollback", :RED))
-            # return
+            return
           end
     
           if @connection_subscriber
@@ -133,33 +119,27 @@ module FakeCypressRailsRunner
           end
     
           puts("number of connections before rollback, flush, and release: #{@connections.length}")
-          @connections.each_with_index do |connection, idx|
+          @connections.each do |connection|
             # puts connection.connection_db_config
             # puts(color("connection_specification_name: #{connection.connection_specification_name}", :BLUE))
             # puts("owner: #{connection.owner}")
             if connection.active?
-              puts("#{idx} active connection.adapter_name: #{connection.adapter_name}")
+              # puts("active connection.adapter_name: #{connection.adapter_name}")
             else 
-              puts("#{idx} NON-active connection.adapter_name: #{connection.adapter_name}")
+              puts("NON-active connection.adapter_name: #{connection.adapter_name}")
             end
-            puts(color("#{idx} current transaction: #{connection.current_transaction}", :RED))
-            puts(color("#{idx} open transactions: #{connection.open_transactions}", :RED))
-            if connection.transaction_open?
-              connection.rollback_transaction
-            end 
-            connection.disconnect!
-            # connection.close
-            connection.throw_away!
+            puts(color("current transaction: #{connection.current_transaction}", :RED))
+            puts(color("open transactions: #{connection.open_transactions}", :RED))
+            connection.rollback_transaction if connection.transaction_open?
             connection.pool.lock_thread = false
             # connection.pool.flush!
             # connection.pool.checkin(connection)
             # ActiveRecord::Base.connection_handler.remove_connection(connection)
-            puts("#{idx} Num waiting: #{connection.pool.num_waiting_in_queue}")
+            puts("Num waiting: #{connection.pool.num_waiting_in_queue}")
           end
           if @connections.length > 0
             puts("number of connections after rollback, flush, and release: #{@connections.length}... clearing")
             @connections.clear
-
           else
             # puts ("No connections after rollback, flush")
           end
