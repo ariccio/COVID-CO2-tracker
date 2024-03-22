@@ -105,3 +105,8 @@ gem "lefthook", "~> 1.0", require: false
 gem "gems", "~> 1.2", require: false
 
 gem "blueprinter", "~> 1.0"
+
+
+group :development, :test do
+  gem "cypress-rails"
+end
