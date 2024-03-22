@@ -163,6 +163,9 @@ module FakeCypressRailsRunner
           else
             # puts ("No connections after rollback, flush")
           end
+          ActiveRecord::Base.connection_handler.connection_pool_list.each do |pool|
+            pool.reap
+          end
           # ActiveRecord::Base.connection_handler.flush_idle_connections!
           # ActiveRecord::Base.connection_handler.clear_active_connections!
           if ActiveRecord::Base.connection_handler.nil?
