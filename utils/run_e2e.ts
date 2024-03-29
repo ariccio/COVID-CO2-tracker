@@ -14,30 +14,30 @@ const DEFAULT_RAILS_PORT = 3000;
 
 const DEFAULT_FRONTEND_PORT = 3001;
 
-let rails: procHandle;
-let cypress: procHandle;
+let cypress_rails: procHandle;
+// let cypress: procHandle;
 let webpack: procHandle;
 
 
 type startDetector = ((stdout: string, stderr: string) => boolean) | number | null
 
-const railsStartDetector: startDetector = (stdout, stderr) => {
-    if (/A server is already running/.test(stderr)) {
-        checkPorts();
-        throw new Error("Server already running.");
-    }
-    // if (stderr.length > 0) {
-    //     // console.warn(`stdout for backend is > 0 (stderr: '${stderr}') assuming failure.`);
-    //     // throw new Error(`stdout for backend is > 0, assuming failure.`);
-    // }
-    if (/Listening on http/.test(stdout)) {
-        return true;
-    }
-    if (/Use Ctrl-C to stop/.test(stdout)) {
-        return true;
-    }
-    return false;
-}
+// const railsStartDetector: startDetector = (stdout, stderr) => {
+//     if (/A server is already running/.test(stderr)) {
+//         checkPorts();
+//         throw new Error("Server already running.");
+//     }
+//     // if (stderr.length > 0) {
+//     //     // console.warn(`stdout for backend is > 0 (stderr: '${stderr}') assuming failure.`);
+//     //     // throw new Error(`stdout for backend is > 0, assuming failure.`);
+//     // }
+//     if (/Listening on http/.test(stdout)) {
+//         return true;
+//     }
+//     if (/Use Ctrl-C to stop/.test(stdout)) {
+//         return true;
+//     }
+//     return false;
+// }
 
 function checkPorts() {
     const spawnOpts: child_process.SpawnSyncOptions = {
@@ -47,8 +47,8 @@ function checkPorts() {
     try {
         const result3000 = child_process.spawnSync('lsof', [`-i :3000 -P`], spawnOpts);
         if (result3000.status === 0) {
-            console.log(`current rails pid: ${rails?.pid}`);
-            console.log(`current frontend pid: ${cypress?.pid}`);
+            // console.log(`current rails pid: ${rails?.pid}`);
+            console.log(`current frontend pid: ${cypress_rails?.pid}`);
             console.log(`processes on 3000:\r\n${result3000.output.toString()}`);
         }
         else {
@@ -59,8 +59,8 @@ function checkPorts() {
 
         const result3001 = child_process.spawnSync('lsof', [`-i :3001 -P`], spawnOpts);
         if (result3001.status === 0) {
-            console.log(`current rails pid: ${rails?.pid}`);
-            console.log(`current frontend pid: ${cypress?.pid}`);
+            // console.log(`current rails pid: ${rails?.pid}`);
+            console.log(`current frontend pid: ${cypress_rails?.pid}`);
             console.log(`process on 3001:\r\n${result3001.output.toString()}`);
         }
         else {
@@ -73,7 +73,7 @@ function checkPorts() {
     }
 }
 
-const frontendStartDetector: startDetector = (stdout, stderr) => {
+const cypressRailsStartDetector: startDetector = (stdout, stderr) => {
     // if (stderr.length > 0) {
     //     // console.warn(`stdout for frontend is > 0 (stderr: '${stderr}') assuming failure.`);
     //     // throw new Error(`stdout for frontend is > 0, assuming failure.`);
@@ -81,6 +81,10 @@ const frontendStartDetector: startDetector = (stdout, stderr) => {
     if (/Something is already running on port/.test(stdout)) {
         checkPorts();
         throw new Error(`Port issue!`);
+    }
+    if (/A server is already running/.test(stderr)) {
+        checkPorts();
+        throw new Error("Server already running.");
     }
     if (/Cypress failed/.test(stdout)) {
         throw new Error("Some cypress issue.");
@@ -157,12 +161,16 @@ async function main() {
     // backendEnv.RAILS_MAX_THREADS = 7;
     // backendEnv.ENV = 'test';
     backendEnv.IsEndToEndBackendServerSoSTFUWithTheLogs = 'yes';
+    backendEnv.CYPRESS_RAILS_CYPRESS_DIR = './co2_client';
+    backendEnv.CYPRESS_RAILS_CYPRESS_PORT = '3001';
     const rails_opts: SubProcessOptions = {
         shell: true,
         env: backendEnv
     }
-    rails = new SubProcess('rails s', undefined, rails_opts);
-    setupFollowerHooks(rails, "rails");
+
+    // rake --trace=stdout --verbose --backtrace=stdout cypress:run 
+    cypress_rails = new SubProcess('rake cypress:run', undefined, rails_opts);
+    setupFollowerHooks(cypress_rails, "cypress_rails");
 
     const dump = (value: {stderr: string, stdout: string}) => {
         console.log('----------------------');
@@ -170,21 +178,21 @@ async function main() {
         console.log(value.stdout);
         console.log('----------------------');
     }
-    let frontendEnv = JSON.parse(JSON.stringify(process.env));
-    frontendEnv.PORT = '3002';
+    // let frontendEnv = JSON.parse(JSON.stringify(process.env));
+    // frontendEnv.PORT = '3002';
 
     const frontendDir = process.cwd() + '/co2_client';
-    frontendEnv.cwd = frontendDir;
-    console.log(frontendDir)
+    // frontendEnv.cwd = frontendDir;
+    // console.log(frontendDir)
     // react = execSh.promise("yarn start", modifiedEnv);
     // rails.then(dump)
     // react.then(dump);
 
-    const frontend_opts: SubProcessOptions = {
-        shell: true,
-        env: frontendEnv,
-        cwd: frontendDir
-    };
+    // const frontend_opts: SubProcessOptions = {
+    //     shell: true,
+    //     env: frontendEnv,
+    //     cwd: frontendDir
+    // };
 
     let webpackEnv = JSON.parse(JSON.stringify(process.env));
     webpackEnv.PORT = '3001';
@@ -199,13 +207,13 @@ async function main() {
     webpack = new SubProcess('yarn start', undefined, webpack_opts);
     setupFollowerHooks(webpack, "webpack");
 
-    cypress = new SubProcess('yarn cypress run', undefined, frontend_opts);
-    setupFollowerHooks(cypress, "cypress");
+    // cypress = new SubProcess('yarn cypress run', undefined, frontend_opts);
+    // setupFollowerHooks(cypress, "cypress");
 
 
-    await rails.start(railsStartDetector);
     await webpack.start(webpackStartDetector);
-    await cypress.start(frontendStartDetector, 60_000);
+    await cypress_rails.start(cypressRailsStartDetector);
+    // await cypress.start(frontendStartDetector, 60_000);
     console.log(`cypress running...`);
     // rails.
     
@@ -224,7 +232,7 @@ async function main() {
     //     console.log(`rails warn #${i}, ${rails_warns?.at(i)}`);
     // }
 
-    return cypress.join();
+    return cypress_rails.join();
 
 }
 
@@ -328,11 +336,8 @@ function exceptionDump(e_: unknown) {
 main().then(
     (result) => {
         console.log(`DONE! ${result}`);
-        return ensureClosed(cypress).then(() => {
-            return ensureClosed(rails).then(() => {
-                return ensureClosed(webpack);
-            })
-            
+        return ensureClosed(cypress_rails).then(() => {
+            return ensureClosed(webpack);            
         }).then(() => {
             return result;
         })
@@ -340,30 +345,24 @@ main().then(
     (e) => {
         console.log(`done with EXCEPTION (1)! Exiting...`);
         exceptionDump(e)
-        return ensureClosed(cypress).then(() => {
-            return ensureClosed(rails).then(() => {
-                return ensureClosed(webpack);
-            });
+        return ensureClosed(cypress_rails).then(() => {
+            return ensureClosed(webpack);
         }).then(() => process.exit(1));
     }
 ).catch((e) => {
     console.log(`done with EXCEPTION (2)! Exiting...`);
     exceptionDump(e);
-    return ensureClosed(cypress).then(() => {
-        return ensureClosed(rails).then(() => {
-            return ensureClosed(webpack);
-        });
+    return ensureClosed(cypress_rails).then(() => {
+        return ensureClosed(webpack);
     }).then(() => process.exit(2));
 }).finally(() => {
 
-    return ensureClosed(cypress).then(() => {
-        return ensureClosed(rails).then(() => {
-            return ensureClosed(webpack);
-        });
+    return ensureClosed(cypress_rails).then(() => {
+        return ensureClosed(webpack);
     })
 }).then((result) => {
-    console.assert(!(rails?.isRunning), `${rails?.cmd} is still running!!! See ${rails?.pid}`);
-    console.assert(!(cypress?.isRunning), `${cypress?.cmd} is stil running!! see ${cypress?.pid}`);
+    // console.assert(!(rails?.isRunning), `${rails?.cmd} is still running!!! See ${rails?.pid}`);
+    console.assert(!(cypress_rails?.isRunning), `${cypress_rails?.cmd} is stil running!! see ${cypress_rails?.pid}`);
     console.assert(!(webpack?.isRunning), `${webpack?.cmd} is stil running!! see ${webpack?.pid}`);
     console.log(`all done! result: ${result}`);
     process.exit(result);
