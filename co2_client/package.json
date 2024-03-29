@@ -74,6 +74,7 @@
     "@eslint/create-config": "^0.4.1",
     "concurrently": "^8.2.2",
     "cypress": "^13.6.1",
+    "cypress-terminal-report": "^6.0.1",
     "eslint": "^8.17.0",
     "eslint-plugin-cypress": "^2.12.1",
     "eslint-plugin-jsx-a11y": "^6.5.1",

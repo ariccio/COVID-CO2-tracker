@@ -107,6 +107,7 @@ function getUserInfo(tokenResponseBody) {
                     givenName: infoRequestResponseBody.given_name,
                     familyName: infoRequestResponseBody.family_name,
                     imageUrl: infoRequestResponseBody.picture,
+                    name: infoRequestResponseBody.name,
                 },
             }
             window.localStorage.setItem('googleCypress', JSON.stringify(userItem))

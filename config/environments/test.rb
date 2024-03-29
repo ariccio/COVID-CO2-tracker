@@ -10,7 +10,7 @@ require 'active_support/core_ext/integer/time'
 
 ::Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
-
+  puts("CONFIGURING as test environment")
   config.enable_reloading = false
 
   # Eager loading loads your entire application. When running a single test locally,
@@ -77,9 +77,9 @@ require 'active_support/core_ext/integer/time'
   
   Rails.logger = Logger.new(STDOUT)
 
-    Rails.logger.level = Logger::WARN
+    # Rails.logger.level = Logger::WARN
   # else
-  #   Rails.logger.level = Logger::DEBUG
+    Rails.logger.level = Logger::DEBUG
   # end
 
   # Rails.logger = Logger.new(STDOUT)

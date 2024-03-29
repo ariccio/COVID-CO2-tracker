@@ -18,3 +18,5 @@ import './commands'
 
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+require('cypress-terminal-report/src/installLogsCollector')();

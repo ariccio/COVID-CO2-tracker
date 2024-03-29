@@ -14,10 +14,18 @@ export default defineConfig({
   },
   e2e: {
     setupNodeEvents(on, config) {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      require('cypress-terminal-report/src/installLogsPrinter')(on);
+
       // implement node event listeners here
+      on('before:browser:launch', (browser, launchOptions) => {
+        /* ... */
+      })
+
     },
     baseUrl: 'http://localhost:3001', // Honestly should import from PORT or some shit, yes. Whatever.
     excludeSpecPattern: '*.cy.example.js'
   },
   video: false,
+  trashAssetsBeforeRuns: false
 });
