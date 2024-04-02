@@ -63,7 +63,7 @@ describe('Add measurement to new place', () => {
 
         cy.contains("New inner location").should("be.visible");
         cy.get("#co2ppm").type(co2ppm);
-        cy.get('#crowding').type('4');
+        cy.get('#crowding-input-field-id-for-testing').type('4');
         cy.get('#location_where_inside_info').type('bedroom');
         cy.contains('Submit new measurement').click();
 
