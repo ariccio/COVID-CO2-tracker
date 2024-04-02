@@ -5,9 +5,9 @@ describe('Add measurement to new place', () => {
     const fullAddress = '315 East 69th Street New York, NY';
     const co2ppm = '793';
     beforeEach(() => {
+        cy.request('http://localhost:3000/cypress_rails_reset_state');
         // https://docs.cypress.io/guides/end-to-end-testing/google-authentication
         cy.loginByGoogleApi();
-        cy.request('http://localhost:3000/cypress_rails_reset_state');
 
     })
     it('can create a new measurement to a new place with a new device', () => {

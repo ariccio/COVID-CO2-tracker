@@ -3,7 +3,6 @@
 module Api
   module V1
     class StatsController < ApplicationController
-      skip_before_action :authorized, only: [:show]
       def show
         # byebug
         render(

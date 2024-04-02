@@ -4,14 +4,14 @@ describe('Add device', () => {
     const newModelName = "fartipelago8";
     const serial = '123456789';
     beforeEach(() => {
+        cy.request('http://localhost:3000/cypress_rails_reset_state');
         // https://docs.cypress.io/guides/end-to-end-testing/google-authentication
         cy.loginByGoogleApi();
-        cy.request('http://localhost:3000/cypress_rails_reset_state');
 
     })
     it('can select device, try to add model', () => {
-        cy.visit('http://localhost:3001/');
-        // cy.visit('http://localhost:3001/devices');
+        // cy.visit('http://localhost:3001/');
+        cy.visit('http://localhost:3001/devices');
         cy.contains("Devices").click();
         cy.contains("Add your devices and view stats").should("be.visible");
         cy.contains("Select manufacturer").should("be.visible");

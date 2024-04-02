@@ -137,6 +137,10 @@ const HighestMeasurementPreview: React.FC<{highestMeasurementsResponse: HighestM
         return null;
     }
 
+    if (props.highestMeasurementsResponse.ten_measurements[0] === undefined) {
+        debugger;
+        return <>some bug?</>;
+    }
     return (
         <>- ({props.highestMeasurementsResponse.ten_measurements[0].co2ppm}&#8346;&#8346;&#8344;!)</>
     )
