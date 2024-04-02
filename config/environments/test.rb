@@ -67,28 +67,23 @@ require 'active_support/core_ext/integer/time'
 
   # pp "turning ActiveRecord SQL query logs on"
   # # config.active_record.verbose_query_logs = true
-  # config.log_level = :warn
+  config.log_level = :warn
 
   # https://edgeguides.rubyonrails.org/configuring.html#config-active-record-db-warnings-action
   config.active_record.db_warnings_action = :report
 
 
-  config.log_level = :debug
+  # config.log_level = :debug
   
   Rails.logger = Logger.new(STDOUT)
 
-    # Rails.logger.level = Logger::WARN
+    Rails.logger.level = Logger::WARN
   # else
-    Rails.logger.level = Logger::DEBUG
+    # Rails.logger.level = Logger::DEBUG
   # end
 
   # Rails.logger = Logger.new(STDOUT)
   # Rails.logger.level = Logger::INFO
 
-  # config.after_initialize do
-  #   puts("SLEEPING as a temporary measure to more easily debug e2e test connection issues")
-  #   sleep(10)
-  #   puts("DONE SLEEPING!")
-  # end
 end
 # puts "#{Time.now.strftime("%H:%M:%S:%L")}: end   of config/environments/test.rb\r\n"

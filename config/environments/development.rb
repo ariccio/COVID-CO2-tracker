@@ -22,11 +22,6 @@ require 'active_support/core_ext/integer/time'
     end
     # Bullet.add_footer    = true
 
-
-    # puts("SLEEPING as a temporary measure to more easily debug e2e test connection issues")
-    # sleep(10)
-    # puts("DONE SLEEPING!")
-
   end
 
   # Settings specified here will take precedence over those in config/application.rb.
@@ -110,21 +105,21 @@ require 'active_support/core_ext/integer/time'
 
 
   if ::ENV['IsEndToEndBackendServerSoSTFUWithTheLogs']
-    # config.log_level = :warn
-    config.log_level = :debug
+    config.log_level = :warn
+    # config.log_level = :debug
   else
     config.log_level = :debug
   end
   
   Rails.logger = Logger.new(STDOUT)
 
-  # if ::ENV['IsEndToEndBackendServerSoSTFUWithTheLogs']
-  #   Rails.logger.level = Logger::WARN
-  # else
-  #   Rails.logger.level = Logger::DEBUG
-  # end
+  if ::ENV['IsEndToEndBackendServerSoSTFUWithTheLogs']
+    Rails.logger.level = Logger::WARN
+  else
+    Rails.logger.level = Logger::DEBUG
+  end
 
-  Rails.logger.level = Logger::DEBUG
+  # Rails.logger.level = Logger::DEBUG
 
 
   # config.after_initialize() do

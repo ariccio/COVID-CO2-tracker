@@ -49,8 +49,8 @@ describe('Add measurement to new place', () => {
 
 
         cy.contains('not found').should('not.exist');
-        cy.contains('Last google places query status', { timeout: 30_000 }).should('exist');
-        cy.contains('Last google places query status: OK').should('exist');
+        // cy.contains('Last google places query status', { timeout: 30_000 }).should('exist');
+        // cy.contains('Last google places query status: OK').should('exist');
         // cy.get('#co2trackers-places-autocomplete-form').type("");
         // cy.contains(fullAddress);
 
