@@ -31,6 +31,7 @@ module Api
       end
 
       def render_successful_authentication_cookie(token)
+        ::Rails.logger.debug("rendering successful authentication") unless Rails.env.production?
         # for good advice on httponly: https://www.thegreatcodeadventure.com/jwt-storage-in-rails-the-right-way/
         cookies.signed[:jwt] = { value: token, httponly: true, expires: 1.hour }
         render(
@@ -147,10 +148,11 @@ module Api
         return render_invalid_google_login_params(e_not_created_yet, :email) if @decoded_token['email'].empty?
 
         # byebug
-        ::Rails.logger.warn("@decoded_token: #{@decoded_token}")
+        ::Rails.logger.debug("@decoded_token: #{@decoded_token}") unless Rails.env.production?
         @user = ::User.create!(email: @decoded_token['email'], name: @decoded_token['name'], sub_google_uid: @decoded_token['sub'])
         render_successful_authentication
       rescue ::ActiveRecord::RecordInvalid => e
+        ::Rails.logger.debug("oops - some issue") unless Rails.env.production?
         render_creation_activerecord_error(e)
       end
 
@@ -164,6 +166,7 @@ module Api
           # byebug
           @decoded_token = params['user']
         else
+          ::Rails.logger.debug("OTHER auth path") unless Rails.env.production?
           @decoded_token = token_from_google
         end
         # byebug
@@ -173,6 +176,7 @@ module Api
           ::Rails.logger.warn("stored email #{@user.email} differs from #{@decoded_token['email']}, TODO: write code to update.")
         end
         # byebug
+        ::Rails.logger.debug("rendering successsful authentication") unless Rails.env.production?
         render_successful_authentication
 
       # deliberately do not handle ActiveRecord::SoleRecordExceeded right now. This should be an internal server error?
@@ -182,6 +186,7 @@ module Api
         ::Rails.logger.warn("user_login_google_params[:id_token]: #{user_login_google_params[:id_token]} invalid! This shouldn't happen.")
         render_signature_verification_failed(e)
       rescue ::ActiveRecord::RecordNotFound => e
+        ::Rails.logger.debug("need to create user") unless Rails.env.production?
         create_user_with_google(e)
       end
 

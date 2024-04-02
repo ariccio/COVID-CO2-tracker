@@ -23,7 +23,7 @@ export default defineConfig({
       })
 
     },
-    baseUrl: 'http://localhost:3001', // Honestly should import from PORT or some shit, yes. Whatever.
+    // baseUrl: 'http://localhost:3001', // Honestly should import from PORT or some shit, yes. Whatever.
     excludeSpecPattern: '*.cy.example.js'
   },
   video: false,

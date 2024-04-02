@@ -108,5 +108,6 @@ gem "blueprinter", "~> 1.0"
 
 
 group :development, :test do
-  gem "cypress-rails"
+  # gem "cypress-rails"
+  gem "cypress-rails", git: 'https://github.com/ariccio/cypress-rails.git', branch: 'add-baseurl-override'
 end

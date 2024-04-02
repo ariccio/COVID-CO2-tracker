@@ -39,6 +39,74 @@ type startDetector = ((stdout: string, stderr: string) => boolean) | number | nu
 //     return false;
 // }
 
+function checkPortClear(port: string): boolean {
+    const spawnOpts: child_process.SpawnSyncOptions = {
+        timeout: 1000,
+        shell: true
+    }
+    try {
+        const lsofResult = child_process.spawnSync('lsof', [`-i :${port} -P -V`], spawnOpts);
+        if (lsofResult.status === 0) {
+            console.log(`processes on '${port}' (checkPortClear):\r\n${lsofResult.output.toString()}`);
+            console.log(`length of output (checkPortClear): ${lsofResult.output.length}`);
+            return false;
+        }
+        else if (lsofResult.status === 1) {
+            // https://github.com/lsof-org/lsof/blob/ceb40c37f98a9c66bd5dd6115d0f22606f993f06/src/main.c#L1658C39-L1658C68
+            // Internet address not located:
+            if (/Internet address not located/.test(lsofResult.output.toString())) {
+                console.log(`port ${port} is clear!`);
+                return true;
+            }
+            console.log(`lsof reported somethign ELSE for port ${port} (checkPortClear): ${lsofResult.output.toString()}!`);
+            return false;
+        }
+        console.warn(`lsof failed (checkPortClear): ${lsofResult.status}`);
+        console.dir(lsofResult);
+        console.log(`lsof output anyways (checkPortClear): ${lsofResult.output.toString()}`);
+        return false;
+    }
+    catch (e) {
+        console.log(`spawning/calling/reading lsof failed and threw an exception! (checkPortClear) ${e}`);
+        throw e;
+    }
+}
+
+function checkPortInUse(port: string): boolean {
+    const spawnOpts: child_process.SpawnSyncOptions = {
+        timeout: 1000,
+        shell: true
+    }
+    try {
+        const lsofResult = child_process.spawnSync('lsof', [`-i :${port} -P -V`], spawnOpts);
+        if (lsofResult.status === 0) {
+            console.log(`processes on '${port}' (checkPortInUse):\r\n${lsofResult.output.toString()}`);
+            console.log(`length of output (checkPortInUse): ${lsofResult.output.length}`);
+            return true;
+        }
+        else if (lsofResult.status === 1) {
+            // https://github.com/lsof-org/lsof/blob/ceb40c37f98a9c66bd5dd6115d0f22606f993f06/src/main.c#L1658C39-L1658C68
+            // Internet address not located:
+            if (/Internet address not located/.test(lsofResult.output.toString())) {
+                console.log(`port ${port} is clear!`);
+                return false;
+            }
+            console.log(`lsof reported somethign ELSE for port ${port} (checkPortInUse): ${lsofResult.output.toString()}!`);
+            return false;
+        }
+        console.warn(`lsof failed (checkPortInUse): ${lsofResult.status}`);
+        console.dir(lsofResult);
+        console.log(`lsof output anyways (checkPortInUse): ${lsofResult.output.toString()}`);
+        return false;
+    }
+    catch (e) {
+        console.log(`spawning/calling/reading lsof failed and threw an exception! (checkPortInUse) ${e}`);
+        throw e;
+
+    }
+}
+
+
 function checkPorts() {
     const spawnOpts: child_process.SpawnSyncOptions = {
         timeout: 1000,
@@ -48,28 +116,30 @@ function checkPorts() {
         const result3000 = child_process.spawnSync('lsof', [`-i :3000 -P`], spawnOpts);
         if (result3000.status === 0) {
             // console.log(`current rails pid: ${rails?.pid}`);
-            console.log(`current frontend pid: ${cypress_rails?.pid}`);
-            console.log(`processes on 3000:\r\n${result3000.output.toString()}`);
+            console.log(`current frontend pid (checkPorts): ${cypress_rails?.pid}`);
+            console.log(`processes on 3000: (checkPorts)\r\n${result3000.output.toString()}`);
         }
         else {
-            console.warn(`lsof failed: ${result3000.status}`);
+            console.warn(`lsof failed (checkPorts): ${result3000.status}`);
             console.dir(result3000);
-            console.log(`lsof output anyways: ${result3000.output}`);
+            console.log(`lsof output anyways (checkPorts): ${result3000.output.toString()}`);
         }
 
         const result3001 = child_process.spawnSync('lsof', [`-i :3001 -P`], spawnOpts);
         if (result3001.status === 0) {
             // console.log(`current rails pid: ${rails?.pid}`);
-            console.log(`current frontend pid: ${cypress_rails?.pid}`);
-            console.log(`process on 3001:\r\n${result3001.output.toString()}`);
+            console.log(`current frontend pid (checkPorts): ${cypress_rails?.pid}`);
+            console.log(`process on 3001 (checkPorts):\r\n${result3001.output.toString()}`);
         }
         else {
-            console.warn(`lsof failed: ${result3001.status}`);
+            console.warn(`lsof failed (checkPorts): ${result3001.status}`);
             console.dir(result3001);
-            console.log(`lsof output anyways: ${result3001.output}`);
+            console.log(`lsof output anyways (checkPorts): ${result3001.output}`);
         }
     }
     catch (e) {
+        console.log(`spawning/calling/reading lsof failed and threw an exception! (checkPorts) ${e}`);
+        throw e;
     }
 }
 
@@ -126,6 +196,18 @@ const webpackStartDetector: startDetector = (stdout, stderr) => {
 
 }
 
+function tryAndExitAll() {
+    return ensureClosed(cypress_rails).then(() => {
+        return ensureClosed(webpack);            
+    }).then(() => {
+        console.log("all closed in response to SIGINT");
+    })
+}
+
+function setupSelfHooks(): void {
+    process.on('SIGINT', tryAndExitAll);
+}
+
 
 function setupFollowerHooks(proc: procHandle, name: string): void {
     if (proc === undefined) {
@@ -153,8 +235,29 @@ function setupFollowerHooks(proc: procHandle, name: string): void {
 }
 
 
+function sleep(ms: number) {
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
+  }
+
 async function main() {
     console.log('\n\n\n\n');
+
+    const is3000Clear = checkPortClear('3000');
+    if (!is3000Clear) {
+        console.log(`port 3000 is not clear! Exiting.`);
+        return 1;
+    }
+    const is3001Clear = checkPortClear('3001');
+    if (!is3001Clear) {
+        console.log(`port 3001 is not clear! Exiting.`);
+        return 1;
+    }
+
+
+    setupSelfHooks();
+
     // rails = execSh.promise("rails s", undefined)
     let backendEnv = JSON.parse(JSON.stringify(process.env));
     backendEnv.PORT = '3000';
@@ -162,7 +265,10 @@ async function main() {
     // backendEnv.ENV = 'test';
     backendEnv.IsEndToEndBackendServerSoSTFUWithTheLogs = 'yes';
     backendEnv.CYPRESS_RAILS_CYPRESS_DIR = './co2_client';
-    backendEnv.CYPRESS_RAILS_CYPRESS_PORT = '3001';
+    backendEnv.CYPRESS_RAILS_PORT = '3000';
+    backendEnv.CYRESS_RAILS_HOST = 'localhost';
+    // backendEnv.CYPRESS_RAILS_OVERRIDE_FULL_BASE_PATH = 'http://localhost:3001/';
+    // backendEnv.CYPRESS_RAILS_BASE_PATH = 
     const rails_opts: SubProcessOptions = {
         shell: true,
         env: backendEnv
@@ -212,9 +318,29 @@ async function main() {
 
 
     await webpack.start(webpackStartDetector);
+    const webPackPortInUse = checkPortInUse('3001');
+    if (webPackPortInUse) {
+        console.log("Ok, webpack's port seems to be in use...");
+    }
+    else {
+        console.log("Webpack's port is not in use? Exiting...");
+        return 1;
+    }
     await cypress_rails.start(cypressRailsStartDetector);
     // await cypress.start(frontendStartDetector, 60_000);
     console.log(`cypress running...`);
+    
+    const cypressRailsPortInUse = checkPortInUse('3000');
+    if (cypressRailsPortInUse) {
+        console.log("Ok, cypress_rails's port seems to be in use...");
+    }
+    else {
+        console.log("Cypress_rails's port is not in use? Exiting...");
+        return 1;
+    }
+    // console.log("SLEEPING FOR 60 SECONDS");
+    // await(sleep(60_000));
+    // console.log("SLEEPING DONE");
     // rails.
     
     // const webpack_out = webpack?.proc?.stdout?.read();
@@ -241,17 +367,17 @@ async function politeCtrlC(proc: SubProcess) {
         return;
     }
     console.log(`sending ctrl-c to ${proc.cmd}...`);
-    await proc.stop('SIGINT', 1000);
+    await proc.stop('SIGINT', 100);
     console.log(`process quit!`);
 }
 
 async function politeTerminate(proc: SubProcess) {
-    if (!(proc.isRunning)) {
-        return;
-    }
+    // if (!(proc.isRunning)) {
+    //     return;
+    // }
     console.log(`sending terminate to ${proc.cmd}...`);
     // console.group(`${proc.cmd} termination output:`)
-    await proc.stop('SIGTERM', 10_000);
+    await proc.stop('SIGTERM', 1_000);
     // console.groupEnd();
     console.log(`process quit!`);
 }
@@ -267,29 +393,33 @@ async function killProc(proc: SubProcess) {
 
 async function ensureClosed(proc?: SubProcess) {
     if (proc === undefined) {
+        console.warn("proc is undefined! Probably already closed.");
         return;
     }
-    if (!(proc.isRunning)) {
-        // console.log(`${proc.cmd} already stopped.`);
-        return;
-    }
-    try {
-        await politeCtrlC(proc);
-    }
-    catch(e) {
-        if (e) {
-            if ((e as any).message) {
-                if (/Can't stop process; it's not currently running/.test((e as Error).message)) {
-                    return;
-                }
-            }
-        }
-    }
+    // if (!(proc.isRunning)) {
+    //     // console.log(`${proc.cmd} already stopped.`);
+    //     return;
+    // }
+    // try {
+    //     await politeCtrlC(proc);
+    // }
+    // catch(e) {
+    //     console.log(`Caught: ${String(e)}`);
+    //     if (e) {
+    //         if ((e as any).message) {
+    //             if (/Can't stop process; it's not currently running/.test((e as Error).message)) {
+    //                 return;
+    //             }
+    //         }
+    //     }
+    // }
 
     try {
+        console.log("Ok, now trying to politely terminate too...");
         await politeTerminate(proc);
     }
     catch (e) {
+        console.log(`Caught: ${String(e)}`);
         if (e) {
             if ((e as any).message) {
                 if (/Can't stop process; it's not currently running/.test((e as Error).message)) {
@@ -333,6 +463,10 @@ function exceptionDump(e_: unknown) {
     }
 }
 
+function forceClose(result: number) {
+    
+}
+
 main().then(
     (result) => {
         console.log(`DONE! ${result}`);
@@ -359,11 +493,36 @@ main().then(
 
     return ensureClosed(cypress_rails).then(() => {
         return ensureClosed(webpack);
+    }).then(() => {
+        const is3000Clear = checkPortClear('3000');
+        if (!is3000Clear) {
+            console.log(`port 3000 is not clear!`);
+            return 1;
+        }
+        const is3001Clear = checkPortClear('3001');
+        if (!is3001Clear) {
+            console.log(`port 3001 is not clear!`);
+            return 1;
+        }
+    
+        console.log(`all done!`);
     })
 }).then((result) => {
     // console.assert(!(rails?.isRunning), `${rails?.cmd} is still running!!! See ${rails?.pid}`);
     console.assert(!(cypress_rails?.isRunning), `${cypress_rails?.cmd} is stil running!! see ${cypress_rails?.pid}`);
     console.assert(!(webpack?.isRunning), `${webpack?.cmd} is stil running!! see ${webpack?.pid}`);
+
+    const is3000Clear = checkPortClear('3000');
+    if (!is3000Clear) {
+        console.log(`port 3000 is not clear!`);
+        return 1;
+    }
+    const is3001Clear = checkPortClear('3001');
+    if (!is3001Clear) {
+        console.log(`port 3001 is not clear!`);
+        return 1;
+    }
+
     console.log(`all done! result: ${result}`);
     process.exit(result);
 })

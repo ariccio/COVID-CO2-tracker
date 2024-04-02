@@ -6,12 +6,13 @@ describe('Add device', () => {
     beforeEach(() => {
         // https://docs.cypress.io/guides/end-to-end-testing/google-authentication
         cy.loginByGoogleApi();
-        cy.request('http://localhost:3002/cypress_rails_reset_state');
+        cy.request('http://localhost:3000/cypress_rails_reset_state');
 
     })
     it('can select device, try to add model', () => {
-        cy.visit('/');
-        cy.visit('http://localhost:3001/devices');
+        cy.visit('http://localhost:3001/');
+        // cy.visit('http://localhost:3001/devices');
+        cy.contains("Devices").click();
         cy.contains("Add your devices and view stats").should("be.visible");
         cy.contains("Select manufacturer").should("be.visible");
         cy.contains("Select manufacturer").click()
@@ -46,7 +47,8 @@ describe('Add device', () => {
         cy.contains(newModelName).should("be.visible");
 
 
-        cy.visit('http://localhost:3001/devices');
+        // cy.visit('http://localhost:3001/devices');
+        cy.contains("Devices").click();
         cy.contains("Select manufacturer").click()
         cy.get('#dropdown-for-testing-basic-id').contains("Aranet").should("be.visible");
         cy.get('#dropdown-for-testing-basic-id').contains("Aranet").click()
@@ -54,7 +56,9 @@ describe('Add device', () => {
         cy.get(`#manufacturer-model-entry-id-${newModelName}`).should("be.visible");
         cy.get(`#manufacturer-model-entry-id-${newModelName}`).get('button').contains("Pick").click();
 
-        cy.visit('http://localhost:3001/profile');
+        // cy.visit('http://localhost:3001/profile');
+        cy.contains("Alexander Riccio").click();
+        cy.contains("Alexander Riccio's profile").click();
         cy.contains(serial).should("be.visible");
         // cy.contains(`Add my ${newModelName}:`).should("be.visible");
     })

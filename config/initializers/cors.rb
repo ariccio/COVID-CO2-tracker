@@ -11,9 +11,11 @@
 
 # This block has strange formatting! See https://www.rubydoc.info/gems/rack-cors/0.4.0 for examples.
 
-::Rails.application.config.middleware.insert_before(0, ::Rack::Cors) do
+# https://github.com/cyu/rack-cors/blob/0e68b881ef6c428bbf928b2c4a92ab49a34823e3/examples/rails6/config/initializers/cors.rb#L6
+::Rails.application.config.middleware.insert_before(0, ::Rack::Cors, debug: true, logger: (-> { Rails.logger })) do
   allow do
     origins('localhost:3001')
+    origins('localhost:3000')
     resource(
       '*',
       headers: :any,

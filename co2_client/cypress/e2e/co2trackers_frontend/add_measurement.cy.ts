@@ -7,7 +7,7 @@ describe('Add measurement to new place', () => {
     beforeEach(() => {
         // https://docs.cypress.io/guides/end-to-end-testing/google-authentication
         cy.loginByGoogleApi();
-        cy.request('http://localhost:3002/cypress_rails_reset_state');
+        cy.request('http://localhost:3000/cypress_rails_reset_state');
 
     })
     it('can create a new measurement to a new place with a new device', () => {
@@ -21,7 +21,8 @@ describe('Add measurement to new place', () => {
         cy.get('div.fade.modal.show > div > div > div.modal-body > form > input').type(serial);
         cy.contains(`Add new ${newModelName}`).click();
 
-        cy.visit('/');
+        // cy.visit('http://localhost:3001/');
+        cy.contains('Home').click();
         cy.get('#co2trackers-places-autocomplete-form').scrollIntoView();
         cy.get('#co2trackers-places-autocomplete-form').click();
         cy.get('#co2trackers-places-autocomplete-form').type(addressPrefix);

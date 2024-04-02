@@ -59,7 +59,7 @@ function getLoginTokenPostRequest() {
 
 function idBody(tokenResponseBody: any) {
     const id_token = tokenResponseBody.id_token;
-    cy.log(`using id_token: ${id_token}`)
+    // cy.log(`using id_token: ${id_token}`)
     return JSON.stringify({
         user: {
             id_token
@@ -111,7 +111,7 @@ function getUserInfo(tokenResponseBody) {
                 },
             }
             window.localStorage.setItem('googleCypress', JSON.stringify(userItem))
-            return cy.visit('/');
+            return cy.visit('http://localhost:3001/');
         })
     })
 }

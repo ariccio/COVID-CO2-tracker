@@ -10,6 +10,7 @@ require 'active_support/core_ext/integer/time'
   end
 
 
+  # https://apidock.com/rails/v7.1.3.2/Rails/Railtie/Configuration/after_initialize
   config.after_initialize do
     ::Bullet.enable        = true
   # Bullet.alert         = true
@@ -20,6 +21,12 @@ require 'active_support/core_ext/integer/time'
       ::Bullet.rails_logger  = true
     end
     # Bullet.add_footer    = true
+
+
+    puts("SLEEPING as a temporary measure to more easily debug e2e test connection issues")
+    sleep(10)
+    puts("DONE SLEEPING!")
+
   end
 
   # Settings specified here will take precedence over those in config/application.rb.
@@ -111,11 +118,14 @@ require 'active_support/core_ext/integer/time'
   
   Rails.logger = Logger.new(STDOUT)
 
-  if ::ENV['IsEndToEndBackendServerSoSTFUWithTheLogs']
-    Rails.logger.level = Logger::WARN
-  else
-    Rails.logger.level = Logger::DEBUG
-  end
+  # if ::ENV['IsEndToEndBackendServerSoSTFUWithTheLogs']
+  #   Rails.logger.level = Logger::WARN
+  # else
+  #   Rails.logger.level = Logger::DEBUG
+  # end
+
+  Rails.logger.level = Logger::DEBUG
+
 
   # config.after_initialize() do
   #   pp 'ENV["PORT\"]: ', ENV["PORT"]
