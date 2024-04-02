@@ -61,7 +61,7 @@ describe('Add measurement to new place', () => {
         cy.get('#dropdown-basic').click();
         cy.contains(serial).click();
 
-        cy.contains("new inner location").should("be.visible");
+        cy.contains("New inner location").should("be.visible");
         cy.get("#co2ppm").type(co2ppm);
         cy.get('#crowding').type('4');
         cy.get('#location_where_inside_info').type('bedroom');
