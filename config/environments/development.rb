@@ -23,9 +23,9 @@ require 'active_support/core_ext/integer/time'
     # Bullet.add_footer    = true
 
 
-    puts("SLEEPING as a temporary measure to more easily debug e2e test connection issues")
-    sleep(10)
-    puts("DONE SLEEPING!")
+    # puts("SLEEPING as a temporary measure to more easily debug e2e test connection issues")
+    # sleep(10)
+    # puts("DONE SLEEPING!")
 
   end
 

@@ -51,6 +51,10 @@ function sublocationWithPlaceIDToPlace(sublocation: basicSublocation, placesList
 }
 
 function copilotSublocationNotInList(measurement: basicMeasurement): JSX.Element {
+    if (measurement === undefined) {
+        console.log("measurement is undefined");
+        return <></>;
+    }
     return (
         <tr key={measurementRowKey(measurement.id)}>
             <td>ID (for now): {measurement.id}</td>

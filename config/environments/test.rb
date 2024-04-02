@@ -85,10 +85,10 @@ require 'active_support/core_ext/integer/time'
   # Rails.logger = Logger.new(STDOUT)
   # Rails.logger.level = Logger::INFO
 
-  config.after_initialize do
-    puts("SLEEPING as a temporary measure to more easily debug e2e test connection issues")
-    sleep(10)
-    puts("DONE SLEEPING!")
-  end
+  # config.after_initialize do
+  #   puts("SLEEPING as a temporary measure to more easily debug e2e test connection issues")
+  #   sleep(10)
+  #   puts("DONE SLEEPING!")
+  # end
 end
 # puts "#{Time.now.strftime("%H:%M:%S:%L")}: end   of config/environments/test.rb\r\n"

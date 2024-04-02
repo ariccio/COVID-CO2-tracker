@@ -377,7 +377,7 @@ async function politeTerminate(proc: SubProcess) {
     // }
     console.log(`sending terminate to ${proc.cmd}...`);
     // console.group(`${proc.cmd} termination output:`)
-    await proc.stop('SIGTERM', 1_000);
+    await proc.stop('SIGTERM', 10_000);
     // console.groupEnd();
     console.log(`process quit!`);
 }
