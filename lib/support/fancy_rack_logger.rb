@@ -1,5 +1,5 @@
-module FakeCypressRailsRunner
-    class FancyRackLogger
+# module FakeCypressRailsRunner
+#     class FancyRackLogger
 
-    end
-end
+#     end
+# end
