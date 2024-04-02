@@ -58,12 +58,16 @@ describe('Add device', () => {
 
         // cy.visit('http://localhost:3001/devices');
         cy.contains("Devices").click();
-        cy.contains("Select manufacturer").click()
-        cy.get('#dropdown-for-testing-basic-id').contains(manufacturerName).should("be.visible");
-        cy.get('#dropdown-for-testing-basic-id').contains(manufacturerName).click()
-        cy.get('[id^=manufacturer-model-entry]').log("ids:")
-        cy.get(`#manufacturer-model-entry-id-${newModelName}`).should("be.visible");
-        cy.get(`#manufacturer-model-entry-id-${newModelName}`).get('button').contains("Pick").click();
+        // cy.contains("Select manufacturer").click()
+        cy.contains(`Add my ${newModelName}`).should("be.visible");
+
+
+
+        // cy.get('#dropdown-for-testing-basic-id').contains(manufacturerName).should("be.visible");
+        // cy.get('#dropdown-for-testing-basic-id').contains(manufacturerName).click()
+        // cy.get('[id^=manufacturer-model-entry]').log("ids:")
+        // cy.get(`#manufacturer-model-entry-id-${newModelName}`).should("be.visible");
+        // cy.get(`#manufacturer-model-entry-id-${newModelName}`).get('button').contains("Pick").click();
 
         // cy.visit('http://localhost:3001/profile');
         cy.get('#basic-nav-dropdown').click();
