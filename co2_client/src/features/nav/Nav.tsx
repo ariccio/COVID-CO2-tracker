@@ -45,7 +45,7 @@ const LoggedIn = (props: {username: string}) =>
   <NavDropdown title={props.username} id="basic-nav-dropdown" align="end" renderMenuOnMount>
     <NavDropdown.Item>
         <LinkContainer to={profilePath}>
-            <NavItem className='nav-item'>{props.username}&apos;s profile</NavItem>
+            <NavItem className='nav-item' id="basic-nav-profile-link-id-for-testing">{props.username}&apos;s profile</NavItem>
         </LinkContainer>
     </NavDropdown.Item>
     <NavDropdown.Item>

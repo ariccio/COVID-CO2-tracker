@@ -57,8 +57,9 @@ describe('Add device', () => {
         cy.get(`#manufacturer-model-entry-id-${newModelName}`).get('button').contains("Pick").click();
 
         // cy.visit('http://localhost:3001/profile');
-        cy.contains("Alexander Riccio").click();
-        cy.contains("Alexander Riccio's profile").click();
+        cy.get('#basic-nav-dropdown').click();
+        cy.get('#basic-nav-profile-link-id-for-testing').click();
+        // cy.contains("Alexander Riccio's profile").click();
         cy.contains(serial).should("be.visible");
         // cy.contains(`Add my ${newModelName}:`).should("be.visible");
     })

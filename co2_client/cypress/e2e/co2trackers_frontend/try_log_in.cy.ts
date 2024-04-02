@@ -12,8 +12,10 @@ describe('try logging in', () => {
         cy.contains("Add your devices and view stats").should("be.visible");
         // cy.contains("logging in...").should("not.exist");
         // cy.visit('http://localhost:3001/profile');
-        cy.contains("Alexander Riccio").click();
-        cy.contains("Alexander Riccio's profile").click();
+        // cy.contains("Alexander Riccio").click();
+        cy.get('#basic-nav-dropdown').click();
+        // cy.contains("Alexander Riccio's profile").click();
+        cy.get('#basic-nav-profile-link-id-for-testing').click();
 
     })
 })
