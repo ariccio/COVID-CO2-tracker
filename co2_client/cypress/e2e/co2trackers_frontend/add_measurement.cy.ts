@@ -1,4 +1,6 @@
 describe('Add measurement to new place', () => {
+    const manufacturerName = 'blaaarghhh1'
+
     const newModelName = "fartipelago7";
     const serial = '123456789';
     const addressPrefix = '315 East 69th Street N';
@@ -12,9 +14,17 @@ describe('Add measurement to new place', () => {
     })
     it('can create a new measurement to a new place with a new device', () => {
         cy.contains("Devices").click();
+        cy.contains("Add your devices and view stats").should("be.visible");
+        cy.contains("Select manufacturer").click();
+        cy.contains("Create new manufacturer").click();
+        cy.contains("Add a manufacturer to the database").should('exist');
+        cy.get('div.fade.modal.show > div > div > div.modal-body > form > input').type(manufacturerName);
+        cy.contains('Submit').click();
+
+
         cy.contains("Select manufacturer").click()
-        cy.contains('Aranet').click();
-        cy.contains('Create new model for manufacturer Aranet').should('be.visible').click()
+        cy.contains(manufacturerName).click();
+        cy.contains(`Create new model for manufacturer ${manufacturerName}`).should('be.visible').click()
         cy.get('div.fade.modal.show > div > div > div.modal-body > form > input').type(newModelName);
         cy.contains("Create new model").click();
         cy.contains(`Add my ${newModelName}:`).click();

@@ -1,6 +1,8 @@
 
 
 describe('Add device', () => {
+    const manufacturerName = 'blaaarghhh1'
+
     const newModelName = "fartipelago8";
     const serial = '123456789';
     beforeEach(() => {
@@ -15,18 +17,25 @@ describe('Add device', () => {
         cy.contains("Devices").click();
         cy.contains("Add your devices and view stats").should("be.visible");
         cy.contains("Select manufacturer").should("be.visible");
-        cy.contains("Select manufacturer").click()
+        cy.get('#dropdown-basic').click();
         
         // cy.contains("Select manufacturer").parent().debug();
-        cy.get('#dropdown-for-testing-basic-id').contains("Aranet").should("be.visible");
-        cy.get('#dropdown-for-testing-basic-id').contains("Contoso").should("be.visible");
+        // cy.get('#dropdown-for-testing-basic-id').contains("Aranet").should("be.visible");
+        // cy.get('#dropdown-for-testing-basic-id').contains("Contoso").should("be.visible");
         cy.get('#dropdown-for-testing-basic-id').contains("Create new manufacturer").should("be.visible");
         cy.get('#dropdown-for-testing-basic-id').should("not.have.text", 'microsoft');
 
-        cy.contains('Aranet').click();
+
+        cy.contains("Create new manufacturer").click();
+        cy.contains("Add a manufacturer to the database").should('exist');
+        cy.get('div.fade.modal.show > div > div > div.modal-body > form > input').type(manufacturerName);
+        cy.contains('Submit').click();
+
+        cy.contains("Select manufacturer").click();
+        cy.contains(manufacturerName).click();
         // cy.contains("Create new Aranet").click();
         
-        cy.contains('Create new model for manufacturer Aranet').should('be.visible').click()
+        cy.contains(`Create new model for manufacturer ${manufacturerName}`).should('be.visible').click()
         // cy.get('.dropdown-basic').find('[type="button"]').find
         // cy.reload();
         // cy.contains("Select manufacturer").click();
@@ -50,8 +59,8 @@ describe('Add device', () => {
         // cy.visit('http://localhost:3001/devices');
         cy.contains("Devices").click();
         cy.contains("Select manufacturer").click()
-        cy.get('#dropdown-for-testing-basic-id').contains("Aranet").should("be.visible");
-        cy.get('#dropdown-for-testing-basic-id').contains("Aranet").click()
+        cy.get('#dropdown-for-testing-basic-id').contains(manufacturerName).should("be.visible");
+        cy.get('#dropdown-for-testing-basic-id').contains(manufacturerName).click()
         cy.get('[id^=manufacturer-model-entry]').log("ids:")
         cy.get(`#manufacturer-model-entry-id-${newModelName}`).should("be.visible");
         cy.get(`#manufacturer-model-entry-id-${newModelName}`).get('button').contains("Pick").click();
@@ -67,8 +76,8 @@ describe('Add device', () => {
     it("doesn't leak devices into db when testing", () => {
         cy.contains("Devices").click();
         cy.contains("Select manufacturer").click();
-        cy.contains('Aranet').should('be.visible').click();
-        cy.contains('aranet4').should("be.visible");
+        cy.contains(manufacturerName).should("not.exist");
+        // cy.contains(manufacturerName).should('be.visible').click();
         cy.contains(newModelName).should("not.exist");
     })
 
