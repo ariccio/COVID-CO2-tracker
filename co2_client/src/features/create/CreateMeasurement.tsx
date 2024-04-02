@@ -508,7 +508,7 @@ const InnerLocationFormIfNewLocation = (props: {setEnteredLocationDetails: React
                             {translate("Where inside")} {props.placeName} {translate("did you take the measurement?")}
                         </span>
                     </Form.Label>
-                    <Form.Control type="text" name={INNER_LOCATION_FIELD_ID} isInvalid={props.invalidField.includes(INNER_LOCATION_FIELD_ID)}/>
+                    <Form.Control type="text" name={INNER_LOCATION_FIELD_ID} id={INNER_LOCATION_FIELD_ID} isInvalid={props.invalidField.includes(INNER_LOCATION_FIELD_ID)}/>
                 </Form>
             </div>
         )
