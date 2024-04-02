@@ -11,7 +11,7 @@ describe('Add device', () => {
     })
     it('can select device, try to add model', () => {
         // cy.visit('http://localhost:3001/');
-        cy.visit('http://localhost:3001/devices');
+        // cy.visit('http://localhost:3001/devices');
         cy.contains("Devices").click();
         cy.contains("Add your devices and view stats").should("be.visible");
         cy.contains("Select manufacturer").should("be.visible");
@@ -64,7 +64,7 @@ describe('Add device', () => {
     })
 
     it("doesn't leak devices into db when testing", () => {
-        cy.visit('http://localhost:3001/devices');
+        cy.contains("Devices").click();
         cy.contains("Select manufacturer").click();
         cy.contains('Aranet').should('be.visible').click();
         cy.contains('aranet4').should("be.visible");

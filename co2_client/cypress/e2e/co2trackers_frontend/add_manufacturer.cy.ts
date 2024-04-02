@@ -7,7 +7,7 @@ describe('Add manufacturer', () => {
     })
     it('cannot create an extant manufacturer', () => {
         const spy = cy.spy(window, 'alert');
-        cy.visit('http://localhost:3001/');
+        // cy.visit('http://localhost:3001/');
         // cy.visit('http://localhost:3001/devices');
         cy.contains("Devices").click();
         cy.contains("Add your devices and view stats").should("be.visible");
@@ -43,7 +43,7 @@ describe('Add manufacturer', () => {
         cy.window().then((win: Cypress.AUTWindow) => {
             cy.spy(win, 'alert').as('winAlertSpy');
         })
-        cy.visit('http://localhost:3001/');
+        // cy.visit('http://localhost:3001/');
         // cy.visit('http://localhost:3001/devices');
         cy.contains("Devices").click();
         cy.contains("Add your devices and view stats").should("be.visible");

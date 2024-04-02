@@ -7,11 +7,11 @@ describe('Add measurement to new place', () => {
     beforeEach(() => {
         cy.request('http://localhost:3000/cypress_rails_reset_state');
         // https://docs.cypress.io/guides/end-to-end-testing/google-authentication
-        cy.loginByGoogleApi();
+        cy.loginByGoogleApi()
 
     })
     it('can create a new measurement to a new place with a new device', () => {
-        cy.visit('http://localhost:3001/devices');
+        cy.contains("Devices").click();
         cy.contains("Select manufacturer").click()
         cy.contains('Aranet').click();
         cy.contains('Create new model for manufacturer Aranet').should('be.visible').click()
