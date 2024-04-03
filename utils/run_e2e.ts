@@ -253,7 +253,179 @@ function sleep(ms: number) {
     return new Promise((resolve) => {
       setTimeout(resolve, ms);
     });
-  }
+}
+
+async function politeCtrlC(proc: SubProcess): Promise<undefined | boolean> {
+    if (!(proc.isRunning)) {
+        console.log(`no ${proc.cmd} to send ctrl+c to!`);
+        return;
+    }
+    console.log(`sending ctrl-c to ${proc.cmd}...`);
+    try {
+        await proc.stop('SIGINT', 10_000);
+        console.log(`process quit!`);
+        return true;
+    }
+    catch (e) {
+        if (e instanceof Error) {
+            if (e.message.startsWith(`Can't stop process; it's not currently running`)) {
+                console.log(`Process was not running.`);
+                return;
+            }
+            if (e.message.startsWith(`Process didn't end after `)) {
+                console.log(`process did not stop!`);
+                return false;
+            }
+        }
+        throw e;
+    }
+}
+
+
+async function politeTerminate(proc: SubProcess) {
+    // if (!(proc.isRunning)) {
+    //     return;
+    // }
+    console.log(`sending terminate to ${proc.cmd}...`);
+    // console.group(`${proc.cmd} termination output:`)
+    await proc.stop('SIGTERM', 10_000);
+    // console.groupEnd();
+    console.log(`process quit!`);
+}
+
+async function killProc(proc: SubProcess) {
+    if (!(proc.isRunning)) {
+        console.log(`${proc.cmd} not running?`)
+        return;
+    }
+    console.log(`\t\t >>> sending terminate to ${proc.cmd} <<<`);
+    await proc.stop('SIGKILL', 1000);
+}
+
+async function ensureClosed(proc?: SubProcess) {
+    if (proc === undefined) {
+        console.warn("proc is undefined! Probably already closed.");
+        return 0;
+    }
+    if (!(proc.isRunning)) {
+        // console.log(`${proc.cmd} already stopped.`);
+        return 0;
+    }
+    try {
+        const result = await politeCtrlC(proc);
+        if (result) {
+            console.log(`Seems to have politely terminated.`);
+            return 0;
+        }
+    }
+    catch(e) {
+        console.log(`Caught: ${String(e)}`);
+        if (e) {
+            if ((e as any).message) {
+                if (/Can't stop process; it's not currently running/.test((e as Error).message)) {
+                    return;
+                }
+            }
+        }
+    }
+
+    try {
+        console.log("Ok, now trying to politely terminate too...");
+        await politeTerminate(proc);
+    }
+    catch (e) {
+        console.log(`Caught: ${String(e)}`);
+        if (e) {
+            if ((e as any).message) {
+                if (/Can't stop process; it's not currently running/.test((e as Error).message)) {
+                    return 0;
+                }
+            }
+        }
+        console.log(`proc ${proc?.cmd} did NOT politely stop with term.`);
+        await killProc(proc);
+        console.log(`${proc.cmd} killed?`);
+        return 0;
+    }
+    return 0;
+}
+
+function forceCloseByKilling(pid: number | undefined) {
+    if (pid === undefined) {
+        console.log(`pid is undefined! Nothing to close.`);
+        return;
+    }
+    // https://nodejs.org/api/process.html#processkillpid-signal:~:text=in%20Worker%20threads.-,process.kill(pid%5B%2C%20signal%5D),-%23
+    console.log(`force closing pid ${pid}`);
+    try {
+        // https://github.com/nodejs/node/blob/4df34cf6dd497c4b7487c98fa5581c85b05063dc/lib/internal/process/per_thread.js#L200
+        const err = process.kill(pid);
+    }
+    // https://github.com/nodejs/node/blob/4df34cf6dd497c4b7487c98fa5581c85b05063dc/lib/internal/process/per_thread.js#L223
+    catch (e: any) {
+        if (e === undefined) {
+            throw e;
+        }
+        if (e === null) {
+            throw e;
+        }
+        // In theory could do better! https://dev.to/jdbar/the-problem-with-handling-node-js-errors-in-typescript-and-the-workaround-m64
+        // https://github.com/nodejs/node/blob/4df34cf6dd497c4b7487c98fa5581c85b05063dc/lib/internal/errors.js#L720
+        if (e.errno === undefined) {
+            console.warn("Caught non ErrnoException error!");
+            throw e;
+        }
+        if (e.code === undefined) {
+            console.warn("Caught non ErrnoException error!");
+            throw e;
+        }
+        if (e.syscall === undefined) {
+            console.warn("Caught non ErrnoException error!");
+            throw e;
+        }
+        if (e.message === undefined) {
+            console.warn("Caught non ErrnoException error!");
+            throw e;
+        }
+        if (e.code === 'ESRCH') {
+            console.log(`pid ${pid} not found! Couldn't kill.`);
+            return;
+        }
+        throw e;
+    }
+
+
+    // internally, calls one of two things:
+    // 1: 
+    // https://github.com/nodejs/node/blob/4df34cf6dd497c4b7487c98fa5581c85b05063dc/src/process_wrap.cc#L300
+    // which calls, uv_process_kill, which is just uv_kill: https://github.com/libuv/libuv/blob/17219b8f39f7cd33472c94214010b603322bd0fa/src/unix/process.c#L1086
+    //
+    // or, 2:
+    // https://github.com/nodejs/node/blob/4df34cf6dd497c4b7487c98fa5581c85b05063dc/src/node_process_methods.cc#L146
+    // which calls uv_kill: https://github.com/libuv/libuv/blob/17219b8f39f7cd33472c94214010b603322bd0fa/src/unix/process.c#L1092
+    // which calls kill.
+    /*
+        https://www.gnu.org/software/libc/manual/html_node/Signaling-Another-Process.html
+        The return value from kill is zero if the signal can be sent successfully. Otherwise, no signal is sent, and a value of -1 is returned. If pid specifies sending a signal to several processes, kill succeeds if it can send the signal to at least one of them. There’s no way you can tell which of the processes got the signal or whether all of them did.
+
+        The following errno error conditions are defined for this function:
+
+        EINVAL
+        The signum argument is an invalid or unsupported number.
+
+        EPERM
+        You do not have the privilege to send a signal to the process or any of the processes in the process group named by pid.
+
+        ESRCH
+        The pid argument does not refer to an existing process or group.
+    */
+    // UV__ERR is https://github.com/libuv/libuv/blob/17219b8f39f7cd33472c94214010b603322bd0fa/src/uv-common.h#L47
+
+    // On windows it's ugly (and they don't check all return values!)
+    // https://github.com/libuv/libuv/blob/17219b8f39f7cd33472c94214010b603322bd0fa/src/win/process.c#L1374
+    // Internally it calls uv__kill, which is hella cursed: https://github.com/libuv/libuv/blob/17219b8f39f7cd33472c94214010b603322bd0fa/src/win/process.c#L1158
+}
+
 
 async function main() {
     console.log('\n\n\n\n');
@@ -378,82 +550,26 @@ async function main() {
     //     console.log(`rails warn #${i}, ${rails_warns?.at(i)}`);
     // }
 
-    return cypress_rails.join();
-
-}
-
-async function politeCtrlC(proc: SubProcess) {
-    if (!(proc.isRunning)) {
-        return;
-    }
-    console.log(`sending ctrl-c to ${proc.cmd}...`);
-    await proc.stop('SIGINT', 100);
-    console.log(`process quit!`);
-}
-
-async function politeTerminate(proc: SubProcess) {
-    // if (!(proc.isRunning)) {
-    //     return;
-    // }
-    console.log(`sending terminate to ${proc.cmd}...`);
-    // console.group(`${proc.cmd} termination output:`)
-    await proc.stop('SIGTERM', 10_000);
-    // console.groupEnd();
-    console.log(`process quit!`);
-}
-
-async function killProc(proc: SubProcess) {
-    if (!(proc.isRunning)) {
-        console.log(`${proc.cmd} not running?`)
-        return;
-    }
-    console.log(`\t\t >>> sending terminate to ${proc.cmd} <<<`);
-    await proc.stop('SIGKILL', 1000);
-}
-
-async function ensureClosed(proc?: SubProcess) {
-    if (proc === undefined) {
-        console.warn("proc is undefined! Probably already closed.");
-        return;
-    }
-    if (!(proc.isRunning)) {
-        // console.log(`${proc.cmd} already stopped.`);
-        return;
-    }
-    // try {
-    //     await politeCtrlC(proc);
-    // }
-    // catch(e) {
-    //     console.log(`Caught: ${String(e)}`);
-    //     if (e) {
-    //         if ((e as any).message) {
-    //             if (/Can't stop process; it's not currently running/.test((e as Error).message)) {
-    //                 return;
-    //             }
-    //         }
-    //     }
-    // }
-
     try {
-        console.log("Ok, now trying to politely terminate too...");
-        await politeTerminate(proc);
+        await cypress_rails.join();
+        const webpackQuit = await politeCtrlC(webpack);
+        if (webpackQuit === false) {
+            return await ensureClosed(webpack);
+        }
     }
     catch (e) {
-        console.log(`Caught: ${String(e)}`);
-        if (e) {
-            if ((e as any).message) {
-                if (/Can't stop process; it's not currently running/.test((e as Error).message)) {
-                    return;
-                }
-            }
-        }
-        console.log(`proc ${proc?.cmd} did NOT politely stop with term.`);
-        await killProc(proc);
-        console.log(`${proc.cmd} killed?`);
-        return;
+        console.log(`done with EXCEPTION (-1)! Exiting...`);
+        exceptionDump(e)
+        await ensureClosed(cypress_rails)
+        await ensureClosed(webpack);
+        throw e;
     }
-    return;
+
 }
+
+
+
+
 
 function exceptionDump(e_: unknown) {
     if (!e_) {
@@ -483,81 +599,6 @@ function exceptionDump(e_: unknown) {
     }
 }
 
-function forceClose(pid: number | undefined) {
-    if (pid === undefined) {
-        console.log(`pid is undefined! Nothing to close.`);
-        return;
-    }
-    // https://nodejs.org/api/process.html#processkillpid-signal:~:text=in%20Worker%20threads.-,process.kill(pid%5B%2C%20signal%5D),-%23
-    console.log(`force closing pid ${pid}`);
-    try {
-        // https://github.com/nodejs/node/blob/4df34cf6dd497c4b7487c98fa5581c85b05063dc/lib/internal/process/per_thread.js#L200
-        const err = process.kill(pid);
-    }
-    // https://github.com/nodejs/node/blob/4df34cf6dd497c4b7487c98fa5581c85b05063dc/lib/internal/process/per_thread.js#L223
-    catch (e: any) {
-        if (e === undefined) {
-            throw e;
-        }
-        if (e === null) {
-            throw e;
-        }
-        // In theory could do better! https://dev.to/jdbar/the-problem-with-handling-node-js-errors-in-typescript-and-the-workaround-m64
-        // https://github.com/nodejs/node/blob/4df34cf6dd497c4b7487c98fa5581c85b05063dc/lib/internal/errors.js#L720
-        if (e.errno === undefined) {
-            console.warn("Caught non ErrnoException error!");
-            throw e;
-        }
-        if (e.code === undefined) {
-            console.warn("Caught non ErrnoException error!");
-            throw e;
-        }
-        if (e.syscall === undefined) {
-            console.warn("Caught non ErrnoException error!");
-            throw e;
-        }
-        if (e.message === undefined) {
-            console.warn("Caught non ErrnoException error!");
-            throw e;
-        }
-        if (e.code === 'ESRCH') {
-            console.log(`pid ${pid} not found! Couldn't kill.`);
-            return;
-        }
-        throw e;
-    }
-
-
-    // internally, calls one of two things:
-    // 1: 
-    // https://github.com/nodejs/node/blob/4df34cf6dd497c4b7487c98fa5581c85b05063dc/src/process_wrap.cc#L300
-    // which calls, uv_process_kill, which is just uv_kill: https://github.com/libuv/libuv/blob/17219b8f39f7cd33472c94214010b603322bd0fa/src/unix/process.c#L1086
-    //
-    // or, 2:
-    // https://github.com/nodejs/node/blob/4df34cf6dd497c4b7487c98fa5581c85b05063dc/src/node_process_methods.cc#L146
-    // which calls uv_kill: https://github.com/libuv/libuv/blob/17219b8f39f7cd33472c94214010b603322bd0fa/src/unix/process.c#L1092
-    // which calls kill.
-    /*
-        https://www.gnu.org/software/libc/manual/html_node/Signaling-Another-Process.html
-        The return value from kill is zero if the signal can be sent successfully. Otherwise, no signal is sent, and a value of -1 is returned. If pid specifies sending a signal to several processes, kill succeeds if it can send the signal to at least one of them. There’s no way you can tell which of the processes got the signal or whether all of them did.
-
-        The following errno error conditions are defined for this function:
-
-        EINVAL
-        The signum argument is an invalid or unsupported number.
-
-        EPERM
-        You do not have the privilege to send a signal to the process or any of the processes in the process group named by pid.
-
-        ESRCH
-        The pid argument does not refer to an existing process or group.
-    */
-    // UV__ERR is https://github.com/libuv/libuv/blob/17219b8f39f7cd33472c94214010b603322bd0fa/src/uv-common.h#L47
-
-    // On windows it's ugly (and they don't check all return values!)
-    // https://github.com/libuv/libuv/blob/17219b8f39f7cd33472c94214010b603322bd0fa/src/win/process.c#L1374
-    // Internally it calls uv__kill, which is hella cursed: https://github.com/libuv/libuv/blob/17219b8f39f7cd33472c94214010b603322bd0fa/src/win/process.c#L1158
-}
 
 main().then(
     (result) => {
@@ -570,18 +611,18 @@ main().then(
         })
     },
     (e) => {
-        console.log(`done with EXCEPTION (1)! Exiting...`);
+        console.log(`done with EXCEPTION (1)!`);
         exceptionDump(e)
         return ensureClosed(cypress_rails).then(() => {
             return ensureClosed(webpack);
-        }).then(() => process.exit(1));
+        });
     }
 ).catch((e) => {
     console.log(`done with EXCEPTION (2)! Exiting...`);
     exceptionDump(e);
     return ensureClosed(cypress_rails).then(() => {
         return ensureClosed(webpack);
-    }).then(() => process.exit(2));
+    });
 }).finally(() => {
     console.log(`finally (1)`);
     return ensureClosed(cypress_rails).then(() => {
@@ -591,12 +632,12 @@ main().then(
         const is3000Clear = checkPortClear(DEFAULT_RAILS_PORT);
         if (!is3000Clear) {
             console.log(`port ${DEFAULT_RAILS_PORT} is not clear!`);
-            return 1;
+            // return 1;
         }
         const is3001Clear = checkPortClear(DEFAULT_FRONTEND_PORT);
         if (!is3001Clear) {
             console.log(`port ${DEFAULT_FRONTEND_PORT} is not clear!`);
-            return 1;
+            // return 1;
         }
     
         console.log(`all done!`);
@@ -610,13 +651,13 @@ main().then(
     const is3000Clear = checkPortClear(DEFAULT_RAILS_PORT);
     if (!is3000Clear) {
         console.log(`port ${DEFAULT_RAILS_PORT} is not clear!`);
-        forceClose(cypress_rails_pid);
+        forceCloseByKilling(cypress_rails_pid);
         // return 1;
     }
     const is3001Clear = checkPortClear(DEFAULT_FRONTEND_PORT);
     if (!is3001Clear) {
         console.log(`port ${DEFAULT_FRONTEND_PORT} is not clear!`);
-        forceClose(webpack_pid);
+        forceCloseByKilling(webpack_pid);
         // return 1;
     }
 
