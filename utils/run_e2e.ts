@@ -416,10 +416,10 @@ async function ensureClosed(proc?: SubProcess) {
         console.warn("proc is undefined! Probably already closed.");
         return;
     }
-    // if (!(proc.isRunning)) {
-    //     // console.log(`${proc.cmd} already stopped.`);
-    //     return;
-    // }
+    if (!(proc.isRunning)) {
+        // console.log(`${proc.cmd} already stopped.`);
+        return;
+    }
     // try {
     //     await politeCtrlC(proc);
     // }
@@ -490,7 +490,42 @@ function forceClose(pid: number | undefined) {
     }
     // https://nodejs.org/api/process.html#processkillpid-signal:~:text=in%20Worker%20threads.-,process.kill(pid%5B%2C%20signal%5D),-%23
     console.log(`force closing pid ${pid}`);
-    const err = process.kill(pid);
+    try {
+        // https://github.com/nodejs/node/blob/4df34cf6dd497c4b7487c98fa5581c85b05063dc/lib/internal/process/per_thread.js#L200
+        const err = process.kill(pid);
+    }
+    // https://github.com/nodejs/node/blob/4df34cf6dd497c4b7487c98fa5581c85b05063dc/lib/internal/process/per_thread.js#L223
+    catch (e: any) {
+        if (e === undefined) {
+            throw e;
+        }
+        if (e === null) {
+            throw e;
+        }
+        // In theory could do better! https://dev.to/jdbar/the-problem-with-handling-node-js-errors-in-typescript-and-the-workaround-m64
+        // https://github.com/nodejs/node/blob/4df34cf6dd497c4b7487c98fa5581c85b05063dc/lib/internal/errors.js#L720
+        if (e.errno === undefined) {
+            console.warn("Caught non ErrnoException error!");
+            throw e;
+        }
+        if (e.code === undefined) {
+            console.warn("Caught non ErrnoException error!");
+            throw e;
+        }
+        if (e.syscall === undefined) {
+            console.warn("Caught non ErrnoException error!");
+            throw e;
+        }
+        if (e.message === undefined) {
+            console.warn("Caught non ErrnoException error!");
+            throw e;
+        }
+        if (e.code === 'ESRCH') {
+            console.log(`pid ${pid} not found! Couldn't kill.`);
+            return;
+        }
+        throw e;
+    }
 
 
     // internally, calls one of two things:
@@ -527,6 +562,7 @@ function forceClose(pid: number | undefined) {
 main().then(
     (result) => {
         console.log(`DONE! ${result}`);
+        console.log(`pids: webpack_pid: ${webpack_pid}, cypress_rails_pid: ${cypress_rails_pid}`);
         return ensureClosed(cypress_rails).then(() => {
             return ensureClosed(webpack);            
         }).then(() => {
@@ -575,13 +611,13 @@ main().then(
     if (!is3000Clear) {
         console.log(`port ${DEFAULT_RAILS_PORT} is not clear!`);
         forceClose(cypress_rails_pid);
-        return 1;
+        // return 1;
     }
     const is3001Clear = checkPortClear(DEFAULT_FRONTEND_PORT);
     if (!is3001Clear) {
         console.log(`port ${DEFAULT_FRONTEND_PORT} is not clear!`);
         forceClose(webpack_pid);
-        return 1;
+        // return 1;
     }
 
     console.log(`all done! result: ${result}`);
