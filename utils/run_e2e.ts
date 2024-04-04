@@ -21,6 +21,8 @@ let cypress_rails_pid: procPid;
 let webpack: procHandle;
 let webpack_pid: procPid;
 
+let frontendPid: number | null = null;
+
 
 type startDetector = ((stdout: string, stderr: string) => boolean) | number | null
 
@@ -73,6 +75,49 @@ function checkPortClear(port: string): boolean {
         console.log(`spawning/calling/reading lsof failed and threw an exception! (checkPortClear) ${e}`);
         throw e;
     }
+}
+
+function getPIDOfProcessThatHasOpenPort(port: string) {
+    const spawnOpts: child_process.SpawnSyncOptions = {
+        timeout: 1000,
+        shell: true
+    }
+    try {
+        const lsofResult = child_process.spawnSync('lsof', [`-i :${port} -P -Fp`], spawnOpts);
+        if (lsofResult.status === 0) {
+            const lsofResultStr = lsofResult.stdout.toString();
+            
+            const p = lsofResultStr.indexOf('p');
+            console.log(`p index: ${p}`);
+            const nl = lsofResultStr.indexOf('\n', p);
+            console.log(`newline index: ${nl}`);
+            const pidStr = lsofResultStr.slice(p + 1, nl);
+            console.log(`extracted pid: ${pidStr}`);
+
+            const pid = parseInt(pidStr);
+            return pid;
+
+        }
+        else if (lsofResult.status === 1) {
+            // https://github.com/lsof-org/lsof/blob/ceb40c37f98a9c66bd5dd6115d0f22606f993f06/src/main.c#L1658C39-L1658C68
+            // Internet address not located:
+            if (/Internet address not located/.test(lsofResult.output.toString())) {
+                console.log(`port ${port} is clear!`);
+                return null;
+            }
+            console.log(`lsof reported somethign ELSE for port ${port} (getPIDOfProcessThatHasOpenPort): ${lsofResult.output.toString()}!`);
+            return null;
+        }
+        // console.warn(`lsof failed (getPIDOfProcessThatHas?OpenPort): ${lsofResult.status}`);
+        // console.dir(lsofResult);
+        // console.log(`lsof output anyways (getPIDOfProcessThatHasOpenPort): ${lsofResult.output.toString()}`);
+        return null;
+    }
+    catch (e) {
+        console.log(`spawning/calling/reading lsof failed and threw an exception! (checkPortClear) ${e}`);
+        throw e;
+    }
+
 }
 
 function checkPortInUse(port: string): boolean {
@@ -234,16 +279,16 @@ function setupFollowerHooks(proc: procHandle, name: string): void {
     });
 
     proc.on("exit", (code, signal) => {
-        console.log(`${name} exit: ${code}, ${signal}`)
+        console.log(`${name}:${proc.pid} exit: ${code}, ${signal}`)
     });
     proc.on("stop", (code, signal) => {
-        console.log(`${name} stop: ${code}, ${signal}`)
+        console.log(`${name}:${proc.pid} stop: ${code}, ${signal}`)
     });
     proc.on("end", (code, signal) => {
-        console.log(`${name} end: ${code}, ${signal}`)
+        console.log(`${name}:${proc.pid} end: ${code}, ${signal}`)
     });
     proc.on("die", (code, signal) => {
-        console.log(`${name} die: ${code}, ${signal}`)
+        console.log(`${name}:${proc.pid} die: ${code}, ${signal}`)
     });
 
 }
@@ -260,9 +305,9 @@ async function politeCtrlC(proc: SubProcess): Promise<undefined | boolean> {
         console.log(`no ${proc.cmd} to send ctrl+c to!`);
         return;
     }
-    console.log(`sending ctrl-c to ${proc.cmd}...`);
+    console.log(`sending ctrl-c to ${proc.cmd} (${proc.pid})...`);
     try {
-        await proc.stop('SIGINT', 10_000);
+        await proc.stop('SIGINT');
         console.log(`process quit!`);
         return true;
     }
@@ -274,6 +319,7 @@ async function politeCtrlC(proc: SubProcess): Promise<undefined | boolean> {
             }
             if (e.message.startsWith(`Process didn't end after `)) {
                 console.log(`process did not stop!`);
+                proc.expectingExit
                 return false;
             }
         }
@@ -286,11 +332,11 @@ async function politeTerminate(proc: SubProcess) {
     // if (!(proc.isRunning)) {
     //     return;
     // }
-    console.log(`sending terminate to ${proc.cmd}...`);
+    // console.log(`sending terminate to ${proc.cmd}...`);
     // console.group(`${proc.cmd} termination output:`)
     await proc.stop('SIGTERM', 10_000);
     // console.groupEnd();
-    console.log(`process quit!`);
+    // console.log(`process quit!`);
 }
 
 async function killProc(proc: SubProcess) {
@@ -308,7 +354,7 @@ async function ensureClosed(proc?: SubProcess) {
         return 0;
     }
     if (!(proc.isRunning)) {
-        // console.log(`${proc.cmd} already stopped.`);
+        console.log(`${proc.cmd} already stopped.`);
         return 0;
     }
     try {
@@ -323,7 +369,11 @@ async function ensureClosed(proc?: SubProcess) {
         if (e) {
             if ((e as any).message) {
                 if (/Can't stop process; it's not currently running/.test((e as Error).message)) {
-                    return;
+                    console.log("not running?")
+                //    break;
+                }
+                else {
+                    throw e;
                 }
             }
         }
@@ -427,6 +477,14 @@ function forceCloseByKilling(pid: number | undefined) {
 }
 
 
+// const dump = (value: {stderr: string, stdout: string}) => {
+//     console.log('----------------------');
+//     console.log(value.stderr);
+//     console.log(value.stdout);
+//     console.log('----------------------');
+// }
+
+
 async function main() {
     console.log('\n\n\n\n');
 
@@ -464,12 +522,6 @@ async function main() {
     cypress_rails = new SubProcess('rake cypress:run', undefined, rails_opts);
     setupFollowerHooks(cypress_rails, "cypress_rails");
     
-    const dump = (value: {stderr: string, stdout: string}) => {
-        console.log('----------------------');
-        console.log(value.stderr);
-        console.log(value.stdout);
-        console.log('----------------------');
-    }
     // let frontendEnv = JSON.parse(JSON.stringify(process.env));
     // frontendEnv.PORT = '3002';
 
@@ -496,7 +548,10 @@ async function main() {
         cwd: frontendDir
     };
 
-    webpack = new SubProcess('yarn start', undefined, webpack_opts);
+    // this runs a child process inside yarn that does not necessarily exit when yarn start is stopped on macos.
+    // webpack = new SubProcess('yarn start', undefined, webpack_opts);
+
+    webpack = new SubProcess('yarn run react-scripts start', undefined, webpack_opts);
     setupFollowerHooks(webpack, "webpack");
 
     // cypress = new SubProcess('yarn cypress run', undefined, frontend_opts);
@@ -515,6 +570,10 @@ async function main() {
         console.log("Webpack's port is not in use? Exiting...");
         return 1;
     }
+
+    console.log("trying something \n\n\n");
+    frontendPid = getPIDOfProcessThatHasOpenPort(DEFAULT_FRONTEND_PORT);
+    console.log("trying something \n\n\n");
     console.warn("TODO: .start can reject! See utils/node_modules/teen_process/lib/subprocess.js:200");
     // see also: https://nodejs.org/api/child_process.html#child_processspawncommand-args-options
     // and: https://github.com/libuv/libuv/blob/17219b8f39f7cd33472c94214010b603322bd0fa/src/unix/process.c#L956
@@ -551,17 +610,28 @@ async function main() {
     // }
 
     try {
-        await cypress_rails.join();
+        const cypressResult = await cypress_rails.join();
+        // checkPortClear(DEFAULT_FRONTEND_PORT);
         const webpackQuit = await politeCtrlC(webpack);
         if (webpackQuit === false) {
-            return await ensureClosed(webpack);
+            console.log("grr...");
+            await ensureClosed(webpack);
         }
+        if (frontendPid) {
+            forceCloseByKilling(frontendPid);
+            frontendPid = null;
+        }
+        return cypressResult;
     }
     catch (e) {
         console.log(`done with EXCEPTION (-1)! Exiting...`);
         exceptionDump(e)
         await ensureClosed(cypress_rails)
         await ensureClosed(webpack);
+        if (frontendPid) { 
+            forceCloseByKilling(frontendPid);
+            frontendPid = null;
+        }
         throw e;
     }
 
@@ -604,30 +674,57 @@ main().then(
     (result) => {
         console.log(`DONE! ${result}`);
         console.log(`pids: webpack_pid: ${webpack_pid}, cypress_rails_pid: ${cypress_rails_pid}`);
-        return ensureClosed(cypress_rails).then(() => {
+        const cypressClosed = ensureClosed(cypress_rails);
+        const webpackClosed = cypressClosed.then(() => {
             return ensureClosed(webpack);            
-        }).then(() => {
-            return result;
-        })
+        });
+        return webpackClosed.then(() => {
+            if (frontendPid) { 
+                forceCloseByKilling(frontendPid);
+                frontendPid = null;
+            }
+        });
     },
     (e) => {
         console.log(`done with EXCEPTION (1)!`);
         exceptionDump(e)
-        return ensureClosed(cypress_rails).then(() => {
+        const cypressClosed = ensureClosed(cypress_rails);
+        const webpackClosed = cypressClosed.then(() => {
             return ensureClosed(webpack);
+        });
+        const killRemainingDanglingFrontend = webpackClosed.then(() => {
+            if (frontendPid) { 
+                forceCloseByKilling(frontendPid);
+                frontendPid = null;
+            }
+        });
+        return killRemainingDanglingFrontend.then(() => {
+            return e.code || 1;
         });
     }
 ).catch((e) => {
     console.log(`done with EXCEPTION (2)! Exiting...`);
     exceptionDump(e);
-    return ensureClosed(cypress_rails).then(() => {
+    const cypressClosed = ensureClosed(cypress_rails);
+    const webpackClosed = cypressClosed.then(() => {
         return ensureClosed(webpack);
+    });
+    const killRemainingDanglingFrontend = webpackClosed.then(() => {
+        if (frontendPid) { 
+            forceCloseByKilling(frontendPid);
+            frontendPid = null;
+        }
+    });
+    return killRemainingDanglingFrontend.then(() => {
+        return e.code || 1;
     });
 }).finally(() => {
     console.log(`finally (1)`);
-    return ensureClosed(cypress_rails).then(() => {
+    const cypressClosed = ensureClosed(cypress_rails);
+    const webpackClosed = cypressClosed.then(() => {
         return ensureClosed(webpack);
-    }).then(() => {
+    });
+    return webpackClosed.then(() => {
         console.log(`finally (2)`);
         const is3000Clear = checkPortClear(DEFAULT_RAILS_PORT);
         if (!is3000Clear) {
@@ -643,24 +740,6 @@ main().then(
         console.log(`all done!`);
     })
 }).then((result) => {
-    console.log(`finally (3)`);
-    // console.assert(!(rails?.isRunning), `${rails?.cmd} is still running!!! See ${rails?.pid}`);
-    console.assert(!(cypress_rails?.isRunning), `${cypress_rails?.cmd} is stil running!! see ${cypress_rails?.pid}`);
-    console.assert(!(webpack?.isRunning), `${webpack?.cmd} is stil running!! see ${webpack?.pid}`);
-
-    const is3000Clear = checkPortClear(DEFAULT_RAILS_PORT);
-    if (!is3000Clear) {
-        console.log(`port ${DEFAULT_RAILS_PORT} is not clear!`);
-        forceCloseByKilling(cypress_rails_pid);
-        // return 1;
-    }
-    const is3001Clear = checkPortClear(DEFAULT_FRONTEND_PORT);
-    if (!is3001Clear) {
-        console.log(`port ${DEFAULT_FRONTEND_PORT} is not clear!`);
-        forceCloseByKilling(webpack_pid);
-        // return 1;
-    }
-
     console.log(`all done! result: ${result}`);
     process.exit(result);
 })
