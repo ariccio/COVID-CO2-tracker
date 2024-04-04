@@ -88,9 +88,9 @@ function getPIDOfProcessThatHasOpenPort(port: string) {
             const lsofResultStr = lsofResult.stdout.toString();
             
             const p = lsofResultStr.indexOf('p');
-            console.log(`p index: ${p}`);
+            // console.log(`p index: ${p}`);
             const nl = lsofResultStr.indexOf('\n', p);
-            console.log(`newline index: ${nl}`);
+            // console.log(`newline index: ${nl}`);
             const pidStr = lsofResultStr.slice(p + 1, nl);
             console.log(`extracted pid: ${pidStr}`);
 
@@ -571,9 +571,9 @@ async function main() {
         return 1;
     }
 
-    console.log("trying something \n\n\n");
+    // console.log("trying something \n\n\n");
     frontendPid = getPIDOfProcessThatHasOpenPort(DEFAULT_FRONTEND_PORT);
-    console.log("trying something \n\n\n");
+    // console.log("trying something \n\n\n");
     console.warn("TODO: .start can reject! See utils/node_modules/teen_process/lib/subprocess.js:200");
     // see also: https://nodejs.org/api/child_process.html#child_processspawncommand-args-options
     // and: https://github.com/libuv/libuv/blob/17219b8f39f7cd33472c94214010b603322bd0fa/src/unix/process.c#L956
