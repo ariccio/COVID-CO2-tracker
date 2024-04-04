@@ -1009,7 +1009,7 @@ const PlacesServiceStatus = () => {
     return (
 
         <div>
-            Places service status null.
+            {(translate('last-query-status'))} null
         </div>
     )
 }

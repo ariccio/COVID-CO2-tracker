@@ -307,7 +307,7 @@ async function politeCtrlC(proc: SubProcess): Promise<undefined | boolean> {
     }
     console.log(`sending ctrl-c to ${proc.cmd} (${proc.pid})...`);
     try {
-        await proc.stop('SIGINT');
+        await proc.stop('SIGINT', 1000);
         console.log(`process quit!`);
         return true;
     }
@@ -351,17 +351,17 @@ async function killProc(proc: SubProcess) {
 async function ensureClosed(proc?: SubProcess) {
     if (proc === undefined) {
         console.warn("proc is undefined! Probably already closed.");
-        return 0;
+        return;
     }
     if (!(proc.isRunning)) {
-        console.log(`${proc.cmd} already stopped.`);
-        return 0;
+        // console.log(`${proc.cmd} already stopped.`);
+        return;
     }
     try {
         const result = await politeCtrlC(proc);
         if (result) {
             console.log(`Seems to have politely terminated.`);
-            return 0;
+            return;
         }
     }
     catch(e) {
@@ -388,16 +388,16 @@ async function ensureClosed(proc?: SubProcess) {
         if (e) {
             if ((e as any).message) {
                 if (/Can't stop process; it's not currently running/.test((e as Error).message)) {
-                    return 0;
+                    return;
                 }
             }
         }
         console.log(`proc ${proc?.cmd} did NOT politely stop with term.`);
         await killProc(proc);
         console.log(`${proc.cmd} killed?`);
-        return 0;
+        return;
     }
-    return 0;
+    return;
 }
 
 function forceCloseByKilling(pid: number | undefined) {
@@ -673,7 +673,7 @@ function exceptionDump(e_: unknown) {
 main().then(
     (result) => {
         console.log(`DONE! ${result}`);
-        console.log(`pids: webpack_pid: ${webpack_pid}, cypress_rails_pid: ${cypress_rails_pid}`);
+        // console.log(`pids: webpack_pid: ${webpack_pid}, cypress_rails_pid: ${cypress_rails_pid}`);
         const cypressClosed = ensureClosed(cypress_rails);
         const webpackClosed = cypressClosed.then(() => {
             return ensureClosed(webpack);            
@@ -683,6 +683,7 @@ main().then(
                 forceCloseByKilling(frontendPid);
                 frontendPid = null;
             }
+            return result;
         });
     },
     (e) => {
@@ -719,13 +720,11 @@ main().then(
         return e.code || 1;
     });
 }).finally(() => {
-    console.log(`finally (1)`);
     const cypressClosed = ensureClosed(cypress_rails);
     const webpackClosed = cypressClosed.then(() => {
         return ensureClosed(webpack);
     });
     return webpackClosed.then(() => {
-        console.log(`finally (2)`);
         const is3000Clear = checkPortClear(DEFAULT_RAILS_PORT);
         if (!is3000Clear) {
             console.log(`port ${DEFAULT_RAILS_PORT} is not clear!`);
@@ -736,8 +735,6 @@ main().then(
             console.log(`port ${DEFAULT_FRONTEND_PORT} is not clear!`);
             // return 1;
         }
-    
-        console.log(`all done!`);
     })
 }).then((result) => {
     console.log(`all done! result: ${result}`);
