@@ -115,6 +115,7 @@ require 'active_support/core_ext/integer/time'
 
   if ::ENV['IsEndToEndBackendServerSoSTFUWithTheLogs']
     Rails.logger.level = Logger::WARN
+    # Rails.logger.level = Logger::DEBUG
   else
     Rails.logger.level = Logger::DEBUG
   end

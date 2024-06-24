@@ -16,6 +16,7 @@
   allow do
     origins('localhost:3001')
     origins('localhost:3000')
+    # origins('localhost:3002')
     resource(
       '*',
       headers: :any,

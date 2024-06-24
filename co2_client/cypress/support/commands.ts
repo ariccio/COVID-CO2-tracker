@@ -111,7 +111,9 @@ function getUserInfo(tokenResponseBody) {
                 },
             }
             window.localStorage.setItem('googleCypress', JSON.stringify(userItem))
-            return cy.visit('http://localhost:3001/');
+            const frontendPort = Cypress.env('DEFAULT_FRONTEND_PORT');
+            cy.log(`frontend port: ${frontendPort}`)
+            return cy.visit(`http://localhost:${frontendPort}/`);
         })
     })
 }
@@ -119,7 +121,7 @@ function getUserInfo(tokenResponseBody) {
 Cypress.Commands.add('loginByGoogleApi', () => {
     // https://docs.cypress.io/guides/end-to-end-testing/google-authentication
     cy.log('Logging in to Google');
-    cy.request(getLoginTokenPostRequest()).then(({body}) => {
+    return cy.request(getLoginTokenPostRequest()).then(({body}) => {
         cy.log(JSON.stringify(body));
         return getUserInfo(body);
     })

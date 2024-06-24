@@ -9,6 +9,10 @@ describe('Add device', () => {
         cy.request('http://localhost:3000/cypress_rails_reset_state');
         // https://docs.cypress.io/guides/end-to-end-testing/google-authentication
         cy.loginByGoogleApi();
+        // cy.request('http://localhost:3000/api/v1/keys/MAPS_JAVASCRIPT_API_KEY').then((response) => {
+
+        //     cy.log(response.body);
+        //     });
 
     })
     it('can select device, try to add model', () => {

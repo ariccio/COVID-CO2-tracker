@@ -20,3 +20,6 @@ import './commands'
 // require('./commands')
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 require('cypress-terminal-report/src/installLogsCollector')();
+
+// https://github.com/cypress-io/cypress/issues/25397#issuecomment-2030468503
+// fetch(Cypress.env('baseUrl'), { method: 'GET' })
