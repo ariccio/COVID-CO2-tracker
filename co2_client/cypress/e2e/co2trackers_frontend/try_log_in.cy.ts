@@ -6,10 +6,16 @@ describe('try logging in', () => {
         cy.loginByGoogleApi();
     })
     it('shows correct stuff', () => {
-        cy.visit('/');
-        cy.visit('http://localhost:3001/devices');
+        // cy.visit('http://localhost:3001/');
+        // cy.visit('http://localhost:3001/devices');
+        cy.contains("Devices").click();
         cy.contains("Add your devices and view stats").should("be.visible");
         // cy.contains("logging in...").should("not.exist");
-        cy.visit('/profile');
+        // cy.visit('http://localhost:3001/profile');
+        // cy.contains("Alexander Riccio").click();
+        cy.get('#basic-nav-dropdown').click();
+        // cy.contains("Alexander Riccio's profile").click();
+        cy.get('#basic-nav-profile-link-id-for-testing').click();
+
     })
 })

@@ -1,14 +1,15 @@
 describe('Add manufacturer', () => {
     const name = 'blaaarghhh1'
     beforeEach(() => {
+        cy.request('http://localhost:3000/cypress_rails_reset_state');
         // https://docs.cypress.io/guides/end-to-end-testing/google-authentication
         cy.loginByGoogleApi();
-        cy.request('http://localhost:3002/cypress_rails_reset_state');
     })
     it('cannot create an extant manufacturer', () => {
         const spy = cy.spy(window, 'alert');
-        cy.visit('/');
-        cy.visit('http://localhost:3001/devices');
+        // cy.visit('http://localhost:3001/');
+        // cy.visit('http://localhost:3001/devices');
+        cy.contains("Devices").click();
         cy.contains("Add your devices and view stats").should("be.visible");
         cy.contains("Select manufacturer").should("be.visible");
         cy.contains("Select manufacturer").click();
@@ -42,8 +43,9 @@ describe('Add manufacturer', () => {
         cy.window().then((win: Cypress.AUTWindow) => {
             cy.spy(win, 'alert').as('winAlertSpy');
         })
-        cy.visit('/');
-        cy.visit('http://localhost:3001/devices');
+        // cy.visit('http://localhost:3001/');
+        // cy.visit('http://localhost:3001/devices');
+        cy.contains("Devices").click();
         cy.contains("Add your devices and view stats").should("be.visible");
         cy.contains("Select manufacturer").should("be.visible");
         cy.contains("Select manufacturer").click();

@@ -76,6 +76,7 @@ const reportWeirdness = (result: google.maps.places.PlaceResult | null, status: 
 }
 
 const getDetailsCallback = (result: google.maps.places.PlaceResult | null, status: google.maps.places.PlacesServiceStatus, dispatch: AppDispatch) => {
+    console.log(`Places service status: ${status}`);
     dispatch(setPlacesServiceStatus(status));
     if (status !== google.maps.places.PlacesServiceStatus.OK) {
         reportWeirdness(result, status);

@@ -59,7 +59,7 @@ function getLoginTokenPostRequest() {
 
 function idBody(tokenResponseBody: any) {
     const id_token = tokenResponseBody.id_token;
-    cy.log(`using id_token: ${id_token}`)
+    // cy.log(`using id_token: ${id_token}`)
     return JSON.stringify({
         user: {
             id_token
@@ -107,10 +107,13 @@ function getUserInfo(tokenResponseBody) {
                     givenName: infoRequestResponseBody.given_name,
                     familyName: infoRequestResponseBody.family_name,
                     imageUrl: infoRequestResponseBody.picture,
+                    name: infoRequestResponseBody.name,
                 },
             }
             window.localStorage.setItem('googleCypress', JSON.stringify(userItem))
-            return cy.visit('/');
+            const frontendPort = Cypress.env('DEFAULT_FRONTEND_PORT');
+            cy.log(`frontend port: ${frontendPort}`)
+            return cy.visit(`http://localhost:${frontendPort}/`);
         })
     })
 }
@@ -118,7 +121,7 @@ function getUserInfo(tokenResponseBody) {
 Cypress.Commands.add('loginByGoogleApi', () => {
     // https://docs.cypress.io/guides/end-to-end-testing/google-authentication
     cy.log('Logging in to Google');
-    cy.request(getLoginTokenPostRequest()).then(({body}) => {
+    return cy.request(getLoginTokenPostRequest()).then(({body}) => {
         cy.log(JSON.stringify(body));
         return getUserInfo(body);
     })

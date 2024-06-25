@@ -120,3 +120,6 @@ yarn-debug.log*
 
 # Fuckin macOS
 .DS_store
+
+# cypress can fill the repo with a bunch of annoying screenshots?
+co2_client/cypress/screenshots

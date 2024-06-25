@@ -4,12 +4,13 @@ puts "#{Time.now.strftime("%H:%M:%S:%L")}: Start of config/environments/developm
 require 'active_support/core_ext/integer/time'
 
 ::Rails.application.configure do
-
+  puts("CONFIGURING as development environment")
   if ::ENV['IsEndToEndBackendServerSoSTFUWithTheLogs']
     puts "Must be in cypress mode - turning off a bunch of verbosity!"
   end
 
 
+  # https://apidock.com/rails/v7.1.3.2/Rails/Railtie/Configuration/after_initialize
   config.after_initialize do
     ::Bullet.enable        = true
   # Bullet.alert         = true
@@ -20,6 +21,7 @@ require 'active_support/core_ext/integer/time'
       ::Bullet.rails_logger  = true
     end
     # Bullet.add_footer    = true
+
   end
 
   # Settings specified here will take precedence over those in config/application.rb.
@@ -113,9 +115,13 @@ require 'active_support/core_ext/integer/time'
 
   if ::ENV['IsEndToEndBackendServerSoSTFUWithTheLogs']
     Rails.logger.level = Logger::WARN
+    # Rails.logger.level = Logger::DEBUG
   else
     Rails.logger.level = Logger::DEBUG
   end
+
+  # Rails.logger.level = Logger::DEBUG
+
 
   # config.after_initialize() do
   #   pp 'ENV["PORT\"]: ', ENV["PORT"]

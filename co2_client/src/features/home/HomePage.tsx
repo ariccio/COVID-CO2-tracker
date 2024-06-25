@@ -239,6 +239,7 @@ const HomePage = () => {
             return;
         }
         // debugger;
+        console.log(`Updating place details for placeId: ${placeId}`);
         updatePlacesServiceDetailsOnNewPlace(service, dispatch, placeId);
         updatePlacesInfoFromBackend(placeId, dispatch);
         

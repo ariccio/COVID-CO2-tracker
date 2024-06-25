@@ -18,5 +18,8 @@
         "react-i18next": "^11.8.15",
         "ts-node": "^10.9.1",
         "typescript": "^5.2.2"
+    },
+    "devDependencies": {
+        "cypress": "^13.7.1"
     }
 }

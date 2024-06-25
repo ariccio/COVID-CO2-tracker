@@ -10,7 +10,7 @@ require 'active_support/core_ext/integer/time'
 
 ::Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
-
+  puts("CONFIGURING as test environment")
   config.enable_reloading = false
 
   # Eager loading loads your entire application. When running a single test locally,
@@ -67,22 +67,23 @@ require 'active_support/core_ext/integer/time'
 
   # pp "turning ActiveRecord SQL query logs on"
   # # config.active_record.verbose_query_logs = true
-  # config.log_level = :warn
-
+  config.log_level = :warn
+  # config.log_level = :debug
+  
   # https://edgeguides.rubyonrails.org/configuring.html#config-active-record-db-warnings-action
   config.active_record.db_warnings_action = :report
 
 
-  config.log_level = :debug
   
   Rails.logger = Logger.new(STDOUT)
 
     Rails.logger.level = Logger::WARN
   # else
-  #   Rails.logger.level = Logger::DEBUG
+    # Rails.logger.level = Logger::DEBUG
   # end
 
   # Rails.logger = Logger.new(STDOUT)
   # Rails.logger.level = Logger::INFO
+
 end
 # puts "#{Time.now.strftime("%H:%M:%S:%L")}: end   of config/environments/test.rb\r\n"

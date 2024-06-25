@@ -322,6 +322,7 @@ const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null
         return;
     }
     updatePlacesInfoFromBackend(placeId, dispatch);
+    console.log(`Updating places service details on new place ${placeId} from autocomplete...`);
     updatePlacesServiceDetailsOnNewPlace(service, dispatch, placeId);
     setAutocompleteErrorState('');
     navigate(placesPath + `/${placeId}`)
@@ -1008,7 +1009,7 @@ const PlacesServiceStatus = () => {
     return (
 
         <div>
-            Places service status null.
+            {(translate('last-query-status'))} null
         </div>
     )
 }

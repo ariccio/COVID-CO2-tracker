@@ -15,7 +15,10 @@ class User < ApplicationRecord
 
   # app/models/user.rb:7:3: C: Rails/UniqueValidationWithoutIndex: Uniqueness validation should be with a unique index.
   validates :email, presence: true, uniqueness: true
-  validates :name, presence: true
+  validates :name, presence: true, unless: -> {
+    # Ugly hack - this field is missing from google's verify_oidc: https://googleapis.dev/ruby/googleauth/v0.13.0/Google/Auth/IDTokens.html#:~:text=payload%20%3D%20Google%3A%3AAuth%3A%3AIDTokens.verify_oidc
+    ((Rails.env.development? || Rails.env.test?) && ((::ENV['IsEndToEndBackendServerSoSTFUWithTheLogs'] == 'yes')))
+  }
   validates :sub_google_uid, presence: true, uniqueness: true, length: { minimum: 1 }
 
 

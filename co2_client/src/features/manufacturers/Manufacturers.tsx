@@ -77,6 +77,7 @@ const getAndSetManufacturers = (setKnownManufacturers: React.Dispatch<React.SetS
             setErrors(formatErrors(result.errors));
         }
         else {
+            console.log(result);
             setKnownManufacturers(result);
         }
     }).catch((error) => {

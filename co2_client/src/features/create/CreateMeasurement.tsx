@@ -508,7 +508,7 @@ const InnerLocationFormIfNewLocation = (props: {setEnteredLocationDetails: React
                             {translate("Where inside")} {props.placeName} {translate("did you take the measurement?")}
                         </span>
                     </Form.Label>
-                    <Form.Control type="text" name={INNER_LOCATION_FIELD_ID} isInvalid={props.invalidField.includes(INNER_LOCATION_FIELD_ID)}/>
+                    <Form.Control type="text" name={INNER_LOCATION_FIELD_ID} id={INNER_LOCATION_FIELD_ID} isInvalid={props.invalidField.includes(INNER_LOCATION_FIELD_ID)}/>
                 </Form>
             </div>
         )
@@ -645,7 +645,7 @@ const RenderFormIfReady = (props: {
                         {translate("crowding-level")}
                     </span>
                 </Form.Label>
-                <Form.Control type="number" min={1} max={5} name={CROWDING_FIELD_ID} isInvalid={props.invalidField.includes(CROWDING_FIELD_ID)}/>
+                <Form.Control type="number" min={1} max={5} name={CROWDING_FIELD_ID} id="crowding-input-field-id-for-testing" isInvalid={props.invalidField.includes(CROWDING_FIELD_ID)}/>
             </Form>
             <SublocationsDropdown selectedSublocationDisplayData={props.selected} measurements_by_sublocation={measurementsOrEmptyArray} nothingSelectedText={"New inner location"} nothingSelectedItem={<DefaultNothingSelectedItem/>} setGlobal={false} setSelectedSubLocationIDModalOnly={props.setSelectedSubLocationIDModalOnly}/>
             <Suspense fallback="Loading translations...">

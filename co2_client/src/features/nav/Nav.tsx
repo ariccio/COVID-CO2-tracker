@@ -45,7 +45,7 @@ const LoggedIn = (props: {username: string}) =>
   <NavDropdown title={props.username} id="basic-nav-dropdown" align="end" renderMenuOnMount>
     <NavDropdown.Item>
         <LinkContainer to={profilePath}>
-            <NavItem className='nav-item'>{props.username}&apos;s profile</NavItem>
+            <NavItem className='nav-item' id="basic-nav-profile-link-id-for-testing">{props.username}&apos;s profile</NavItem>
         </LinkContainer>
     </NavDropdown.Item>
     <NavDropdown.Item>
@@ -106,10 +106,10 @@ const UserNav: React.FC<UserNavProps> = ({username}) => {
   return (
     <Navbar expand="sm" /*bg="dark" variant="dark"*/ >
         <Navbar.Toggle aria-controls="basic-navbar-nav"/>
-        <Navbar.Collapse  id="basic-navbar-nav">
+        <Navbar.Collapse id="basic-navbar-nav">
             <Nav justify={true} fill={false} variant="tabs" style={USER_NAV_LEFT_STYLE}>
                 <LinkContainer to={homePath}>
-                  <Nav.Link>{translate('Home')}</Nav.Link>
+                  <Nav.Link id="navbar-home-nav-for-testing">{translate('Home')}</Nav.Link>
                 </LinkContainer>
                 <LinkContainer to={devicesPath}>
                   <Nav.Link>{translate('Devices')}</Nav.Link>
