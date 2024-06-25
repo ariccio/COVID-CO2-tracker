@@ -10,8 +10,8 @@ console.log(`run_e2e.ts`);
 
 type procHandle = SubProcess | undefined;
 type procPid =  number | undefined;
-const DEFAULT_RAILS_PORT = '3000';
 
+const DEFAULT_RAILS_PORT = '3000';
 const DEFAULT_FRONTEND_PORT = '3001';
 
 let cypress_rails: procHandle;
@@ -23,6 +23,11 @@ let webpack_pid: procPid;
 
 let frontendPid: number | null = null;
 
+let unhandledProcsOutput = new Array<String>();
+let unhandledProcsNameOutput = new Array<String>();
+
+let warnings = new Array<String>();
+let errors = new Array<String>();
 
 type startDetector = ((stdout: string, stderr: string) => boolean) | number | null
 
@@ -267,15 +272,50 @@ function setupSelfHooks(): void {
     process.on('SIGINT', tryAndExitAll);
 }
 
+function streamLineListener(line: string, procName: string): void {
+    console.log(`${procName}: ${line}`);
+    switch (procName) {
+        case 'webpack':
+            return;
+        case 'cypress_rails':
+            return;
+        default:
+            unhandledProcsNameOutput.push(procName);
+            unhandledProcsOutput.push(`${procName}: ${line}`);
+    }
+}
+function streamOutputListener(procName: string, stdout: string, stderr: string): void {
+    if (stderr.length > 0 ) {
+        errors.push(`${procName}: stderr: ${stderr}`);
+    }
+    switch (procName) {
+        case 'webpack':
+            const result = stdout.match(/Compiled with warnings./);
+            if (result) {
+                warnings.push(result.toString());
+            }
+            // Search for the keywords to learn more about each warning.
+        case 'cypress_rails':
+            return;
+        default:
+            unhandledProcsNameOutput.push(procName);
+            unhandledProcsOutput.push(`${procName}: stdout: ${stdout}, stderr: ${stderr}`);
+    }
+
+}
 
 function setupFollowerHooks(proc: procHandle, name: string): void {
     if (proc === undefined) {
         console.log(`Proc ${name} is undefined!`);
         return;
     }
-    proc.on('stream-line', line => {
-        console.log(`${name}: ${line}`);
+    proc.on('stream-line', (line) => {
+        return streamLineListener(line, name);
         // [STDOUT] foo
+    });
+
+    proc.on('output', (stdout, stderr) => {
+        return streamOutputListener(name, stdout, stderr);
     });
 
     proc.on("exit", (code, signal) => {
@@ -643,6 +683,32 @@ async function main() {
             frontendPid = null;
         }
         throw e;
+    }
+    finally {
+        if (unhandledProcsNameOutput.length > 0) {
+            console.error(`\n\n\n\nProcesses with unhandled output:\n`);
+            for (let i = 0; i < unhandledProcsNameOutput.length; ++i) {
+                console.error(`[${i}] ${unhandledProcsNameOutput[i]}`);
+            }
+        }
+        if (unhandledProcsOutput.length > 0) {
+            console.error(`\n\n\n\nUnhandled process output:\n`);
+            for (let i = 0; i < unhandledProcsOutput.length; ++i) {
+                console.error(`[${i}] ${unhandledProcsOutput[i]}`);
+            }
+        }
+        if (warnings.length > 0) {
+            console.error(`\n\nWarnings:\n`);
+            for (let i = 0; i < warnings.length; ++i) {
+                console.error(`[${i}] ${warnings[i]}`);
+            }
+        }
+        if (errors.length > 0 ) {
+            console.error(`\n\nErrors:\n`);
+            for (let i = 0; i < errors.length; ++i) {
+                console.error(`[${i}] ${errors[i]}`);
+            }
+        }
     }
 
 }
