@@ -232,6 +232,13 @@ interface AutoCompleteRenderProps {
 const formFieldSubmitHandler = (event: React.FormEvent<HTMLInputElement>) => {
     event.preventDefault();
     event.stopPropagation();
+    try {
+        console.log(`User submitted autocomplete form FIELD (with text '${(event as any).currentTarget[0].value}'?)`);
+    }
+    catch (e) {
+        debugger;
+        Sentry.captureException(e);
+    }
 }
 
 const formSubmitHandler = (event: React.FormEvent<HTMLFormElement>) => {
@@ -398,7 +405,7 @@ const options = (center: google.maps.LatLngLiteral): google.maps.MapOptions => {
 const autoCompleteLoadThunk = (autocompleteEvent: google.maps.places.Autocomplete, setAutocomplete: React.Dispatch<React.SetStateAction<google.maps.places.Autocomplete | null>>) => {
     setAutocomplete(autocompleteEvent);
     // debugger;
-    // console.log("autocomplete loaded!");
+    console.log("autocomplete loaded!");
 }
 
 

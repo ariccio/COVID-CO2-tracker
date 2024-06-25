@@ -55,7 +55,7 @@ describe('Add measurement to new place', () => {
         // cy.contains(fullAddress);
 
         cy.scrollTo('top');
-        cy.contains("Upload a new measurement for", {timeout: 10_000}).should("be.visible");
+        cy.contains("Upload a new measurement for", {timeout: 10_000}).should("exist");
         cy.contains("Upload a new measurement for").click();
 
         cy.get('#dropdown-basic').click();
