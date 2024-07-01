@@ -106,6 +106,10 @@ gem "gems", "~> 1.2", require: false
 
 gem "blueprinter", "~> 1.0"
 
+gem 'rubocop', require: false
+gem 'rubocop-rails', require: false
+gem 'rubocop-performance', require: false
+
 
 group :development, :test do
   gem "cypress-rails"
