@@ -2,8 +2,8 @@ require 'rails_helper'
 
 RSpec.describe('Models', type: :request) do
   describe('GET /models') do
-    let(:reasonable_manufacturer_params) {{ manufacturer: { name: Faker::Company.name } }}
-    let(:new_model_name) {Faker::Device.model_name}
+    let(:reasonable_manufacturer_params) { { manufacturer: { name: Faker::Company.name } } }
+    let(:new_model_name) { Faker::Device.model_name }
     # https://www.devroom.io/2009/08/20/once-and-for-all-rails-migrations-integer-limit-option/
     
     context('Successfully create model') do
@@ -61,7 +61,7 @@ RSpec.describe('Models', type: :request) do
     end
 
     context('Fail to create model') do
-      let(:max_id) {9223372036854775807}
+      let(:max_id) { 9223372036854775807 }
       before(:each) do
         @user_headers = new_valid_empty_user_req
         post(api_v1_manufacturers_path, headers: @user_headers, params: reasonable_manufacturer_params)

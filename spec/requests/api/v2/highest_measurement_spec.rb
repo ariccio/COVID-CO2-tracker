@@ -2,13 +2,13 @@ require 'rails_helper'
 
 RSpec.describe('Api::V2::HighestMeasurements', type: :request) do
   describe('GET /index') do
-    let(:my_home) {'ChIJbVog-MFYwokRDS9_fOijV2U'}
-    let(:new_place_params) {{ place: { google_place_id: my_home } }}
-    let(:invalid_place_params) {{ place: { google_place_id: 'fartipelago' } }}
-    let(:invalid_request_google_places) {{ 'status' => 'INVALID_REQUEST' }}
-    let(:new_serial_name) {Faker::Device.serial}
-    let(:reasonable_manufacturer_params) {{ manufacturer: { name: Faker::Company.name } }}
-    let(:empty_highest_measurement) {{ 'ten_measurements' => [], 'ten_places' => [], 'ten_sublocations' => [] }}
+    let(:my_home) { 'ChIJbVog-MFYwokRDS9_fOijV2U' }
+    let(:new_place_params) { { place: { google_place_id: my_home } } }
+    let(:invalid_place_params) { { place: { google_place_id: 'fartipelago' } } }
+    let(:invalid_request_google_places) { { 'status' => 'INVALID_REQUEST' } }
+    let(:new_serial_name) { Faker::Device.serial }
+    let(:reasonable_manufacturer_params) { { manufacturer: { name: Faker::Company.name } } }
+    let(:empty_highest_measurement) { { 'ten_measurements' => [], 'ten_places' => [], 'ten_sublocations' => [] } }
     before(:each) do
       # same as measurement_spec
       @user_headers = new_valid_empty_user_req

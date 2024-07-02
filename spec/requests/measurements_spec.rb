@@ -2,12 +2,12 @@ require 'rails_helper'
 
 RSpec.describe('Measurements', type: :request) do
   describe('Create measurements') do
-    let(:my_home) {'ChIJbVog-MFYwokRDS9_fOijV2U'}
-    let(:new_place_params) {{ place: { google_place_id: my_home } }}
-    let(:invalid_place_params) {{ place: { google_place_id: 'fartipelago' } }}
-    let(:invalid_request_google_places) {{ 'status' => 'INVALID_REQUEST' }}
-    let(:new_serial_name) {Faker::Device.serial}
-    let(:reasonable_manufacturer_params) {{ manufacturer: { name: Faker::Company.name } }}
+    let(:my_home) { 'ChIJbVog-MFYwokRDS9_fOijV2U' }
+    let(:new_place_params) { { place: { google_place_id: my_home } } }
+    let(:invalid_place_params) { { place: { google_place_id: 'fartipelago' } } }
+    let(:invalid_request_google_places) { { 'status' => 'INVALID_REQUEST' } }
+    let(:new_serial_name) { Faker::Device.serial }
+    let(:reasonable_manufacturer_params) { { manufacturer: { name: Faker::Company.name } } }
     before(:each) do
       @user_headers = new_valid_empty_user_req
       post(api_v1_manufacturers_path, headers: @user_headers, params: reasonable_manufacturer_params)
@@ -76,7 +76,7 @@ RSpec.describe('Measurements', type: :request) do
     end
 
     context('Failure to create measurement') do
-      let(:max_id) {9223372036854775807}
+      let(:max_id) { 9223372036854775807 }
       it('Cannot create measurement without logged in user') do
         new_measurement_1 = {
           measurement: {

@@ -2,9 +2,9 @@ require 'rails_helper'
 
 RSpec.describe('Devices', type: :request) do
   describe('The whole path for creating a device') do
-    let(:reasonable_manufacturer_params) {{ manufacturer: { name: Faker::Company.name } }}
-    let(:new_model_name) {Faker::Device.model_name}
-    let(:new_serial_name) {Faker::Device.serial}
+    let(:reasonable_manufacturer_params) { { manufacturer: { name: Faker::Company.name } } }
+    let(:new_model_name) { Faker::Device.model_name }
+    let(:new_serial_name) { Faker::Device.serial }
     context('Successfully create a device') do
       it('can create a device') do
         
@@ -56,7 +56,7 @@ RSpec.describe('Devices', type: :request) do
 
 
     context('fail to create device in different ways') do
-      let(:max_id) {9223372036854775807}
+      let(:max_id) { 9223372036854775807 }
       before(:each) do
         @user_headers = new_valid_empty_user_req
         post(api_v1_manufacturers_path, headers: @user_headers, params: reasonable_manufacturer_params)

@@ -2,12 +2,12 @@ require 'rails_helper'
 
 RSpec.describe('Places', type: :request) do
   describe('create new place (POST api_v1_places_path)') do
-    let (:my_home) {'ChIJbVog-MFYwokRDS9_fOijV2U'}
-    let (:new_place_params) {{ place: { google_place_id: my_home } }}
-    let (:invalid_place_params) {{ place: { google_place_id: 'fartipelago' } }}
-    let (:invalid_request_google_places) {{ 'status' => 'INVALID_REQUEST' }}
-    let (:home_lat) {'40.766653'}
-    let (:home_lng) {'-73.958756'}
+    let (:my_home) { 'ChIJbVog-MFYwokRDS9_fOijV2U' }
+    let (:new_place_params) { { place: { google_place_id: my_home } } }
+    let (:invalid_place_params) { { place: { google_place_id: 'fartipelago' } } }
+    let (:invalid_request_google_places) { { 'status' => 'INVALID_REQUEST' } }
+    let (:home_lat) { '40.766653' }
+    let (:home_lng) { '-73.958756' }
 
     #   export const defaultCenter: google.maps.LatLngLiteral = {
     #     lat: 40.76797,
@@ -15,7 +15,7 @@ RSpec.describe('Places', type: :request) do
     # };
     # place: {east: -73.95199022216795, north: 40.777086290641215, south: 40.75885245857517,…}
   
-    let (:default_bounds) {{
+    let (:default_bounds) { {
       east: -73.95199022216795,
       north: 40.777086290641215,
       south: 40.75885245857517,
