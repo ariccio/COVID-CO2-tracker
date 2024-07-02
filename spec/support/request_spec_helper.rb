@@ -15,7 +15,7 @@ module RequestSpecHelper
       }
   end
   def invalid_jwt_header
-    { :Authorization => 'Bearer fartipelago' }
+    { Authorization: 'Bearer fartipelago' }
   end
   def new_user_params
     f = Faker::Omniauth.google

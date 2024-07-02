@@ -113,7 +113,7 @@ module Api
         errors = [create_error("measurement #{params.fetch(:id)} not found"), create_activerecord_error('measurement not found!', e)]
         render(
           json: {
-            errors: errors
+            errors:
           },
           status: :not_found
         )
@@ -142,8 +142,8 @@ module Api
           device_id: measurement_params.fetch(:device_id),
           co2ppm: measurement_params.fetch(:co2ppm),
           measurementtime: time,
-          sub_location: sub_location,
-          crowding: crowding
+          sub_location:,
+          crowding:
         )
         return @new_measurement
       end

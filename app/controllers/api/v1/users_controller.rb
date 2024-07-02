@@ -50,7 +50,7 @@ module Api
         last_device = last_measurement_device
         render(
           json: {
-            devices: devices,
+            devices:,
             last_device_id: last_device
           },
           status: :ok
