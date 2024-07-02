@@ -12,13 +12,13 @@ require 'active_support/core_ext/integer/time'
 
   # https://apidock.com/rails/v7.1.3.2/Rails/Railtie/Configuration/after_initialize
   config.after_initialize do
-    ::Bullet.enable        = true
+    ::Bullet.enable = true
   # Bullet.alert         = true
   # Bullet.bullet_logger = true
   # Bullet.console       = true
   # Bullet.growl         = true
     unless ::ENV['IsEndToEndBackendServerSoSTFUWithTheLogs']
-      ::Bullet.rails_logger  = true
+      ::Bullet.rails_logger = true
     end
     # Bullet.add_footer    = true
 

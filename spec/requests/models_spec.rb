@@ -23,7 +23,7 @@ RSpec.describe('Models', type: :request) do
 
         get(api_v1_manufacturer_path(created_manufacturer_id), headers: @user_headers)
         
-        expected_model = {'model_id'=> model_response['model_id'], 'manufacturer_id'=> created_manufacturer_id, 'name'=> new_model_name, 'count'=>0}
+        expected_model = {'model_id' => model_response['model_id'], 'manufacturer_id' => created_manufacturer_id, 'name' => new_model_name, 'count' => 0}
         expect(json_response['models']).to(eq([expected_model]))
         # pp json_response["models"]
 
@@ -122,7 +122,7 @@ RSpec.describe('Models', type: :request) do
 
         get(api_v1_manufacturer_path(created_manufacturer_id), headers: @user_headers)
         
-        expected_model = {'model_id'=> model_response['model_id'], 'manufacturer_id'=> created_manufacturer_id, 'name'=> new_model_name, 'count'=>0}
+        expected_model = {'model_id' => model_response['model_id'], 'manufacturer_id' => created_manufacturer_id, 'name' => new_model_name, 'count' => 0}
         expect(json_response['models']).to(eq([expected_model]))
         # pp json_response["models"]
 
@@ -163,10 +163,10 @@ RSpec.describe('Models', type: :request) do
           expect(json_response['models']).to(eq(
             [
               {
-                'count'=>0,
-                'manufacturer_id'=>@manufacturer_create_response['manufacturer_id'],
-                'model_id'=>first_model_response['model_id'],
-                'name'=>new_model_name
+                'count' => 0,
+                'manufacturer_id' => @manufacturer_create_response['manufacturer_id'],
+                'model_id' => first_model_response['model_id'],
+                'name' => new_model_name
                 }
             ]))
         end
