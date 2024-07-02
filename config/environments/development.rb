@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-puts "#{Time.now.strftime("%H:%M:%S:%L")}: Start of config/environments/development.rb"
+puts "#{Time.now.strftime('%H:%M:%S:%L')}: Start of config/environments/development.rb"
 
 require 'active_support/core_ext/integer/time'
 
@@ -135,4 +135,4 @@ require 'active_support/core_ext/integer/time'
 
 end
 
-puts "#{Time.now.strftime("%H:%M:%S:%L")}: end   of config/environments/development.rb\r\n"
+puts "#{Time.now.strftime('%H:%M:%S:%L')}: end   of config/environments/development.rb\r\n"
