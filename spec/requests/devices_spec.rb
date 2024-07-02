@@ -4,7 +4,7 @@ RSpec.describe('Devices', type: :request) do
   describe('The whole path for creating a device') do
     let(:reasonable_manufacturer_params) {{ manufacturer: { name: Faker::Company.name } }}
     let(:new_model_name) {Faker::Device.model_name}
-    let(:new_serial_name){Faker::Device.serial}
+    let(:new_serial_name) {Faker::Device.serial}
     context('Successfully create a device') do
       it('can create a device') do
         
