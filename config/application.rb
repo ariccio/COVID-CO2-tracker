@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-puts "Start of config/application.rb"
+puts 'Start of config/application.rb'
 require_relative 'boot'
 
 puts "#{Time.now.strftime("%H:%M:%S:%L")}: require 'rails'"
@@ -84,8 +84,8 @@ module COVIDCo2Tracker
     # As per https://blog.heroku.com/a-rock-solid-modern-web-stack
     config.app_generators.scaffold_controller = :scaffold_controller
     puts "\t#{Time.now.strftime("%H:%M:%S:%L")}: End   Application class"
-    puts ""
+    puts ''
   end
 end
 puts "#{Time.now.strftime("%H:%M:%S:%L")}: end   of config/application.rb"
-puts ""
+puts ''

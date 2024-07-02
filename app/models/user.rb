@@ -46,7 +46,7 @@ class User < ApplicationRecord
     # byebug
     return nil if (measurement.blank?)
     
-    Rails.logger.warn("I really need to redo the extra measurement info/realtime info serialization... I will have to serialize separately, or do as a relationship instead of an attribute!")
+    Rails.logger.warn('I really need to redo the extra measurement info/realtime info serialization... I will have to serialize separately, or do as a relationship instead of an attribute!')
     
     
     ordered = measurement.order('measurementtime DESC')

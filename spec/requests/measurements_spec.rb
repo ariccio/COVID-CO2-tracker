@@ -1,11 +1,11 @@
 require 'rails_helper'
 
-RSpec.describe("Measurements", type: :request) do
-  describe("Create measurements") do
-    let(:my_home) {"ChIJbVog-MFYwokRDS9_fOijV2U"}
+RSpec.describe('Measurements', type: :request) do
+  describe('Create measurements') do
+    let(:my_home) {'ChIJbVog-MFYwokRDS9_fOijV2U'}
     let(:new_place_params) {{place: {google_place_id: my_home}}}
     let(:invalid_place_params) {{place: {google_place_id: 'fartipelago'}}}
-    let(:invalid_request_google_places) {{"status" => "INVALID_REQUEST"}}
+    let(:invalid_request_google_places) {{'status' => 'INVALID_REQUEST'}}
     let(:new_serial_name){Faker::Device.serial}
     let(:reasonable_manufacturer_params) {{manufacturer: {name: Faker::Company.name}}}
     before(:each) do
@@ -14,7 +14,7 @@ RSpec.describe("Measurements", type: :request) do
       check_no_error(response, json_response, :created)
 
       manufacturer_create_response = json_response
-      created_manufacturer_id = manufacturer_create_response["manufacturer_id"]
+      created_manufacturer_id = manufacturer_create_response['manufacturer_id']
       
       get(api_v1_manufacturer_path(created_manufacturer_id), headers: @user_headers)
       check_no_error(response, json_response, :ok)
@@ -24,12 +24,12 @@ RSpec.describe("Measurements", type: :request) do
 
       model_response = json_response
       check_no_error(response, model_response, :created)
-      created_model_id = model_response["model_id"]
+      created_model_id = model_response['model_id']
       
       post(api_v1_device_index_path, headers: @user_headers, params: {device: {serial: new_serial_name, model_id: created_model_id}})
       device_create_response = json_response
       check_no_error(response, device_create_response, :created)
-      @created_device_id = device_create_response["device_id"]
+      @created_device_id = device_create_response['device_id']
       
       post(api_v1_places_path, headers: @user_headers, params: new_place_params)
       # pp json_response
@@ -38,8 +38,8 @@ RSpec.describe("Measurements", type: :request) do
 
     end
 
-    context("successful measurement creation") do
-      it("Can create a new measurement for a place with a new sublocation") do
+    context('successful measurement creation') do
+      it('Can create a new measurement for a place with a new sublocation') do
         new_measurement_1 = {
           measurement: {
             device_id: @created_device_id,
@@ -75,9 +75,9 @@ RSpec.describe("Measurements", type: :request) do
 
     end
 
-    context("Failure to create measurement") do
+    context('Failure to create measurement') do
       let(:max_id) {9223372036854775807}
-      it("Cannot create measurement without logged in user") do
+      it('Cannot create measurement without logged in user') do
         new_measurement_1 = {
           measurement: {
             device_id: @created_device_id,
@@ -89,11 +89,11 @@ RSpec.describe("Measurements", type: :request) do
           }
         }
         post(api_v1_measurement_index_path, headers: nil, params: new_measurement_1)
-        formatted_error_check(response, json_response, :unauthorized, "Please log in", "unauthorized")
+        formatted_error_check(response, json_response, :unauthorized, 'Please log in', 'unauthorized')
         # pp json_response
       end
       
-      it("Cannot create measurement without device") do
+      it('Cannot create measurement without device') do
         new_measurement_1 = {
           measurement: {
             device_id: nil,
@@ -106,11 +106,11 @@ RSpec.describe("Measurements", type: :request) do
         }
         post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement_1)
         # pp json_response
-        formatted_error_check(response, json_response, :bad_request, "measurement creation failed!", "Device must exist")
-        formatted_error_check(response, json_response, :bad_request, "measurement creation failed!", "Device can't be blank")
+        formatted_error_check(response, json_response, :bad_request, 'measurement creation failed!', 'Device must exist')
+        formatted_error_check(response, json_response, :bad_request, 'measurement creation failed!', "Device can't be blank")
       end
 
-      it("Cannot create measurement with invalid device") do
+      it('Cannot create measurement with invalid device') do
         minimum_invalid_id = (@created_device_id + 1)
         new_measurement_1 = {
           measurement: {
@@ -124,10 +124,10 @@ RSpec.describe("Measurements", type: :request) do
         }
         post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement_1)
         # pp json_response
-        formatted_error_check(response, json_response, :bad_request, "measurement creation failed!", "Device must exist")
+        formatted_error_check(response, json_response, :bad_request, 'measurement creation failed!', 'Device must exist')
       end
 
-      it("Cannot create measurement with negative co2") do
+      it('Cannot create measurement with negative co2') do
         new_measurement_1 = {
           measurement: {
             device_id: @created_device_id,
@@ -140,10 +140,10 @@ RSpec.describe("Measurements", type: :request) do
         }
         post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement_1)
         # pp json_response
-        formatted_error_check(response, json_response, :bad_request, "measurement creation failed!", "Co2ppm must be greater than or equal to 0")
+        formatted_error_check(response, json_response, :bad_request, 'measurement creation failed!', 'Co2ppm must be greater than or equal to 0')
       end
 
-      it("Cannot create measurement with excessive co2") do
+      it('Cannot create measurement with excessive co2') do
         new_measurement_1 = {
           measurement: {
             device_id: @created_device_id,
@@ -156,10 +156,10 @@ RSpec.describe("Measurements", type: :request) do
         }
         post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement_1)
         # pp json_response
-        formatted_error_check(response, json_response, :bad_request, "measurement creation failed!", nil)
+        formatted_error_check(response, json_response, :bad_request, 'measurement creation failed!', nil)
       end
 
-      it("Cannot create measurement with nonsense place") do
+      it('Cannot create measurement with nonsense place') do
         new_measurement_1 = {
           measurement: {
             device_id: @created_device_id,
@@ -176,7 +176,7 @@ RSpec.describe("Measurements", type: :request) do
         formatted_error_check(response, json_response, :bad_request, "couldn't find google_place_id: fartipelago to create measurement for. Possible bug.", nil)
       end
 
-      it("Cannot create measurement with negative crowding") do
+      it('Cannot create measurement with negative crowding') do
         new_measurement_1 = {
           measurement: {
             device_id: @created_device_id,
@@ -189,10 +189,10 @@ RSpec.describe("Measurements", type: :request) do
         }
         post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement_1)
         # pp json_response
-        formatted_error_check(response, json_response, :bad_request, "measurement creation failed!", "Crowding must be greater than or equal to 1")
+        formatted_error_check(response, json_response, :bad_request, 'measurement creation failed!', 'Crowding must be greater than or equal to 1')
       end
 
-      it("Cannot create measurement with excessive crowding") do
+      it('Cannot create measurement with excessive crowding') do
         new_measurement_1 = {
           measurement: {
             device_id: @created_device_id,
@@ -205,7 +205,7 @@ RSpec.describe("Measurements", type: :request) do
         }
         post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement_1)
         # pp json_response
-        formatted_error_check(response, json_response, :bad_request, "measurement creation failed!", "Crowding must be less than or equal to 5")
+        formatted_error_check(response, json_response, :bad_request, 'measurement creation failed!', 'Crowding must be less than or equal to 5')
       end
 
     end

@@ -16,7 +16,7 @@
   #   permitted
   # end
   show() do
-    panel("all user measurements") do
+    panel('all user measurements') do
       # table_for(user.measurement, sortable: true) do
       #   column(:measurement)
       #   column(:co2ppm)

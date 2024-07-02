@@ -78,7 +78,7 @@ gem 'rexml'
 
 gem 'jsonapi-serializer'
 
-gem "validates_timeliness", '>= 7.0.0.beta1'
+gem 'validates_timeliness', '>= 7.0.0.beta1'
 
 group :production do
   gem 'barnes'
@@ -100,11 +100,11 @@ gem 'net-pop', require: false
 gem 'net-imap', require: false
 
 
-gem "lefthook", "~> 1.0", require: false
+gem 'lefthook', '~> 1.0', require: false
 
-gem "gems", "~> 1.2", require: false
+gem 'gems', '~> 1.2', require: false
 
-gem "blueprinter", "~> 1.0"
+gem 'blueprinter', '~> 1.0'
 
 gem 'rubocop', require: false
 gem 'rubocop-rails', require: false
@@ -112,7 +112,7 @@ gem 'rubocop-performance', require: false
 
 
 group :development, :test do
-  gem "cypress-rails"
+  gem 'cypress-rails'
   # gem "cypress-rails", git: 'https://github.com/ariccio/cypress-rails.git', branch: 'add-baseurl-override'
   # gem "cypress-rails", git: 'https://github.com/ariccio/cypress-rails.git', branch: 'add-baseurl-override-squashed'
   

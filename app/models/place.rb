@@ -18,7 +18,7 @@ class Place < ApplicationRecord
     end
   end
   def self.ransackable_associations(auth_object = nil)
-    ["measurement", "sub_location"]
+    ['measurement', 'sub_location']
   end
 
   def place_measurementtime_desc

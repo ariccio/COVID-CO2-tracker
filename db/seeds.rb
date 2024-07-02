@@ -44,6 +44,6 @@ me = ::User.find_by!(email: 'alexander@goofball')
 #   TRANSACTION (102.4ms)  commit transaction
 # => #<Measurement id: 2, device_id: 1, co2ppm: 400, measurementtime: nil, created_at: "2021-02-16 01:09:54.353737000 +0000", updated_at: "2021-02-16 01:09:54.353737000 +0000">
 
-::Rails.logger.info("Creating admin user for DEV env. ")
+::Rails.logger.info('Creating admin user for DEV env. ')
 ::AdminUser.create!(email: 'alexander@pooper', password: 'password', password_confirmation: 'password') if ::Rails.env.development?
 ::Rails.logger.info(::AdminUser.all)

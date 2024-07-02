@@ -41,9 +41,9 @@ end
 
 def spawn_rails
     # rails_stdin, rails_stdout, rails_stderr, rails_wait_thr = Open3.popen3("rails s", opts: {}, env: {"PORT" => "3000"})
-    rails_stdin, rails_stdout, rails_stderr, rails_wait_thr = popen3_that_lets_me_set_fucking_env("rails s --log-to-stdout",{}, {"PORT" => "3000"})
+    rails_stdin, rails_stdout, rails_stderr, rails_wait_thr = popen3_that_lets_me_set_fucking_env('rails s --log-to-stdout',{}, {'PORT' => '3000'})
     # rails_stdin, rails_stdout, rails_stderr, rails_wait_thr = popen3_that_lets_me_set_fucking_env("rails s --help",{}, {"PORT" => "3000"})
-    puts "started!"
+    puts 'started!'
     # pp rails_wait_thr
     # pp rails_wait_thr.methods.sort
     # rails_wait_thr
@@ -53,7 +53,7 @@ def spawn_rails
     # sleep(2)
     # puts "slept"
     # puts "status: #{rails_wait_thr.value}"
-    puts "reading output..."
+    puts 'reading output...'
     # rails_stderr.close
     # rails_stdin.close
     # rails_stdout.close
@@ -63,7 +63,7 @@ def spawn_rails
 end
 
 def spawn_react_frontend
-    react_stdin, react_stdout, react_stderr, react_wait_thr = popen3_that_lets_me_set_fucking_env("yarn start",{chdir: "./co2_client"}, {"PORT" => "3001"})
+    react_stdin, react_stdout, react_stderr, react_wait_thr = popen3_that_lets_me_set_fucking_env('yarn start',{chdir: './co2_client'}, {'PORT' => '3001'})
     # sleep(2)
 end
 
@@ -79,9 +79,9 @@ def run
             sleep(1)
             begin
                 puts "RAILS: #{rails_stdout.read_nonblock(10000)}"
-                puts "waiting"
+                puts 'waiting'
             rescue IO::EAGAINWaitReadable => e
-                puts "not ready yet"
+                puts 'not ready yet'
                 sleep(5)
             end
             # byebug
@@ -95,7 +95,7 @@ def run
                 # if react_stdout.ready?
                 # end
             rescue IO::EAGAINWaitReadable => e
-                puts "not ready yet"
+                puts 'not ready yet'
                 sleep(5)
             end
             begin
@@ -104,7 +104,7 @@ def run
                 # if react_stdout.ready?
                 # end
             rescue IO::EAGAINWaitReadable => e
-                puts "not ready yet"
+                puts 'not ready yet'
                 sleep(5)
             end
             begin
@@ -112,14 +112,14 @@ def run
                 # if react_stdout.ready?
                 # end
             rescue IO::EAGAINWaitReadable => e
-                puts "not ready yet"
+                puts 'not ready yet'
                 sleep(5)
             end
 
         end
         # byebug
 
-        puts "done"
+        puts 'done'
         # pp rails_stderr.read
         # pp rails_stdout.read
         # pp react_stdin.read
@@ -128,9 +128,9 @@ def run
     rescue IOError => e
         puts "IOError: #{e}"
     ensure
-        Process.kill("INT", rails_wait_thr[:pid])
-        Process.kill("INT", react_wait_thr[:pid])
-        puts "cleaned up"
+        Process.kill('INT', rails_wait_thr[:pid])
+        Process.kill('INT', react_wait_thr[:pid])
+        puts 'cleaned up'
     end
 
 end

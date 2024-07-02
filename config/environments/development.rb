@@ -4,9 +4,9 @@ puts "#{Time.now.strftime("%H:%M:%S:%L")}: Start of config/environments/developm
 require 'active_support/core_ext/integer/time'
 
 ::Rails.application.configure do
-  puts("CONFIGURING as development environment")
+  puts('CONFIGURING as development environment')
   if ::ENV['IsEndToEndBackendServerSoSTFUWithTheLogs']
-    puts "Must be in cypress mode - turning off a bunch of verbosity!"
+    puts 'Must be in cypress mode - turning off a bunch of verbosity!'
   end
 
 

@@ -14,7 +14,7 @@ module RequestSpecHelper
         }
     end
     def invalid_jwt_header
-        {:Authorization=>"Bearer fartipelago"}
+        {:Authorization=>'Bearer fartipelago'}
     end
     def new_user_params
         f = Faker::Omniauth.google
@@ -28,7 +28,7 @@ module RequestSpecHelper
 
         new_user = {user: {email: f[:info][:email], name: f[:info][:name], sub: f[:extra][:id_info][:sub], email_verified: true, needs_jwt_value_for_js: true}}
         post(api_v1_auth_index_path, params: new_user)
-        new_valid_empty_user = json_response["jwt"]
+        new_valid_empty_user = json_response['jwt']
         new_valid_empty_user_jwt_headers = with_jwt(new_valid_empty_user)
         return new_valid_empty_user_jwt_headers
     end
@@ -41,11 +41,11 @@ module RequestSpecHelper
         expect(response).to(have_http_status(status))
         # pp json_response
         # pp "in error check helper! checking for '#{message_str}'"
-        expect(json_response).to(include("errors"))
-        expect(json_response["errors"][0]).to(include("message"))
-        expect(json_response["errors"][0]["message"]).to(eq([message_str]))
-        expect(json_response["errors"][0]).to(include("error"))
-        expect(json_response["errors"][0]["error"]).to(include(error_object_str)) unless error_object_str.nil?
+        expect(json_response).to(include('errors'))
+        expect(json_response['errors'][0]).to(include('message'))
+        expect(json_response['errors'][0]['message']).to(eq([message_str]))
+        expect(json_response['errors'][0]).to(include('error'))
+        expect(json_response['errors'][0]['error']).to(include(error_object_str)) unless error_object_str.nil?
         # pp "expected message_str: '#{message_str}', error: '#{json_response["errors"][0]["error"]}'"
     end
     def formatted_error_check_array(response, json_response, status, message_str, error_object_array)
@@ -54,17 +54,17 @@ module RequestSpecHelper
         expect(response).to(have_http_status(status))
         # pp json_response
         # pp "in error check helper! checking for '#{message_str}'"
-        expect(json_response).to(include("errors"))
-        expect(json_response["errors"][0]).to(include("message"))
-        expect(json_response["errors"][0]["message"]).to(eq([message_str]))
-        expect(json_response["errors"][0]).to(include("error"))
-        expect(json_response["errors"][0]["error"]).to(eq(error_object_array)) unless error_object_array.nil?
+        expect(json_response).to(include('errors'))
+        expect(json_response['errors'][0]).to(include('message'))
+        expect(json_response['errors'][0]['message']).to(eq([message_str]))
+        expect(json_response['errors'][0]).to(include('error'))
+        expect(json_response['errors'][0]['error']).to(eq(error_object_array)) unless error_object_array.nil?
         # pp "expected message_str: '#{message_str}', error: '#{json_response["errors"][0]["error"]}'"
     end
     
     def formatted_error_check_with_json(response, json_response, status, message_str, error_object)
         formatted_error_check(response, json_response, status, message_str, nil)
-        parsed = JSON.parse(json_response["errors"][0]["error"][0])
+        parsed = JSON.parse(json_response['errors'][0]['error'][0])
         expect(parsed).to(include(error_object))
     end
 

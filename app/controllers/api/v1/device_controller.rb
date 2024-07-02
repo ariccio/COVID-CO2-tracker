@@ -51,7 +51,7 @@ module Api
         ::Sentry.capture_exception(e)
         render(
           json: {
-            errors: [create_activerecord_notfound_error("Invalid model_id.", e)]
+            errors: [create_activerecord_notfound_error('Invalid model_id.', e)]
           },
           status: :bad_request
         )

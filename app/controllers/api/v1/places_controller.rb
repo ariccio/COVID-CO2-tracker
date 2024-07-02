@@ -178,7 +178,7 @@ module Api
         end
         render(
           json: {
-            errors: [multiple_errors("Backend server could not connect to GooglePlace API - network error between the backend and Places API", e)]
+            errors: [multiple_errors('Backend server could not connect to GooglePlace API - network error between the backend and Places API', e)]
           }, status: :internal_server_error
         )
         return nil
@@ -261,7 +261,7 @@ module Api
       end
 
       def place_bounds_params
-        params.permit(:east, :north, :west, :south, :place, ":place")
+        params.permit(:east, :north, :west, :south, :place, ':place')
       end
 
       def setup_places_client
