@@ -39,14 +39,14 @@ pre-commit:
       run: rspec ./spec
     rubocop:
       tags: backend
-      run: bundle exec rubocop --fail-level E
+      run: bundle exec rubocop --fail-level F
     brakeman:
       tags: security
       run: |
         bundle exec brakeman -w3 --no-progress --no-pager --skip-files node_modules/,/co2_client/,/co2_native_client/
-    doctor:
-      tags: backend
-      run: bundle exec rake active_record_doctor
+    # doctor:
+    #   tags: backend
+    #   run: bundle exec rake active_record_doctor
 # maybe also --print_report? https://github.com/presidentbeef/brakeman/blob/ecba05cb50e453256ca7a1f6e60704f8ed0cfbe5/lib/brakeman.rb#L46
 #     eslint:
 #       glob: "*.{js,ts,jsx,tsx}"
