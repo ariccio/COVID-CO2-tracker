@@ -222,7 +222,7 @@ module Api
       end
 
       def in_bounds
-        #TODO: Rewrite this API as a GET not a POST. Way overdue.
+        # TODO: Rewrite this API as a GET not a POST. Way overdue.
         @sw = ::Geokit::LatLng.new(params[:south], params[:west])
         @ne = ::Geokit::LatLng.new(params[:north], params[:east])
 

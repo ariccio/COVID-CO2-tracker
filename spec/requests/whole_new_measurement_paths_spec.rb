@@ -54,7 +54,7 @@ RSpec.describe('WholeNewMeasurementPaths', type: :request) do
         # pp response
         check_no_error(response, json_response, :created)
 
-        #TODO: check measurements rendering.
+        # TODO: check measurements rendering.
       end
     end
   end

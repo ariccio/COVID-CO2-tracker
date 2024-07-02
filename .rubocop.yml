@@ -58,14 +58,38 @@ Style/MethodCallWithoutArgsParentheses:
 Style/RedundantConstantBase:
   Enabled: false
 
+Layout/EmptyLinesAroundBlockBody:
+  Enabled: false
+
+Layout/EmptyLinesAroundClassBody:
+  Enabled: false
+
+Layout/EmptyLineBetweenDefs:
+  Enabled: false
+
 Layout/EmptyLines:
-  Severity: info
+  Enabled: false
+
+Layout/EmptyLinesAroundModuleBody:
+  Enabled: false
+
+Layout/IndentationConsistency:
+  Enabled: false
+
+Layout/CommentIndentation:
+  Enabled: false
+
+Layout/EmptyComment:
+  Enabled: false
 
 Layout/EmptyLinesAroundMethodBody:
-  Severity: info
+  Enabled: false
 
-Layout/EmptyLinesAroundBlockBody:
-  Severity: info
+Layout/EmptyLinesAroundExceptionHandlingKeywords:
+  Enabled: false
+
+Layout/TrailingEmptyLines:
+  Enabled: false
 
 AllCops:
   Exclude:
