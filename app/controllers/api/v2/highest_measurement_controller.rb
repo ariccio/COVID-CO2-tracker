@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 COUNT = 50
 class Api::V2::HighestMeasurementController < ApplicationController
   def index

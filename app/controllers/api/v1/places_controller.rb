@@ -118,7 +118,7 @@ module Api
       end
 
       def get_spot(place_id)
-        # Note: basic data (geometry) is free!
+        # NOTE: basic data (geometry) is free!
         # https://developers.google.com/maps/documentation/places/web-service/usage-and-billing?hl=en_US#basic-data
         options = {
           fields: 'geometry'
@@ -266,7 +266,7 @@ module Api
       end
 
       def setup_places_client
-        # Note: basic data (geometry) is free!
+        # NOTE: basic data (geometry) is free!
         # https://developers.google.com/maps/documentation/places/web-service/usage-and-billing?hl=en_US#basic-data
         options = {
           fields: 'geometry'

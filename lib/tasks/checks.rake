@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 namespace(:checks) do
   desc('runs various static analysis checks')
     task(:active_record_doctor) do

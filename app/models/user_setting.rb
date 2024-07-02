@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class UserSetting < ApplicationRecord
   # TODO: add normalizer https://edgeguides.rubyonrails.org/7_1_release_notes.html#add-activerecord-base-normalizes
   # https://thejspr.com/blog/add-reference-with-different-model-name-in-rails-5/

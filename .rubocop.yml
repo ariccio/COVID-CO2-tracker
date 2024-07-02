@@ -93,6 +93,12 @@ Layout/TrailingEmptyLines:
 
 Style/CaseEquality:
   Severity: error
+  
+Style/FrozenStringLiteralComment:
+  Severity: info
+
+Style/WordArray:
+  Enabled: false
 
 AllCops:
   Exclude:

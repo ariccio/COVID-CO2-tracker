@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class UserSettingSerializer
   # TODO: add normalizer https://edgeguides.rubyonrails.org/7_1_release_notes.html#add-activerecord-base-normalizes
   include JSONAPI::Serializer

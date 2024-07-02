@@ -49,7 +49,7 @@ class ApiController < ::ActionController::API
   end
 
   def jwt_from_auth_header
-    # NOTE TO SELF: You're actually supposed to use the 'bearer ' format!
+    # NOTE: TO SELF: You're actually supposed to use the 'bearer ' format!
     # It's in the spec!
     # See: https://security.stackexchange.com/a/120244
     # And: https://www.ietf.org/rfc/rfc2617.txt

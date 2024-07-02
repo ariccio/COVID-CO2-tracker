@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'rails_helper'
 
 RSpec.describe('Places', type: :request) do
@@ -20,7 +21,7 @@ RSpec.describe('Places', type: :request) do
         east: -73.95199022216795,
         north: 40.777086290641215,
         south: 40.75885245857517,
-        west: -73.96640977783201,
+        west: -73.96640977783201
       }
     }
 
