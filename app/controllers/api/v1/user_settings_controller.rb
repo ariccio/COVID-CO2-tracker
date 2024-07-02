@@ -18,7 +18,7 @@ module Api
       def destroy
         # byebug
         us = @user.user_setting
-        if (us === nil)
+        if (us == nil)
           return render_empty
         end
 

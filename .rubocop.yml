@@ -91,6 +91,9 @@ Layout/EmptyLinesAroundExceptionHandlingKeywords:
 Layout/TrailingEmptyLines:
   Enabled: false
 
+Style/CaseEquality:
+  Severity: error
+
 AllCops:
   Exclude:
     - 'db/schema.rb'
