@@ -18,7 +18,7 @@ def popen_run(cmd, opts, child_io, parent_io, env) # :nodoc:
       end
     end
     result
-  end
+end
 
 def popen3_that_lets_me_set_fucking_env(cmd, opts, env)
     # https://github.com/ruby/open3/blob/c5a7dde80608e724b17647f7f61abec5d2dff50f/lib/open3.rb#L86
@@ -78,8 +78,8 @@ def run
         begin
           puts "RAILS: #{rails_stdout.read_nonblock(10_000)}"
           puts 'waiting'
-      rescue IO::EAGAINWaitReadable => e
-        puts 'not ready yet'
+        rescue IO::EAGAINWaitReadable => e
+          puts 'not ready yet'
           sleep(5)
         end
         # byebug
@@ -92,8 +92,8 @@ def run
           puts "REACT ERR: #{react_stderr.read_nonblock(10_000)}"
           # if react_stdout.ready?
           # end
-      rescue IO::EAGAINWaitReadable => e
-        puts 'not ready yet'
+        rescue IO::EAGAINWaitReadable => e
+          puts 'not ready yet'
           sleep(5)
         end
         begin
@@ -101,16 +101,16 @@ def run
           puts "REACT ERR: #{react_stderr.read_nonblock(10_000)}"
           # if react_stdout.ready?
           # end
-      rescue IO::EAGAINWaitReadable => e
-        puts 'not ready yet'
+        rescue IO::EAGAINWaitReadable => e
+          puts 'not ready yet'
           sleep(5)
         end
         begin
           puts "REACT ERR: #{react_stderr.read_nonblock(10_000)}"
           # if react_stdout.ready?
           # end
-      rescue IO::EAGAINWaitReadable => e
-        puts 'not ready yet'
+        rescue IO::EAGAINWaitReadable => e
+          puts 'not ready yet'
           sleep(5)
         end
 
@@ -123,10 +123,10 @@ def run
     # pp react_stdin.read
     # pp react_stderr.read
 
-rescue IOError => e
-  puts "IOError: #{e}"
-ensure
-  Process.kill('INT', rails_wait_thr[:pid])
+  rescue IOError => e
+    puts "IOError: #{e}"
+  ensure
+    Process.kill('INT', rails_wait_thr[:pid])
     Process.kill('INT', react_wait_thr[:pid])
     puts 'cleaned up'
   end

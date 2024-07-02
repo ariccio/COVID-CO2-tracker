@@ -35,11 +35,11 @@ module Api
       rescue ::ActiveRecord::RecordNotDestroyed => e
         ::Sentry.capture_exception(e)
         render(
-            json: {
-              errors: [create_activerecord_error('Destroying user settings failed, reason unknown/unexpected! Reported automatically.', e)]
-            },
-            status: :internal_server_error
-          )
+          json: {
+            errors: [create_activerecord_error('Destroying user settings failed, reason unknown/unexpected! Reported automatically.', e)]
+          },
+          status: :internal_server_error
+        )
       end
 
       def create
@@ -67,8 +67,8 @@ module Api
         # byebug
         # byebug
         render(
-            json: {},
-            status: :created
+          json: {},
+          status: :created
         )
       rescue ::ActiveRecord::RecordInvalid => e
         render(

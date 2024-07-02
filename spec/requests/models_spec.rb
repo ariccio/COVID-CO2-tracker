@@ -160,15 +160,16 @@ RSpec.describe('Models', type: :request) do
           expect(json_response).to(include('manufacturer_id'))
           expect(json_response).to(include('models'))
           expect(json_response['name']).to(eq(reasonable_manufacturer_params[:manufacturer][:name]))
+          # rubocop:disable Layout/FirstHashElementIndentation, Layout/MultilineMethodCallBraceLayout
           expect(json_response['models']).to(eq(
-            [
-              {
-                'count' => 0,
-                'manufacturer_id' => @manufacturer_create_response['manufacturer_id'],
-                'model_id' => first_model_response['model_id'],
-                'name' => new_model_name
-                }
-            ]))
+                                               [
+                                                 {
+                                                   'count' => 0,
+                                                   'manufacturer_id' => @manufacturer_create_response['manufacturer_id'],
+                                                   'model_id' => first_model_response['model_id'],
+                                                   'name' => new_model_name
+                                                   }
+                                               ]))
         end
 
         num_models = json_response['models'].count { |model| model['name'] == new_model_name }

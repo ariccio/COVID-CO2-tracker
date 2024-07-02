@@ -7,8 +7,8 @@ class Api::V1::RealtimeMeasurementController < Api::V1::MeasurementController
       new_measurement.save!
       extra_info.save!
       return render(
-          json: {},
-          status: :created
+        json: {},
+        status: :created
       )
   end
 end

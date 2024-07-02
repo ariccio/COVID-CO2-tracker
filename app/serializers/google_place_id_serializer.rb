@@ -5,4 +5,4 @@ class GooglePlaceIdSerializer
   attributes :google_place_id
 
   set_type :place
-  end
+end

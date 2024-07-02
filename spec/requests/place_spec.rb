@@ -15,12 +15,14 @@ RSpec.describe('Places', type: :request) do
     # };
     # place: {east: -73.95199022216795, north: 40.777086290641215, south: 40.75885245857517,…}
 
-    let(:default_bounds) { {
-      east: -73.95199022216795,
-      north: 40.777086290641215,
-      south: 40.75885245857517,
-      west: -73.96640977783201,
-    }}
+    let(:default_bounds) {
+      {
+        east: -73.95199022216795,
+        north: 40.777086290641215,
+        south: 40.75885245857517,
+        west: -73.96640977783201,
+      }
+    }
 
     # https://dev.to/isalevine/intro-to-rspec-in-rails-part-2-improving-tests-with-let-and-context-241n
     context('success') do
