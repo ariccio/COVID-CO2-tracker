@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe('Manufacturers', type: :request) do
   describe('GET /manufacturers') do
-    let(:reasonable_manufacturer_params) {{manufacturer: {name: Faker::Company.name}}}
+    let(:reasonable_manufacturer_params) {{ manufacturer: { name: Faker::Company.name } }}
     context('Succesfully creates manufacturer') do
       before(:each) do
         @user_headers = new_valid_empty_user_req
@@ -25,10 +25,10 @@ RSpec.describe('Manufacturers', type: :request) do
     end
     context('Fails to create manufacturer') do
       
-      let(:null_manufacturer_params) {{manufacturer: {name: nil}}}
-      let(:blank_manufacturer_params) {{manufacturer: {name: ''}}}
-      let(:nil_manufacturer_params) {{manufacturer: nil}}
-      let(:empty_manufacturer_params) {{manufacturer: {}}}
+      let(:null_manufacturer_params) {{ manufacturer: { name: nil } }}
+      let(:blank_manufacturer_params) {{ manufacturer: { name: '' } }}
+      let(:nil_manufacturer_params) {{ manufacturer: nil }}
+      let(:empty_manufacturer_params) {{ manufacturer: {} }}
       let(:empty_params) {nil}
       before(:each) do
         @user_headers = new_valid_empty_user_req

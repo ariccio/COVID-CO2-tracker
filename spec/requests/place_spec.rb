@@ -3,9 +3,9 @@ require 'rails_helper'
 RSpec.describe('Places', type: :request) do
   describe('create new place (POST api_v1_places_path)') do
     let (:my_home) {'ChIJbVog-MFYwokRDS9_fOijV2U'}
-    let (:new_place_params) {{place: {google_place_id: my_home}}}
-    let (:invalid_place_params) {{place: {google_place_id: 'fartipelago'}}}
-    let (:invalid_request_google_places) {{'status' => 'INVALID_REQUEST'}}
+    let (:new_place_params) {{ place: { google_place_id: my_home } }}
+    let (:invalid_place_params) {{ place: { google_place_id: 'fartipelago' } }}
+    let (:invalid_request_google_places) {{ 'status' => 'INVALID_REQUEST' }}
     let (:home_lat) {'40.766653'}
     let (:home_lng) {'-73.958756'}
 

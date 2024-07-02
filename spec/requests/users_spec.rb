@@ -14,9 +14,9 @@ RSpec.describe('Users', type: :request) do
     # let(:new_user) {{user: {email: Faker::Internet.email, name: Faker::Name.name, sub: Faker::Alphanumeric.alpha(number: 5), email_verified: true, needs_jwt_value_for_js: true}}}
     let(:new_user) {new_user_params}
 
-    let(:new_user_invalid_nil) {{user: {email: Faker::Internet.email, name: Faker::Name.name, sub: nil, email_verified: true, needs_jwt_value_for_js: true}}}
+    let(:new_user_invalid_nil) {{ user: { email: Faker::Internet.email, name: Faker::Name.name, sub: nil, email_verified: true, needs_jwt_value_for_js: true } }}
 
-    let(:new_user_invalid_blank) {{user: {email: Faker::Internet.email, name: Faker::Name.name, sub: nil, email_verified: true, needs_jwt_value_for_js: true}}}
+    let(:new_user_invalid_blank) {{ user: { email: Faker::Internet.email, name: Faker::Name.name, sub: nil, email_verified: true, needs_jwt_value_for_js: true } }}
 
 
     context('bad user create params failures') do 

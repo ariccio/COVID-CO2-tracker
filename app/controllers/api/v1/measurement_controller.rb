@@ -83,9 +83,7 @@ module Api
         measurement = @user.measurement.find(params[:id])
         measurement.destroy!
         render(
-          json: {
-
-          }, status: :ok
+          json: {}, status: :ok
         )
       rescue ::ActiveRecord::RecordNotFound => e
         ::Sentry.capture_exception(e)

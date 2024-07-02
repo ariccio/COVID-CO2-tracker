@@ -112,8 +112,7 @@ module Api
         end
         @device_instance.destroy!
         render(
-          json: {
-          }, status: :ok
+          json: {}, status: :ok
         )
       end
 
