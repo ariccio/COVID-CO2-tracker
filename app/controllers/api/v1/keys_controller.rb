@@ -33,7 +33,7 @@ module Api
               status: :ok
             )
         else
-          ::Sentry.capture_message("unknown api name: #{api_name_requested}")
+            ::Sentry.capture_message("unknown api name: #{api_name_requested}")
           render(
             json: {
               errors: [create_error("unknown api name: #{api_name_requested}", nil)]

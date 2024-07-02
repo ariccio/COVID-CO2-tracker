@@ -56,9 +56,9 @@ module Api
         # , realtime_upload_place_id: place.id, realtime_upload_sub_location_id: sublocation.place.id
         settings = UserSetting.find_by(user_id: @user.id)
         if settings == nil
-            settings = UserSetting.create!(user_id: @user.id, realtime_upload_place: place, realtime_upload_sub_location: sublocation)
+          settings = UserSetting.create!(user_id: @user.id, realtime_upload_place: place, realtime_upload_sub_location: sublocation)
         else
-            settings.realtime_upload_place = place
+          settings.realtime_upload_place = place
             settings.realtime_upload_sub_location = sublocation
             # settings = UserSetting.find_or_create_by(user_id: @user.id, realtime_upload_place: place, realtime_upload_sub_location: sublocation)
             settings.save!
