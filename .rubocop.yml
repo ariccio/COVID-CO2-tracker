@@ -11,6 +11,8 @@
 require:
   - rubocop-rails
   - rubocop-performance
+  - rubocop-rspec
+  - rubocop-rspec_rails
 
 
 Layout/EndOfLine:
@@ -56,9 +58,8 @@ Metrics/BlockLength:
   Severity: info
   Max: 175
 
-Metrics/AbcSize:
-  Severity: info
-  CountRepeatedAttributes: false # temporary, hopefully?
+Style/ConditionalAssignment:
+  Enabled: false
 
 Metrics/ClassLength:
   Severity: info
@@ -120,6 +121,15 @@ Lint/Debugger:
 
 Style/InverseMethods:
   Severity: info
+
+Metrics/AbcSize:
+  Enabled: false
+
+Metrics/CyclomaticComplexity:
+  Enabled: false
+
+Metrics/PerceivedComplexity:
+  Enabled: false
 
 AllCops:
   Exclude:
