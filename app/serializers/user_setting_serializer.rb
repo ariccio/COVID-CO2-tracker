@@ -25,6 +25,6 @@ class UserSettingSerializer
           # updated_at: "2021-03-28 02:14:01.550823000 +0000">
     # }
   # }}
-  
+
   attributes :realtime_upload_place, :realtime_upload_sub_location
 end

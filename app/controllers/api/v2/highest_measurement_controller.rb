@@ -5,7 +5,7 @@ class Api::V2::HighestMeasurementController < ApplicationController
     @ten_measurements = Measurement.order(co2ppm: :desc).select(:id, :device_id, :co2ppm, :measurementtime, :sub_location_id).first(COUNT)
     @ten_sublocations = SubLocation.joins(:measurement).order(co2ppm: :desc).select(:id, :description, :place_id).uniq.first(COUNT)
     @ten_places = Place.joins(sub_location: :measurement).order(co2ppm: :desc).select(:id, :google_place_id).uniq.first(COUNT)
-    
+
 
     # ::MeasurementSerializer.new(@measurement).serializable_hash
 

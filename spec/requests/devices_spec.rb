@@ -7,7 +7,7 @@ RSpec.describe('Devices', type: :request) do
     let(:new_serial_name) { Faker::Device.serial }
     context('Successfully create a device') do
       it('can create a device') do
-        
+
         user_headers = new_valid_empty_user_req
         post(api_v1_manufacturers_path, headers: user_headers, params: reasonable_manufacturer_params)
         check_no_error(response, json_response, :created)
@@ -71,7 +71,7 @@ RSpec.describe('Devices', type: :request) do
         @created_model_id = @model_response['model_id']
       end
 
-      it('fails to create a user-duplicate device instance') do 
+      it('fails to create a user-duplicate device instance') do
         post(api_v1_device_index_path, headers: @user_headers, params: { device: { serial: new_serial_name, model_id: @created_model_id } })
         device_create_response_1 = json_response
         check_no_error(response, device_create_response_1, :created)
@@ -81,7 +81,7 @@ RSpec.describe('Devices', type: :request) do
         # pp json_response
         expected_error_str = "You already uploaded a #{new_model_name} to your account with the serial # '#{new_serial_name}'! Use that to add measurements."
         formatted_error_check(response, device_create_response_2, :bad_request, expected_error_str, nil)
-        # 
+        #
       end
       it('(currently) fails to create a model-global-duplicate device instance') do
         post(api_v1_device_index_path, headers: @user_headers, params: { device: { serial: new_serial_name, model_id: @created_model_id } })

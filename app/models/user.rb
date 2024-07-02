@@ -45,10 +45,10 @@ class User < ApplicationRecord
     # measurements = []
     # byebug
     return nil if (measurement.blank?)
-    
+
     Rails.logger.warn('I really need to redo the extra measurement info/realtime info serialization... I will have to serialize separately, or do as a relationship instead of an attribute!')
-    
-    
+
+
     ordered = measurement.order('measurementtime DESC')
 
     # measurements = ordered.each.map do |measurement|
@@ -62,7 +62,7 @@ class User < ApplicationRecord
 
   def last_measurement
     return nil if (measurement.blank?)
-    
+
     measurement.order('measurementtime DESC').first
   end
 end

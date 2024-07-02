@@ -19,7 +19,7 @@ RSpec.describe('Users', type: :request) do
     let(:new_user_invalid_blank) { { user: { email: Faker::Internet.email, name: Faker::Name.name, sub: nil, email_verified: true, needs_jwt_value_for_js: true } } }
 
 
-    context('bad user create params failures') do 
+    context('bad user create params failures') do
       it('fails to create a user with nil sub') do
         post(api_v1_auth_index_path, params: new_user_invalid_nil)
         # pp json_response
@@ -34,15 +34,15 @@ RSpec.describe('Users', type: :request) do
 
     context('success path') do
 
-      before(:each) do 
+      before(:each) do
         post(api_v1_auth_index_path, params: new_user)
       end
       # before { post(api_v1_auth_index_path, params: new_user)}
       it('creates a new user') do
         expect(json_response['email']).to(eq(new_user[:user][:email]))
       end
-  
-      it('can show the user') do 
+
+      it('can show the user') do
         # pp json_response
         headers_with_auth = with_jwt(json_response['jwt'])
         # pp headers_with_auth
@@ -60,8 +60,8 @@ RSpec.describe('Users', type: :request) do
         expect(json_response['measurements']).to(eq(nil))
         expect(json_response).to include('setting_place_google_place_id')
         expect(json_response['setting_place_google_place_id']).to(eq(nil))
-  
-  
+
+
       end
 
       it('can show my_devices') do
@@ -72,7 +72,7 @@ RSpec.describe('Users', type: :request) do
         get(api_v1_my_devices_path, headers: headers_with_auth)
         # result2 = response
         # puts "result 2: #{result2.body}"
-  
+
         expect(json_response).to include('devices')
         expect(json_response['devices']).to(eq([]))
         expect(json_response).to include('last_device_id')

@@ -15,7 +15,7 @@ RSpec.describe('Measurements', type: :request) do
 
       manufacturer_create_response = json_response
       created_manufacturer_id = manufacturer_create_response['manufacturer_id']
-      
+
       get(api_v1_manufacturer_path(created_manufacturer_id), headers: @user_headers)
       check_no_error(response, json_response, :ok)
 
@@ -25,12 +25,12 @@ RSpec.describe('Measurements', type: :request) do
       model_response = json_response
       check_no_error(response, model_response, :created)
       created_model_id = model_response['model_id']
-      
+
       post(api_v1_device_index_path, headers: @user_headers, params: { device: { serial: new_serial_name, model_id: created_model_id } })
       device_create_response = json_response
       check_no_error(response, device_create_response, :created)
       @created_device_id = device_create_response['device_id']
-      
+
       post(api_v1_places_path, headers: @user_headers, params: new_place_params)
       # pp json_response
       check_no_error(response, json_response, :created)
@@ -92,7 +92,7 @@ RSpec.describe('Measurements', type: :request) do
         formatted_error_check(response, json_response, :unauthorized, 'Please log in', 'unauthorized')
         # pp json_response
       end
-      
+
       it('Cannot create measurement without device') do
         new_measurement_1 = {
           measurement: {

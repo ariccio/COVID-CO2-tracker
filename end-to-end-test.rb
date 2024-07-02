@@ -55,7 +55,7 @@ def spawn_rails
     # rails_stderr.close
     # rails_stdin.close
     # rails_stdout.close
-    
+
     return rails_stdin, rails_stdout, rails_stderr, rails_wait_thr
     # byebug
 end
@@ -70,7 +70,7 @@ def run
     begin
         rails_stdin, rails_stdout, rails_stderr, rails_wait_thr = spawn_rails()
         react_stdin, react_stdout, react_stderr, react_wait_thr = spawn_react_frontend()
-    
+
 
         # Next, look for "compiled sucessfully", or "You can now view co2_client in the browser"
         50.times do

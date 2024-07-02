@@ -61,7 +61,7 @@ module RequestSpecHelper
         expect(json_response['errors'][0]['error']).to(eq(error_object_array)) unless error_object_array.nil?
         # pp "expected message_str: '#{message_str}', error: '#{json_response["errors"][0]["error"]}'"
     end
-    
+
     def formatted_error_check_with_json(response, json_response, status, message_str, error_object)
         formatted_error_check(response, json_response, status, message_str, nil)
         parsed = JSON.parse(json_response['errors'][0]['error'][0])

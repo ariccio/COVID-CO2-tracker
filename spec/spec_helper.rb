@@ -16,7 +16,7 @@
 RSpec.configure do |config|
 
 
-  config.raise_errors_for_deprecations!  
+  config.raise_errors_for_deprecations!
 
 
   # rspec-expectations config goes here. You can use an alternate

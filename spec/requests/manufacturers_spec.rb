@@ -21,10 +21,10 @@ RSpec.describe('Manufacturers', type: :request) do
         expect(json_response['name']).to(eq(reasonable_manufacturer_params[:manufacturer][:name]))
         expect(json_response['models']).to(eq([]))
       end
-        
+
     end
     context('Fails to create manufacturer') do
-      
+
       let(:null_manufacturer_params) { { manufacturer: { name: nil } } }
       let(:blank_manufacturer_params) { { manufacturer: { name: '' } } }
       let(:nil_manufacturer_params) { { manufacturer: nil } }

@@ -69,12 +69,12 @@ require 'active_support/core_ext/integer/time'
   # # config.active_record.verbose_query_logs = true
   config.log_level = :warn
   # config.log_level = :debug
-  
+
   # https://edgeguides.rubyonrails.org/configuring.html#config-active-record-db-warnings-action
   config.active_record.db_warnings_action = :report
 
 
-  
+
   Rails.logger = Logger.new(STDOUT)
 
     Rails.logger.level = Logger::WARN

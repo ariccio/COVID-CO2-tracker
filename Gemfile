@@ -115,5 +115,5 @@ group :development, :test do
   gem 'cypress-rails'
   # gem "cypress-rails", git: 'https://github.com/ariccio/cypress-rails.git', branch: 'add-baseurl-override'
   # gem "cypress-rails", git: 'https://github.com/ariccio/cypress-rails.git', branch: 'add-baseurl-override-squashed'
-  
+
 end

@@ -224,7 +224,7 @@ module Api
         #TODO: Rewrite this API as a GET not a POST. Way overdue.
         @sw = ::Geokit::LatLng.new(params[:south], params[:west])
         @ne = ::Geokit::LatLng.new(params[:north], params[:east])
-        
+
         # (byebug) pp ::Place.in_bounds([@sw, @ne]).to_sql
         # nil
         # (byebug) "SELECT \"places\".* FROM \"places\" WHERE places.place_lat > 40.75877119144174 AND places.place_lat < 40.77716753537969 AND places.place_lng > -73.97284707946775 AND places.place_lng < -73.94555292053221"

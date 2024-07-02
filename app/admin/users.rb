@@ -20,13 +20,13 @@
       # table_for(user.measurement, sortable: true) do
       #   column(:measurement)
       #   column(:co2ppm)
-      #   column(:measurementtime) 
+      #   column(:measurementtime)
       # end
       table_for(user.measurement) do
 
         # YES this sucks but will finish dev later.
         if Rails.env.development?
-          byebug          
+          byebug
         end
         column(:measurement) do |measurement|
           measurement

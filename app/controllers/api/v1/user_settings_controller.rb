@@ -12,7 +12,7 @@ module Api
         render(
           json: uss,
           status: :ok
-        ) 
+        )
       end
 
       def destroy
@@ -38,7 +38,7 @@ module Api
               errors: [create_activerecord_error('Destroying user settings failed, reason unknown/unexpected! Reported automatically.', e)]
             },
             status: :internal_server_error
-          )  
+          )
       end
 
       def create
@@ -61,7 +61,7 @@ module Api
             settings.realtime_upload_place = place
             settings.realtime_upload_sub_location = sublocation
             # settings = UserSetting.find_or_create_by(user_id: @user.id, realtime_upload_place: place, realtime_upload_sub_location: sublocation)
-            settings.save!    
+            settings.save!
         end
         # byebug
         # byebug

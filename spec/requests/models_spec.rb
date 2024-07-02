@@ -5,7 +5,7 @@ RSpec.describe('Models', type: :request) do
     let(:reasonable_manufacturer_params) { { manufacturer: { name: Faker::Company.name } } }
     let(:new_model_name) { Faker::Device.model_name }
     # https://www.devroom.io/2009/08/20/once-and-for-all-rails-migrations-integer-limit-option/
-    
+
     context('Successfully create model') do
       before(:each) do
         @user_headers = new_valid_empty_user_req
@@ -22,7 +22,7 @@ RSpec.describe('Models', type: :request) do
         # pp model_response
 
         get(api_v1_manufacturer_path(created_manufacturer_id), headers: @user_headers)
-        
+
         expected_model = { 'model_id' => model_response['model_id'], 'manufacturer_id' => created_manufacturer_id, 'name' => new_model_name, 'count' => 0 }
         expect(json_response['models']).to(eq([expected_model]))
         # pp json_response["models"]
@@ -57,7 +57,7 @@ RSpec.describe('Models', type: :request) do
         # byebug
 
       end
-  
+
     end
 
     context('Fail to create model') do
@@ -109,7 +109,7 @@ RSpec.describe('Models', type: :request) do
           formatted_error_check(response, json_response, :bad_request, 'device model creation failed!', 'Manufacturer must exist')
         end
       end
-      
+
       it('Cannot create same model more than once') do
         created_manufacturer_id = @manufacturer_create_response['manufacturer_id']
 
@@ -121,7 +121,7 @@ RSpec.describe('Models', type: :request) do
         # pp model_response
 
         get(api_v1_manufacturer_path(created_manufacturer_id), headers: @user_headers)
-        
+
         expected_model = { 'model_id' => model_response['model_id'], 'manufacturer_id' => created_manufacturer_id, 'name' => new_model_name, 'count' => 0 }
         expect(json_response['models']).to(eq([expected_model]))
         # pp json_response["models"]
@@ -139,16 +139,16 @@ RSpec.describe('Models', type: :request) do
           # try second
           post(api_v1_model_index_path, headers: @user_headers, params: new_model_params)
           model_response = json_response
-  
+
           # error string: 'Name has already been taken', message: 'device model creation failed!'
           # Create model errors: error string: 'Name has already been taken', message: 'device model creation failed!'
-  
-  
+
+
           # {"errors"=>[{"message"=>["device model creation failed!"], "error"=>["Name has already been taken"]}]}
           # {"errors"=>[{"message"=>["device model creation failed!"], "error"=>["Name has already been taken"]}]}
           formatted_error_check_array(response, json_response, :bad_request, 'device model creation failed!', ['Name has already been taken'])
-  
-  
+
+
           get(api_v1_manufacturer_path(@manufacturer_create_response['manufacturer_id']), headers: @user_headers)
           check_no_error(response, json_response, :ok)
           # pp "----------"

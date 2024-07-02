@@ -26,11 +26,11 @@ RSpec.describe('WholeNewMeasurementPaths', type: :request) do
         model_response = json_response
         check_no_error(response, model_response, :created)
         created_model_id = model_response['model_id']
-        
+
         post(api_v1_device_index_path, headers: user_headers, params: { device: { serial: new_serial_name, model_id: created_model_id } })
         device_create_response = json_response
         check_no_error(response, device_create_response, :created)
-        
+
         post(api_v1_places_path, headers: user_headers, params: new_place_params)
         # pp json_response
         created_place = json_response
