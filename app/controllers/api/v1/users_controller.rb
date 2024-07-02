@@ -33,8 +33,10 @@ module Api
       def last_measurement_device
         user_last_measurement = @user.last_measurement
         return nil if user_last_measurement.nil?
+
         last_device = user_last_measurement.device
         return nil if last_device.nil?
+
         return last_device.id
       end
 

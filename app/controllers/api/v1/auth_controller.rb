@@ -58,6 +58,7 @@ module Api
         if user_login_google_params.key?(:needs_jwt_value_for_js)
           return render_successful_authentication_native(token)
         end
+
         return render_successful_authentication_cookie(token)
       end
 

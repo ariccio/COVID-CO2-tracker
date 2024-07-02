@@ -34,6 +34,7 @@ class Measurement < ApplicationRecord
 
   def is_realtime?
     return false unless extra_measurement_info
+
     # byebug
 
     true

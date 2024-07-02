@@ -48,6 +48,7 @@ module Api
           ::Sentry.capture_message("Last fetched #{time_ago_in_words(@place.last_fetch)} - Need to update to comply with google caching restrictions!")
         end
         return if refreshed.nil?
+
         render(json: @place)
       rescue ::ActiveRecord::RecordNotFound => e
         # TODO: query from the backend too to validate input is correct

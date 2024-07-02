@@ -158,6 +158,7 @@ module Api
         if (measurement_params[:sub_location_id].to_i != -1)
           return ::SubLocation.find(measurement_params.fetch(:sub_location_id))
         end
+
         ::Rails.logger.info('TODO: unique index for description in scope of sublocation, maybe needs partial index? Then validates_uniqueness_of')
         @place.sub_location.find_or_create_by!(description: measurement_params.fetch(:location_where_inside_info))
       end

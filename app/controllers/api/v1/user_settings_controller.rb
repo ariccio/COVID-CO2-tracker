@@ -21,6 +21,7 @@ module Api
         if (us === nil)
           return render_empty
         end
+
         us.destroy!
         render_empty
       rescue ::ActiveRecord::RecordNotFound => e
