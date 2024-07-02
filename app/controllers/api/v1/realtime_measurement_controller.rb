@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class Api::V1::RealtimeMeasurementController < Api::V1::MeasurementController
 
   def create

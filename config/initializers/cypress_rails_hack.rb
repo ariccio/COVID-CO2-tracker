@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # if ENV['IsEndToEndBackendServerSoSTFUWithTheLogs']
 #     path = Rails.root.join("lib", "support", "fake_cypress_rails_runner.rb")
 #     puts "Trying to load #{path}"
