@@ -46,6 +46,8 @@ RSpec.describe('Models', type: :request) do
         model_resource = Model.find(expected_model['model_id'])
         created_comment = ActiveAdmin::Comment.first_or_create!(resource: model_resource, namespace: 'admin', author: created, body: nonsense_comment)
         # pp created_comment
+        # #<id: 1, namespace: "admin", body: "Explicabo nesciunt quos quia.", resource_type: "Model", resource_id: 1,author_type: "AdminUser", author_id: 1>
+        expect(created_comment['body']).to(eq(nonsense_comment))
 
         get(api_v1_model_path(expected_model['model_id']))
         show_model_response_with_activeadmin_comment = json_response

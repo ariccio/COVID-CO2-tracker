@@ -58,6 +58,7 @@ Metrics/BlockLength:
 
 Metrics/AbcSize:
   Severity: info
+  CountRepeatedAttributes: false # temporary, hopefully?
 
 Metrics/ClassLength:
   Severity: info

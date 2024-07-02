@@ -63,15 +63,15 @@ def spawn_rails
 end
 
 def spawn_react_frontend
-  react_stdin, react_stdout, react_stderr, react_wait_thr = popen3_that_lets_me_set_fucking_env('yarn start', { chdir: './co2_client' }, { 'PORT' => '3001' })
+  _react_stdin, _react_stdout, _react_stderr, _react_wait_thr = popen3_that_lets_me_set_fucking_env('yarn start', { chdir: './co2_client' }, { 'PORT' => '3001' })
     # sleep(2)
 end
 
 
 def run
   begin
-    rails_stdin, rails_stdout, rails_stderr, rails_wait_thr = spawn_rails()
-    react_stdin, react_stdout, react_stderr, react_wait_thr = spawn_react_frontend()
+    _rails_stdin, rails_stdout, rails_stderr, rails_wait_thr = spawn_rails()
+    _react_stdin, react_stdout, react_stderr, react_wait_thr = spawn_react_frontend()
 
 
     # Next, look for "compiled sucessfully", or "You can now view co2_client in the browser"
@@ -81,7 +81,7 @@ def run
           puts "RAILS: #{rails_stdout.read_nonblock(10_000)}"
           puts 'waiting'
         rescue IO::EAGAINWaitReadable => e
-          puts 'not ready yet'
+          puts "not ready yet, (#{e})"
           sleep(5)
         end
         # byebug
@@ -95,7 +95,7 @@ def run
           # if react_stdout.ready?
           # end
         rescue IO::EAGAINWaitReadable => e
-          puts 'not ready yet'
+          puts "not ready yet (#{e})"
           sleep(5)
         end
         begin
@@ -104,7 +104,7 @@ def run
           # if react_stdout.ready?
           # end
         rescue IO::EAGAINWaitReadable => e
-          puts 'not ready yet'
+          puts "not ready yet (#{e})"
           sleep(5)
         end
         begin
@@ -112,7 +112,7 @@ def run
           # if react_stdout.ready?
           # end
         rescue IO::EAGAINWaitReadable => e
-          puts 'not ready yet'
+          puts "not ready yet (#{e})"
           sleep(5)
         end
 

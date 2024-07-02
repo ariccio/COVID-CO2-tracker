@@ -42,10 +42,11 @@ RSpec.describe('Measurements', type: :request) do
 
     context('successful measurement creation') do
       it('Can create a new measurement for a place with a new sublocation') do
+        fake_co2 = Faker::Number.between(from: 400, to: 9999)
         new_measurement_1 = {
           measurement: {
             device_id: @created_device_id,
-            co2ppm: Faker::Number.between(from: 400, to: 9999),
+            co2ppm: fake_co2,
             google_place_id: my_home,
             crowding: Faker::Number.between(from: 1, to: 5),
             location_where_inside_info: Faker::Hipster.sentence(word_count: 3),
@@ -56,6 +57,10 @@ RSpec.describe('Measurements', type: :request) do
         # pp json_response
         check_no_error(response, json_response, :created)
         new_measurement_1_response = json_response
+        # pp new_measurement_1_response
+        # {"measurement_id"=>1, "device_id"=>1, "co2ppm"=>1032, "place_id"=>1, "measurementtime"=>"2024-07-02T01:24:43.038Z"}
+        expect(new_measurement_1_response['device_id']).to(eq(@created_device_id))
+        expect(new_measurement_1_response['co2ppm']).to(eq(fake_co2))
       end
       # it("Can create measurement for extant sublocation") do
       #   new_measurement_1 = {
