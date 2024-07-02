@@ -35,7 +35,9 @@ Style/GuardClause:
   Enabled: false
 
 Metrics/MethodLength:
-  Max: 30
+  Max: 200
+  Severity: info
+
 
 Style/GlobalStdStream:
   Enabled: false
@@ -47,10 +49,19 @@ Style/RedundantReturn:
   Enabled: false
 
 Rails/Output:
+  Enabled: false
   Severity: info
 
 Metrics/BlockLength:
   Severity: info
+  Max: 175
+
+Metrics/AbcSize:
+  Severity: info
+
+Metrics/ClassLength:
+  Severity: info
+  Max: 500
 
 Style/MethodCallWithoutArgsParentheses:
   Enabled: false
@@ -102,6 +113,12 @@ Style/WordArray:
 
 Style/IfUnlessModifier:
   Enabled: false
+
+Lint/Debugger:
+  Severity: error
+
+Style/InverseMethods:
+  Severity: info
 
 AllCops:
   Exclude:

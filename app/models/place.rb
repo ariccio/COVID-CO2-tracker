@@ -14,7 +14,7 @@ class Place < ApplicationRecord
       super
     else
       # whitelist only the title and body attributes for other users
-      super & %w(title body)
+      super & %w[title body]
     end
   end
   def self.ransackable_associations(auth_object = nil)

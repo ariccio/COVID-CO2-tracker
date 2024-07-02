@@ -20,12 +20,12 @@ def raise_if_invalid_parameter_combo(measurement_params)
   sub_location_id = measurement_params[:sub_location_id]
   if (location_where_inside_info && (!location_where_inside_info.empty?)) && (sub_location_id.to_i != -1)
     # byebug
-    Rails.logger.debug("location_where_inside_info: #{location_where_inside_info.to_s}, sub_location_id: #{sub_location_id}. all params: #{measurement_params}")
+    Rails.logger.debug("location_where_inside_info: #{location_where_inside_info}, sub_location_id: #{sub_location_id}. all params: #{measurement_params}")
     raise(InvalidComboError)
   end
   if (sub_location_id.to_i != -1) && (location_where_inside_info && (!location_where_inside_info.empty?))
     # byebug
-    Rails.logger.debug("location_where_inside_info: #{location_where_inside_info.to_s}, sub_location_id: #{sub_location_id}. all params: #{measurement_params}")
+    Rails.logger.debug("location_where_inside_info: #{location_where_inside_info}, sub_location_id: #{sub_location_id}. all params: #{measurement_params}")
     raise(InvalidComboError)
   end
 
@@ -69,7 +69,7 @@ module Api
           status: :bad_request
         )
       rescue InvalidComboError => e
-        Rails.logger.debug("InvalidComboError params: #{measurement_params.to_s}")
+        Rails.logger.debug("InvalidComboError params: #{measurement_params}")
         ::Sentry.capture_exception(e)
         render(
           json: {
