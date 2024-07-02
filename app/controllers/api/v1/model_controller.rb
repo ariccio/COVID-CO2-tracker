@@ -4,6 +4,21 @@ module Api
   module V1
     class ModelController < ApiController
       skip_before_action :authorized, only: [:show, :measurements]
+      def show
+        @model = ::Model.find(params.fetch(:id))
+        # byebug
+        render(
+          json: ::Model.show_as_json(@model),
+          status: :ok
+        )
+      rescue ::ActiveRecord::RecordNotFound => e
+        render(
+          json: {
+            errors: [create_activerecord_error('model not found!', e)]
+          },
+          status: :not_found
+        )
+      end
       def create
         @new_model = ::Model.create!(name: model_params.fetch(:name), manufacturer_id: model_params.fetch(:manufacturer_id))
         render(
@@ -40,21 +55,6 @@ module Api
         )
       end
 
-      def show
-        @model = ::Model.find(params.fetch(:id))
-        # byebug
-        render(
-          json: ::Model.show_as_json(@model),
-          status: :ok
-        )
-      rescue ::ActiveRecord::RecordNotFound => e
-        render(
-          json: {
-            errors: [create_activerecord_error('model not found!', e)]
-          },
-          status: :not_found
-        )
-      end
 
       def model_params
         # byebug

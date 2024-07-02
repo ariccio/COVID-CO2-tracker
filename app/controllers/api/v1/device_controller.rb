@@ -13,6 +13,33 @@ module Api
   module V1
     class DeviceController < ApiController
       skip_before_action :authorized, only: [:show]
+      def show
+        # byebug
+        # .includes(:model, :user, :measurement, measurement: :sub_location)
+        @device_instance = ::Device.includes(:model, :user, :measurement, measurement: :sub_location).find(params.fetch(:id))
+        # byebug
+
+        # TODO: duh, When I have more than ten measurements!
+        render(
+          json: {
+            device_id: @device_instance.id,
+            serial: @device_instance.serial,
+            device_model: @device_instance.model.name,
+            device_model_id: @device_instance.model.id,
+            user_id: @device_instance.user.id,
+            measurements: @device_instance.first_ten_measurements
+            # total number of measurements
+          },
+          status: :ok
+        )
+      rescue ::ActiveRecord::RecordNotFound => e
+        render(
+          json: {
+            errors: [create_activerecord_error('device not found!', e)]
+          },
+          status: :not_found
+        )
+      end
       def create
         # Rails.logger.debug("user: #{@user.email} trying to create device with params #{params}")
         # find(*args): https://api.rubyonrails.org/v6.1.3.1/classes/ActiveRecord/FinderMethods.html#method-i-find
@@ -64,33 +91,6 @@ module Api
         )
       end
 
-      def show
-        # byebug
-        # .includes(:model, :user, :measurement, measurement: :sub_location)
-        @device_instance = ::Device.includes(:model, :user, :measurement, measurement: :sub_location).find(params.fetch(:id))
-        # byebug
-
-        # TODO: duh, When I have more than ten measurements!
-        render(
-          json: {
-            device_id: @device_instance.id,
-            serial: @device_instance.serial,
-            device_model: @device_instance.model.name,
-            device_model_id: @device_instance.model.id,
-            user_id: @device_instance.user.id,
-            measurements: @device_instance.first_ten_measurements
-            # total number of measurements
-          },
-          status: :ok
-        )
-      rescue ::ActiveRecord::RecordNotFound => e
-        render(
-          json: {
-            errors: [create_activerecord_error('device not found!', e)]
-          },
-          status: :not_found
-        )
-      end
 
       def destroy
         @device_instance = @user.devices.find(params.fetch(:id))

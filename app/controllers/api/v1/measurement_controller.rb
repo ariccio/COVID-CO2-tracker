@@ -37,6 +37,29 @@ module Api
     class MeasurementController < ApiController
       # Maybe I should refactor-out skip_before_action? https://vaidehijoshi.github.io/blog/2015/10/13/stop-worrying-and-start-being-concerned-activesupport-concerns/
       skip_before_action :authorized, only: [:show]
+      def show
+        # find(*args): https://api.rubyonrails.org/v6.1.3.1/classes/ActiveRecord/FinderMethods.html#method-i-find
+        # "If one or more records cannot be found for the requested ids, then ActiveRecord::RecordNotFound will be raised"
+        @measurement = ::Measurement.find(params.fetch(:id))
+        # byebug
+
+        # TODO: lots of these lookups can fail in the future (e.g. if device gets deleted, user gets deleted, etc...)
+        render(
+          json: {
+            data: ::MeasurementSerializer.new(@measurement).serializable_hash,
+            place_id: @measurement.sub_location.place.google_place_id,
+            taken_by: @measurement.device.user.name
+          }, status: :ok
+        )
+      rescue ::ActiveRecord::RecordNotFound => e
+        errors = [create_error("measurement #{params.fetch(:id)} not found"), create_activerecord_error('measurement not found!', e)]
+        render(
+          json: {
+            errors:
+          },
+          status: :not_found
+        )
+      end
       def create
         # byebug
         create_measurement_internal
@@ -95,29 +118,6 @@ module Api
         )
       end
 
-      def show
-        # find(*args): https://api.rubyonrails.org/v6.1.3.1/classes/ActiveRecord/FinderMethods.html#method-i-find
-        # "If one or more records cannot be found for the requested ids, then ActiveRecord::RecordNotFound will be raised"
-        @measurement = ::Measurement.find(params.fetch(:id))
-        # byebug
-
-        # TODO: lots of these lookups can fail in the future (e.g. if device gets deleted, user gets deleted, etc...)
-        render(
-          json: {
-            data: ::MeasurementSerializer.new(@measurement).serializable_hash,
-            place_id: @measurement.sub_location.place.google_place_id,
-            taken_by: @measurement.device.user.name
-          }, status: :ok
-        )
-      rescue ::ActiveRecord::RecordNotFound => e
-        errors = [create_error("measurement #{params.fetch(:id)} not found"), create_activerecord_error('measurement not found!', e)]
-        render(
-          json: {
-            errors:
-          },
-          status: :not_found
-        )
-      end
 
       private
 

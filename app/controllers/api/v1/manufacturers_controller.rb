@@ -22,6 +22,24 @@ module Api
   module V1
     class ManufacturersController < ApiController
       skip_before_action :authorized, only: [:show, :all_manufacturers]
+      def show
+        @manufacturer = ::Manufacturer.find(params.fetch(:id))
+        render(
+          json: {
+            manufacturer_id: @manufacturer.id,
+            name: @manufacturer.name,
+            models: first_ten(@manufacturer.id)
+          },
+          status: :ok
+        )
+      rescue ::ActiveRecord::RecordNotFound => e
+        render(
+          json: {
+            errors: [create_activerecord_error('manufacturer not found!', e)]
+          },
+          status: :not_found
+        )
+      end
       def create
         # byebug
         @new_manufacturer = ::Manufacturer.create!(name: manufacturer_params.fetch(:name))
@@ -49,24 +67,6 @@ module Api
         )
       end
 
-      def show
-        @manufacturer = ::Manufacturer.find(params.fetch(:id))
-        render(
-          json: {
-            manufacturer_id: @manufacturer.id,
-            name: @manufacturer.name,
-            models: first_ten(@manufacturer.id)
-          },
-          status: :ok
-        )
-      rescue ::ActiveRecord::RecordNotFound => e
-        render(
-          json: {
-            errors: [create_activerecord_error('manufacturer not found!', e)]
-          },
-          status: :not_found
-        )
-      end
 
       def all_manufacturers
         render(

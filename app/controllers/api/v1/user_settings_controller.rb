@@ -15,33 +15,6 @@ module Api
         )
       end
 
-      def destroy
-        # byebug
-        us = @user.user_setting
-        if (us == nil)
-          return render_empty
-        end
-
-        us.destroy!
-        render_empty
-      rescue ::ActiveRecord::RecordNotFound => e
-        ::Sentry.capture_exception(e)
-        render(
-          json: {
-            errors: [create_activerecord_notfound_error("Failed to destroy record, it doesn't exist? Possible bug, reported automatically.", e)]
-          },
-          status: :bad_request
-        )
-      rescue ::ActiveRecord::RecordNotDestroyed => e
-        ::Sentry.capture_exception(e)
-        render(
-          json: {
-            errors: [create_activerecord_error('Destroying user settings failed, reason unknown/unexpected! Reported automatically.', e)]
-          },
-          status: :internal_server_error
-        )
-      end
-
       def create
         # Will need to rewrite to use update if I have any other settings.
         place = Place.find_by(google_place_id: user_settings_params.fetch(:realtime_upload_google_place_id))
@@ -86,6 +59,33 @@ module Api
           status: :bad_request
         )
       end
+      def destroy
+        # byebug
+        us = @user.user_setting
+        if (us == nil)
+          return render_empty
+        end
+
+        us.destroy!
+        render_empty
+      rescue ::ActiveRecord::RecordNotFound => e
+        ::Sentry.capture_exception(e)
+        render(
+          json: {
+            errors: [create_activerecord_notfound_error("Failed to destroy record, it doesn't exist? Possible bug, reported automatically.", e)]
+          },
+          status: :bad_request
+        )
+      rescue ::ActiveRecord::RecordNotDestroyed => e
+        ::Sentry.capture_exception(e)
+        render(
+          json: {
+            errors: [create_activerecord_error('Destroying user settings failed, reason unknown/unexpected! Reported automatically.', e)]
+          },
+          status: :internal_server_error
+        )
+      end
+
 
       def user_settings_params
         params.require(:user_settings).permit(:realtime_upload_place_id, :realtime_upload_sub_location_id, :realtime_upload_google_place_id)
