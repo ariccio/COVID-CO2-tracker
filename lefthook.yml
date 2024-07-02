@@ -8,7 +8,7 @@ pre-push:
   follow: true
   scripts:
     "remind_i18next_typescript.rb":
-      runner: ruby  
+      runner: ruby
   commands:
     test-e2e:
       tags: e2e backend frontend
@@ -44,6 +44,10 @@ pre-commit:
       tags: security
       run: |
         bundle exec brakeman -w3 --no-progress --no-pager --skip-files node_modules/,/co2_client/,/co2_native_client/
+    # lint:
+    #   tags: frontend
+    #   run: npx eslint ./co2_client
+
     # doctor:
     #   tags: backend
     #   run: bundle exec rake active_record_doctor
