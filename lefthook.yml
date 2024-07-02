@@ -39,7 +39,7 @@ pre-commit:
       run: rspec ./spec
     rubocop:
       tags: backend
-      run: bundle exec rubocop --fail-level F
+      run: bundle exec rubocop --fail-level E
     brakeman:
       tags: security
       run: |

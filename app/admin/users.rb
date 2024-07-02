@@ -26,7 +26,7 @@
 
         # YES this sucks but will finish dev later.
         if Rails.env.development?
-          byebug
+          # 
         end
         column(:measurement) do |measurement|
           measurement

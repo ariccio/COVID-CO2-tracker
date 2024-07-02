@@ -161,7 +161,7 @@ module Api
       def create
 
         # TODO: wtf is the triple equals here? Wrong.
-        if (Rails.env === 'test') && (!(::ENV['IsEndToEndBackendServerSoSTFUWithTheLogs'] == 'yes'))
+        if (Rails.env == 'test') && (!(::ENV['IsEndToEndBackendServerSoSTFUWithTheLogs'] == 'yes'))
           ::Rails.logger.warn('test auth path')
           # No encryption for test env
           # byebug
