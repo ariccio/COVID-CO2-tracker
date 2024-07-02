@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # puts "#{Time.now.strftime("%H:%M:%S:%L")}: Start of config/environments/test.rb"
 
 require 'active_support/core_ext/integer/time'

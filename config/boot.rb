@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 puts "#{Time.now.strftime('%H:%M:%S:%L')}: Start of config/boot.rb"
 
 ::ENV['BUNDLE_GEMFILE'] ||= ::File.expand_path('../Gemfile', __dir__)

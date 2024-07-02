@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 puts 'Start of config/application.rb'
 require_relative 'boot'
 
