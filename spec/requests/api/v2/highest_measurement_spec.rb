@@ -47,7 +47,7 @@ RSpec.describe('Api::V2::HighestMeasurements', type: :request) do
       expect(json_response).to(eq(empty_highest_measurement))
     end
 
-    it ('can show the higher of two measurements after creation, first, and everything matches') do
+    it('can show the higher of two measurements after creation, first, and everything matches') do
       lower = Faker::Number.between(from: 400, to: 500)
       fake_crowd_create_lower = Faker::Number.between(from: 1, to: 5)
       fake_subloc_create_lower = Faker::Hipster.sentence(word_count: 3)

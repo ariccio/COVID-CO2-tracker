@@ -1,6 +1,6 @@
 namespace(:checks) do
     desc('runs various static analysis checks')
-    task (:active_record_doctor) do
+    task(:active_record_doctor) do
         Rake::Task['active_record_doctor'].invoke
     end
     # task (:rubocop) do
