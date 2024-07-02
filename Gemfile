@@ -34,11 +34,11 @@ end
 
 group :test do
   gem 'database_cleaner-active_record'
-  gem 'faker'
-  gem 'shoulda-matchers'
-  gem 'rspec-rails'
   gem 'factory_bot_rails'
+  gem 'faker'
   gem 'jsonapi-rspec'
+  gem 'rspec-rails'
+  gem 'shoulda-matchers'
 end
 
 group :development do
@@ -47,8 +47,8 @@ group :development do
   gem 'active_record_doctor'
   gem 'rails-erd', require: false
 
-  gem 'bullet'
   gem 'brakeman', require: false
+  gem 'bullet'
 end
 
 # group :production do
@@ -107,8 +107,8 @@ gem 'gems', '~> 1.2', require: false
 gem 'blueprinter', '~> 1.0'
 
 gem 'rubocop', require: false
-gem 'rubocop-rails', require: false
 gem 'rubocop-performance', require: false
+gem 'rubocop-rails', require: false
 
 
 group :development, :test do
