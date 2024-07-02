@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 ::Sentry.init do |config|
-  config.dsn = 'https://5c72ea76ca204179b35fa8a3eb847ab0@o584271.ingest.sentry.io/5737166' unless ((Rails.env == 'development') || (Rails.env == 'test') )
+  config.dsn = 'https://5c72ea76ca204179b35fa8a3eb847ab0@o584271.ingest.sentry.io/5737166' unless ((Rails.env == 'development') || (Rails.env == 'test'))
   config.breadcrumbs_logger = [:sentry_logger, :active_support_logger, :http_logger]
 
 

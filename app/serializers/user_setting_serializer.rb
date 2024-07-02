@@ -2,7 +2,7 @@ class UserSettingSerializer
   # TODO: add normalizer https://edgeguides.rubyonrails.org/7_1_release_notes.html#add-activerecord-base-normalizes
   include JSONAPI::Serializer
 
-  attributes( :realtime_upload_place, :realtime_upload_sub_location)
+  attributes(:realtime_upload_place, :realtime_upload_sub_location)
   # has_one(:place)
 
   # {:data=>{

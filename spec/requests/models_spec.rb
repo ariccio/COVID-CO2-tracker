@@ -33,8 +33,8 @@ RSpec.describe('Models', type: :request) do
         expect(show_model_response['name']).to(eq(new_model_name))
         expect(show_model_response['count']).to(eq(0))
         expect(show_model_response['measurement_count']).to(eq(0))
-        expect(show_model_response).to( include('admin_comments'))
-        expect(show_model_response).not_to( include('admin_comment_farts'))
+        expect(show_model_response).to(include('admin_comments'))
+        expect(show_model_response).not_to(include('admin_comment_farts'))
         # pp show_model_response
 
         created = ::AdminUser.first_or_create!(email: 'alexander@pooper', password: 'password', password_confirmation: 'password')
@@ -47,7 +47,7 @@ RSpec.describe('Models', type: :request) do
 
         get(api_v1_model_path(expected_model['model_id']))
         show_model_response_with_activeadmin_comment = json_response
-        expect(show_model_response_with_activeadmin_comment).to( include('admin_comments'))
+        expect(show_model_response_with_activeadmin_comment).to(include('admin_comments'))
 
         expected_admin_comment_author_id = created.id
         expected_admin_comment_body = nonsense_comment
