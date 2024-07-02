@@ -10,7 +10,7 @@ module RequestSpecHelper
     raise Error if jwt.nil?
       raise Error if jwt.blank?
       {
-          "Authorization": "Bearer #{jwt}"
+          Authorization: "Bearer #{jwt}"
       }
   end
   def invalid_jwt_header
