@@ -56,7 +56,7 @@ RSpec.describe('Devices', type: :request) do
 
 
     context('fail to create device in different ways') do
-      let(:max_id) { 9223372036854775807 }
+      let(:max_id) { 9_223_372_036_854_775_807 }
       before(:each) do
         @user_headers = new_valid_empty_user_req
         post(api_v1_manufacturers_path, headers: @user_headers, params: reasonable_manufacturer_params)

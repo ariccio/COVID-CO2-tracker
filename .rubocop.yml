@@ -46,6 +46,12 @@ Style/ClassAndModuleChildren:
 Style/RedundantReturn:
   Enabled: false
 
+Rails/Output:
+  Severity: info
+
+Metrics/BlockLength:
+  Severity: info
+
 AllCops:
   Exclude:
     - 'db/schema.rb'

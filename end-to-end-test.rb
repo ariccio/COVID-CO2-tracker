@@ -76,7 +76,7 @@ def run
         50.times do
             sleep(1)
             begin
-                puts "RAILS: #{rails_stdout.read_nonblock(10000)}"
+                puts "RAILS: #{rails_stdout.read_nonblock(10_000)}"
                 puts 'waiting'
             rescue IO::EAGAINWaitReadable => e
                 puts 'not ready yet'
@@ -86,10 +86,10 @@ def run
 
             begin
                 # if rails_stdout.ready?
-                puts "RAILS ERR: #{rails_stderr.read_nonblock(10000)}"
+                puts "RAILS ERR: #{rails_stderr.read_nonblock(10_000)}"
                 # end
-                puts "REACT: #{react_stdout.read_nonblock(10000)}"
-                puts "REACT ERR: #{react_stderr.read_nonblock(10000)}"
+                puts "REACT: #{react_stdout.read_nonblock(10_000)}"
+                puts "REACT ERR: #{react_stderr.read_nonblock(10_000)}"
                 # if react_stdout.ready?
                 # end
             rescue IO::EAGAINWaitReadable => e
@@ -97,8 +97,8 @@ def run
                 sleep(5)
             end
             begin
-                puts "REACT: #{react_stdout.read_nonblock(10000)}"
-                puts "REACT ERR: #{react_stderr.read_nonblock(10000)}"
+                puts "REACT: #{react_stdout.read_nonblock(10_000)}"
+                puts "REACT ERR: #{react_stderr.read_nonblock(10_000)}"
                 # if react_stdout.ready?
                 # end
             rescue IO::EAGAINWaitReadable => e
@@ -106,7 +106,7 @@ def run
                 sleep(5)
             end
             begin
-                puts "REACT ERR: #{react_stderr.read_nonblock(10000)}"
+                puts "REACT ERR: #{react_stderr.read_nonblock(10_000)}"
                 # if react_stdout.ready?
                 # end
             rescue IO::EAGAINWaitReadable => e

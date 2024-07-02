@@ -76,7 +76,7 @@ RSpec.describe('Measurements', type: :request) do
     end
 
     context('Failure to create measurement') do
-      let(:max_id) { 9223372036854775807 }
+      let(:max_id) { 9_223_372_036_854_775_807 }
       it('Cannot create measurement without logged in user') do
         new_measurement_1 = {
           measurement: {
