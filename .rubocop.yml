@@ -52,6 +52,21 @@ Rails/Output:
 Metrics/BlockLength:
   Severity: info
 
+Style/MethodCallWithoutArgsParentheses:
+  Enabled: false
+
+Style/RedundantConstantBase:
+  Enabled: false
+
+Layout/EmptyLines:
+  Severity: info
+
+Layout/EmptyLinesAroundMethodBody:
+  Severity: info
+
+Layout/EmptyLinesAroundBlockBody:
+  Severity: info
+
 AllCops:
   Exclude:
     - 'db/schema.rb'
