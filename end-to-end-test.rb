@@ -39,7 +39,7 @@ end
 
 def spawn_rails
     # rails_stdin, rails_stdout, rails_stderr, rails_wait_thr = Open3.popen3("rails s", opts: {}, env: {"PORT" => "3000"})
-    rails_stdin, rails_stdout, rails_stderr, rails_wait_thr = popen3_that_lets_me_set_fucking_env('rails s --log-to-stdout',{}, { 'PORT' => '3000' })
+    rails_stdin, rails_stdout, rails_stderr, rails_wait_thr = popen3_that_lets_me_set_fucking_env('rails s --log-to-stdout', {}, { 'PORT' => '3000' })
     # rails_stdin, rails_stdout, rails_stderr, rails_wait_thr = popen3_that_lets_me_set_fucking_env("rails s --help",{}, {"PORT" => "3000"})
     puts 'started!'
     # pp rails_wait_thr
@@ -61,7 +61,7 @@ def spawn_rails
 end
 
 def spawn_react_frontend
-    react_stdin, react_stdout, react_stderr, react_wait_thr = popen3_that_lets_me_set_fucking_env('yarn start',{ chdir: './co2_client' }, { 'PORT' => '3001' })
+    react_stdin, react_stdout, react_stderr, react_wait_thr = popen3_that_lets_me_set_fucking_env('yarn start', { chdir: './co2_client' }, { 'PORT' => '3001' })
     # sleep(2)
 end
 
