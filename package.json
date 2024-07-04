@@ -20,6 +20,7 @@
         "typescript": "^5.2.2"
     },
     "devDependencies": {
-        "cypress": "^13.7.1"
+        "cypress": "^13.7.1",
+        "picocolors": "^1.0.1"
     }
 }

@@ -6,6 +6,10 @@ import * as child_process from 'node:child_process';
 
 import {exec, SubProcess, SubProcessOptions} from 'teen_process';
 
+// var colors = require('colors');
+
+import picocolors from 'picocolors';
+
 console.log(`run_e2e.ts`);
 
 type procHandle = SubProcess | undefined;
@@ -57,8 +61,8 @@ function checkPortClear(port: string): boolean {
     try {
         const lsofResult = child_process.spawnSync('lsof', [`-i :${port} -P -V`], spawnOpts);
         if (lsofResult.status === 0) {
-            console.log(`processes on '${port}' (checkPortClear):\r\n${lsofResult.output.toString()}`);
-            console.log(`length of output (checkPortClear): ${lsofResult.output.length}`);
+            console.log(picocolors.yellow(`processes on '${port}' (checkPortClear):\r\n${lsofResult.output.toString()}`));
+            console.log(picocolors.yellow(`length of output (checkPortClear): ${lsofResult.output.length}`));
             return false;
         }
         else if (lsofResult.status === 1) {
@@ -68,16 +72,16 @@ function checkPortClear(port: string): boolean {
                 console.log(`port ${port} is clear!`);
                 return true;
             }
-            console.log(`lsof reported somethign ELSE for port ${port} (checkPortClear): ${lsofResult.output.toString()}!`);
+            console.log(picocolors.yellow(`lsof reported somethign ELSE for port ${port} (checkPortClear): ${lsofResult.output.toString()}!`));
             return false;
         }
-        console.warn(`lsof failed (checkPortClear): ${lsofResult.status}`);
+        console.warn(picocolors.red(`lsof failed (checkPortClear): ${lsofResult.status}`));
         console.dir(lsofResult);
-        console.log(`lsof output anyways (checkPortClear): ${lsofResult.output.toString()}`);
+        console.log(picocolors.yellow(`lsof output anyways (checkPortClear): ${lsofResult.output.toString()}`));
         return false;
     }
     catch (e) {
-        console.log(`spawning/calling/reading lsof failed and threw an exception! (checkPortClear) ${e}`);
+        console.log(picocolors.red(`spawning/calling/reading lsof failed and threw an exception! (checkPortClear) ${e}`));
         throw e;
     }
 }
@@ -119,7 +123,7 @@ function getPIDOfProcessThatHasOpenPort(port: string) {
         return null;
     }
     catch (e) {
-        console.log(`spawning/calling/reading lsof failed and threw an exception! (checkPortClear) ${e}`);
+        console.log(picocolors.red(`spawning/calling/reading lsof failed and threw an exception! (checkPortClear) ${e}`));
         throw e;
     }
 
@@ -144,16 +148,16 @@ function checkPortInUse(port: string): boolean {
                 console.log(`port ${port} is clear!`);
                 return false;
             }
-            console.log(`lsof reported somethign ELSE for port ${port} (checkPortInUse): ${lsofResult.output.toString()}!`);
+            console.log(picocolors.yellow(`lsof reported somethign ELSE for port ${port} (checkPortInUse): ${lsofResult.output.toString()}!`));
             return false;
         }
-        console.warn(`lsof failed (checkPortInUse): ${lsofResult.status}`);
+        console.warn(picocolors.red(`lsof failed (checkPortInUse): ${lsofResult.status}`));
         console.dir(lsofResult);
-        console.log(`lsof output anyways (checkPortInUse): ${lsofResult.output.toString()}`);
+        console.log(picocolors.yellow(`lsof output anyways (checkPortInUse): ${lsofResult.output.toString()}`));
         return false;
     }
     catch (e) {
-        console.log(`spawning/calling/reading lsof failed and threw an exception! (checkPortInUse) ${e}`);
+        console.log(picocolors.red(`spawning/calling/reading lsof failed and threw an exception! (checkPortInUse) ${e}`));
         throw e;
 
     }
@@ -173,9 +177,9 @@ function checkPorts() {
             console.log(`processes on ${DEFAULT_RAILS_PORT}: (checkPorts)\r\n${result3000.output.toString()}`);
         }
         else {
-            console.warn(`lsof failed (checkPorts): ${result3000.status}`);
+            console.warn(picocolors.red(`lsof failed (checkPorts): ${result3000.status}`));
             console.dir(result3000);
-            console.log(`lsof output anyways (checkPorts): ${result3000.output.toString()}`);
+            console.log(picocolors.yellow(`lsof output anyways (checkPorts): ${result3000.output.toString()}`));
         }
 
         const result3001 = child_process.spawnSync('lsof', [`-i :${DEFAULT_FRONTEND_PORT} -P`], spawnOpts);
@@ -185,13 +189,13 @@ function checkPorts() {
             console.log(`process on ${DEFAULT_FRONTEND_PORT} (checkPorts):\r\n${result3001.output.toString()}`);
         }
         else {
-            console.warn(`lsof failed (checkPorts): ${result3001.status}`);
+            console.warn(picocolors.red(`lsof failed (checkPorts): ${result3001.status}`));
             console.dir(result3001);
-            console.log(`lsof output anyways (checkPorts): ${result3001.output}`);
+            console.log(picocolors.yellow(`lsof output anyways (checkPorts): ${result3001.output}`));
         }
     }
     catch (e) {
-        console.log(`spawning/calling/reading lsof failed and threw an exception! (checkPorts) ${e}`);
+        console.log(picocolors.red(`spawning/calling/reading lsof failed and threw an exception! (checkPorts) ${e}`));
         throw e;
     }
 }
@@ -218,15 +222,15 @@ const cypressRailsStartDetector: startDetector = (stdout, stderr) => {
         throw new Error("Some cypress issue.");
     }
     if (/ERROR in/.test(stdout)) {
-        console.log("(stdout) Possible compilation error!");
+        console.log(picocolors.yellow("(stdout) Possible compilation error!"));
         throw new Error("(stdout) some kind of error - maybe compilation?");
     }
     if (/ERROR in/.test(stderr)) {
-        console.log("(stderr) Possible compilation error!");
+        console.log(picocolors.yellow("(stderr) Possible compilation error!"));
         throw new Error("(stderr) some kind of error - maybe compilation?");
     }
     if (/(Run Starting)/.test(stdout)) {
-        console.log(`\u001b[1m\u001b[32mfrontend seems to have started: ${stdout}\u001b[0m`);
+        console.log(picocolors.green(picocolors.bold(`frontend seems to have started: ${stdout}`)));
         return true;
     }    
     return false;
@@ -240,11 +244,11 @@ const webpackStartDetector: startDetector = (stdout, stderr) => {
         webpack_pid = webpack.pid;
     }
     if (/ERROR in/.test(stdout)) {
-        console.log("(stdout) Possible compilation error!");
+        console.log(picocolors.red("(stdout) Possible compilation error!"));
         throw new Error("(stdout) some kind of error - maybe compilation?");
     }
     if (/ERROR in/.test(stderr)) {
-        console.log("(stderr) Possible compilation error!");
+        console.log(picocolors.red("(stderr) Possible compilation error!"));
         throw new Error("(stderr) some kind of error - maybe compilation?");
     }
     if (/No issues found./.test(stdout)) {
@@ -286,7 +290,30 @@ function streamLineListener(line: string, procName: string): void {
 }
 function streamOutputListener(procName: string, stdout: string, stderr: string): void {
     if (stderr.length > 0 ) {
-        errors.push(`${procName}: stderr: ${stderr}`);
+            switch (procName) {
+                // ignore some warnings I don't care about
+                case 'cypress_rails':
+                    if (stderr.includes('DevTools listening')) {
+                        break;
+                    }
+
+                case 'webpack':
+                    if (stderr.includes('caniuse-lite is outdated')) {
+                        break;
+                    }
+                    if (stderr.includes('onBeforeSetupMiddleware')) {
+                        break;
+                    }
+                    if (stderr.includes('onAfterSetupMiddleware')) {
+                        break;
+                    }
+
+                default:
+                    errors.push(`${procName}: stderr: ${stderr}`);
+                    break;
+            }
+
+        
     }
     switch (procName) {
         case 'webpack':
@@ -354,11 +381,11 @@ async function politeCtrlC(proc: SubProcess): Promise<undefined | boolean> {
     catch (e) {
         if (e instanceof Error) {
             if (e.message.startsWith(`Can't stop process; it's not currently running`)) {
-                console.log(`Process was not running.`);
+                console.log(picocolors.yellow(`Process was not running.`));
                 return;
             }
             if (e.message.startsWith(`Process didn't end after `)) {
-                console.log(`process did not stop!`);
+                console.log(picocolors.yellow(`process did not stop!`));
                 proc.expectingExit
                 return false;
             }
@@ -381,16 +408,16 @@ async function politeTerminate(proc: SubProcess) {
 
 async function killProc(proc: SubProcess) {
     if (!(proc.isRunning)) {
-        console.log(`${proc.cmd} not running?`)
+        console.log(picocolors.yellow(`${proc.cmd} not running?`))
         return;
     }
-    console.log(`\t\t >>> sending terminate to ${proc.cmd} <<<`);
+    console.log(picocolors.yellow(`\t\t >>> sending terminate to ${proc.cmd} <<<`));
     await proc.stop('SIGKILL', 1000);
 }
 
 async function ensureClosed(proc?: SubProcess) {
     if (proc === undefined) {
-        console.warn("proc is undefined! Probably already closed.");
+        console.warn(picocolors.yellow("proc is undefined! Probably already closed."));
         return;
     }
     if (!(proc.isRunning)) {
@@ -409,7 +436,7 @@ async function ensureClosed(proc?: SubProcess) {
         if (e) {
             if ((e as any).message) {
                 if (/Can't stop process; it's not currently running/.test((e as Error).message)) {
-                    console.log("not running?")
+                    console.log(picocolors.yellow("not running?"))
                 //    break;
                 }
                 else {
@@ -424,7 +451,7 @@ async function ensureClosed(proc?: SubProcess) {
         await politeTerminate(proc);
     }
     catch (e) {
-        console.log(`Caught: ${String(e)}`);
+        console.log(picocolors.yellow(`Caught: ${String(e)}`));
         if (e) {
             if ((e as any).message) {
                 if (/Can't stop process; it's not currently running/.test((e as Error).message)) {
@@ -432,9 +459,9 @@ async function ensureClosed(proc?: SubProcess) {
                 }
             }
         }
-        console.log(`proc ${proc?.cmd} did NOT politely stop with term.`);
+        console.log(picocolors.yellow(`proc ${proc?.cmd} did NOT politely stop with term.`));
         await killProc(proc);
-        console.log(`${proc.cmd} killed?`);
+        console.log(picocolors.yellow(`${proc.cmd} killed?`));
         return;
     }
     return;
@@ -462,23 +489,23 @@ function forceCloseByKilling(pid: number | undefined) {
         // In theory could do better! https://dev.to/jdbar/the-problem-with-handling-node-js-errors-in-typescript-and-the-workaround-m64
         // https://github.com/nodejs/node/blob/4df34cf6dd497c4b7487c98fa5581c85b05063dc/lib/internal/errors.js#L720
         if (e.errno === undefined) {
-            console.warn("Caught non ErrnoException error!");
+            console.warn(picocolors.yellow("Caught non ErrnoException error! (missing errno)"));
             throw e;
         }
         if (e.code === undefined) {
-            console.warn("Caught non ErrnoException error!");
+            console.warn(picocolors.yellow("Caught non ErrnoException error! (missing code)"));
             throw e;
         }
         if (e.syscall === undefined) {
-            console.warn("Caught non ErrnoException error!");
+            console.warn(picocolors.yellow("Caught non ErrnoException error! (missing syscall)"));
             throw e;
         }
         if (e.message === undefined) {
-            console.warn("Caught non ErrnoException error!");
+            console.warn(picocolors.yellow("Caught non ErrnoException error! (missing message)"));
             throw e;
         }
         if (e.code === 'ESRCH') {
-            console.log(`pid ${pid} not found! Couldn't kill.`);
+            console.log(picocolors.yellow(`pid ${pid} not found! Couldn't kill.`));
             return;
         }
         throw e;
@@ -533,12 +560,12 @@ async function main() {
 
     const is3000Clear = checkPortClear(DEFAULT_RAILS_PORT);
     if (!is3000Clear) {
-        console.log(`port ${DEFAULT_RAILS_PORT} is not clear! Exiting.`);
+        console.log(picocolors.red(`port ${DEFAULT_RAILS_PORT} is not clear! Exiting.`));
         return 1;
     }
     const is3001Clear = checkPortClear(DEFAULT_FRONTEND_PORT);
     if (!is3001Clear) {
-        console.log(`port ${DEFAULT_FRONTEND_PORT} is not clear! Exiting.`);
+        console.log(picocolors.red(`port ${DEFAULT_FRONTEND_PORT} is not clear! Exiting.`));
         return 1;
     }
 
@@ -596,6 +623,8 @@ async function main() {
     let webpackEnv = JSON.parse(JSON.stringify(process.env));
     webpackEnv.PORT = DEFAULT_FRONTEND_PORT;
     webpackEnv.BROWSER = 'none';
+    webpackEnv.NODE_OPTIONS = addNodeOptions(webpackEnv);
+    webpackEnv.NODE_PENDING_DEPRECATION = '1';
     // webpackEnv.NODE_DEBUG = 'request,http,net';
 
     const webpack_opts: SubProcessOptions = {
@@ -642,7 +671,7 @@ async function main() {
         console.log("Ok, cypress_rails's port seems to be in use...");
     }
     else {
-        console.log("Cypress_rails's port is not in use? Exiting...");
+        console.log(picocolors.yellow("Cypress_rails's port is not in use? Exiting..."));
         return 1;
     }
     // console.log("SLEEPING FOR 60 SECONDS");
@@ -680,7 +709,7 @@ async function main() {
         return cypressResult;
     }
     catch (e) {
-        console.log(`done with EXCEPTION (-1)! Exiting...`);
+        console.log(picocolors.yellow(`done with EXCEPTION (-1)! Exiting...`));
         exceptionDump(e)
         await ensureClosed(cypress_rails)
         await ensureClosed(webpack);
@@ -692,27 +721,27 @@ async function main() {
     }
     finally {
         if (unhandledProcsNameOutput.length > 0) {
-            console.error(`\n\n\n\nProcesses with unhandled output:\n`);
+            console.error(picocolors.yellow(`\n\n\n\nProcesses with unhandled output:\n`));
             for (let i = 0; i < unhandledProcsNameOutput.length; ++i) {
-                console.error(`[${i}] ${unhandledProcsNameOutput[i]}`);
+                console.error(picocolors.yellow(`[${i}] ${unhandledProcsNameOutput[i]}`));
             }
         }
         if (unhandledProcsOutput.length > 0) {
-            console.error(`\n\n\n\nUnhandled process output:\n`);
+            console.error(picocolors.yellow(`\n\n\n\nUnhandled process output:\n`));
             for (let i = 0; i < unhandledProcsOutput.length; ++i) {
-                console.error(`[${i}] ${unhandledProcsOutput[i]}`);
+                console.error(picocolors.yellow(`[${i}] ${unhandledProcsOutput[i]}`));
             }
         }
         if (warnings.length > 0) {
-            console.error(`\n\nWarnings:\n`);
+            console.error(picocolors.yellow(`\n\nWarnings:\n`));
             for (let i = 0; i < warnings.length; ++i) {
-                console.error(`[${i}] ${warnings[i]}`);
+                console.warn(picocolors.yellow(`[${i}] ${warnings[i]}`));
             }
         }
         if (errors.length > 0 ) {
-            console.error(`\n\nErrors:\n`);
+            console.error(picocolors.yellow(`\n\nErrors:\n`));
             for (let i = 0; i < errors.length; ++i) {
-                console.error(`[${i}] ${errors[i]}`);
+                console.error(picocolors.yellow(`[${i}] ${errors[i]}`));
             }
         }
     }
@@ -722,6 +751,14 @@ async function main() {
 
 
 
+
+function addNodeOptions(webpackEnv: any): string {
+    const currentEnvNodeOptions = webpackEnv.NODE_OPTIONS;
+    if (currentEnvNodeOptions === undefined) {
+        return '--trace-deprecation';
+    }
+    return `${currentEnvNodeOptions} --trace-deprecation --trace-uncaught`;
+}
 
 function exceptionDump(e_: unknown) {
     if (!e_) {
@@ -769,7 +806,7 @@ main().then(
         });
     },
     (e) => {
-        console.log(`done with EXCEPTION (1)!`);
+        console.log(picocolors.yellow(`done with EXCEPTION (1)!`));
         exceptionDump(e)
         const cypressClosed = ensureClosed(cypress_rails);
         const webpackClosed = cypressClosed.then(() => {
@@ -786,7 +823,7 @@ main().then(
         });
     }
 ).catch((e) => {
-    console.log(`done with EXCEPTION (2)! Exiting...`);
+    console.log(picocolors.yellow(`done with EXCEPTION (2)! Exiting...`));
     exceptionDump(e);
     const cypressClosed = ensureClosed(cypress_rails);
     const webpackClosed = cypressClosed.then(() => {
@@ -809,12 +846,12 @@ main().then(
     return webpackClosed.then(() => {
         const is3000Clear = checkPortClear(DEFAULT_RAILS_PORT);
         if (!is3000Clear) {
-            console.log(`port ${DEFAULT_RAILS_PORT} is not clear!`);
+            console.log(picocolors.yellow(`port ${DEFAULT_RAILS_PORT} is not clear!`));
             // return 1;
         }
         const is3001Clear = checkPortClear(DEFAULT_FRONTEND_PORT);
         if (!is3001Clear) {
-            console.log(`port ${DEFAULT_FRONTEND_PORT} is not clear!`);
+            console.log(picocolors.yellow(`port ${DEFAULT_FRONTEND_PORT} is not clear!`));
             // return 1;
         }
     })
