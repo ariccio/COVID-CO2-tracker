@@ -30,6 +30,11 @@ import { useLoginApiKey } from './features/login/Login';
 import { AppDispatch } from './app/store';
 import { fetchJSONWithChecks } from './utils/FetchHelpers';
 import { API_URL, API_V2_URL } from './utils/UrlPath';
+import { Libraries, useJsApiLoader } from '@react-google-maps/api';
+import { setApiLoadError, setApiLoaded } from './features/google/googleSlice';
+
+export const GOOGLE_LIBRARIES: Libraries = ["places"];
+
 
 
 const NotFound = () => {
@@ -169,13 +174,50 @@ function GoogleOAuthProviderWrapper({children}: GoogleOAuthProviderWrapperProps)
   )
 }
 
+function APIKeyReady(props: {mapsAPIKey: string} ): JSX.Element {
+  const dispatch = useDispatch();
+  const { isLoaded, loadError } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: props.mapsAPIKey,
+    libraries: GOOGLE_LIBRARIES
+  })
+  useEffect(() => {
+    console.log(`apiLoaded: ${isLoaded}`);
+    debugger;
+    dispatch(setApiLoaded(isLoaded));
+  }, [isLoaded]);
+
+  useEffect(() => {
+    dispatch(setApiLoadError(loadError))
+  }, [loadError]);
+
+
+  return (<></>);
+}
+
+function APIKeyNotReady(): JSX.Element {
+  return (<></>);
+
+}
+
+function MapsAPILoaderWrapper(props: {mapsAPIKey: string | null} ): JSX.Element {
+  if (props.mapsAPIKey) {
+    return (<><APIKeyReady mapsAPIKey={props.mapsAPIKey}/></>);
+  }
+  return (<><APIKeyNotReady/></>)
+}
 
 
 
 // TODO: how to display network errors? some component to render above it?
 export function App(): JSX.Element {
   checkLanguages();
-  const earlyLoadMapsApiKey = useLoadMapsApiKey();
+  const dispatch = useDispatch();
+
+  
+  const {mapsAPIKey} = useLoadMapsApiKey();
+
+
 
   //TODO: https://docs.sentry.io/platforms/javascript/guides/react/enriching-events/user-feedback/
   //https://docs.sentry.io/platforms/javascript/guides/react/components/errorboundary/
@@ -184,6 +226,7 @@ export function App(): JSX.Element {
       <div className="App">
         <Sentry.ErrorBoundary fallback={TopLevelErrorFallback} showDialog dialogOptions={dialogOptionsForSentry}>
          <GoogleOAuthProviderWrapper>
+            <MapsAPILoaderWrapper mapsAPIKey={mapsAPIKey}/>
             <NavBar/>
             <RoutesContainer/>
             <BottomNav/>

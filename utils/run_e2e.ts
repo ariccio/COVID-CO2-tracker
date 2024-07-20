@@ -252,7 +252,7 @@ const webpackStartDetector: startDetector = (stdout, stderr) => {
         throw new Error("(stderr) some kind of error - maybe compilation?");
     }
     if (/No issues found./.test(stdout)) {
-        console.log(`Webpack seems ready: ${stdout}`);
+        console.log(picocolors.green(`Webpack seems ready: ${stdout}`));
         return true;
     }
     if (/Something is already running/.test(stdout)) {

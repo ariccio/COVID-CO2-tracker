@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 
 import {Container, Row, Col} from 'react-bootstrap';
 
-import {selectSelectedPlace, defaultGooglePlacesState, selectPlacesServiceStatus, selectMapsAaPeEyeKey, selectMapsAaaPeeEyeKeyErrorState, setMapsAaaPeeEyeKey, setMapsAaaPeeEyeKeyErrorState} from '../google/googleSlice';
+import {selectSelectedPlace, defaultGooglePlacesState, selectPlacesServiceStatus, selectMapsAaPeEyeKey, selectMapsAaaPeeEyeKeyErrorState, setMapsAPIKey, setMapsApiKeyErrorState} from '../google/googleSlice';
 import {getGoogleMapsJavascriptAaaaPeeEyeKey} from '../../utils/GoogleAPIKeys';
 
 import {GoogleMapsContainer} from '../google/GoogleMaps';
@@ -30,23 +30,14 @@ import { HighestMeasurementsContainer } from "../stats/HighestMeasurements";
 
 
 
-const renderMapsWhenLoaded = (mapsAaaPeeEyeKey: string, service: google.maps.places.PlacesService | null, setService: Dispatch<SetStateAction<google.maps.places.PlacesService | null>>) => {
-    if (mapsAaaPeeEyeKey !== '') {
-        return (
-            <div>
-                <Suspense fallback="google maps container loading translations...">
-                    <GoogleMapsContainer definitely_not_an_apeeeye_key={mapsAaaPeeEyeKey} service={service} setService={setService}/>
-                </Suspense>
-            </div>
-        )
-    }
+const renderMapsWhenLoaded = (service: google.maps.places.PlacesService | null, setService: Dispatch<SetStateAction<google.maps.places.PlacesService | null>>) => {
     return (
         <div>
-            <span>
-                Loading google maps key...
-            </span>
+            <Suspense fallback="google maps container loading translations...">
+                <GoogleMapsContainer service={service} setService={setService}/>
+            </Suspense>
         </div>
-    );
+    )
 }
 
 // const mapsDivStyle: CSSProperties = {
@@ -157,23 +148,30 @@ function renderWelcomeLoading() {
 }
 
 export const useLoadMapsApiKey = () => {
-    const mapsAaaPeeEyeKey = useSelector(selectMapsAaPeEyeKey);
+    const mapsAPIKey = useSelector(selectMapsAaPeEyeKey);
+    const mapsAPIKeyErrorState = useSelector(selectMapsAaaPeeEyeKeyErrorState);
     // const mapsAaPeeEyeKeyErrorState = useSelector(selectMapsAaaPeeEyeKeyErrorState);
     const dispatch = useDispatch();
 
     useEffect(() => {
-        if (mapsAaaPeeEyeKey !== '') {
+        if ((mapsAPIKey !== '') && (mapsAPIKey !== null)) {
             return;
         }
         getGoogleMapsJavascriptAaaaPeeEyeKey().then((key: string) => {
-            dispatch(setMapsAaaPeeEyeKey(key));
+            if (key.length > 0) {
+                dispatch(setMapsAPIKey(key));
+            }
+            else {
+                console.error("empty key string?")
+                dispatch(setMapsApiKeyErrorState("key is empty string?"))
+            }
         }).catch((error) => {
             Sentry.captureException(error);
-            dispatch(setMapsAaaPeeEyeKeyErrorState(error.message));
+            dispatch(setMapsApiKeyErrorState(error.message));
         });
-    }, [dispatch, mapsAaaPeeEyeKey]);
+    }, [dispatch, mapsAPIKey]);
 
-    return 
+    return { mapsAPIKey, mapsAPIKeyErrorState};
 
 }
 
@@ -200,7 +198,7 @@ const HomePage = () => {
 
     const navigate = useNavigate();
     const {placeId} = useParams();
-    const mapsApiHook = useLoadMapsApiKey();
+    // const mapsApiHook = useLoadMapsApiKey();
 
     // useEffect(() => {
     //     if (placeId === undefined) {
@@ -257,10 +255,6 @@ const HomePage = () => {
     }
     //TODO: google maps goes to default (wrong) center on selecting different location
 
-    if (mapsAaaPeeEyeKey === '') {
-        return renderWelcomeLoading();     
-    }
-
     return (
         <div>
             <h3 id='welcome-header'>{translate('welcome-header')}</h3>
@@ -271,7 +265,7 @@ const HomePage = () => {
             <Container>
                 <Row className="show-grid">
                     <Col md={6} xs={12}>
-                        {renderMapsWhenLoaded(mapsAaaPeeEyeKey, service, setService)}
+                        {renderMapsWhenLoaded(service, setService)}
                         <br/>
                         {mapsAaPeeEyeKeyErrorState}
                         <br/><br/>

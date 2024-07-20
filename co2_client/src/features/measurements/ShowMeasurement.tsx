@@ -79,8 +79,9 @@ const DivElem = (props: {elementRef: React.MutableRefObject<HTMLDivElement | nul
     );
 }
 
-function MaybeApiKeyError(props: {mapsAaaPeeEyeKey: string, mapsAaaPeeEyeKeyErrorState: string}) {
-    if (props.mapsAaaPeeEyeKey === '') {
+function MaybeApiKeyError(props: {mapsAaaPeeEyeKeyErrorState: string}) {
+    const mapsAPIKey = useSelector(selectMapsAaPeEyeKey);
+    if (mapsAPIKey === '') {
         if (props.mapsAaaPeeEyeKeyErrorState !== '') {
             return (
                 <div>
@@ -99,16 +100,16 @@ function MaybeApiKeyError(props: {mapsAaaPeeEyeKey: string, mapsAaaPeeEyeKeyErro
 }
 
 
-const renderPlaceDetailsWithPlaceInfoFromParent = (measurementInfo: ShowMeasurementResponse, mapsAaaPeeEyeKey: string, mapsAaaPeeEyeKeyErrorState: string, currentPlaceIfFromSingleParentLocation: google.maps.places.PlaceResult) => {
+const renderPlaceDetailsWithPlaceInfoFromParent = (measurementInfo: ShowMeasurementResponse, mapsAaaPeeEyeKeyErrorState: string, currentPlaceIfFromSingleParentLocation: google.maps.places.PlaceResult) => {
     return (
         <div>
-            <MaybeApiKeyError mapsAaaPeeEyeKey={mapsAaaPeeEyeKey} mapsAaaPeeEyeKeyErrorState={mapsAaaPeeEyeKeyErrorState}/>
-            <PlaceDetailsSingleMeasurement placeId={measurementInfo.place_id} mapsAaPeeEyeKey={mapsAaaPeeEyeKey} currentPlaceIfFromSingleParentLocation={currentPlaceIfFromSingleParentLocation}/>
+            <MaybeApiKeyError mapsAaaPeeEyeKeyErrorState={mapsAaaPeeEyeKeyErrorState}/>
+            <PlaceDetailsSingleMeasurement placeId={measurementInfo.place_id} currentPlaceIfFromSingleParentLocation={currentPlaceIfFromSingleParentLocation}/>
         </div>
     )
 }
 
-const renderPlaceDetails = (measurementInfo: ShowMeasurementResponse, elementRef: React.MutableRefObject<HTMLDivElement | null>, mapsAaaPeeEyeKey: string, mapsAaaPeeEyeKeyErrorState: string, currentPlaceIfFromSingleParentLocation?: google.maps.places.PlaceResult) => {
+const renderPlaceDetails = (measurementInfo: ShowMeasurementResponse, elementRef: React.MutableRefObject<HTMLDivElement | null>, mapsAaaPeeEyeKeyErrorState: string, currentPlaceIfFromSingleParentLocation?: google.maps.places.PlaceResult) => {
     if (elementRef === null) {
         return (
             <div>
@@ -117,19 +118,19 @@ const renderPlaceDetails = (measurementInfo: ShowMeasurementResponse, elementRef
         )
     }
     if (currentPlaceIfFromSingleParentLocation !== undefined) {
-        return renderPlaceDetailsWithPlaceInfoFromParent(measurementInfo, mapsAaaPeeEyeKey, mapsAaaPeeEyeKeyErrorState, currentPlaceIfFromSingleParentLocation);
+        return renderPlaceDetailsWithPlaceInfoFromParent(measurementInfo, mapsAaaPeeEyeKeyErrorState, currentPlaceIfFromSingleParentLocation);
     }
     debugger;
     return (
         <div>
             {/* <Link to={`${placesPath}/${measurementInfo.place_id}`}>{measurementInfo.place_id}</Link> */}
-            <MaybeApiKeyError mapsAaaPeeEyeKey={mapsAaaPeeEyeKey} mapsAaaPeeEyeKeyErrorState={mapsAaaPeeEyeKeyErrorState}/>
-            <PlaceDetails placeId={measurementInfo.place_id} divRef={elementRef} mapsAaPeeEyeKey={mapsAaaPeeEyeKey}/>
+            <MaybeApiKeyError mapsAaaPeeEyeKeyErrorState={mapsAaaPeeEyeKeyErrorState}/>
+            <PlaceDetails placeId={measurementInfo.place_id} divRef={elementRef} />
         </div>
     )
 }
 
-const RenderModalBody = (props: {errors: string, measurementInfo: ShowMeasurementResponse, deviceSerials: Array<SerializedSingleDeviceSerial>, deviceSerialsErrorState: string, elementRef: React.MutableRefObject<HTMLDivElement | null>, mapsAaaPeeEyeKey: string, mapsAaaPeeEyeKeyErrorState: string, currentPlaceIfFromSingleParentLocation?: google.maps.places.PlaceResult}) => {
+const RenderModalBody = (props: {errors: string, measurementInfo: ShowMeasurementResponse, deviceSerials: Array<SerializedSingleDeviceSerial>, deviceSerialsErrorState: string, elementRef: React.MutableRefObject<HTMLDivElement | null>, mapsAaaPeeEyeKeyErrorState: string, currentPlaceIfFromSingleParentLocation?: google.maps.places.PlaceResult}) => {
     const [translate] = useTranslation();
     const percent = percentRebreathedFromPPM(props.measurementInfo.data.data.attributes.co2ppm);
     const displayRebreathed = rebreathedToString(percent);
@@ -182,7 +183,7 @@ const RenderModalBody = (props: {errors: string, measurementInfo: ShowMeasuremen
                 
                 <br/>
                 <br/>
-                {renderPlaceDetails(props.measurementInfo, props.elementRef, props.mapsAaaPeeEyeKey, props.mapsAaaPeeEyeKeyErrorState, props.currentPlaceIfFromSingleParentLocation)}
+                {renderPlaceDetails(props.measurementInfo, props.elementRef, props.mapsAaaPeeEyeKeyErrorState, props.currentPlaceIfFromSingleParentLocation)}
             </Modal.Body>
 
         </div>
@@ -191,7 +192,7 @@ const RenderModalBody = (props: {errors: string, measurementInfo: ShowMeasuremen
 
 export const ShowMeasurementModal: React.FC<ShowMeasurementModalProps> = (props: ShowMeasurementModalProps) => {
 
-    const mapsAaPeeEyeKey = useSelector(selectMapsAaPeEyeKey);
+    // const mapsAaPeeEyeKey = useSelector(selectMapsAaPeEyeKey);
     const mapsAaaPeeEyeKeyErrorState = useSelector(selectMapsAaaPeeEyeKeyErrorState);
 
     const [measurementInfo, setMeasurementInfo] = useState(defaultShowMeasurementResponse);
@@ -266,7 +267,7 @@ export const ShowMeasurementModal: React.FC<ShowMeasurementModalProps> = (props:
                 <ModalHeader measurementID={props.selectedMeasurement}/>
                 <DivElem elementRef={elementRef}/>
                 <Suspense fallback="Loading translation">
-                    <RenderModalBody errors={errors} measurementInfo={measurementInfo} deviceSerials={deviceSerials} deviceSerialsErrorState={deviceSerialsErrorState} elementRef={elementRef} mapsAaaPeeEyeKey={mapsAaPeeEyeKey} mapsAaaPeeEyeKeyErrorState={mapsAaaPeeEyeKeyErrorState} currentPlaceIfFromSingleParentLocation={props.currentPlaceIfFromSingleParentLocation}/>
+                    <RenderModalBody errors={errors} measurementInfo={measurementInfo} deviceSerials={deviceSerials} deviceSerialsErrorState={deviceSerialsErrorState} elementRef={elementRef} mapsAaaPeeEyeKeyErrorState={mapsAaaPeeEyeKeyErrorState} currentPlaceIfFromSingleParentLocation={props.currentPlaceIfFromSingleParentLocation}/>
                 </Suspense>
             </Modal>
 

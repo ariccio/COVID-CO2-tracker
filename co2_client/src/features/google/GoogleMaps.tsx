@@ -5,14 +5,14 @@ import {useSelector} from 'react-redux';
 import * as Sentry from "@sentry/browser"; // for manual error reporting.
 
 
-import { GoogleMap, useJsApiLoader, Autocomplete, Marker, MarkerClusterer, Libraries } from '@react-google-maps/api';
+import { GoogleMap, Autocomplete, Marker, MarkerClusterer, Libraries } from '@react-google-maps/api';
 import { Button, Form } from 'react-bootstrap';
 
 
 import { useTranslation } from 'react-i18next';
 
 
-import {selectSelectedPlace, selectPlacesServiceStatus, autocompleteSelectedPlaceToAction, placeResultWithTranslatedType, defaultCenter} from '../google/googleSlice';
+import {selectSelectedPlace, selectPlacesServiceStatus, autocompleteSelectedPlaceToAction, placeResultWithTranslatedType, defaultCenter, selectApiLoaded, selectApiLoadError} from '../google/googleSlice';
 
 import {setSelectedPlace, INTERESTING_FIELDS, setMapCenter} from './googleSlice';
 
@@ -39,11 +39,10 @@ import {
 //decls:
 // type Libraries = ("drawing" | "geometry" | "localContext" | "places" | "visualization")[];
 
-export const GOOGLE_LIBRARIES: Libraries = ["places"];
+// export const GOOGLE_LIBRARIES: Libraries = ["places"];
 
 
 interface MapsProps {
-    definitely_not_an_apeeeye_key: string;
     service: google.maps.places.PlacesService | null;
     setService: Dispatch<SetStateAction<google.maps.places.PlacesService | null>>;
 }
@@ -1073,6 +1072,10 @@ export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) =
     //Should be useRef
     const selectedPlace = useSelector(selectSelectedPlace);
     
+
+    const apiLoaded = useSelector(selectApiLoaded);
+    const loadError = useSelector(selectApiLoadError);
+
     // Displayed on HomePage.
     // const selectedPlaceInfoFromDatabaseErrors = useSelector(selectPlacesInfoErrors);
 
@@ -1084,11 +1087,11 @@ export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) =
     //Needed (for now) to update on clicking markers
     // const [selectedPlaceIdString, setSelectedPlaceIdString] = useState('');
 
-    const { isLoaded, loadError } = useJsApiLoader({
-        id: 'google-map-script',
-        googleMapsApiKey: props.definitely_not_an_apeeeye_key,
-        libraries: GOOGLE_LIBRARIES
-    })
+    // const { isLoaded, loadError } = useJsApiLoader({
+    //     id: 'google-map-script',
+    //     googleMapsApiKey: props.definitely_not_an_apeeeye_key,
+    //     libraries: GOOGLE_LIBRARIES
+    // })
 
 
     //Pan to selected place only on first load after login, should utilize a useRef for selected place.
@@ -1148,7 +1151,7 @@ export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) =
 
     useEffect(legalNoticeNote, []);
     
-    if (isLoaded) {
+    if (apiLoaded) {
         
         // Dump places for debugging, ugly a.f.
         // if (placeMarkersFromDatabase.places !== null) {
@@ -1173,10 +1176,20 @@ export const GoogleMapsContainer: React.FunctionComponent<MapsProps> = (props) =
             </div>
         );
     }
-    if (loadError) {
-        return (
-            <MapsLoadError loadError={loadError}/>
-        );
+    if (apiLoaded === null) {
+        if (loadError === undefined) {
+            return (<>Loading maps API...</>);
+        }
+        return <MapsLoadError loadError={loadError}/>
+    }
+    if (!apiLoaded) {
+        if (loadError) {
+            return (
+                <MapsLoadError loadError={loadError}/>
+            );
+        }
+        return (<>Loading maps API...</>)
+
     }
     return (
         <div>

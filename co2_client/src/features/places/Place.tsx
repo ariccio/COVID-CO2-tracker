@@ -9,7 +9,7 @@ import { updatePlacesInfoFromBackend } from '../../utils/QueryPlacesInfo';
 import { selectPlaceExistsInDatabase, selectPlacesInfoErrors, selectPlacesInfoFromDatabase } from './placesSlice';
 
 // import { renderSelectedPlaceInfo} from '../home/HomePage';
-import { selectMapsAaPeEyeKey, selectMapsAaaPeeEyeKeyErrorState, setMapsAaaPeeEyeKey, setMapsAaaPeeEyeKeyErrorState } from '../google/googleSlice';
+import { selectMapsAaPeEyeKey, selectMapsAaaPeeEyeKeyErrorState, setMapsAPIKey, setMapsApiKeyErrorState } from '../google/googleSlice';
 import { getGoogleMapsJavascriptAaaaPeeEyeKey } from '../../utils/GoogleAPIKeys';
 import { RenderFromDatabaseNoGoogleParam } from './RenderPlaceFromDatabase';
 
@@ -36,17 +36,17 @@ const Place = () => {
     const {placeId} = useParams();
 
     const elementRef = useRef(null as HTMLDivElement | null);
-    useEffect(() => {
-        if (mapsAaPeeEyeKey !== '') {
-            return;
-        }
-        getGoogleMapsJavascriptAaaaPeeEyeKey().then((key: string) => {
-            dispatch(setMapsAaaPeeEyeKey(key));
-        }).catch((error) => {
-            dispatch(setMapsAaaPeeEyeKeyErrorState(error.message));
-            Sentry.captureException(error);
-        });
-    }, [dispatch, mapsAaPeeEyeKey]);
+    // useEffect(() => {
+    //     if (mapsAaPeeEyeKey !== '') {
+    //         return;
+    //     }
+    //     getGoogleMapsJavascriptAaaaPeeEyeKey().then((key: string) => {
+    //         dispatch(setMapsAaaPeeEyeKey(key));
+    //     }).catch((error) => {
+    //         dispatch(setMapsAaaPeeEyeKeyErrorState(error.message));
+    //         Sentry.captureException(error);
+    //     });
+    // }, [dispatch, mapsAaPeeEyeKey]);
 
 
 
@@ -100,7 +100,7 @@ const Place = () => {
             Place {placeId}
             <Suspense fallback="loading translations...">
                 <DivElem elementRef={elementRef}/>
-                <PlaceDetails mapsAaPeeEyeKey={mapsAaPeeEyeKey} placeId={placeId} divRef={elementRef}/>
+                <PlaceDetails placeId={placeId} divRef={elementRef}/>
                 {/* <RenderFromDatabaseNoGoogleParam selectedPlaceInfoFromDatabase={selectedPlaceInfoFromDatabase} selectedPlaceInfoErrors={selectedPlaceInfoFromDatabaseErrors} selectedPlaceExistsInDatabase={selectedPlaceExistsInDatabase}/> */}
             </Suspense>
             <br/>

@@ -9,7 +9,6 @@ import {BrowserRouter} from 'react-router-dom';
 import * as serviceWorker from './serviceWorker';
 import * as Sentry from "@sentry/react";
 import { Integrations } from "@sentry/tracing";
-
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 
@@ -56,6 +55,8 @@ root.render(
     </Provider>
   </React.StrictMode>,
 );
+
+
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.
