@@ -3,7 +3,8 @@ import * as Sentry from "@sentry/browser"; // for manual error reporting.
 import { AppDispatch } from "../../app/store";
 import { updatePlacesInfoFromBackend } from "../../utils/QueryPlacesInfo";
 import { setSublocationSelectedLocationID } from "../sublocationsDropdown/sublocationSlice";
-import { autocompleteSelectedPlaceToAction, INTERESTING_FIELDS, setPlacesServiceStatus, setSelectedPlace } from "./googleSlice";
+import { autocompleteSelectedPlaceToAction, INTERESTING_FIELDS, NAME_ONLY_FIELDS, setPlacesServiceStatus, setSelectedPlace } from "./googleSlice";
+import { Dispatch, SetStateAction } from "react";
 
 function warnFieldMessage(): void {
     console.warn(`Warning: If you do not specify at least one field with a request, or if you omit the fields parameter from a request, ALL possible fields will be returned, and you will be billed accordingly. This applies only to Place Details requests (including Place Details requests made from the Place Autocomplete widget).`);
@@ -82,7 +83,6 @@ const getDetailsCallback = (result: google.maps.places.PlaceResult | null, statu
         reportWeirdness(result, status);
         return;
     }
-    // debugger;
     // setPlacesServiceStatus(status);
     if (result === null) {
         console.error("PlaceResult is null?");
@@ -100,10 +100,19 @@ const getDetailsCallback = (result: google.maps.places.PlaceResult | null, statu
         throw new Error("google places result is missing place_id! Something is broken.");
     }
     // console.log(result.utc_offset_minutes);
-    // debugger;
-    // result.
     updatePlacesInfoFromBackend(result.place_id, dispatch);
 }
+
+const getNameCallback = (result: google.maps.places.PlaceResult | null, status: google.maps.places.PlacesServiceStatus) => {
+    console.log(`Places service status: ${status}`);
+    console.log(`Place name result: ${JSON.stringify(result)}`)
+    return (
+        {
+            status,
+            result
+        });
+}
+
 
 const getDetailsCallbackSingleMeasurement = (result: google.maps.places.PlaceResult | null, status: google.maps.places.PlacesServiceStatus) => {
     // dispatch(setPlacesServiceStatus(status));
@@ -170,6 +179,54 @@ export const updatePlacesServiceDetailsOnNewPlace = (service: google.maps.places
      */
     console.log(`Requesting update from google for place '${place_id}'...`);
     service.getDetails(request, detailsCallbackThunk);
+}
+
+export function getPlaceName(service: google.maps.places.PlacesService | null, place_id: string, setPlacesStatus: Dispatch<SetStateAction<google.maps.places.PlacesServiceStatus | null>>, setPlaceName: Dispatch<SetStateAction<string | null>>) {
+    if (service === null) {
+        // debugger;
+        console.log("places service not ready yet");
+        return;
+    }
+    if (place_id === null) {
+        // debugger;
+        console.warn("place_id is null from autocomplete?");
+        return;
+    }
+    checkInterestingFields(NAME_ONLY_FIELDS);
+    if (place_id === undefined) {
+        console.log("no place id.");
+        return;
+    }
+    const request: google.maps.places.PlaceDetailsRequest = {
+        placeId: place_id,
+        fields: NAME_ONLY_FIELDS
+    };
+    console.log(`Requesting name from google for place '${place_id}'...`);
+
+    const detailsCallbackThunk = (result: google.maps.places.PlaceResult | null, status: google.maps.places.PlacesServiceStatus) => {
+        const response = getNameCallback(result, status);
+        console.log(`name response: ${JSON.stringify(response)}`);
+
+        /*
+            {"name":"Hospital for Special Surgery Main Hospital","place_id":"ChIJ9z3A-cNYwokRlZ6EH23xq1c","html_attributions":[]}
+        */
+        setPlacesStatus(response.status);
+        if (response.result !== null) {
+            if (response.result.name === undefined) {
+                console.error("PlaceResult is missing name?");
+                debugger;
+            }
+            else {
+                setPlaceName(response.result.name);
+            }
+        }
+    }
+
+
+    service.getDetails(request, detailsCallbackThunk);
+
+
+
 }
 
 

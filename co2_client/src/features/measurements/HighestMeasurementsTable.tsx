@@ -8,6 +8,7 @@ import { placesPath } from "../../paths/paths";
 import { Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { Table } from "react-bootstrap";
+import { PlaceName } from "../places/PlaceName";
 
 
 
@@ -81,7 +82,7 @@ function copilotPlaceNotInList(measurement: basicMeasurement, sublocation: basic
 
 
 // | null because some typescript fuckwittery?
-function measurementCallback(measurement: basicMeasurement, placesList: basicPlace[] | null, sublocationsList: basicSublocation[] | null): JSX.Element | null {
+function measurementCallback(measurement: basicMeasurement, placesList: basicPlace[] | null, sublocationsList: basicSublocation[] | null, elementRef: React.MutableRefObject<HTMLDivElement | null>): JSX.Element | null {
 
     if (placesList === null) {
         debugger;
@@ -121,7 +122,7 @@ function measurementCallback(measurement: basicMeasurement, placesList: basicPla
             <td>{sublocation.description}</td>
             <td>
                 <Link to={`${placesPath}/${place.google_place_id}`}>
-                    <b>Link for place (TODO)</b>
+                    <b>Link for <PlaceName placeId={place.google_place_id} divRef={elementRef}/></b>
                 </Link>
             </td>
             <td>{measurement.measurementtime}</td>
@@ -129,8 +130,11 @@ function measurementCallback(measurement: basicMeasurement, placesList: basicPla
     )
 }
 
-export const HighestMeasurementsTable = (props: {highestMeasurementsResponse: HighestMeasurementsResponse, errorState: string | null}) => {
+
+
+export const HighestMeasurementsTable = (props: {highestMeasurementsResponse: HighestMeasurementsResponse, errorState: string | null, elementRef: React.MutableRefObject<HTMLDivElement | null>}) => {
     
+
     if (props.highestMeasurementsResponse.ten_measurements === null) {
         return null;
     }
@@ -146,10 +150,11 @@ export const HighestMeasurementsTable = (props: {highestMeasurementsResponse: Hi
     return (
         <div>
             <Suspense fallback="Loading translations...">
+                
                 <Table striped bordered hover>
                     <HighestMeasurementTableHeader/>
                     <tbody>
-                        {props.highestMeasurementsResponse.ten_measurements.map((measurement) => measurementCallback(measurement, props.highestMeasurementsResponse.ten_places, props.highestMeasurementsResponse.ten_sublocations)) }
+                        {props.highestMeasurementsResponse.ten_measurements.map((measurement) => measurementCallback(measurement, props.highestMeasurementsResponse.ten_places, props.highestMeasurementsResponse.ten_sublocations, props.elementRef)) }
                     </tbody>
                 </Table>
             </Suspense>

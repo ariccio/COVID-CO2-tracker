@@ -183,7 +183,7 @@ function APIKeyReady(props: {mapsAPIKey: string} ): JSX.Element {
   })
   useEffect(() => {
     console.log(`apiLoaded: ${isLoaded}`);
-    debugger;
+    // debugger;
     dispatch(setApiLoaded(isLoaded));
   }, [isLoaded]);
 

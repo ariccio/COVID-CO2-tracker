@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/browser"; // for manual error reporting.
 
-import React, {useEffect, useState, Suspense, Dispatch, SetStateAction} from 'react';
+import React, {useEffect, useState, Suspense, useRef} from 'react';
 import { useTranslation } from 'react-i18next';
 
 
@@ -104,7 +104,7 @@ function fetchHighestScores(setErrorState: React.Dispatch<React.SetStateAction<s
     });
 }
 
-const HighestMeasurements: React.FC<{highestMeasurementsResponse: HighestMeasurementsResponse, errorState: string | null}> = (props) => {
+const HighestMeasurements: React.FC<{highestMeasurementsResponse: HighestMeasurementsResponse, errorState: string | null, showDetails: boolean, elementRef: React.MutableRefObject<HTMLDivElement | null>}> = (props) => {
     const [translate] = useTranslation();
 
     if (props.errorState !== null) {
@@ -123,9 +123,15 @@ const HighestMeasurements: React.FC<{highestMeasurementsResponse: HighestMeasure
         );
     }
 
+    if (!props.showDetails) {
+        console.log("not showing details");
+        // debugger;
+        return null;
+    }
+    // debugger;
     return (
         <div>
-            <HighestMeasurementsTable highestMeasurementsResponse={props.highestMeasurementsResponse} errorState={props.errorState}/>
+            <HighestMeasurementsTable highestMeasurementsResponse={props.highestMeasurementsResponse} errorState={props.errorState} elementRef={props.elementRef}/>
         </div>
     )
 
@@ -147,23 +153,40 @@ const HighestMeasurementPreview: React.FC<{highestMeasurementsResponse: HighestM
 
 }
 
+const DivElem = (props: {elementRef: React.MutableRefObject<HTMLDivElement | null>}) => {
+    return (
+        <div id='ghost-table-elem' ref={props.elementRef}>
+        </div>
+    );
+}
+
+
 export const HighestMeasurementsContainer = () => {
     const [translate] = useTranslation();
     const [errorState, setErrorState] = useState(null as string | null);
     const [highestMeasurementsResponse, setHighestMeasurementsResponse] = useState(defaultHighestMeasurementsResponse);
-
+    const [showDetails, setShowDetails] = useState(false);
+    const elementRef = useRef(null as HTMLDivElement | null);
     useEffect(() => {
         fetchHighestScores(setErrorState, setHighestMeasurementsResponse);
       }, []);
     
+    useEffect(() => {
+        console.log(`showDetails: ${showDetails}`);
+    }, [showDetails])
+
     return (
         <div>
+            <DivElem elementRef={elementRef}/>
             <Suspense fallback="Loading translations...">
-            <details>
+            <details onToggle={() => {
+                console.log(`Toggling details. Current: ${showDetails}`);
+                setShowDetails(!showDetails)
+            }}>
                 <summary>
                     {translate('largest-measurements')} <HighestMeasurementPreview highestMeasurementsResponse={highestMeasurementsResponse}/>
                 </summary>
-                    <HighestMeasurements highestMeasurementsResponse={highestMeasurementsResponse} errorState={errorState}/>
+                    <HighestMeasurements highestMeasurementsResponse={highestMeasurementsResponse} errorState={errorState} elementRef={elementRef} showDetails={showDetails} />
                 </details>
             </Suspense>
 

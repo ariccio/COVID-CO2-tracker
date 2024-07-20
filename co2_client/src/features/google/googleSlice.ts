@@ -119,6 +119,12 @@ export const INTERESTING_FIELDS = [
     "utc_offset_minutes"
 ];
 
+export const NAME_ONLY_FIELDS = [
+    "name",
+    "place_id",
+];
+
+
 export const defaultCenter: google.maps.LatLngLiteral = {
     lat: 40.76797,
     lng: -73.9592
