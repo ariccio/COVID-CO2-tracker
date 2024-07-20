@@ -226,7 +226,8 @@ interface AutoCompleteRenderProps {
     placeChange: placeChangeType,
     map: google.maps.Map | null,
     mapLoaded: boolean,
-    mapBounds: google.maps.LatLngBounds | null
+    mapBounds: google.maps.LatLngBounds | null,
+    setSubmitting: Dispatch<SetStateAction<boolean>>
 }
 
 const formFieldSubmitHandler = (event: React.FormEvent<HTMLInputElement>) => {
@@ -241,11 +242,12 @@ const formFieldSubmitHandler = (event: React.FormEvent<HTMLInputElement>) => {
     }
 }
 
-const formSubmitHandler = (event: React.FormEvent<HTMLFormElement>) => {
+const formSubmitHandler = (event: React.FormEvent<HTMLFormElement>, setSubmitting: Dispatch<SetStateAction<boolean>>) => {
     event.preventDefault();
     event.stopPropagation();
     // debugger;
     try {
+        setSubmitting(true)
         console.log(`User submitted autocomplete form (hit enter with text '${(event as any).currentTarget[0].value}'?)`);
     }
     catch (e) {
@@ -257,6 +259,8 @@ const formSubmitHandler = (event: React.FormEvent<HTMLFormElement>) => {
 
 const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (props) => {
     // In theory I can add another level of indirection so that this works even if maps fails.
+    
+    
     if (props.map === null) {
         return (<div>Maps STILL loading</div>);
     }
@@ -288,7 +292,7 @@ const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (pr
 
     return (
         <Autocomplete onLoad={props.autoCompleteLoad} onPlaceChanged={props.placeChange} bounds={props.mapBounds} fields={INTERESTING_FIELDS}>
-                <Form onSubmit={formSubmitHandler}>
+                <Form onSubmit={(e) => formSubmitHandler(e, props.setSubmitting)}>
                     <Form.Group>
                         <Form.Control type="text" onSubmit={formFieldSubmitHandler} id={'co2trackers-places-autocomplete-form'}/>
                     </Form.Group>
@@ -297,7 +301,8 @@ const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (pr
     );
 }
 
-const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null, dispatch: AppDispatch, map: google.maps.Map | null, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral | google.maps.LatLng>>, setAutocompleteErrorState: React.Dispatch<React.SetStateAction<string>>, service: google.maps.places.PlacesService | null, navigate: NavigateFunction) => {
+const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null, dispatch: AppDispatch, map: google.maps.Map | null, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral | google.maps.LatLng>>, setAutocompleteErrorState: React.Dispatch<React.SetStateAction<string>>, service: google.maps.places.PlacesService | null, navigate: NavigateFunction, setSubmitting: Dispatch<SetStateAction<boolean>>) => {
+    setSubmitting(false);
     if (autocomplete === null) {
         console.log("No autocomplete, but autocomplete place change handler?");
         return;
@@ -861,16 +866,25 @@ const renderErrorsAutocomplete = (autocompleteErrorState: string) => {
     )
 }
 
+const SubmittingText = (props: {submitting: boolean}) => {
+    if (props.submitting) {
+        return "Submitting...";
+    }
+    return null;
+}
+
 const AutocompleteElement: React.FC<AutocompleteElementProps> = (props) => {
     // debugger;
     const [autocomplete, setAutocomplete] = useState(null as google.maps.places.Autocomplete | null);
     const [autocompleteErrorState, setAutocompleteErrorState] = useState('');
+    const [submitting, setSubmitting] = useState(false);
     const dispatch = useDispatch();
     const navigate = useNavigate();
     return (
         <div>
+            <SubmittingText submitting={submitting} />
             {renderErrorsAutocomplete(autocompleteErrorState)}
-            <RenderAutoComplete autoCompleteLoad={(event) => autoCompleteLoadThunk(event, setAutocomplete)} placeChange={() => placeChangeHandler(autocomplete, dispatch, props.map, props.setCenter, setAutocompleteErrorState, props.service, navigate)} map={props.map} mapLoaded={props.mapLoaded} mapBounds={props.mapBounds} />
+            <RenderAutoComplete autoCompleteLoad={(event) => autoCompleteLoadThunk(event, setAutocomplete)} placeChange={() => placeChangeHandler(autocomplete, dispatch, props.map, props.setCenter, setAutocompleteErrorState, props.service, navigate, setSubmitting)} map={props.map} mapLoaded={props.mapLoaded} mapBounds={props.mapBounds} setSubmitting={setSubmitting}/>
         </div>
     );
 }
