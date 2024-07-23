@@ -163,6 +163,7 @@ module Api
         # TODO: wtf is the triple equals here? Wrong.
         if (Rails.env == 'test') && (!(::ENV['IsEndToEndBackendServerSoSTFUWithTheLogs'] == 'yes'))
           ::Rails.logger.warn('test auth path')
+          Sentry.capture_message('WRONG auth path!') if Rails.env.production?
           # No encryption for test env
           # byebug
           @decoded_token = params['user']
