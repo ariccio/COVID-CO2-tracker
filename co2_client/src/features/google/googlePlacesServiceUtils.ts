@@ -99,6 +99,7 @@ const getDetailsCallback = (result: google.maps.places.PlaceResult | null, statu
     if (result.place_id === undefined) {
         throw new Error("google places result is missing place_id! Something is broken.");
     }
+    
     // console.log(result.utc_offset_minutes);
     updatePlacesInfoFromBackend(result.place_id, dispatch);
 }

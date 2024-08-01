@@ -144,7 +144,7 @@ const submitOrSpinning = (submitting: boolean, translate: any) => {
         return (
             <div>
                 <span>
-                    {translate('Create new model')}
+                    {translate('create-new-model-manufacturer')}
                 </span>
             </div>
         )

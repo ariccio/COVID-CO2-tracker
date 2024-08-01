@@ -302,10 +302,12 @@ const RenderAutoComplete: React.FunctionComponent<AutoCompleteRenderProps> = (pr
 
 const placeChangeHandler = (autocomplete: google.maps.places.Autocomplete | null, dispatch: AppDispatch, map: google.maps.Map | null, setCenter: React.Dispatch<React.SetStateAction<google.maps.LatLngLiteral | google.maps.LatLng>>, setAutocompleteErrorState: React.Dispatch<React.SetStateAction<string>>, service: google.maps.places.PlacesService | null, navigate: NavigateFunction, setSubmitting: Dispatch<SetStateAction<boolean>>) => {
     setSubmitting(false);
+    console.log(`onPlaceChanged called.`);
     if (autocomplete === null) {
         console.log("No autocomplete, but autocomplete place change handler?");
         return;
     }
+    // console.log(`autocomplete: ${JSON.stringify(autocomplete.)}`);
     // debugger;
     // https://developers.google.com/maps/documentation/javascript/reference/places-widget
     // Returns the details of the Place selected by user if the details were successfully retrieved.

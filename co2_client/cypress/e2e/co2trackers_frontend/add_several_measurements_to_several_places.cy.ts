@@ -1,11 +1,22 @@
-describe('Add measurement to new place', () => {
+describe("add multiple measurements to multiple places", () => {
     const manufacturerName = 'blaaarghhh1'
 
     const newModelName = "fartipelago7";
     const serial = '123456789';
     const addressPrefix = '315 East 69th Street N';
     const fullAddress = '315 East 69th Street New York, NY';
-    const co2ppm = '793';
+    
+    const sublocationOne = {
+        co2ppm: '793',
+        sublocationOneDesc: 'bedroom'
+    };
+
+    const sublocationTwo = {
+        co2ppm: '841',
+        sublocationTwoDesc: 'lobby'
+    }
+
+
     beforeEach(() => {
         cy.request('http://localhost:3000/cypress_rails_reset_state');
         // https://docs.cypress.io/guides/end-to-end-testing/google-authentication
@@ -13,11 +24,11 @@ describe('Add measurement to new place', () => {
 
     })
     it('can create a new measurement to a new place with a new device', () => {
+
+        // 1 ------
         cy.contains("Devices").click();
-        cy.contains("Add your devices and view stats").should("be.visible");
         cy.contains("Select manufacturer").click();
         cy.contains("Create new manufacturer").click();
-        cy.contains("Add a manufacturer to the database").should('exist');
         cy.get('div.fade.modal.show > div > div > div.modal-body > form > input').type(manufacturerName);
         cy.contains('Submit').click();
 
@@ -44,20 +55,12 @@ describe('Add measurement to new place', () => {
         cy.get('#co2trackers-places-autocomplete-form').type("{enter}");
         
         
-        // seems to sometimes still exist after gone
-        // cy.get('.pac-item', { timeout: 10_000 }).should('not.be.visible');
-
-
         cy.contains('not found').should('not.exist');
         cy.contains('Last google places query status', { timeout: 30_000 }).should('exist');
-        // cy.contains('Last google places query status: OK').should('exist');
-        // cy.get('#co2trackers-places-autocomplete-form').type("");
-        // cy.contains(fullAddress);
-
+        
         cy.contains('Autocomplete message').should('not.exist');
         cy.contains('Submitting...').should('not.exist');
         cy.scrollTo('top');
-
         cy.contains("Upload a new measurement for", {timeout: 10_000}).should("exist");
         cy.contains("Upload a new measurement for").click();
 
@@ -65,12 +68,45 @@ describe('Add measurement to new place', () => {
         cy.contains(serial).click();
 
         cy.contains("New inner location").should("be.visible");
-        cy.get("#co2ppm").type(co2ppm);
+        cy.get("#co2ppm").type(sublocationOne.co2ppm);
         cy.get('#crowding-input-field-id-for-testing').type('4');
-        cy.get('#location_where_inside_info').type('bedroom');
+        cy.get('#location_where_inside_info').type(sublocationOne.sublocationOneDesc);
         cy.contains('Submit new measurement').click();
 
-        cy.contains(co2ppm).should('be.visible');
+        cy.contains(sublocationOne.co2ppm).should('be.visible');
+
+        // 2 ----
         
+        cy.contains("Upload a new measurement for").click();
+        cy.get('#sublocation-dropdown-create-new-measurement').click();
+        // cy.get(`#dropdown-item-for-${sublocationOne.sublocationOneDesc}`).click();
+        // cy.contains("New sublocation").click();
+        cy.get('#sublocation-dropdown-createmeasurement-nothing-selected').click();
+        cy.get('#location_where_inside_info').type(sublocationTwo.sublocationTwoDesc);
+        cy.get("#co2ppm").type(sublocationTwo.co2ppm);
+        cy.get('#crowding-input-field-id-for-testing').type('4');
+        cy.contains('Submit new measurement').click();
+        cy.contains(sublocationTwo.sublocationTwoDesc).should('be.visible');
+
+        // 3 ----
+        cy.contains("Upload a new measurement for").click();
+        cy.get('#sublocation-dropdown-create-new-measurement');
+        cy.contains(sublocationOne.sublocationOneDesc);
+        // cy.get(`#dropdown-item-for-${sublocationOne.sublocationOneDesc}`).click();
+        cy.get("#co2ppm").type('499');
+        cy.get('#crowding-input-field-id-for-testing').type('4');
+        cy.contains('Submit new measurement').click();
+        cy.contains(sublocationTwo.sublocationTwoDesc).should('be.visible');
+
+
+
+
+        // validate
+        cy.get(`#measurements-sublocation-table-for-testing-${sublocationOne.sublocationOneDesc}`).should('exist');
+        cy.get(`#measurements-sublocation-table-for-testing-${sublocationTwo.sublocationTwoDesc}`).should('exist');
+
+        cy.get(`#measurements-sublocation-table-for-testing-${sublocationOne.sublocationOneDesc}`).contains(`${sublocationOne.co2ppm}`);
+        cy.get(`#measurements-sublocation-table-for-testing-${sublocationTwo.sublocationTwoDesc}`).contains(`${sublocationTwo.co2ppm}`);
+
     } )
-} )
+})

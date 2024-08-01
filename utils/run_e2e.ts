@@ -555,6 +555,14 @@ function forceCloseByKilling(pid: number | undefined) {
 async function main() {
     console.log(`I once thought i'd need to rewrite some of cypress-rails to make this work correctly with the weird frontend setup. If you encounter weird issues, check out this branch: https://github.com/ariccio/cypress-rails/tree/add-baseurl-override-squashed`);
     
+
+    // Yes, it's almost like writing native code here, but see for reference: https://www.yopa.page/blog/2023-08-18-passing-command-line-arguments-to-a-typescript-script-using-npm.html
+    const args = process.argv.slice(2);
+    const cypressArgs = args.find((arg) => arg.startsWith("--cypress-args="));
+    const cypressPassthroughArgs = cypressArgs ? cypressArgs.split("=")[1] : undefined;
+
+
+
     console.log('\n\n\n\n');
 
 
@@ -586,10 +594,18 @@ async function main() {
     // backendEnv.NODE_DEBUG = 'http';
     // backendEnv.NODE_DEBUG = 'http,request,net';
     // backendEnv.DEBUG = 'cypress:*';
+
+    // debug frontend test capture video encoding with ffmpeg
+    // backendEnv.DEBUG = 'cypress:server:video';
     
     // needs prefix: https://docs.cypress.io/guides/guides/environment-variables#:~:text=Any%20exported%20environment%20variables%20set%20on%20the%20command%20line%20or%20in%20your%20CI%20provider%20that%20start%20with%20either%20CYPRESS_%20or%20cypress_%20will%20automatically%20be%20parsed%20by%20Cypress.
     backendEnv.CYPRESS_DEFAULT_FRONTEND_PORT = DEFAULT_FRONTEND_PORT;
-    
+    if(backendEnv.CYPRESS_RAILS_CYPRESS_OPTS) {
+        backendEnv.CYPRESS_RAILS_CYPRESS_OPTS += ` ${cypressPassthroughArgs}`;
+    }
+    else {
+        backendEnv.CYPRESS_RAILS_CYPRESS_OPTS = cypressPassthroughArgs;
+    }
     
     // backendEnv.CYPRESS_RAILS_OVERRIDE_FULL_BASE_PATH = 'http://127.0.0.1:3001/';
     // backendEnv.CYPRESS_RAILS_BASE_PATH = 
@@ -856,6 +872,13 @@ main().then(
         }
     })
 }).then((result) => {
-    console.log(`all done! result: ${result}`);
+
+    if (result === 0) {
+        console.log(picocolors.green(picocolors.bold(`all done! result: ${result}`)));
+    }
+    else {
+        console.log(picocolors.yellow(picocolors.bold(`all done! result: ${result}`)));
+
+    }
     process.exit(result);
 })

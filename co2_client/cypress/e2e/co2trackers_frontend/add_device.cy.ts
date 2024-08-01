@@ -21,7 +21,7 @@ describe('Add device', () => {
         cy.contains("Devices").click();
         cy.contains("Add your devices and view stats").should("be.visible");
         cy.contains("Select manufacturer").should("be.visible");
-        cy.get('#dropdown-basic').click();
+        cy.get('#manufacturer-dropdown-basic').click();
         
         // cy.contains("Select manufacturer").parent().debug();
         // cy.get('#dropdown-for-testing-basic-id').contains("Aranet").should("be.visible");

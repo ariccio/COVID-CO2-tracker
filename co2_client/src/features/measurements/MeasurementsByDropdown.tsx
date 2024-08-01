@@ -49,7 +49,7 @@ const singleLocation = (location: SublocationMeasurements, withDescription: bool
         )
     }
     return (
-        <div key={locationKey(location)}>
+        <div key={locationKey(location)} id={`measurements-sublocation-table-for-testing-${location.description}`}>
             {maybeDescription(location, withDescription)}
             <MeasurementsTable measurements={location.measurements.data} deviceSerials={deviceSerials} currentPlaceIfFromSingleParentLocation={currentPlace}/>
         </div>
@@ -162,7 +162,7 @@ const MaybeSublocationsIfMoreThanOne = (props: SubLocationsDropdownProps) => {
     }
     return (
         <>
-            <SublocationsDropdown measurements_by_sublocation={props.measurements_by_sublocation} nothingSelectedText={ALL_MEASUREMENTS_STR} nothingSelectedItem={<NothingSelectedItem/>} selectedSublocationDisplayData={props.selectedSublocationDisplayData} setGlobal={true}/>
+            <SublocationsDropdown measurements_by_sublocation={props.measurements_by_sublocation} nothingSelectedText={ALL_MEASUREMENTS_STR} nothingSelectedItem={<NothingSelectedItem/>} selectedSublocationDisplayData={props.selectedSublocationDisplayData} setGlobal={true} sublocationDropdownTypeID={props.sublocationDropdownTypeID}/>
         </>
     )
 }
@@ -249,7 +249,7 @@ export const MeasurementsByDropdown: React.FC<MeasurementsByDropdownProps> = (pr
     // const selected = findSelected(measurements_by_sublocation, selectedSubLocation);
     return (
         <div>
-            <MaybeSublocationsIfMoreThanOne measurements_by_sublocation={measurements_by_sublocation} nothingSelectedText={ALL_MEASUREMENTS_STR} nothingSelectedItem={<NothingSelectedItem/>} selectedSublocationDisplayData={selected} setGlobal={true}/>
+            <MaybeSublocationsIfMoreThanOne measurements_by_sublocation={measurements_by_sublocation} nothingSelectedText={ALL_MEASUREMENTS_STR} nothingSelectedItem={<NothingSelectedItem/>} selectedSublocationDisplayData={selected} setGlobal={true} sublocationDropdownTypeID='measurements'/>
             {measurements(measurements_by_sublocation, selectedSubLocation, props.currentPlace, deviceSerials)}
             {/* <MeasurementsTable measurements={props.selectedPlaceInfoFromDatabase}/> */}
         </div>

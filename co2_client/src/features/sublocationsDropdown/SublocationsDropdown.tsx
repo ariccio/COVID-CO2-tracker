@@ -37,7 +37,7 @@ const selectSubLocationDropdownHandler = (eventKey: string|null, event: React.Sy
 const subLocationsToDropdown = (sublocation_with_measurements: Array<SublocationMeasurements>) => {
     return sublocation_with_measurements.map((sublocation) => {
         return (
-            <Dropdown.Item eventKey={`${sublocation.sub_location_id}`} key={dropdownItemRowKey(sublocation)}>
+            <Dropdown.Item eventKey={`${sublocation.sub_location_id}`} key={dropdownItemRowKey(sublocation)} id={`dropdown-item-for-${sublocation.description}`}>
                 {sublocation.description}
             </Dropdown.Item>   
         )
@@ -60,7 +60,8 @@ export interface SubLocationsDropdownProps {
 
     // Decouple immediate location choice from global location choice when creating measurement. Performance improvement.
     setGlobal: boolean,
-    setSelectedSubLocationIDModalOnly?: React.Dispatch<React.SetStateAction<number>>
+    setSelectedSubLocationIDModalOnly?: React.Dispatch<React.SetStateAction<number>>,
+    sublocationDropdownTypeID: string
 }
 
 export const SublocationsDropdown: React.FC<SubLocationsDropdownProps> = (props: SubLocationsDropdownProps) => {
@@ -72,8 +73,8 @@ export const SublocationsDropdown: React.FC<SubLocationsDropdownProps> = (props:
     // debugger;
     return (
         <div>
-            <Dropdown onSelect={(eventKey: string | null, event: React.SyntheticEvent<unknown>) => {selectSubLocationDropdownHandler(eventKey, event, dispatch, props.setGlobal, props.setSelectedSubLocationIDModalOnly)}}>
-                <Dropdown.Toggle variant="success" id="dropdown-basic">
+            <Dropdown onSelect={(eventKey: string | null, event: React.SyntheticEvent<unknown>) => {selectSubLocationDropdownHandler(eventKey, event, dispatch, props.setGlobal, props.setSelectedSubLocationIDModalOnly)}} >
+                <Dropdown.Toggle variant="success" id={`sublocation-dropdown-${props.sublocationDropdownTypeID}`}>
                     { props.selectedSublocationDisplayData ? props.selectedSublocationDisplayData.description : props.nothingSelectedText} 
                 </Dropdown.Toggle>
 

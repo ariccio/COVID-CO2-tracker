@@ -127,7 +127,7 @@ const RenderDropdown = (props: {manufacturerModels: SingleManufacturerInfoRespon
     
     return (
         <Dropdown onSelect={(eventKey: string | null, event: React.SyntheticEvent<unknown>) => {selectManufacturerHandler(eventKey, event, props.setShowAddManufacturer, dispatch)}}>
-            <Dropdown.Toggle variant="success" id="dropdown-basic">
+            <Dropdown.Toggle variant="success" id="manufacturer-dropdown-basic">
                 <span>
                     {props.manufacturerModels.name === '' ? "Select manufacturer:" : props.manufacturerModels.name}
                 </span>

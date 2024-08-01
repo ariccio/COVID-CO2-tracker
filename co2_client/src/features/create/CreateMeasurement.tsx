@@ -647,7 +647,9 @@ const RenderFormIfReady = (props: {
                 </Form.Label>
                 <Form.Control type="number" min={1} max={5} name={CROWDING_FIELD_ID} id="crowding-input-field-id-for-testing" isInvalid={props.invalidField.includes(CROWDING_FIELD_ID)}/>
             </Form>
-            <SublocationsDropdown selectedSublocationDisplayData={props.selected} measurements_by_sublocation={measurementsOrEmptyArray} nothingSelectedText={"New inner location"} nothingSelectedItem={<DefaultNothingSelectedItem/>} setGlobal={false} setSelectedSubLocationIDModalOnly={props.setSelectedSubLocationIDModalOnly}/>
+            <div>
+                <SublocationsDropdown selectedSublocationDisplayData={props.selected} measurements_by_sublocation={measurementsOrEmptyArray} nothingSelectedText={"New inner location"} nothingSelectedItem={<DefaultNothingSelectedItem/>} setGlobal={false} setSelectedSubLocationIDModalOnly={props.setSelectedSubLocationIDModalOnly} sublocationDropdownTypeID='create-new-measurement'/>
+            </div>
             <Suspense fallback="Loading translations...">
                 <InnerLocationFormIfNewLocation setEnteredLocationDetails={props.setEnteredLocationDetails} placeName={props.placeName} selected={props.selected} invalidField={props.invalidField}/>
             </Suspense>
@@ -677,7 +679,7 @@ const NothingSelectedItem = () => {
     const [translate] = useTranslation();
     return (
         <div>
-            <Dropdown.Item eventKey={'-1'}>
+            <Dropdown.Item eventKey={'-1'} id="sublocation-dropdown-createmeasurement-nothing-selected">
                 <span>
                     {translate("New sublocation")}
                 </span>
