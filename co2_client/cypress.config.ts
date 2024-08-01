@@ -20,11 +20,11 @@ export default defineConfig({
       // implement node event listeners here
       on('before:browser:launch', (browser, launchOptions) => {
         /* ... */
+        console.log(`browser launched for cypress.`);
       });
 
       // https://docs.cypress.io/guides/guides/screenshots-and-videos#Delete-videos-for-specs-without-failing-or-retried-tests
-      on(
-        'after:spec',
+      on('after:spec',
         (spec: Cypress.Spec, results: CypressCommandLine.RunResult) => {
           if (results && results.video) {
             // Do we have failures for any retry attempts?
