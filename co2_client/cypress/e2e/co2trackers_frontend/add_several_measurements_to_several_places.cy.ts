@@ -44,7 +44,7 @@ describe("add multiple measurements to multiple places", () => {
 
         // cy.visit('http://localhost:3001/');
         cy.contains('Home').click();
-        cy.get('#co2trackers-places-autocomplete-form').scrollIntoView();
+        // cy.get('#co2trackers-places-autocomplete-form').scrollIntoView();
         cy.get('#co2trackers-places-autocomplete-form').click();
         cy.get('#co2trackers-places-autocomplete-form').type(addressPrefix);
         
@@ -60,7 +60,7 @@ describe("add multiple measurements to multiple places", () => {
         
         cy.contains('Autocomplete message').should('not.exist');
         cy.contains('Submitting...').should('not.exist');
-        cy.scrollTo('top');
+        // cy.scrollTo('top');
         cy.contains("Upload a new measurement for", {timeout: 10_000}).should("exist");
         cy.contains("Upload a new measurement for").click();
 
