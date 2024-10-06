@@ -803,6 +803,7 @@ function App() {
 
 
   useEffect( () => {
+    console.log('I literally just need to update the binary');
     registerBackgroundFetchAsync();
     return () => {
       console.log("Unregistering background fetch task");
