@@ -93,7 +93,7 @@ export function timeNowAsString(): string {
     const now = Date.now();
     const nowS = new Date(now).toUTCString();
     const maybeHPCTime = maybeHPCTimeStr();
-    if (maybeHPCTimeStr === null) {
+    if (maybeHPCTime === null) {
         return nowS;
     }
     return `${nowS} ${maybeHPCTime}`;
