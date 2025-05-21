@@ -1,0 +1,190 @@
+import { ErrorObjectType } from './ErrorObject';
+import { SerializedSingleMeasurement, UserInfoDevice, validateDeviceInfo } from './DeviceInfoTypes';
+
+/**
+ * Internal structure for user information
+ * @interface UserInfoInternal
+ */
+interface UserInfoInternal {
+    /** Username (typically email) of the user */
+    username: string;
+    /** Array of devices associated with the user */
+    devices: Array<UserInfoDevice>;
+    /** Measurements data associated with the user */
+    measurements: {
+        /** Array of serialized measurements */
+        data?: Array<SerializedSingleMeasurement>;
+    } | null;
+}
+
+/**
+ * Main interface for user information with optional error handling
+ * @interface UserInfoType
+ */
+export interface UserInfoType {
+    /** User information data */
+    user_info: UserInfoInternal;
+    /** Optional array of errors */
+    errors?: Array<ErrorObjectType>;
+}
+
+/**
+ * Default user information object
+ * @constant defaultUserInfo
+ */
+export const defaultUserInfo: UserInfoType = {
+    user_info: {
+        username: '',
+        devices: [],
+        measurements: {
+            data: []
+        }
+    }
+};
+
+/**
+ * Interface for user devices information
+ * @interface UserDevicesInfo
+ */
+export interface UserDevicesInfo {
+    /** Array of devices associated with the user */
+    devices: Array<UserInfoDevice>;
+    /** ID of the last device accessed or added */
+    last_device_id: number | null;
+    /** Optional array of errors */
+    errors?: Array<ErrorObjectType>;
+}
+
+/**
+ * Default user devices information object
+ * @constant defaultDevicesInfo
+ */
+export const defaultDevicesInfo: UserDevicesInfo = {
+    devices: [],
+    last_device_id: null
+};
+
+/**
+ * Validates user information object to ensure all required fields are present
+ * @param userInfo - The user information object to validate
+ * @throws Error if validation fails
+ */
+export function validateUserInfo(userInfo: any): void {
+    if (!userInfo) {
+        throw new Error('User info is undefined or null');
+    }
+    
+    if (userInfo.errors) {
+        return; // Skip validation if errors are present
+    }
+    
+    if (!userInfo.user_info) {
+        throw new Error('user_info field is missing');
+    }
+    
+    if (!userInfo.user_info.username && !userInfo.user_info.email) {
+        throw new Error('Username/email is required');
+    }
+    
+    if (!userInfo.devices || !Array.isArray(userInfo.devices)) {
+        throw new Error('Devices must be an array');
+    }
+    
+    // Validate each device in the array
+    if (userInfo.devices.length > 0) {
+        for (let i = 0; i < userInfo.devices.length; i++) {
+            try {
+                validateDeviceInfo(userInfo.devices[i]);
+            } catch (error) {
+                throw new Error(`Invalid device at index ${i}: ${error.message}`);
+            }
+        }
+    }
+    
+    if (userInfo.measurements && !userInfo.measurements.data) {
+        throw new Error('Measurements data is missing');
+    }
+}
+
+/**
+ * Converts user devices information from any type to strongly typed UserDevicesInfo
+ * with validation and error handling
+ * @param responseMaybeUserDevicesInfo - The response object to convert
+ * @returns Strongly typed UserDevicesInfo object
+ * @throws Error if validation fails
+ */
+export function userDevicesInfoResponseToStrongType(responseMaybeUserDevicesInfo: any): UserDevicesInfo {
+    // Check if the input is defined
+    if (responseMaybeUserDevicesInfo === undefined) {
+        throw new Error('User devices info response is undefined');
+    }
+    
+    // If errors are present, return the response as is
+    if (responseMaybeUserDevicesInfo.errors !== undefined) {
+        console.warn("Found errors, not checking any type correctness.");
+        return responseMaybeUserDevicesInfo;
+    }
+    
+    // Validate the devices array exists
+    if (!responseMaybeUserDevicesInfo.devices) {
+        throw new Error('Devices array is missing in the response');
+    }
+    
+    // Validate each device in the array
+    if (Array.isArray(responseMaybeUserDevicesInfo.devices) && responseMaybeUserDevicesInfo.devices.length > 0) {
+        for (let i = 0; i < responseMaybeUserDevicesInfo.devices.length; i++) {
+            try {
+                validateDeviceInfo(responseMaybeUserDevicesInfo.devices[i]);
+            } catch (error) {
+                console.error(`Error validating device at index ${i}:`, error);
+                throw new Error(`Invalid device at index ${i}: ${error.message}`);
+            }
+        }
+    }
+    
+    // Return the validated response
+    return {
+        devices: responseMaybeUserDevicesInfo.devices,
+        last_device_id: responseMaybeUserDevicesInfo.last_device_id || null,
+        errors: responseMaybeUserDevicesInfo.errors
+    };
+}
+
+/**
+ * Converts user information from any type to strongly typed UserInfoType
+ * with validation and error handling
+ * @param userInfo - The user information object to convert
+ * @returns Strongly typed UserInfoType object
+ * @throws Error if validation fails
+ */
+export function userInfoToStrongType(userInfo: any): UserInfoType {
+    // Check if the input is defined
+    if (userInfo === undefined) {
+        throw new Error('User info is undefined');
+    }
+    
+    // If errors are present, return the user info as is
+    if (userInfo.errors !== undefined) {
+        console.warn("Found errors, not checking any type correctness.");
+        return userInfo;
+    }
+    
+    try {
+        validateUserInfo(userInfo);
+    } catch (error) {
+        console.error('Error validating user info:', error);
+        throw error;
+    }
+    
+    // Construct and return the validated UserInfoType object
+    const return_value: UserInfoType = {
+        user_info: {
+            username: userInfo.user_info.email || userInfo.user_info.username || '',
+            devices: userInfo.devices || [],
+            measurements: userInfo.measurements || { data: [] }
+        },
+        errors: userInfo.errors
+    };
+    
+    return return_value;
+}
