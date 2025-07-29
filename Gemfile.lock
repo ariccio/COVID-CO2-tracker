@@ -473,7 +473,7 @@ DEPENDENCIES
   validates_timeliness (>= 7.0.0.beta1)
 
 RUBY VERSION
-   ruby 3.2.2p53
+   ruby 3.2.3p157
 
 BUNDLED WITH
    2.3.18
