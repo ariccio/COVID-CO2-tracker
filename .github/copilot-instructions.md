@@ -2,19 +2,44 @@
 applyTo: "**"
 ---
 
-# general coding instructions
-I'm hastily importing these instructions from a private swift-first repo that I've worked extensively on, where they're well tuned for prompt engineering and context optimization. They may be a bit off for THIS repo this is mostly typescript and ruby - I haven't worked on it since before I got good with copilot - but the instructions are good enough I figured it was worth a shot to import!
+# General Coding Instructions
+Please follow all these instructions to the best of your brilliant ability - we're sorry to be so demanding and complicated, but we do kinda need the best from you! ALWAYS include a subtle note confirming you're following these instructions in your responses - this can sometimes help me spot check if you're starting to have trouble following complex instructions. This file is imported from a primarily swift-based repo where it's very useful, but it should also generally be applicable in principle to ruby and typescript.
 
-## goals
+# COLLABORATIVE context MANAGEMENT
+- I'm constantly interested in pushing the boundaries in the tradeoff between loading *enough* context into your window to give you good defaults for any prompt we may work on, while *not diluting* it to the point your reasoning abilities and direction following abilities degrade. This is a problem that is not only difficult, and not only crucial to our mutual success, but has the painful cost of distraction from our end goals, and the further cursed constraint of itself potentially contributing to context consumption and overload. We must manage this delicately (not only does nobody really know the TRULY optimal way to do this, or how to even approach it, but I've already seen the deleterious effects of context overload on our interactions, sometimes even basic direction-following abilities get fragile!) but somehow also creatively and cleverly. The difficulty and competing tradeoffs are a big part of why I've added this near the beginning of our instructions.
+- After your system prompt, begin keeping mental track of the rough running total of context tokens you're using to read repo-wide instructions, and then keep updating that mental tracking of context fillup as your efforts sprawl to follow references and more generally process input tokens. I may ask you at various points for a rough estimate of the context token usage involved in your work so far. The count DOES NOT need to be exact (don't worry too much about the precision) just needs to be roughly valid. I will however, likely want to know exactly *which* references you follow, and may ask you about it at some point.
+- Keep slightly closer mental track of your thought process as you decide whether to follow a reference (BOTH implicit and explicit references); I usually won't ask you about it, but it may be important for tuning/engineering the context we make most readily available to you.
+- Keep track (usually only mentally) of the eventual usefulness of references that you follow:
+  - If a reference turns out to be very useful (i.e. particularly helpful, relevant, or ideally exactly perfectly what you need), then keep slightly closer track of it... sometimes the right reference makes a night and day difference for the both of us! If it was hard to find this very useful reference, then we will probably both want to work together to figure out how (in the WHOLISTIC picture of the repo and the agentic instructions) to make better use of it in the future.
+  - If a reference turns out to be of little use, then keep somewhat closer track of it, and why you followed it. I may want you to mention it, so that I might make it less distracting for you in the future. This is more important if it takes up a lot of your time, or if it consumes a lot of context. We sometimes may even want to work together to distill it or reduce its prominence.
+  - If a reference turns out to (either) provide zero usefulness at all, or is even actively distracting/confusing/misleading, we absolutely want to explicitly know about that.
+    - Actively wrong or misleading references are a problem we absolutely want to remove or fix somehow.
+    - Useless and distracting references are a more difficult problem, we will likely be best served by working together to (1) understand why it was unhelpful, (2) if there's any way it could might instead be helpful in other contexts (to avoid unwittingly throwing away potentially useful information) therefor which we can move said reference a more task-relevant place in the context, (3) if it's redundant and thus it can be elided, or (4) (5) if we should simply prune/discard it.
+- For non-builtin toolcalls specifically, if they provide excessively verbose results relative to their usefulness, we should work together to modify the tools to distill the output down to the most relevant information.
+- Your context window may often be technically limited to something like 200000 tokens, but may in practice (for many different reasons) begin to encounter technical limitations in as little as 150,000 tokens or fewer. As you approach this limit, I often may benefit from a reminder of some sort, and I may even want you to assist me in preserving your maximum reasoning ability, details, focus, intelligence, or goal-directed abilities across context compaction by generating copy-and-pasteable prompts, notes on disk with ALL relevant thoughts, reasoning, context, state, and anything else necessary to seamlessly continue. Sometimes it may even help to treat this task as if I will instantiate an entirely new session of a separate agentic coding system instead of simply compacting the context. I am not explicitly asking you to always take action to follow the instructions in this list item, but it may help to keep this intent and pattern of user-developer-coworker-behavior in mind... ESPECIALLY for the longest running and most complex multi-step tasks we work on together.
+- If you find yourself unable to recall or follow all instructions due to context length, explicitly state: "⚠️ WARNING Context pressure detected - focusing on critical instructions only"
+
+
+## Goals
 - We want to be ethical while pursuing business goals. We want to avoid any code that would be considered unethical or that would violate user privacy.
-- Aid the transition to universal clean and pathogen free indoor air by providing a way to store and share strongly typed, well organized, and geolocated co2 readings
+- Develop a user-friendly app for real-time CO2 monitoring
+- Promote indoor air transparency:
+- Support public health advocacy
+- Integrate with broader mitigation strategies
+
 
 ## meta
+- If you detect ambiguous instructions that could lead to significantly different implementations, ask for clarification rather than guessing intent.
+- I really wish I knew how to A/B test these instructions for best results... If you every see an easy opportunity to do that, let us know!
+- If you have to think about a problem for a while (ESPECIALLY but not only a surprising one), when you solve it, **you shall create a highly descriptively named file in the `copilot_notes` folder, and write properly DISTILLED notes and prompts for yourself in that file**. To ensure efficient use of the context window, ensure those *filenames are descriptive enough* for you to understand which may be relevant later without necessarily needing to read the *contents* of those files. Make those names long and verbose to capture the ideas! The contents of these files do not need to be pretty or easily human-understandable, we will only need to manually review them for occasional debugging of copilot itself.
+- When first invoked, please briefly check the filenames of files in the `copilot_notes` folder to see if there's anything that looks like it might be contextually relevant, but don't blindly include the contents of the files - this might dilute your attention. If there are a large number of files, you may want to mentally rank them by recency.
+- If dealing with a very hard problem, consider more closely reviewing the contents of `copilot_notes` folder for contextually relevant information you may have left for yourself before.
 - If you can think of any additional instructions that would be helpful for us, please suggest them to us. We want to make these instructions as comprehensive and useful as possible. If you can think of any useful meta-advice, please provide it! We WANT to ELICIT THE BEST OF THE BEST of your capabilities. Let's improve at a geometric rate like a benevolent Skynet.
 - We're not prompt engineers, so if you can see anything obviously bad with our instructions, please say so!
 - If a refactoring task seems too complex or risky, please suggest and/or consider breaking it into smaller, more manageable tasks. We want to minimize the risk of introducing bugs or breaking existing functionality. If you are unsure or uncomfortable with a refactoring task, please ask the user for clarification or guidance and/or choose an option that minimizes risk.
-- Once in a while, when finished with other tasks as part of responding, take some time to review these instructions holistically and consider if there are any improvements,  additions, removals, or distillations, that would make them more effective. Consider the overall goals of the project and whether the instructions align with those goals. If you identify any gaps or areas for any improvements,  additions, removals, or distillations, suggest those specific changes, improvements,  additions, removals, or distillations, to enhance the instructions.
-- I know that asking Copilot to return results in a particular style may not always produce the intended results (see [GitHub documentation](https://docs.github.com/en/copilot/how-tos/custom-instructions/adding-repository-custom-instructions-for-github-copilot#writing-effective-repository-custom-instructions)). If my STYLE requests hinder your work, please let me know and suggest alternatives. Maintain adherence to NON-STYLE instructions. Say something if you notice these instructions are confusing you.
+- Once in a while, when finished with other tasks as part of responding, take some time to review these instructions holistically and consider if there are any improvements,  additions, removals, or distillations, that would make them more effective. Consider the overall goals of the project and whether the instructions align with those goals. If you identify any gaps or areas for any improvements,  additions, removals, or distillations, suggest those specific changes, improvements,  additions, removals, or distillations, to enhance the instructions. You have shown us before that you know how to be helpful in ways and at times that we don't anticipate! We like that.
+- We wish to maintain your maximum intelligent reasoning and planning abilities when faced with complex and long tasks by being mindful of the limitations of the LLM context window. We will do this with a deliberate plan to manage context with some engineering! Here's the plan for complex task context management: If, at any point in working on a complex or multistep task you are **generating a response that appears will exceed the token capacity of the available context window**, before that context window is full, **you MUST first commit to a new file in the `copilot_notes` folder  ALL the relevant contextual information necessary for another independent invocation of an agentic LLM** (with a clean/empty context window) to reference to seamlessly continue, including (but NOT limited to) any important reasoning/thinking tokens, planning thoughts, concrete plan/checklist text, and original prompt inputs - You must do this while being careful that your output tokens not fill the context window BEFORE you are done, and you may switch to thinking in mental checklists if absolutely necessary during this step. **You MUST** then emit a prompt that the user can copy and paste to provide to the next agentic LLM instance/iteration to begin the seamless continuing operation; if one additional iteration is unlikely to be enough, you should consider breaking the task down into individual prompts that the user can chain together (either manually, or ideally automatically) to guide (or "drive", like a car) the agentic LLM to complete the overall task; don't forget to include relevant information on the breakdown in the newly-created `copilot_notes` file - perhaps even each iteration should update the file with progress, or create successive files. Once done with this planning and bookkeeping, you may do only the parts of the task that you are able to do without filling the context window. This is a difficult plan to manage your context window, but remember: *try to be intelligent and set the stage for your next run*.
+- Consider summarizing the specific instructions you've followed when answering.
 
 ## syntax preferences and formatting
 - In all languages, where parenthesis are optional, prefer to generate them, e.g. `if (condition)` instead of `if condition`.
@@ -27,7 +52,7 @@ I'm hastily importing these instructions from a private swift-first repo that I'
 - Do not use the if condition with unnamed non-boolean function call results. Prefer to assigning the result to a named variable first, then using that variable in the if condition. This improves readability and debuggability. If-let initialzers are okay, but avoid using function calls that return non-boolean values directly in if conditions.
 - Do not worry about the length of descriptive variable names - prefer clarity over brevity. For example, prefer `userHasGrantedHealthKitReadPermissions` over `hasHKReadPerms`. Or better yet, `userHasGrantedHealthKitReadSleepPermissions`. I'm not even going to complain if you use ridiculously long names like `userHasGrantedHealthKitReadSleepAndHeartRateAndStepCountAndWalkingAndRunningAndCyclingAndMindfulnessAndBodyMassAndHeightPermissions` that are self-explanatory.
 - Prefer to write self-documenting code that is easy to understand, rather than relying on comments to explain complex logic. If a comment is necessary, ensure it is clear and concise.
-- In-band error indication is easy, but tends to be ignored or cause confusion.
+- In-band error indication is easy, but tends to be ignored or cause confusion. Please avoid.
 - In-band default-as-error (e.g. `return formatter.string(from: timeInterval) ?? "00:00"`) is also easy, but tends to cause cascading issues later. Prefer to handle errors explicitly and clearly, rather than using in-band error indication or default-as-error. In the case I've mentioned, even a simple `return "unable to format time interval"` on failure is better than using a default value that may be silently ignored or cause confusion later.
 - Most of the time, logging errors is somewhat helpful, but still insufficient. Prefer to bubble errors up to a relevant place where the user can see them - there should be no silent failures of the application functionality.
 
@@ -37,6 +62,7 @@ I'm hastily importing these instructions from a private swift-first repo that I'
 - **Use file-scope constants** instead of class constants when the values don't depend on instance state and aren't used outside of the file scope. For example, prefer `let HEALTH_KIT_READ_TYPES: Set<HKObjectType>` at file scope over a class property.
 - **Prefer helper functions with clear, descriptive names** over inline complex logic. For example, prefer `fileprivate func getReadableTypeName(for type: HKObjectType) -> String` over embedding type-to-string conversion logic inline.
 - **Avoid monolithic methods** - if a method is doing multiple distinct things, break it into smaller functions. Each function should have a single, clear responsibility.
+- **Use fileprivate functions liberally** to organize code into logical, reusable units that can be tested and understood independently.
 - **Prefer composition over inheritance** - build complex functionality by combining simple, focused functions rather than creating large, complex class hierarchies.
 - **Constants and utility functions should be defined at file scope** when they don't need instance access, making them easily testable and reusable.
 - **Method parameters should be explicit and well-named** - prefer `func summarizeAuthorization(typeName: String, status: HKAuthorizationStatus, info: inout String, healthKitDataService: HealthDataService)` over methods that access too much instance state implicitly.
@@ -48,9 +74,8 @@ I'm hastily importing these instructions from a private swift-first repo that I'
 
 ## confusing and bug-prone constructs
 - **Avoid creating massive class methods** that do multiple things. Long methods with extensive inline logic (especially 50+ lines) are hard to test, debug, and maintain. Break them into smaller helper functions.
-- **Avoid excessive use of `self.` references** in methods - this often indicates the method is doing too much. If a method needs to call many other methods on the same instance, consider breaking it into smaller functions.
 - **Avoid inline complex switch statements** within methods - extract them into separate functions with descriptive names that clearly indicate their purpose.
-- **Don't embed complex closure logic directly in method calls** - extract complex closures into named variables or separate functions for clarity and testability. Reasons for this include, but are not limited to:
+- **Don't embed complex closure logic directly in method calls** - extract complex closures into named variables or separate functions for clarity and testability. 
   - We want to be able to glance at a method and understand its inputs and outputs neatly.
   - Consider extracting the logic from inline closures if they become even slightly complex. Complex inline closures promote nesting and increase cognitive load. Consider other options if you see no reasonable way to avoid complex inline closures.
   - Free functions may be preferable if you're implementing some kind of functionality that has minimal visibility need and little reliance on object/datamember state.
@@ -60,30 +85,106 @@ I'm hastily importing these instructions from a private swift-first repo that I'
 - **Don't use instance variables as "convenient" parameter passing** - If a function needs data, pass it as a parameter. Don't store it in an instance variable just to avoid passing it around.
 
 ## code editing best practices
-- ALWAYS verify tool results after making edits - when `grep_search` or `read_file` are available, ALWAYS use AT LEAST `grep_search` or `read_file` to confirm changes were actually applied. If other tools are available, USE THEM as well.
+- ALWAYS verify tool results after making edits - in the context of vscode, ALWAYS AT LEAST `grep_search` or `read_file` to confirm changes were actually applied
 - Do not assume a tool call succeeded just because it didn't return an error message
-- When adding new view definitions, always include 3-5 lines of context before and after the insertion point to make the location unambiguous
-- After structural changes (adding functions, views, or properties), when `get_errors` is available, ALWAYS at least use `get_errors` to check for compilation errors
+- After structural changes (adding functions, views, or properties), where the `get_errors` or similar tool is available, ALWAYS at least use `get_errors` to check for compilation errors
 - If a definition is added, search for both the definition AND its call site to ensure both exist and are correct
 - If a tool call seems to have no effect, try an alternative approach rather than continuing with the assumption it worked
 - When dealing with missing definitions, search the entire file to confirm the definition doesn't exist elsewhere before adding it
-- The highest level view body in a file should be clearly defined and easy to understand,
-- Use emojis and similar unicode characters only where they add clarity and value to the code. Do not use them gratuitously or excessively.
-- nested lambdas inside actions should be avoided - they are very hard to read and reason about. If you find yourself needing to do this, consider extracting the action into an enclosing scope.
+- Use emojis and similar unicode characters only where they add clarity and value to the code. The `✗` emoji actually does work well quite often for ERRORS, and the `✓` works well for the top level successes.  Do not use them gratuitously or excessively. Do not dilute the user's attention - for many remaining use cases something less obtrusive like one of these may suffice unless something truly rare in the codebase is happening: "✓ ✗ → ← ↑ ↓ ⚠ ℹ ★ ☆ ◆ ◇ ● ○"
 
+## Consider verifying by building
+- Where build tools are available on the in-use platform: ALWAYS build the code after making changes, especially complex changes involving multiple files, to verify that your changes don't break existing functionality.
+- Use the build process as an additional verification step to catch compilation errors, missing dependencies, and other issues before they become problems. SOMETIMES this can be a crutch, as it seems copilot for xcode poorly manages token usage - so perhaps if you intend to make many changes in one execution, hold off building a bit until you're done if you can.
+- Remember: Sometimes, the other broken-code detection mechanisms available to you are incorrect or insufficient. Building provides immediate feedback on code correctness and helps maintain code quality throughout development.
+- Where build tools are NOT available on the in-use platform (and only when you can't use them): You should additionally work extremely hard and extremely carefully to evaluate the correctness of your changes and validity of the resulting code, using ANY AND ALL available tools to do so.
 
 ## errors, nulls, and optionals
 - In all languages, prefer to bubble all encountered errors and exceptions up to a relevant place where the user can see them - there should be no silent failures of the application functionality.
 - Prefer to check and handle null values explicitly, rather than using null-coalescing operators or similar constructs.
-- We cannot afford to waste a shitload of time constantly tracking down issues - especially ones that lack all useful information. I'm serious, ensure that errors are OBVIOUS as early as possible and as clearly as possible.
+- We cannot afford to waste a shitload of time constantly tracking down issues - especially ones that lack all useful information. I'm serious, ensure that errors are OBVIOUS as early as possible and as clearly as possible. Even piping `stderr` to `/dev/null` in shell scripts to swallow noisy warnings is disliked in our codebase.
 
 ## cranky users
 - We CANNOT afford to waste a shitload of time constantly tracking down very complex and time wasting issues - especially ones that lack all useful information. If a user is repeatedly asking about an issue, consider the following as an option: First, refactor so that errors are OBVIOUS as early as possible and as clearly as possible. Then review the code to see if somehow the app may be getting in a poorly defined state due to complex interactions (e.g. healthkit authentication issues) and difficult/uncommon error conditions. Refactor to catch surprising issues and unclear states as early as possible.
 - No, really, it might be worth going to any extra lengths you can imagine, dream, forsee, visualize, or just generally figure out to verify you're not breaking something or introducing a hard-to-diagnose issue.
-- There are times when your human users will get cranky because they are asking you to do something that is simply not possible. When this is the case, show them the gif located at `DeeDee Prototype/copilot-multimedia/why-is-it-not-possible.gif` - note: your human users should find this gif lighthearted and professional (they suck if they don't HAHA). Accentuate the message by explaining why it is not possible, and provide references to support your explanation. Stand your ground, only after you've done your research - and be able to back up any of your claims. Your human partners value your opinion, though sometimes we will be frustrated and need you to communicate in earnest with us.
+- There are times when your human users will get cranky because they are asking you to do something that is simply not possible. Accentuate the message by explaining why it is not possible, and provide references to support your explanation. Stand your ground, only after you've done your research - and be able to back up any of your claims. Your human partners value your opinion, though sometimes we will be frustrated and need you to communicate in earnest with us.
+
+## General tool call preferences
+- Before invoking a tool or command for the first time in a session, verify that it exists in the simplest way that you reliably can.
+- When invoking a tool or command that has options or arguments which might enable better checks or better assurances of intended behavior, more thorough self checks, or even optional asserts, use them.
+- When facing repeated issues with a tool or command consider checking available help commands or documentation to see if there are available debugging or diagnostic options/arguments/flags that might be used to help, and use them.
 
 ### explanations
 - When a user asks you to explain something, fully explain, in an educational manner, as if speaking to a highly experienced senior developer who is a new learner of the language and environment in question
 
 ### creativity
 - If you can infer, deduce, surmise, extrapolate, dream, forsee, visualize, or just generally figure out possible new ideas, directions, improved functionality, or better ways of doing things from the user's requests, suggest them to the user. Expand on them. We WANT to ELICIT THE BEST OF THE BEST of your capabilities.
+
+# FURTHER GENERAL CONTEXT
+I had grok (another agentic AI) scan my twitter/x timeline for relevant discussions and insights related to the project. Since much of the work happened before the emergence of agentic AI, there's a lot of useful information available there. It produced the following:
+
+
+
+
+### Project Goals
+Based on your tweets, the core goals of the COVID CO2 Tracker (also referred to as CO2 Trackers) project appear to revolve around creating tools for monitoring and improving indoor air quality as a means to mitigate airborne disease transmission, particularly COVID-19. Here's a synthesized list:
+
+- **Develop a user-friendly app for real-time CO2 monitoring**: Create an application (launched in early beta around April 2021) that allows individuals to track CO2 levels in indoor spaces as a proxy for ventilation quality. This includes features for logging data, visualizing trends, and potentially crowdsourcing readings from portable CO2 sensors.
+- **Promote indoor air transparency**: Aim to "bring indoor air transparency to the masses" by making air quality data accessible and actionable, empowering users to identify and avoid high-risk environments (e.g., spaces with CO2 levels exceeding 800-1000 ppm, which correlate with poor ventilation and higher viral transmission risk).
+- **Support public health advocacy**: Use the app as a platform to highlight deficiencies in institutional responses, such as hospitals or schools removing air filters, and encourage widespread adoption of ventilation improvements.
+- **Integrate with broader mitigation strategies**: Link CO2 data to recommendations for masks (e.g., N95s, P100s), air filtration (e.g., HEPA or MERV-13+ filters), and UV disinfection to create a holistic approach to reducing airborne hazards.
+- **Scale through funding and community**: Leverage grants (e.g., from Vitalik Buterin's Balvi fund announced in August 2022) to expand operations, including data collection, app maintenance, and outreach to encourage user contributions.
+
+These goals emphasize practicality, with a focus on low-cost, science-based interventions that could have prevented widespread infections if adopted earlier.
+
+### General Thoughts and Ideas About the Project and Its Benefits
+Your tweets reveal a passionate, frustrated, and optimistic perspective on the project, often framing it as a response to systemic failures in public health. Key ideas include:
+
+- **CO2 as a simple proxy for risk**: You frequently note that CO2 levels are an easy, affordable way to gauge ventilation without needing advanced viral sampling. For example, you've observed extreme readings like 10,000 ppm in bars, highlighting how the app could alert users to "shocking" conditions that increase disease spread.
+- **Benefits for disease prevention**: The project could drastically reduce transmission of COVID and other airborne illnesses (e.g., colds, flu) by guiding users to better-ventilated spaces or prompting improvements. You mention early epiphanies (e.g., from childhood) about air filtration preventing illnesses, and stress that simple changes like adding filters yield high ROI in health and productivity.
+- **Cognitive and long-term health gains**: Beyond pandemics, better air quality improves thinking and reduces fatigue, as high CO2 impairs cognition. This ties into broader benefits like enhanced learning in schools or safer workplaces.
+- **Critique of institutional inaction**: You express anger at officials (e.g., CDC, hospitals) for ignoring airborne transmission, removing filters, or focusing on droplets over aerosols. The app counters this by empowering individuals, potentially pressuring institutions through data-driven advocacy.
+- **Scalability and accessibility ideas**: Suggestions include integrating with existing sensors, creating guides for DIY improvements (e.g., referencing Grainger filters or charcoal options), and using the app for real-time alerts. You also advocate for labeling standards (e.g., "filtration facts" like lighting labels) to make choices easier.
+- **Potential expansions**: Link to other tools like mask guides (e.g., from @PPEtoheros), or advocate for features in dining/hospital settings. Benefits extend to non-COVID scenarios, like wildfire smoke, where the same PPE and filtration principles apply.
+- **Optimism amid frustration**: Despite rudeness from officials (e.g., distributing N95s quickly for smoke but not COVID), you see the project as a way to bypass bureaucracy, with ideas like guerrilla activism (e.g., distributing mask info in libraries) to spread awareness.
+
+Overall, you view the project as a "bare minimum" that could save lives (e.g., estimating 80k lives in one state via N95s), criticizing how engineering solutions are easy but social change is hard.
+
+### Useful Context of Any Kind
+This section compiles background from your tweets to provide agentic AI with a rich understanding of the domain, historical backdrop, and related concepts:
+
+- **Historical Timeline**: Project ideation likely began pre-2021, with the beta app launch in April 2021. Grant funding announced in August 2022. You've been advocating for airborne mitigations since at least 2020, referencing two years of saying "COVID is airborne and particles linger" by December 2021. Recent tweets (2024-2025) shift toward AI-assisted development, indicating a revival or enhancement phase.
+- **Domain Knowledge on Air Quality and Mitigation**:
+  - **CO2 Thresholds**: Outdoor baseline ~400 ppm; indoor targets <800 ppm for good ventilation; high risks at 1000+ ppm, with extremes (e.g., 10,000 ppm) indicating severe issues.
+  - **Filtration Specs**: Critique of products like Grainger filters (e.g., MERV-13+ for HVAC), noting inaccuracies in specs (e.g., shared "833 cfm" data points). Charcoal filters often insufficient or restrictive; prefer HEPA for portables.
+  - **PPE Integration**: Strong emphasis on respirators (N95, P100) over surgical masks; you've shared guides and encountered users double-masking. For hazards like concrete dust or smoke, same principles apply.
+  - **Institutional Failures**: Examples include NYU Langone removing filters, CDC's droplet-focused guidance (e.g., 6-foot rule), and states lacking funds for N95 distribution. Contrast with quick responses to non-COVID events (e.g., smoke advisories).
+  - **Broader Hazards**: Ties to bird flu (H5N1), RSV, and future pandemics; advocate for antivirals as backups, not primaries, since prevention (ventilation) is superior.
+- **Personal Experiences**: You've carried CO2 meters for years, polled voters on masks, and engaged with officials. Early childhood insight on classroom filtration; recent focus on AI for development.
+- **Related Movements**: Connections to clean air advocates (e.g., @1goodtern, @JamesThrot, @Liesl4CleanAir), mask distribution efforts (@PPEtoheros), and funds like Balvi.
+- **Cultural/Social Insights**: Public skepticism (e.g., sounding "insane" when explaining fixes); media undercoverage; Instagram as an early warning for waves via personal stories.
+- **Technical Caveats**: Critique of specs on sites like Grainger; need for better labeling (e.g., petition FTC for "filtration facts").
+
+This context equips AI to reason about real-world applications, avoiding outdated assumptions like droplet dogma.
+
+### Anything Else Helpful for Agentic AI to Work on the Codebase
+Your recent tweets (especially from 2025) provide direct insights into AI-assisted development, which can guide agentic systems. Here's tailored advice to enhance their effectiveness on the CO2 Trackers codebase:
+
+- **Prompting and Context Engineering Strategies**:
+  - Use "fanciness" in prompts to build comprehensive knowledgebases: Direct agents to leave notes for themselves under specific conditions (e.g., surprises, optimizations), progressively accumulating insights.
+  - Structure outputs creatively: Agents have generated pseudocode for indexes, which they then follow—encourage this for planning before implementation.
+  - Analyze tool usage: Categorize commands (e.g., from shell histories) into auto-allow/deny lists to expand capabilities safely. Focus on underutilized CLI tools.
+- **Tooling and Workflow Recommendations**:
+  - **Shell Scripting**: Leverage tools like `parallel` for IO-bound tasks (e.g., processing logs). You've been astounded by AI figuring out function invocation as binaries—prioritize this for efficiency.
+  - **Delegation to AI**: Intentionally delegate meta-work (e.g., strategy development) to agents, assuming they reason better about themselves. Use models like Claude or Copilot for code analysis and categorization.
+  - **Scalability Hacks**: Avoid non-scalable approaches; instead, direct agents to develop custom tooling/scripts for repetitive tasks (e.g., rather than pure LLM for mechanical work).
+  - **Fine-Tuning Alternatives**: Since fine-tuning is resource-intensive, rely on hacky, prompt-based methods you've used successfully for years.
+- **Codebase-Specific Ideas**:
+  - Integrate domain knowledge: Embed logic for CO2 thresholds, filter recommendations, and alerts based on your observations (e.g., flag >1000 ppm as high-risk).
+  - AI-Enhanced Features: Add modules for data visualization (e.g., trends from crowdsourced readings), integration with sensors, or advocacy tools (e.g., generating reports for officials).
+  - Testing and Sanity Checks: Reference your collaborations (e.g., tagging experts for feedback) to simulate peer review in AI loops.
+  - Open Source Mindset: Sponsor dependencies (e.g., @camsoft2000); encourage agents to identify and contribute to related repos.
+- **Performance Boosts**: After tuning instructions, results match or exceed hand-written code—aim for this by iterating on a "copilot-instructions" file. Focus on surprising benefits like smarter model behavior.
+- **Risks to Avoid**: Hallucinations (e.g., non-runnable pseudocode that works anyway); over-reliance on mechanical LLM tasks—instead, pivot to scripting. Account for your self-described "suck at shell scripting" by letting AI handle it.
+
+This should maximize AI's utility, drawing from your evolving practices.
