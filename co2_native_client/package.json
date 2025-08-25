@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@config-plugins/react-native-ble-plx": "^4.0.0",
-    "@expo/cli": "0.4.10",
     "@notifee/react-native": "7.3.0",
     "@react-navigation/material-top-tabs": "^6.1.1",
     "@react-navigation/native": "^6.0.8",
@@ -18,7 +17,7 @@
     "@sentry/react-native": "4.9.0",
     "big-integer": "^1.6.51",
     "buffer": "^6.0.3",
-    "expo": "^47.0.8",
+    "expo": "48",
     "expo-application": "~5.0.1",
     "expo-auth-session": "~3.8.0",
     "expo-background-fetch": "~11.0.1",
