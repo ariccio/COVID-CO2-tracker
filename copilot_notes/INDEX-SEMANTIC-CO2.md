@@ -28,8 +28,8 @@ This index maps task keywords → relevant files with word counts for context bu
 ```yaml
 "alert" | "notification" | "sms" | "email" | "1000ppm":
   🔥urgent: FEATURE-PRIORITY-MATRIX.md#tier-1 (500 words)
-  quick: alert-implementation-1-hour.md (800 words)
-  service: app/services/alert_service.rb
+  quick: guides/quick/sms-alert-implementation-guide.md (2800 words)
+  service: app/services/alert_service.rb (to be created)
   focused: multi-channel-alerting.md (3500 words)
 
 "threshold" | "danger" | "warning" | "safe":
@@ -70,19 +70,19 @@ This index maps task keywords → relevant files with word counts for context bu
 ### Backend (Rails)
 ```yaml
 "api" | "endpoint" | "rails" | "backend":
-  quick: QUICK-REFERENCE-CARD.md#key-files (200 words)
+  quick: rails-quick-reference-card.md (1500 words)
   routes: config/routes.rb
   focused: rails-api-patterns.md (3000 words)
-  comprehensive: TECHNICAL-UPGRADE-GUIDE.md (8000 words)
+  comprehensive: rails-architecture-deep-dive.md (3500 words)
 
 "database" | "migration" | "postgres" | "query":
-  quick: database-queries-quickref.md (400 words)
+  quick: rails-quick-reference-card.md#database (300 words)
   schema: db/schema.rb
   focused: database-optimization-guide.md (3500 words)
-  indexes: performance-indexes.md (1500 words)
+  comprehensive: rails-architecture-deep-dive.md#database-schema (1000 words)
 
 "admin" | "activeadmin" | "dashboard":
-  quick: admin-panel-guide.md (500 words)
+  quick: rails-quick-reference-card.md#activeadmin (200 words)
   dir: app/admin/
   focused: activeadmin-customization.md (2000 words)
 
@@ -90,6 +90,12 @@ This index maps task keywords → relevant files with word counts for context bu
   🛠️tool: rails-mcp-server-usage-guide.md (1100 words)
   config: ~/.config/rails-mcp/projects.yml
   restart: Required after config changes
+
+"architecture" | "models" | "structure" | "overview":
+  🏗️comprehensive: rails-architecture-deep-dive.md (3500 words)
+  quick: rails-quick-reference-card.md (1500 words)
+  models: app/models/
+  services: app/services/ (to be created)
 ```
 
 ### Deployment & DevOps
@@ -198,11 +204,11 @@ These are from FEATURE-PRIORITY-MATRIX.md Tier 1 - massive impact in <2 hours:
 ### "Add SMS alerts when CO2 exceeds 1000ppm"
 ```yaml
 Load:
-  1. FEATURE-PRIORITY-MATRIX.md#sms-alerts (200 words)
-  2. app/services/alert_service.rb (review existing)
-  3. Gemfile (check for twilio-ruby)
-  4. alert-implementation-1-hour.md (800 words)
-Total: ~1,200 words + code review
+  1. guides/quick/sms-alert-implementation-guide.md (2800 words)
+  2. Gemfile (check for twilio-ruby)
+Execute:
+  3. Follow step-by-step guide with copy-paste code
+Total: ~2,800 words (complete implementation)
 ```
 
 ### "Deploy to production"
