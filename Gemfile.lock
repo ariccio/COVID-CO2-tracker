@@ -409,6 +409,7 @@ GEM
       rexml
     ruby-progressbar (1.13.0)
     ruby2_keywords (0.0.5)
+    rubyzip (2.4.1)
     sassc (2.4.0)
       ffi (~> 1.9)
     sassc (2.4.0-x64-mingw32)
@@ -511,6 +512,7 @@ DEPENDENCIES
   rubocop-rails
   rubocop-rspec
   rubocop-rspec_rails
+  rubyzip (~> 2.3)
   sassc-rails
   sentry-rails
   sentry-ruby

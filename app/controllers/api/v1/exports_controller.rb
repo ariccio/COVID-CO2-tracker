@@ -1,3 +1,5 @@
+require 'zip'
+
 class Api::V1::ExportsController < ApplicationController
   include ActionController::Live
   
@@ -65,7 +67,7 @@ class Api::V1::ExportsController < ApplicationController
   def validate_export_params
     format = params[:format_type] || 'csv'
     
-    unless %w[csv jsonl json yaml].include?(format)
+    unless %w[csv jsonl json yaml multi_csv].include?(format)
       render json: { error: "Unsupported format: #{format}" }, status: :bad_request
       return
     end
@@ -102,6 +104,28 @@ class Api::V1::ExportsController < ApplicationController
             break
           end
         end
+      elsif format == 'multi_csv'
+        # Stream ZIP file for multi-CSV
+        response.headers['Content-Type'] = 'application/zip'
+        response.headers['Content-Disposition'] = 'attachment; filename="co2_export_multi.zip"'
+        
+        # Create ZIP in memory and stream it
+        zip_data = StringIO.new
+        zip_data.binmode
+        
+        Zip::OutputStream.write_buffer(zip_data) do |zip|
+          export_id = "export_#{Time.current.strftime('%Y%m%d_%H%M%S')}"
+          
+          # Add each CSV file to the ZIP
+          add_measurements_to_zip(zip, export_id, filters)
+          add_places_to_zip(zip, export_id, filters)
+          add_sub_locations_to_zip(zip, export_id, filters)
+          add_devices_to_zip(zip, export_id, filters)
+          add_manifest_to_zip(zip, export_id, filters)
+        end
+        
+        zip_data.rewind
+        response.stream.write(zip_data.read)
       else
         # Use standard export for CSV
         exporter.export_measurements(response.stream, filters, fields: fields)
@@ -211,9 +235,43 @@ class Api::V1::ExportsController < ApplicationController
       Export::CsvService
     when 'jsonl', 'json'
       Export::JsonlService
+    when 'multi_csv'
+      Export::MultiCsvService
     else
       raise "Unsupported format: #{format}"
     end
+  end
+  
+  # Helper methods for multi-CSV ZIP export
+  def add_measurements_to_zip(zip, export_id, filters)
+    zip.put_next_entry("#{export_id}/measurements.csv")
+    service = Export::MultiCsvService.new(filters)
+    service.send(:write_measurements_to_stream, zip, filters)
+  end
+  
+  def add_places_to_zip(zip, export_id, filters)
+    zip.put_next_entry("#{export_id}/places.csv")
+    service = Export::MultiCsvService.new(filters)
+    service.send(:write_places_to_stream, zip, filters)
+  end
+  
+  def add_sub_locations_to_zip(zip, export_id, filters)
+    zip.put_next_entry("#{export_id}/sub_locations.csv")
+    service = Export::MultiCsvService.new(filters)
+    service.send(:write_sub_locations_to_stream, zip, filters)
+  end
+  
+  def add_devices_to_zip(zip, export_id, filters)
+    zip.put_next_entry("#{export_id}/devices.csv")
+    service = Export::MultiCsvService.new(filters)
+    service.send(:write_devices_to_stream, zip, filters)
+  end
+  
+  def add_manifest_to_zip(zip, export_id, filters)
+    zip.put_next_entry("#{export_id}/manifest.json")
+    service = Export::MultiCsvService.new(filters)
+    manifest = service.send(:build_manifest, export_id, filters)
+    zip.write(JSON.pretty_generate(manifest))
   end
   
   def content_type_for(format)
@@ -224,6 +282,8 @@ class Api::V1::ExportsController < ApplicationController
       'application/x-ndjson; charset=utf-8'
     when 'yaml'
       'application/x-yaml; charset=utf-8'
+    when 'multi_csv'
+      'application/zip'
     else
       'application/octet-stream'
     end

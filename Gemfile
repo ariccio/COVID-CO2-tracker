@@ -88,6 +88,8 @@ gem 'sentry-ruby'
 
 gem 'sentry-rails'
 
+# For creating ZIP archives in multi-file exports
+gem 'rubyzip', '~> 2.3'
 
 # gem 'tzinfo-data'
 
