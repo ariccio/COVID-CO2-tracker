@@ -85,6 +85,11 @@ This index maps task keywords → relevant files with word counts for context bu
   quick: admin-panel-guide.md (500 words)
   dir: app/admin/
   focused: activeadmin-customization.md (2000 words)
+
+"mcp" | "rails-mcp" | "navigate" | "project info" | "schema":
+  🛠️tool: rails-mcp-server-usage-guide.md (1100 words)
+  config: ~/.config/rails-mcp/projects.yml
+  restart: Required after config changes
 ```
 
 ### Deployment & DevOps
@@ -219,6 +224,18 @@ Load:
 Debug:
   4. expo start --ios (test on device)
   5. Check device permissions
+```
+
+### "Navigate Rails codebase" / "Analyze models" / "Check schema"
+```yaml
+Load:
+  1. rails-mcp-server-usage-guide.md (1100 words)
+Tools:
+  2. mcp__railsMcpServer__switch_project: covid-co2-tracker
+  3. mcp__railsMcpServer__project_info (overview)
+  4. mcp__railsMcpServer__analize_models (model details)
+  5. mcp__railsMcpServer__get_schema (database structure)
+Note: Requires Claude Desktop restart after config
 ```
 
 ## 📈 PROGRESSIVE LOADING STAGES
