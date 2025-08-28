@@ -86,10 +86,11 @@ This index maps task keywords → relevant files with word counts for context bu
   dir: app/admin/
   focused: activeadmin-customization.md (2000 words)
 
-"mcp" | "rails-mcp" | "navigate" | "project info" | "schema":
-  🛠️tool: rails-mcp-server-usage-guide.md (1100 words)
+"mcp" | "rails-mcp" | "navigate" | "project info" | "schema" | "load_guide":
+  🛠️tool: rails-mcp-server-usage-guide.md (1200 words)
   config: ~/.config/rails-mcp/projects.yml
   restart: Required after config changes
+  docs: Use load_guide for Rails/Turbo/Stimulus/Kamal documentation
 
 "architecture" | "models" | "structure" | "overview":
   🏗️comprehensive: rails-architecture-deep-dive.md (3500 words)
@@ -235,7 +236,7 @@ Debug:
 ### "Navigate Rails codebase" / "Analyze models" / "Check schema"
 ```yaml
 Load:
-  1. rails-mcp-server-usage-guide.md (1100 words)
+  1. rails-mcp-server-usage-guide.md (1200 words, includes load_guide tool)
 Tools:
   2. mcp__railsMcpServer__switch_project: covid-co2-tracker
   3. mcp__railsMcpServer__project_info (overview)

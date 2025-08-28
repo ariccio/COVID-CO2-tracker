@@ -158,20 +158,33 @@ The rails-mcp-server provides the following tools that AI assistants can use:
 **Returns**: Database config, cache settings, mail settings, and other Rails configurations
 
 ### 10. `load_guide`
-**Purpose**: Load official documentation guides  
+**Purpose**: Load official documentation guides from Rails, Turbo, Stimulus, Kamal, or custom sources  
 **Parameters**: 
 - `guides` (required, string) - Documentation library to use:
-  - `'rails'` - Rails framework guides
-  - `'turbo'` - Turbo documentation
-  - `'stimulus'` - Stimulus documentation
-  - `'kamal'` - Kamal deployment tool docs
-  - `'custom'` - Custom guides
+  - `'rails'` - Rails framework guides (Active Record, Action Controller, etc.)
+  - `'turbo'` - Turbo documentation (Turbo Frames, Turbo Streams, etc.)
+  - `'stimulus'` - Stimulus documentation (Controllers, Values, Targets, etc.)
+  - `'kamal'` - Kamal deployment tool docs (Installation, Configuration, etc.)
+  - `'custom'` - Custom guides specific to your project
 - `guide` (optional, string) - Specific guide name; if omitted, returns list of available guides
 
 **Example Usage**: 
 - "Can you load the Rails getting started guide?"
-- "Show me the available Turbo guides"
+- "Show me the available Turbo guides and then load the one about Turbo Frames"
+- "I need help with Stimulus. Can you load the hello_stimulus guide"
+- "Load the Kamal installation guide so I can understand deployment options"
 - "Load the Active Record associations guide from Rails"
+
+**Common Rails Guides Available**:
+- `getting_started` - Rails basics and first application
+- `active_record_basics` - ORM fundamentals
+- `active_record_associations` - Model relationships
+- `active_record_validations` - Data validation
+- `action_controller_overview` - Controller patterns
+- `routing` - Rails routing DSL
+- `testing` - Rails testing strategies
+
+**Use Case**: Quickly reference official documentation while developing without leaving Claude Desktop
 
 ## COVID CO2 Tracker Specific Examples
 
