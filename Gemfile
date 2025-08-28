@@ -119,3 +119,4 @@ group :development, :test do
   # gem "cypress-rails", git: 'https://github.com/ariccio/cypress-rails.git', branch: 'add-baseurl-override-squashed'
 
 end
+gem "rails-mcp-server", "~> 1.1", :groups => [:development, :test]

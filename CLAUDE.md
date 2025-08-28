@@ -35,3 +35,11 @@ The COVID CO2 Tracker now uses an advanced memory and context management system.
 1. Create descriptive filename in copilot_notes/
 2. Update INDEX-SEMANTIC-CO2.md with word count
 3. Consider creating a script if repeatable
+
+### Documentation Quality Standards
+When creating documentation or guides:
+1. **Include EXACT values** (not placeholders) for all parameters
+2. **Make everything copy-pasteable** - test that examples work as-is
+3. **Document failure modes** - what errors users might see and fixes
+4. **Add verification steps** - how to confirm something worked
+5. See `copilot_notes/AI-DOCUMENTATION-INSTRUCTIONS.md` for full standards
