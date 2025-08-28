@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  token: MyString
+  description: MyString
+  expires_at: 2025-08-28 05:15:45
+  usage_count: 1
+  last_used_at: 2025-08-28 05:15:45
+  permissions: 
+
+two:
+  token: MyString
+  description: MyString
+  expires_at: 2025-08-28 05:15:45
+  usage_count: 1
+  last_used_at: 2025-08-28 05:15:45
+  permissions: 

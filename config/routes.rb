@@ -45,6 +45,10 @@
       get '/user_settings', to: 'user_settings#show'
       delete '/user_settings', to: 'user_settings#destroy'
 
+      # Export API endpoints
+      get '/export', to: 'exports#index'
+      get '/export/download', to: 'exports#download'
+
     end
   end
   # get '/', to: 'application#fallback_index_html'
