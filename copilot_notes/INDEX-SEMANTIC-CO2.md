@@ -1,6 +1,6 @@
 # 🧠 COVID CO2 Tracker Semantic Knowledge Index
 *AI-optimized task pattern matching for rapid context loading*
-*Last updated: 2025-08-25*
+*Last updated: 2025-08-28*
 
 ## 🚨 ALWAYS START HERE
 This index maps task keywords → relevant files with word counts for context budget management.
@@ -29,6 +29,7 @@ This index maps task keywords → relevant files with word counts for context bu
 "alert" | "notification" | "sms" | "email" | "1000ppm":
   🔥urgent: FEATURE-PRIORITY-MATRIX.md#tier-1 (500 words)
   quick: guides/quick/sms-alert-implementation-guide.md (2800 words)
+  📚enhanced: 2025-08-28-sms-alert-enhanced-with-rails-guides.md (2500 words)
   service: app/services/alert_service.rb (to be created)
   focused: multi-channel-alerting.md (3500 words)
 
@@ -94,6 +95,7 @@ This index maps task keywords → relevant files with word counts for context bu
 
 "architecture" | "models" | "structure" | "overview":
   🏗️comprehensive: rails-architecture-deep-dive.md (3500 words)
+  📚enhanced: 2025-08-28-rails-knowledgebase-enhancement-recommendations.md (3200 words)
   quick: rails-quick-reference-card.md (1500 words)
   models: app/models/
   services: app/services/ (to be created)
@@ -146,6 +148,15 @@ This index maps task keywords → relevant files with word counts for context bu
   collaboration: research-partnership-guide.md (2000 words)
 ```
 
+### Data Export & Streaming
+```yaml
+"export" | "csv" | "download" | "jsonl" | "streaming":
+  📚plan: 2025-08-28-multi-format-export-system-complete-plan.md (3000 words)
+  🔥enhanced: 2025-08-28-export-plan-rails-guide-enhancements.md (2200 words)
+  quick: data-export-implementation.md (1500 words)
+  streaming: ActionController::Live patterns included
+```
+
 ## 📊 CONTEXT BUDGET GUIDELINES
 
 ### Task Complexity → Maximum Context Load
@@ -194,10 +205,10 @@ if (task.includes("deploy") || task.includes("production")) {
 
 These are from FEATURE-PRIORITY-MATRIX.md Tier 1 - massive impact in <2 hours:
 
-1. **SMS Alerts** (1 hour): `alert-implementation-1-hour.md`
-2. **Venue Leaderboard** (2 hours): `venue-leaderboard-2-hours.md`
+1. **SMS Alerts** (1 hour): `2025-08-28-sms-alert-enhanced-with-rails-guides.md` 📚
+2. **Venue Leaderboard** (2 hours): `guides/quick/venue-leaderboard-implementation.md`
 3. **Social Sharing** (30 min): `social-sharing-quick.md`
-4. **CSV Export** (1 hour): `data-export-implementation.md`
+4. **CSV Export** (1 hour): `2025-08-28-export-plan-rails-guide-enhancements.md` 📚
 5. **Traffic Light UI** (1 hour): `simple-ui-safety-indicators.md`
 
 ## 🚀 COMMON TASK PATTERNS
