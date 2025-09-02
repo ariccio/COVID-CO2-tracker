@@ -6,7 +6,7 @@ module Export
       measurement_id co2_ppm timestamp crowding
       lat lng place_name place_google_id
       device_serial device_model manufacturer
-      is_realtime
+      is_realtime user_name
     ].freeze
     
     DEFAULT_FIELDS = %w[co2_ppm timestamp lat lng].freeze
@@ -104,7 +104,8 @@ module Export
         device_serial: sanitize_for_export(measurement.device&.serial),
         device_model: sanitize_for_export(measurement.device&.model&.name),
         manufacturer: sanitize_for_export(measurement.device&.model&.manufacturer&.name),
-        is_realtime: measurement.is_realtime?
+        is_realtime: measurement.is_realtime?,
+        user_name: sanitize_for_export(measurement.device&.user&.name)
       }
     end
     

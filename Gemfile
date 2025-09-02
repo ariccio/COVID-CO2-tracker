@@ -82,6 +82,8 @@ gem 'validates_timeliness', '>= 7.0.0.beta1'
 
 group :production do
   gem 'barnes'
+  gem 'rack-timeout', '~> 0.6'
+  gem 'strong_migrations', '~> 1.8'
 end
 
 gem 'sentry-ruby'
