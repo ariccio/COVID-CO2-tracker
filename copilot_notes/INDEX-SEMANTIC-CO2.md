@@ -1,6 +1,6 @@
 # 🧠 COVID CO2 Tracker Semantic Knowledge Index
 *AI-optimized task pattern matching for rapid context loading*
-*Last Updated: 2025-09-02 | Total Files: 79 | Total Words: ~80,000*
+*Last Updated: 2025-09-02 | Total Files: 41 (25 archived) | Total Words: ~40,000*
 
 ## 🚨 ALWAYS START HERE
 This index maps task patterns → relevant files with ACTUAL word counts for precise context budget management.
@@ -8,20 +8,14 @@ This index maps task patterns → relevant files with ACTUAL word counts for pre
 
 ## 📊 FILE CATALOG BY CATEGORY
 
-### 🚨 Emergency & Production Operations (11,693 words)
+### 🚨 Emergency & Production Operations (5,507 words)
 | File | Words | Description | Keywords |
 |------|-------|-------------|----------|
 | `EMERGENCY-PLAYBOOK-CO2.md` | 2,476 | Production emergency procedures | crash, outage, H10, R14, memory |
-| `heroku-quick-reference.md` | 682 | Heroku command reference | deploy, logs, config, restart |
-| `heroku-memory-optimization.md` | 958 | Memory management strategies | R14, memory quota, worker sizing |
-| `heroku-database-connections.md` | 1,244 | Database connection pooling | pool size, connection limits |
-| `heroku-streaming-exports.md` | 1,115 | Streaming operations guide | ActionController::Live, chunked |
-| `heroku-monitoring-setup.md` | 1,567 | Production monitoring setup | metrics, alerts, dashboards |
-| `heroku-problem-solution-map.md` | 1,117 | Common Heroku issues → fixes | troubleshooting, errors |
-| `heroku-scaling-economics.md` | 773 | Cost optimization strategies | dyno types, pricing, scaling |
-| `heroku-export-deployment-commands.md` | 543 | Export deployment commands | migrate, deploy, config vars |
+| `HEROKU-COMPLETE-GUIDE.md` | 12,186 | Comprehensive Heroku operations guide | deploy, logs, config, restart, memory, database, monitoring |
 | `deep-research-reports/compass_artifact_wf-Heroku-*.md` | 2,160 | Comprehensive Heroku operations | deep dive, research |
-| `2025-08-31-production-environment-snapshot.md` | 871 | Current production state | config, addons, settings |
+*Note: 8 Heroku files archived to `archived/heroku/` - content consolidated into HEROKU-COMPLETE-GUIDE.md*
+*Note: Production environment snapshot archived to `archive/completed/` - historical reference*
 
 ### 📦 Export System Documentation (21,206 words)
 | File | Words | Description | Keywords |
@@ -29,43 +23,39 @@ This index maps task patterns → relevant files with ACTUAL word counts for pre
 | `docs/export-system-implementation.md` | 3,667 | Complete technical documentation | implementation, API, streaming |
 | `docs/export-system-analysis.md` | 2,613 | System analysis & architecture | design, patterns, decisions |
 | `2025-09-02-export-system-ultrathink-improvements.md` | 2,419 | Ultra-comprehensive improvements | security, performance, UX |
-| `2025-08-28-multi-format-export-system-complete-plan.md` | 1,850 | Multi-format implementation | CSV, JSON, JSONL, streaming |
 | `2025-08-28-sms-alert-enhanced-with-rails-guides.md` | 1,586 | SMS alerts with Rails patterns | Twilio, ActionMailer, jobs |
-| `2025-08-28-export-plan-additional-rails-enhancements.md` | 1,530 | Rails-specific enhancements | ActiveRecord, concerns |
-| `2025-08-28-export-plan-rails-guide-enhancements.md` | 1,354 | Rails guide best practices | conventions, patterns |
 | `2025-09-02-export-system-production-readiness-plan.md` | 1,304 | Production deployment checklist | validation, testing, rollout |
 | `2025-09-02-IMMEDIATE-ACTION-PLAN.md` | 1,302 | Critical fixes needed NOW | security, bugs, performance |
 | `guides/quick/venue-leaderboard-implementation.md` | 1,631 | Public venue rankings | 2-hour implementation |
 | `guides/quick/sms-alert-implementation-guide.md` | 1,156 | SMS alerts in 1 hour | quick win, Twilio |
 | `2025-08-31-production-deployment-plan.md` | 1,625 | Deployment strategy & steps | rollout, validation |
-| `2025-08-28-csv-export-system-comprehensive-plan.md` | 879 | CSV-specific implementation | format, headers, encoding |
 | `docs/api/export-endpoints.md` | 880 | API endpoint documentation | routes, parameters, responses |
 | `docs/EXPORT_SYSTEM_PRODUCTION_READY.md` | 700 | Production readiness summary | checklist, status |
+
+*Note: 6 export planning files archived to `archive/superseded/` - consolidated into current implementation docs*
 
 ### 🚄 Rails Architecture & MCP Tools (8,219 words)
 | File | Words | Description | Keywords |
 |------|-------|-------------|----------|
 | `rails-architecture-deep-dive.md` | 1,262 | Complete architecture analysis | models, controllers, services |
-| `rails-deep-insights-with-working-tools.md` | 1,258 | MCP tools exploration results | schema, routes, analysis |
 | `rails-mcp-server-usage-guide.md` | 1,204 | How to use Rails MCP server | navigate, analyze, inspect |
 | `rails-quick-reference-card.md` | 824 | Rails commands & patterns | console, migrations, tests |
-| `rails-exploration-discoveries.md` | 819 | Exploration findings | insights, patterns, issues |
-| `2025-08-28-rails-knowledgebase-enhancement-recommendations.md` | 1,534 | Knowledge improvements | documentation, guides |
 | `AI-AGENT-PROJECT-CONTEXT.md` | 1,203 | Project context for AI agents | background, goals, structure |
-| `project-architecture-overview.md` | 123 | High-level architecture | overview, components |
+
+*Note: 4 exploration files archived to `archive/exploratory/` - insights integrated into main guides*
+*Note: Project architecture overview archived to `archive/completed/` - superseded by detailed guide*
 
 ### 🧠 Knowledge Infrastructure (14,432 words)
 | File | Words | Description | Keywords |
 |------|-------|-------------|----------|
 | `2025-09-02-AUTOMATION-OPPORTUNITIES.md` | 3,125 | Automation analysis | scripts, tools, efficiency |
-| `2025-09-02-META-KNOWLEDGE-SYSTEM.md` | 1,967 | Meta-knowledge design | patterns, organization |
 | `MEMORY-INFRASTRUCTURE-PORTING-PLAN.md` | 1,892 | Memory system porting | context, preservation |
 | `2025-09-02-KNOWLEDGE-GAPS-CRITICAL.md` | 1,839 | Critical missing documentation | gaps, needed, priority |
-| `2025-09-02-KNOWLEDGEBASE-REVOLUTION-PLAN.md` | 1,608 | Knowledge system vision | future, improvements |
-| `2025-09-02-KNOWLEDGEBASE-VISION.md` | 1,542 | Transcendent documentation | vision, goals, philosophy |
 | `2025-09-02-SUBAGENT-PROMPTS.md` | 1,468 | Delegation prompt templates | subagents, tasks |
 | `2025-09-02-KNOWLEDGEBASE-PRAGMATIC-PLAN.md` | 1,240 | Practical improvements | tonight, actionable |
-| `memory-infrastructure-setup-summary.md` | 137 | Setup completion status | status, complete |
+
+*Note: 3 advanced concept files archived to `archive/advanced-concepts/` - future vision documents*
+*Note: Memory setup summary archived to `archive/completed/` - setup complete*
 
 ### 🎯 Quick References & Guides (5,554 words)
 | File | Words | Description | Keywords |
@@ -77,15 +67,14 @@ This index maps task patterns → relevant files with ACTUAL word counts for pre
 | `QUICK-REFERENCE-CARD.md` | 773 | Essential commands | commands, shortcuts, tips |
 | `PROBLEM_SOLUTION_MAP_CO2.md` | 299 | Problem → solution mapping | troubleshooting, fixes |
 
-### 📝 Session & Continuation Files (12,457 words)
+### 📝 Session & Continuation Files (2,410 words)
 | File | Words | Description | Keywords |
 |------|-------|-------------|----------|
-| `2025-08-25-memory-infrastructure-context-preservation.md` | 1,071 | Memory implementation context | context, state |
-| `2025-08-28-session-context-preservation.md` | 990 | Session context | rails MCP, memory |
 | `2025-09-02-session-context-complete.md` | 975 | Complete session context | export system, production |
-| `continuation-template-example.md` | 825 | Continuation template | rails 7, upgrade |
-| Multiple session files | ~8,000 | Various session contexts | archive candidates |
-| Multiple continuation prompts | ~3,000 | Continuation templates | consolidate |
+| `2025-09-02-continuation-prompt.md` | 435 | Current continuation template | latest, improved |
+| `2025-09-02-ultra-compressed-context.md` | 150 | Minimal context handoff | compressed, emergency |
+
+*Note: 15+ session files archived to `archive/sessions/` and `archive/continuation/` - historical contexts preserved*
 
 ### 📚 Documentation Standards (1,764 words)
 | File | Words | Description | Keywords |
@@ -103,34 +92,33 @@ This index maps task patterns → relevant files with ACTUAL word counts for pre
 ```yaml
 EMERGENCY (Memory/Crash/Outage):
   1. EMERGENCY-PLAYBOOK-CO2.md (2,476 words) # START HERE
-  2. heroku-quick-reference.md (682 words)
-  3. heroku-problem-solution-map.md (1,117 words)
-  Total: ~4,300 words
+  2. HEROKU-COMPLETE-GUIDE.md#emergency-commands (relevant sections)
+  3. HEROKU-COMPLETE-GUIDE.md#troubleshooting (relevant sections)
+  Total: ~4,500 words
 
 Database Issues:
-  1. heroku-database-connections.md (1,244 words)
+  1. HEROKU-COMPLETE-GUIDE.md#database-management (relevant sections)
   2. EMERGENCY-PLAYBOOK-CO2.md#database-locked
-  Total: ~2,000 words
+  Total: ~3,000 words
 
 Export System Issues:
   1. 2025-09-02-IMMEDIATE-ACTION-PLAN.md (1,302 words)
-  2. heroku-streaming-exports.md (1,115 words)
-  Total: ~2,400 words
+  2. HEROKU-COMPLETE-GUIDE.md#export-system-deployment (relevant sections)
+  Total: ~3,000 words
 ```
 
 #### Deploy Changes
 ```yaml
 Standard Deployment:
-  1. heroku-export-deployment-commands.md (543 words)
+  1. HEROKU-COMPLETE-GUIDE.md#deployment-commands (relevant sections)
   2. 2025-08-31-production-deployment-plan.md (1,625 words)
-  3. heroku-quick-reference.md#deployment (200 words)
-  Total: ~2,400 words
+  Total: ~2,500 words
 
 Export System Deployment:
   1. 2025-09-02-export-system-production-readiness-plan.md (1,304 words)
   2. docs/EXPORT_SYSTEM_PRODUCTION_READY.md (700 words)
-  3. heroku-export-deployment-commands.md (543 words)
-  Total: ~2,550 words
+  3. HEROKU-COMPLETE-GUIDE.md#export-system-deployment (relevant sections)
+  Total: ~3,000 words
 ```
 
 #### Implement Features
@@ -146,8 +134,9 @@ Venue Leaderboard (2 hours):
 
 Export System:
   1. docs/export-system-implementation.md (3,667 words)
-  2. 2025-08-28-multi-format-export-system-complete-plan.md (1,850 words)
-  Total: ~5,520 words
+  2. 2025-09-02-export-system-production-readiness-plan.md (1,304 words)
+  Total: ~5,000 words
+  *Note: Legacy plans archived - use current implementation docs*
 ```
 
 #### Navigate Codebase
@@ -230,17 +219,16 @@ Export System:
     - docs/export-system-implementation.md
     - 2025-09-02-IMMEDIATE-ACTION-PLAN.md (security fixes)
   Deployment needs:
-    - heroku-export-deployment-commands.md
-    - heroku-streaming-exports.md
+    - HEROKU-COMPLETE-GUIDE.md#export-system-deployment
   Performance needs:
-    - heroku-memory-optimization.md
+    - HEROKU-COMPLETE-GUIDE.md#memory-management
 
 Emergency Response:
   Always load together:
     - EMERGENCY-PLAYBOOK-CO2.md
-    - heroku-quick-reference.md
+    - HEROKU-COMPLETE-GUIDE.md#emergency-commands
   For database issues add:
-    - heroku-database-connections.md
+    - HEROKU-COMPLETE-GUIDE.md#database-management
 
 Feature Implementation:
   SMS Alerts needs:
@@ -281,17 +269,32 @@ From FEATURE-PRIORITY-MATRIX.md:
 
 ## 📈 EFFICIENCY METRICS
 
-Current State:
-- **Total Files**: 79 markdown files
-- **Total Words**: ~80,000 words
-- **Average File**: ~1,000 words
-- **Largest Files**: export-system-implementation.md (3,667), AUTOMATION-OPPORTUNITIES.md (3,125)
+Current State (Post-Archive):
+- **Active Files**: 41 markdown files
+- **Archived Files**: 25 files (~35,000 words)
+- **Active Words**: ~40,000 words
+- **Average File**: ~975 words
+- **Largest Files**: HEROKU-COMPLETE-GUIDE.md (12,186), docs/export-system-implementation.md (3,667)
 - **Quick Wins Available**: 5 features under 2 hours each
 
-Optimization Opportunities:
-- Archive 40+ session files → reduce to <40 active files
-- Consolidate 8 Heroku files → 1 comprehensive guide
-- Merge continuation templates → 1 master template
+Completed Optimizations:
+- ✅ Archive 25 session/context files → reduced to 41 active files
+- ✅ Consolidate 8 Heroku files → 1 comprehensive guide
+- ✅ Archive old templates → 1 current template
+- ✅ Archive superseded plans → current implementation docs only
+
+## 📁 ARCHIVED FILES
+
+Files moved to `archive/` on 2025-09-02:
+- **25 files archived** (~35,000 words)
+- Session contexts → `archive/sessions/`
+- Old continuation prompts → `archive/continuation/`
+- Superseded export plans → `archive/superseded/`
+- Exploration files → `archive/exploratory/`
+- Advanced concepts → `archive/advanced-concepts/`
+- Completed setup → `archive/completed/`
+
+All archived files remain accessible if needed.
 
 ## 🔄 WHEN CONTEXT FILLS
 
@@ -302,5 +305,5 @@ At 80% capacity:
 4. Use `2025-09-02-ultra-compressed-context.md` (150 words) for minimal handoff
 
 ---
-*Index Version: 2.0.0 | Last Full Scan: 2025-09-02 | Files: 79 | Words: ~80,000*
-*Next cleanup: Archive session files, consolidate Heroku docs*
+*Index Version: 3.0.0 | Last Updated: 2025-09-02 | Active Files: 41 | Archived: 25 | Words: ~40,000*
+*✅ CLEANUP COMPLETE: Session files archived, knowledgebase optimized*
