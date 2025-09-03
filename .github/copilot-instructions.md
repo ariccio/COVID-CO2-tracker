@@ -70,6 +70,70 @@ If you're working on complex tasks and context limits:
 2. **Overriding Rubocop exclusions** - They prevent real bugs
 3. **"Fixing" Time.now to Time.zone.now in config/** - This is NOT a fix, it's a bug
 
+## 🔍 Universal Pattern Detection and Prevention
+
+### Suspicious Pattern Recognition
+**STOP and investigate when you see:**
+- "Old style" code in configuration/initialization files - it might be necessary for bootstrap
+- Linter suggestions for files that run during startup - tools don't understand initialization order
+- Code that "should" use a framework feature but doesn't - ask WHY it doesn't
+- Multiple approaches to the same problem in different files - understand the context differences
+- Exclusions in linter configs without explanations - add the "why" before proceeding
+
+### Before "Fixing" Anything That Looks Wrong
+1. **Check history**: `git log -p -S "[code-pattern]" --all` - Has this been changed and reverted?
+2. **Look for comments**: Even in git history - someone might have explained why
+3. **Test current behavior**: Does it actually work as-is? Don't fix what isn't broken
+4. **Understand the context**: WHEN does this code run? Are all features available then?
+5. **Document your reasoning**: If you change it, explain WHY for future sessions
+
+### Framework Initialization Awareness
+**Critical understanding for ANY framework:**
+- Config files often run BEFORE the framework fully loads
+- Bootstrap/startup code executes BEFORE all modules are initialized
+- Early lifecycle hooks fire BEFORE all features are available
+- What's "correct" at runtime might be "incorrect" during initialization
+
+**Red flags requiring extra caution:**
+- Files named: `boot`, `bootstrap`, `init`, `startup`, `config`, `setup`
+- Early hooks: `before_configuration`, `initializers`, `pre_init`, `on_load`
+- Anything that runs before the main application entry point
+
+### When Linters/Analyzers Suggest Changes
+**ALWAYS ask:**
+1. Does this tool understand the execution context?
+2. Is this a compile-time vs runtime issue?
+3. Are there initialization order dependencies?
+4. Why was it written the "wrong" way originally?
+5. Has this "fix" been attempted before? Check: `git log --grep="fix.*[pattern]"`
+
+### Cross-Session Learning Protocol
+**Before starting work:**
+```bash
+# Check for previous attempts and learnings
+ls -la copilot_notes/*analysis*.md copilot_notes/*gotcha*.md
+git log --oneline -30 | grep -iE "revert|broke|fix"
+git log -p --reverse -S "[suspicious-pattern]" | head -100
+```
+
+**When something surprising happens:**
+1. Create: `copilot_notes/[date]-[specific-issue]-gotcha.md`
+2. Document: What you tried, why it failed, what the root cause was
+3. Update: This instructions file if it's a pattern that might recur
+
+### Verification Requirements
+**For ANY configuration or initialization changes:**
+1. **App starts**: `rails runner "puts 'Started successfully'"` (adapt for your framework)
+2. **Core features work**: Test at least one core feature
+3. **No new warnings**: Check logs for new errors/warnings
+4. **Performance unchanged**: If startup time matters, measure it
+
+**If you cannot test**, DO NOT make changes to:
+- Initialization or bootstrap code
+- Configuration files
+- Anything that affects application startup
+- Core framework integration points
+
 ## Goals
 - We want to be ethical while pursuing business goals. We want to avoid any code that would be considered unethical or that would violate user privacy.
 - Develop a user-friendly app for real-time CO2 monitoring

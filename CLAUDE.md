@@ -27,6 +27,63 @@ This mistake has been made and reverted multiple times. See: `copilot_notes/time
 2. **MUST CHECK**: `.rubocop.yml` exclusions - they prevent real bugs
 3. **MUST TEST**: Run `rails runner "puts 'Success'"` after any config changes
 
+## 🎯 Universal Anti-Pattern Prevention
+
+### Pattern Detection Triggers
+When you encounter these situations, STOP and investigate:
+
+1. **Code that violates "best practices" but works**
+   - Ask: Why was it written this way?
+   - Check: Git history for previous "fixes" and reverts
+   - Test: Does changing it actually improve anything?
+
+2. **Linter/Analyzer suggestions in special files**
+   - Config files, initializers, bootstrap code
+   - Files that run during startup or initialization
+   - Ask: Is the suggested feature available at this execution point?
+
+3. **Repeated patterns with variations**
+   - Same problem solved differently in different files
+   - Ask: What's different about the context?
+   - Document: Why each approach is used where
+
+### The "Why" Documentation Principle
+**When you find unexplained patterns:**
+```ruby
+# BAD: Silent exclusion or weird pattern
+Time.now  # <-- Why not Time.zone.now?
+
+# GOOD: Documented reasoning
+# WARNING: Must use Time.now here because Time.zone is not yet initialized
+# This file runs during Rails boot before the framework loads
+# Changing to Time.zone.now causes: NoMethodError on startup
+# See: copilot_notes/time-zone-ping-pong-analysis.md
+Time.now
+```
+
+### Session Learning Checklist
+**Before starting ANY work:**
+```bash
+# 1. Check for gotchas and previous failures
+ls copilot_notes/*analysis*.md copilot_notes/*gotcha*.md | head -10
+
+# 2. Look for ping-pong patterns in recent history
+git log --oneline -20 | grep -iE "revert|fix|broke"
+
+# 3. Search for code that's been changed multiple times
+git log --follow -p -- config/application.rb | grep -A5 -B5 "Time\."
+```
+
+### Creating Persistent Learning
+**When you discover a gotcha:**
+1. Create: `copilot_notes/[YYYY-MM-DD]-[specific-pattern]-gotcha.md`
+2. Include:
+   - What the pattern is
+   - Why it looks wrong but is correct
+   - What happens if you "fix" it
+   - How to verify it's working correctly
+3. Update: The relevant instruction files if it might recur
+
 ## 🧠 Memory Infrastructure Active
 The COVID CO2 Tracker now uses an advanced memory and context management system.
 
