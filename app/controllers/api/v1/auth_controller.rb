@@ -149,7 +149,7 @@ module Api
         return render_invalid_google_login_params(e_not_created_yet, :email) if @decoded_token['email'].empty?
 
         # byebug
-        ::Rails.logger.debug("@decoded_token: #{@decoded_token}") unless Rails.env.production?
+        ::Rails.logger.debug { "@decoded_token: #{@decoded_token}" } unless Rails.env.production?
         @user = ::User.create!(email: @decoded_token['email'], name: @decoded_token['name'], sub_google_uid: @decoded_token['sub'])
         render_successful_authentication
       rescue ::ActiveRecord::RecordInvalid => e
@@ -161,7 +161,7 @@ module Api
       def create
 
         # TODO: wtf is the triple equals here? Wrong.
-        if (Rails.env == 'test') && (!(::ENV['IsEndToEndBackendServerSoSTFUWithTheLogs'] == 'yes'))
+        if (Rails.env.test?) && (::ENV['IsEndToEndBackendServerSoSTFUWithTheLogs'] != 'yes')
           ::Rails.logger.warn('test auth path')
           Sentry.capture_message('WRONG auth path!') if Rails.env.production?
           # No encryption for test env

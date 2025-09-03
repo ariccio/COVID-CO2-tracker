@@ -29,7 +29,7 @@ module Api
         end
         # , realtime_upload_place_id: place.id, realtime_upload_sub_location_id: sublocation.place.id
         settings = UserSetting.find_by(user_id: @user.id)
-        if settings == nil
+        if settings.nil?
           UserSetting.create!(user_id: @user.id, realtime_upload_place: place, realtime_upload_sub_location: sublocation)
         else
           settings.realtime_upload_place = place
@@ -62,7 +62,7 @@ module Api
       def destroy
         # byebug
         us = @user.user_setting
-        if (us == nil)
+        if (us.nil?)
           return render_empty
         end
 

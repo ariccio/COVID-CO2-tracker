@@ -12,7 +12,6 @@ class Measurement < ApplicationRecord
 
   validates :co2ppm, presence: true
   validates :measurementtime, presence: true
-  validates :device_id, presence: true
   validates :crowding, presence: true, unless: :is_realtime?
 
 
@@ -30,7 +29,7 @@ class Measurement < ApplicationRecord
 
   validates_associated :device, :sub_location
 
-  EARLIEST_TIME = ::Time.parse('2020-01-01')
+  EARLIEST_TIME = ::Time.zone.parse('2020-01-01')
 
   def is_realtime?
     return false unless extra_measurement_info

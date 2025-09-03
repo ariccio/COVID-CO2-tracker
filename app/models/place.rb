@@ -17,7 +17,7 @@ class Place < ApplicationRecord
       super & %w[title body]
     end
   end
-  def self.ransackable_associations(auth_object = nil)
+  def self.ransackable_associations(_auth_object = nil)
     ['measurement', 'sub_location']
   end
 
@@ -36,7 +36,7 @@ class Place < ApplicationRecord
 
   def self.testing_data_migration
     # say('UGLY manual data migration...')
-    ::Place.all.find_each do |place|
+    ::Place.find_each do |place|
       place.measurement.each do |measurement|
         new_sub_location = place.sub_location.find_or_create_by!(description: measurement.location_where_inside_info)
         measurement.sub_location = new_sub_location

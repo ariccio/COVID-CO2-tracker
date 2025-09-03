@@ -12,7 +12,7 @@ module Api
       # Don't want much of the scaffolding generated stuff
 
       def index
-        @places = Place.all.select(:google_place_id)
+        @places = Place.select(:google_place_id)
         pms = ::GooglePlaceIdSerializer.new(@places).serializable_hash
         render(
           json: {
@@ -27,7 +27,7 @@ module Api
 
         return false unless @place.place_needs_refresh?
 
-        ::Rails.logger.debug("\r\n\tUpdating #{@place.google_place_id}...\r\n")
+        ::Rails.logger.debug { "\r\n\tUpdating #{@place.google_place_id}...\r\n" }
         # byebug
         @spot = get_spot(@place.google_place_id)
         return nil if @spot.nil?

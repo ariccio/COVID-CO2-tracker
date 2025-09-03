@@ -1,20 +1,22 @@
+# frozen_string_literal: true
+
 require 'zip'
 
 class Api::V1::ExportsController < ApplicationController
   include ActionController::Live
-  
+
   before_action :authenticate_export_token
   before_action :check_rate_limit
   before_action :validate_export_params
-  
+
   def index
     format = params[:format_type] || 'csv'
     fields = parse_fields(params[:fields])
     filters = build_filters(params)
-    
+
     # Check cache first (implementing Rails cache pattern from enhancement doc)
     cache_key = build_cache_key(format, fields, filters)
-    
+
     if stale_cache?(cache_key)
       stream_export(format, fields, filters)
     else
@@ -22,107 +24,108 @@ class Api::V1::ExportsController < ApplicationController
       render_cached_export(cache_key)
     end
   end
-  
+
   def download
     format = params[:format_type] || 'csv'
     fields = parse_fields(params[:fields])
     filters = build_filters(params)
-    
+
     # Use Rails conditional GET support from enhancement doc
     last_measurement = Measurement.maximum(:updated_at)
-    
+
     if stale?(last_modified: last_measurement&.utc, public: false)
       stream_export_download(format, fields, filters)
     end
   end
-  
+
   private
-  
+
   def authenticate_export_token
-    token_string = request.headers['Authorization']&.split(' ')&.last
-    
+    token_string = request.headers['Authorization']&.split&.last
+
     @export_token = ExportToken.authenticate(token_string)
-    
+
     unless @export_token
       render json: { error: 'Invalid or expired token' }, status: :unauthorized
     end
   end
-  
+
   def check_rate_limit
     return unless @export_token
-    
+
     # Use secure rate limiting key that uses token hash instead of predictable ID
     rate_key = @export_token.rate_limit_key
     return unless rate_key # Safety check
-    
+
     count = Rails.cache.increment(rate_key, 1, expires_in: 1.hour) || 1
-    
+
     if count > @export_token.rate_limit_per_hour
-      render json: { 
-        error: 'Rate limit exceeded', 
+      render json: {
+        error: 'Rate limit exceeded',
         limit: @export_token.rate_limit_per_hour,
         reset_in: Rails.cache.ttl(rate_key)
       }, status: :too_many_requests
     end
   end
-  
+
   def validate_export_params
     format = params[:format_type] || 'csv'
-    
+
     unless %w[csv jsonl json yaml multi_csv].include?(format)
       render json: { error: "Unsupported format: #{format}" }, status: :bad_request
       return
     end
-    
+
     unless @export_token.can_export_format?(format)
       render json: { error: "Token not authorized for format: #{format}" }, status: :forbidden
     end
   end
-  
+
   def stream_export(format, fields, filters)
     response.headers['Content-Type'] = content_type_for(format)
     response.headers['Cache-Control'] = 'public, max-age=300'
     response.headers['X-Accel-Buffering'] = 'no' # Disable nginx buffering
-    
+
     # Record token usage
     @export_token.record_usage!
-    
+
     # Track resources for cleanup
     zip_data = nil
     exporter = nil
-    
+
     begin
       response.stream.write ''
-      
+
       exporter = exporter_for(format).new(filters)
       record_count = 0
-      
+
       if format == 'jsonl'
         # Use streaming for JSONL
-        exporter.stream_measurements(filters, fields: fields).each do |line|
+        exporter.stream_measurements(filters, fields:).each do |line|
           # Check if client is still connected
-          raise IOError, "Client disconnected" unless response.stream.write line
+          raise IOError, 'Client disconnected' unless response.stream.write line
+
           record_count += 1
-          
-          if record_count >= @export_token.max_records
-            response.stream.write({ 
-              warning: "Export limited to #{@export_token.max_records} records" 
-            }.to_json + "\n")
-            break
-          end
+
+          next unless record_count >= @export_token.max_records
+
+          response.stream.write({
+            warning: "Export limited to #{@export_token.max_records} records"
+          }.to_json + "\n")
+          break
         end
       elsif format == 'multi_csv'
         # Stream ZIP file for multi-CSV
         response.headers['Content-Type'] = 'application/zip'
         response.headers['Content-Disposition'] = 'attachment; filename="co2_export_multi.zip"'
-        
+
         # Create ZIP in memory and stream it
         zip_data = StringIO.new
         zip_data.binmode
-        
+
         Zip::OutputStream.write_buffer(zip_data) do |zip|
           export_id = "export_#{Time.current.strftime('%Y%m%d_%H%M%S')}"
-          
+
           # Add each CSV file to the ZIP
           add_measurements_to_zip(zip, export_id, filters)
           add_places_to_zip(zip, export_id, filters)
@@ -130,66 +133,78 @@ class Api::V1::ExportsController < ApplicationController
           add_devices_to_zip(zip, export_id, filters)
           add_manifest_to_zip(zip, export_id, filters)
         end
-        
+
         zip_data.rewind
         response.stream.write(zip_data.read)
       else
         # Use standard export for CSV
-        exporter.export_measurements(response.stream, filters, fields: fields)
+        exporter.export_measurements(response.stream, filters, fields:)
       end
-      
+
       # Cache the result for future requests
       cache_export_metadata(format, fields, filters, record_count)
-      
+
     rescue IOError, Errno::EPIPE => e
       # Client disconnected during streaming
       Rails.logger.warn "Client disconnected during export: #{e.message}"
       # Don't cache incomplete results
-    rescue => e
+    rescue StandardError => e
       # Log other errors
       Rails.logger.error "Export streaming error: #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
       raise
     ensure
       # Ensure all resources are properly cleaned up
-      response.stream.close rescue nil
-      
+      begin
+        response.stream.close
+      rescue StandardError
+        nil
+      end
+
       # Clean up ZIP data if it was created
       if zip_data
-        zip_data.close rescue nil
-        zip_data = nil
+        begin
+          zip_data.close
+        rescue StandardError
+          nil
+        end
+        nil
       end
-      
+
       # Ensure exporter cleanup if it has cleanup methods
-      if exporter && exporter.respond_to?(:cleanup)
-        exporter.cleanup rescue nil
+      if exporter.respond_to?(:cleanup)
+        begin
+          exporter.cleanup
+        rescue StandardError
+          nil
+        end
       end
-      
+
       # Force garbage collection for large exports to free memory immediately
       if record_count && record_count > 10_000
         GC.start
       end
     end
   end
-  
+
   def stream_export_download(format, fields, filters)
     filename = "co2_export_#{Time.current.strftime('%Y%m%d_%H%M%S')}.#{format}"
-    
+
     response.headers['Content-Type'] = content_type_for(format)
     response.headers['Content-Disposition'] = "attachment; filename=\"#{filename}\""
     response.headers['X-Accel-Buffering'] = 'no'
-    
+
     stream_export(format, fields, filters)
   end
-  
+
   def render_cached_export(cache_key)
     cached_data = Rails.cache.read(cache_key)
-    
+
     if cached_data
       response.headers['X-Cache'] = 'HIT'
       response.headers['Content-Type'] = cached_data[:content_type]
-      
-      send_data cached_data[:content], 
+
+      send_data cached_data[:content],
                 filename: cached_data[:filename],
                 type: cached_data[:content_type],
                 disposition: 'inline'
@@ -202,15 +217,15 @@ class Api::V1::ExportsController < ApplicationController
       stream_export(format, fields, filters)
     end
   end
-  
+
   def parse_fields(fields_param)
     return Export::BaseService::DEFAULT_FIELDS if fields_param.blank?
     return Export::BaseService::ALLOWED_FIELDS if fields_param == 'all'
-    
+
     requested = fields_param.to_s.split(',').map(&:strip)
     requested & Export::BaseService::ALLOWED_FIELDS
   end
-  
+
   def build_filters(params)
     {
       from: params[:from],
@@ -221,11 +236,11 @@ class Api::V1::ExportsController < ApplicationController
       below_ppm: params[:below_ppm]&.to_i
     }.compact
   end
-  
+
   def build_cache_key(format, fields, filters)
     # Include latest measurement timestamp for automatic invalidation
     latest_measurement = Measurement.maximum(:updated_at)
-    
+
     [
       'export',
       format,
@@ -233,14 +248,14 @@ class Api::V1::ExportsController < ApplicationController
       Digest::MD5.hexdigest("#{fields.sort.join(',')}:#{filters.to_json}")
     ].join('/')
   end
-  
+
   def stale_cache?(cache_key)
     !Rails.cache.exist?(cache_key)
   end
-  
+
   def cache_export_metadata(format, fields, filters, record_count)
     cache_key = build_cache_key(format, fields, filters)
-    
+
     # Determine cache duration based on filters (from enhancement doc)
     cache_duration = if filters[:from] && Date.parse(filters[:from].to_s) < 30.days.ago
                        24.hours # Historical data changes less
@@ -249,19 +264,19 @@ class Api::V1::ExportsController < ApplicationController
                      else
                        15.minutes # Default
                      end
-    
+
     Rails.cache.write(
       cache_key,
       {
-        format: format,
-        record_count: record_count,
+        format:,
+        record_count:,
         generated_at: Time.current,
         expires_at: cache_duration.from_now
       },
       expires_in: cache_duration
     )
   end
-  
+
   def exporter_for(format)
     case format
     when 'csv'
@@ -274,39 +289,39 @@ class Api::V1::ExportsController < ApplicationController
       raise "Unsupported format: #{format}"
     end
   end
-  
+
   # Helper methods for multi-CSV ZIP export
   def add_measurements_to_zip(zip, export_id, filters)
     zip.put_next_entry("#{export_id}/measurements.csv")
     service = Export::MultiCsvService.new(filters)
     service.send(:write_measurements_to_stream, zip, filters)
   end
-  
+
   def add_places_to_zip(zip, export_id, filters)
     zip.put_next_entry("#{export_id}/places.csv")
     service = Export::MultiCsvService.new(filters)
     service.send(:write_places_to_stream, zip, filters)
   end
-  
+
   def add_sub_locations_to_zip(zip, export_id, filters)
     zip.put_next_entry("#{export_id}/sub_locations.csv")
     service = Export::MultiCsvService.new(filters)
     service.send(:write_sub_locations_to_stream, zip, filters)
   end
-  
+
   def add_devices_to_zip(zip, export_id, filters)
     zip.put_next_entry("#{export_id}/devices.csv")
     service = Export::MultiCsvService.new(filters)
     service.send(:write_devices_to_stream, zip, filters)
   end
-  
+
   def add_manifest_to_zip(zip, export_id, filters)
     zip.put_next_entry("#{export_id}/manifest.json")
     service = Export::MultiCsvService.new(filters)
     manifest = service.send(:build_manifest, export_id, filters)
     zip.write(JSON.pretty_generate(manifest))
   end
-  
+
   def content_type_for(format)
     case format
     when 'csv'

@@ -13,52 +13,52 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
   if Rails.env.development?
     allow do
       origins 'localhost:3000', 'localhost:3001', '127.0.0.1:3000', '127.0.0.1:3001'
-      
+
       resource '*',
-        headers: :any,
-        methods: [:get, :post, :put, :patch, :delete, :options, :head],
-        credentials: false,
-        max_age: 86400
+               headers: :any,
+               methods: [:get, :post, :put, :patch, :delete, :options, :head],
+               credentials: false,
+               max_age: 86_400
     end
   end
-  
+
   # Production configuration - STRICT
   if Rails.env.production?
     # Get allowed origins from environment variable
     allowed_origins = ENV.fetch('ALLOWED_ORIGINS', '').split(',').map(&:strip).reject(&:empty?)
-    
+
     if allowed_origins.any?
       allow do
         origins(*allowed_origins)
-        
+
         # API endpoints - restricted methods
         resource '/api/v1/exports/*',
-          headers: ['Authorization', 'Content-Type'],
-          methods: [:get, :options],
-          credentials: false,
-          max_age: 86400
-        
+                 headers: ['Authorization', 'Content-Type'],
+                 methods: [:get, :options],
+                 credentials: false,
+                 max_age: 86_400
+
         # Other API endpoints
         resource '/api/*',
-          headers: :any,
-          methods: [:get, :post, :put, :patch, :delete, :options],
-          credentials: true,
-          max_age: 86400
+                 headers: :any,
+                 methods: [:get, :post, :put, :patch, :delete, :options],
+                 credentials: true,
+                 max_age: 86_400
       end
     else
       # If no origins configured, deny all cross-origin requests
-      Rails.logger.warn "CORS: No allowed origins configured. Cross-origin requests will be blocked."
+      Rails.logger.warn 'CORS: No allowed origins configured. Cross-origin requests will be blocked.'
     end
   end
-  
+
   # Test environment
   if Rails.env.test?
     allow do
       origins '*'
       resource '*',
-        headers: :any,
-        methods: [:get, :post, :put, :patch, :delete, :options, :head],
-        credentials: false
+               headers: :any,
+               methods: [:get, :post, :put, :patch, :delete, :options, :head],
+               credentials: false
     end
   end
 end

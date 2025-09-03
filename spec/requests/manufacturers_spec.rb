@@ -2,11 +2,12 @@
 
 require 'rails_helper'
 
-RSpec.describe('Manufacturers', type: :request) do
+RSpec.describe('Manufacturers') do
   describe('GET /manufacturers') do
     let(:reasonable_manufacturer_params) { { manufacturer: { name: Faker::Company.name } } }
+
     context('Succesfully creates manufacturer') do
-      before(:each) do
+      before do
         @user_headers = new_valid_empty_user_req
       end
 
@@ -25,6 +26,7 @@ RSpec.describe('Manufacturers', type: :request) do
       end
 
     end
+
     context('Fails to create manufacturer') do
 
       let(:null_manufacturer_params) { { manufacturer: { name: nil } } }
@@ -32,9 +34,11 @@ RSpec.describe('Manufacturers', type: :request) do
       let(:nil_manufacturer_params) { { manufacturer: nil } }
       let(:empty_manufacturer_params) { { manufacturer: {} } }
       let(:empty_params) { nil }
-      before(:each) do
+
+      before do
         @user_headers = new_valid_empty_user_req
       end
+
       it('Cannot create manufacturer when not logged in') do
         post(api_v1_manufacturers_path, params: reasonable_manufacturer_params)
         expect(response).to(have_http_status(:unauthorized))
@@ -45,14 +49,17 @@ RSpec.describe('Manufacturers', type: :request) do
         post(api_v1_manufacturers_path, headers: invalid_jwt_header, params: reasonable_manufacturer_params)
         formatted_error_check(response, json_response, :bad_request, 'something went wrong with parsing the JWT', 'Not enough or too many segments')
       end
+
       it('Cannot create null manufacturer with valid user') do
         post(api_v1_manufacturers_path, headers: @user_headers, params: null_manufacturer_params)
         formatted_error_check(response, json_response, :bad_request, 'manufacturer creation failed!', "Name can't be blank")
       end
+
       it('Cannot create blank manufacturer with valid user') do
         post(api_v1_manufacturers_path, headers: @user_headers, params: blank_manufacturer_params)
         formatted_error_check(response, json_response, :bad_request, 'manufacturer creation failed!', "Name can't be blank")
       end
+
       it('Cannot create nil manufacturer with valid user') do
         post(api_v1_manufacturers_path, headers: @user_headers, params: nil_manufacturer_params)
         formatted_error_check(response, json_response, :bad_request, 'manufacturer creation failed! parameter missing: manufacturer', 'param is missing or the value is empty: manufacturer')
@@ -60,6 +67,7 @@ RSpec.describe('Manufacturers', type: :request) do
         # expect {
         # }.to(raise_error(::ActionController::ParameterMissing))
       end
+
       it('Cannot create empty manufacturer with valid user') do
         post(api_v1_manufacturers_path, headers: @user_headers, params: empty_manufacturer_params)
         formatted_error_check(response, json_response, :bad_request, 'manufacturer creation failed! parameter missing: manufacturer', 'param is missing or the value is empty: manufacturer')

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-puts "#{Time.now.strftime('%H:%M:%S:%L')}: Start of config/environments/development.rb"
+puts "#{Time.zone.now.strftime('%H:%M:%S:%L')}: Start of config/environments/development.rb"
 
 require 'active_support/core_ext/integer/time'
 
@@ -45,7 +45,7 @@ require 'active_support/core_ext/integer/time'
 
   # Enable/disable caching. By default caching is disabled.
   # Run rails dev:cache to toggle caching.
-  if ::Rails.root.join('tmp', 'caching-dev.txt').exist?
+  if ::Rails.root.join('tmp/caching-dev.txt').exist?
     config.cache_store = :memory_store
     config.public_file_server.headers = {
       'Cache-Control' => "public, max-age=#{2.days.to_i}"
@@ -136,4 +136,4 @@ require 'active_support/core_ext/integer/time'
 
 end
 
-puts "#{Time.now.strftime('%H:%M:%S:%L')}: end   of config/environments/development.rb\r\n"
+puts "#{Time.zone.now.strftime('%H:%M:%S:%L')}: end   of config/environments/development.rb\r\n"

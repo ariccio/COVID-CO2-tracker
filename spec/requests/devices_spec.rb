@@ -2,11 +2,12 @@
 
 require 'rails_helper'
 
-RSpec.describe('Devices', type: :request) do
+RSpec.describe('Devices') do
   describe('The whole path for creating a device') do
     let(:reasonable_manufacturer_params) { { manufacturer: { name: Faker::Company.name } } }
     let(:new_model_name) { Faker::Device.model_name }
     let(:new_serial_name) { Faker::Device.serial }
+
     context('Successfully create a device') do
       it('can create a device') do
 
@@ -59,7 +60,8 @@ RSpec.describe('Devices', type: :request) do
 
     context('fail to create device in different ways') do
       let(:max_id) { 9_223_372_036_854_775_807 }
-      before(:each) do
+
+      before do
         @user_headers = new_valid_empty_user_req
         post(api_v1_manufacturers_path, headers: @user_headers, params: reasonable_manufacturer_params)
         check_no_error(response, json_response, :created)
@@ -85,6 +87,7 @@ RSpec.describe('Devices', type: :request) do
         formatted_error_check(response, device_create_response_2, :bad_request, expected_error_str, nil)
         #
       end
+
       it('(currently) fails to create a model-global-duplicate device instance') do
         post(api_v1_device_index_path, headers: @user_headers, params: { device: { serial: new_serial_name, model_id: @created_model_id } })
         device_create_response_1 = json_response
@@ -124,7 +127,7 @@ RSpec.describe('Devices', type: :request) do
           invalid_id = Faker::Number.between(from: minimum_invalid_id, to: max_id)
           post(api_v1_device_index_path, headers: @user_headers, params: { device: { serial: new_serial_name, model_id: invalid_id } })
           # pp json_response
-          formatted_error_check_array(response, json_response, :bad_request, 'Invalid model_id.', ["#{invalid_id}", 'Model'])
+          formatted_error_check_array(response, json_response, :bad_request, 'Invalid model_id.', [invalid_id.to_s, 'Model'])
         end
       end
 

@@ -5,7 +5,7 @@
 
 require_relative '../utils/errors'
 
-KEY_PATH = ::Rails.root.join('config', 'keys', 'private_key.key')
+KEY_PATH = ::Rails.root.join('config/keys/private_key.key')
 
 def encode_with_jwt(payload)
   # Ugly hack for heroku, idc right now.
@@ -56,7 +56,7 @@ class ApiController < ::ActionController::API
 
     # ALSO note to self: can I use built in rails methods like: https://api.rubyonrails.org/classes/ActionController/HttpAuthentication/Token.html
 
-    auth_header.split(' ')[1]
+    auth_header.split[1]
   end
 
   def authenticate_user

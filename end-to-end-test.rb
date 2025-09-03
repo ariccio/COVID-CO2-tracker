@@ -3,7 +3,7 @@
 require 'open3'
 require 'byebug'
 
-OVERRIDE_PORT_FOR_RAILS = {}
+OVERRIDE_PORT_FOR_RAILS = {}.freeze
 
 def popen_run(cmd, opts, child_io, parent_io, env) # :nodoc:
     # https://github.com/ruby/open3/blob/c5a7dde80608e724b17647f7f61abec5d2dff50f/lib/open3.rb#LL221C1-L235C6
@@ -69,69 +69,69 @@ end
 
 
 def run
-  begin
-    _rails_stdin, rails_stdout, rails_stderr, rails_wait_thr = spawn_rails()
-    _react_stdin, react_stdout, react_stderr, react_wait_thr = spawn_react_frontend()
+
+  _rails_stdin, rails_stdout, rails_stderr, rails_wait_thr = spawn_rails()
+  _react_stdin, react_stdout, react_stderr, react_wait_thr = spawn_react_frontend()
 
 
-    # Next, look for "compiled sucessfully", or "You can now view co2_client in the browser"
-    50.times do
-      sleep(1)
-        begin
-          puts "RAILS: #{rails_stdout.read_nonblock(10_000)}"
-          puts 'waiting'
-        rescue IO::EAGAINWaitReadable => e
-          puts "not ready yet, (#{e})"
-          sleep(5)
-        end
-        # byebug
+  # Next, look for "compiled sucessfully", or "You can now view co2_client in the browser"
+  50.times do
+    sleep(1)
+      begin
+        puts "RAILS: #{rails_stdout.read_nonblock(10_000)}"
+        puts 'waiting'
+      rescue IO::EAGAINWaitReadable => e
+        puts "not ready yet, (#{e})"
+        sleep(5)
+      end
+      # byebug
 
-        begin
-            # if rails_stdout.ready?
-          puts "RAILS ERR: #{rails_stderr.read_nonblock(10_000)}"
-          # end
-          puts "REACT: #{react_stdout.read_nonblock(10_000)}"
-          puts "REACT ERR: #{react_stderr.read_nonblock(10_000)}"
-          # if react_stdout.ready?
-          # end
-        rescue IO::EAGAINWaitReadable => e
-          puts "not ready yet (#{e})"
-          sleep(5)
-        end
-        begin
-          puts "REACT: #{react_stdout.read_nonblock(10_000)}"
-          puts "REACT ERR: #{react_stderr.read_nonblock(10_000)}"
-          # if react_stdout.ready?
-          # end
-        rescue IO::EAGAINWaitReadable => e
-          puts "not ready yet (#{e})"
-          sleep(5)
-        end
-        begin
-          puts "REACT ERR: #{react_stderr.read_nonblock(10_000)}"
-          # if react_stdout.ready?
-          # end
-        rescue IO::EAGAINWaitReadable => e
-          puts "not ready yet (#{e})"
-          sleep(5)
-        end
+      begin
+          # if rails_stdout.ready?
+        puts "RAILS ERR: #{rails_stderr.read_nonblock(10_000)}"
+        # end
+        puts "REACT: #{react_stdout.read_nonblock(10_000)}"
+        puts "REACT ERR: #{react_stderr.read_nonblock(10_000)}"
+        # if react_stdout.ready?
+        # end
+      rescue IO::EAGAINWaitReadable => e
+        puts "not ready yet (#{e})"
+        sleep(5)
+      end
+      begin
+        puts "REACT: #{react_stdout.read_nonblock(10_000)}"
+        puts "REACT ERR: #{react_stderr.read_nonblock(10_000)}"
+        # if react_stdout.ready?
+        # end
+      rescue IO::EAGAINWaitReadable => e
+        puts "not ready yet (#{e})"
+        sleep(5)
+      end
+      begin
+        puts "REACT ERR: #{react_stderr.read_nonblock(10_000)}"
+        # if react_stdout.ready?
+        # end
+      rescue IO::EAGAINWaitReadable => e
+        puts "not ready yet (#{e})"
+        sleep(5)
+      end
 
-    end
-    # byebug
-
-    puts 'done'
-    # pp rails_stderr.read
-    # pp rails_stdout.read
-    # pp react_stdin.read
-    # pp react_stderr.read
-
-  rescue IOError => e
-    puts "IOError: #{e}"
-  ensure
-    Process.kill('INT', rails_wait_thr[:pid])
-    Process.kill('INT', react_wait_thr[:pid])
-    puts 'cleaned up'
   end
+  # byebug
+
+  puts 'done'
+  # pp rails_stderr.read
+  # pp rails_stdout.read
+  # pp react_stdin.read
+  # pp react_stderr.read
+
+rescue IOError => e
+  puts "IOError: #{e}"
+ensure
+  Process.kill('INT', rails_wait_thr[:pid])
+  Process.kill('INT', react_wait_thr[:pid])
+  puts 'cleaned up'
+
 
 end
 

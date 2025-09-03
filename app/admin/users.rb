@@ -26,18 +26,13 @@
 
         # YES this sucks but will finish dev later.
         if Rails.env.development?
-          # 
+          #
         end
         column(:measurement) do |measurement|
           measurement
         end
-        column(:co2ppm) do |co2ppm|
-          co2ppm.co2ppm
-          # pp co2ppm
-        end
-        column(:time) do |time|
-          time.measurementtime
-        end
+        column(:co2ppm, &:co2ppm)
+        column(:time, &:measurementtime)
       end
     end
   end

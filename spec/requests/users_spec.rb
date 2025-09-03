@@ -7,7 +7,7 @@ require 'rails_helper'
 
 
 
-RSpec.describe('Users', type: :request) do
+RSpec.describe('Users') do
   # describe "GET /index" do
   #   pending "add some examples (or delete) #{__FILE__}"
   # end
@@ -27,6 +27,7 @@ RSpec.describe('Users', type: :request) do
         # pp json_response
         formatted_error_check(response, json_response, :unauthorized, 'parameter sub not valid', 'not_acceptable')
       end
+
       it('fails to create a user with blank sub') do
         post(api_v1_auth_index_path, params: new_user_invalid_blank)
         # pp json_response
@@ -36,9 +37,10 @@ RSpec.describe('Users', type: :request) do
 
     context('success path') do
 
-      before(:each) do
+      before do
         post(api_v1_auth_index_path, params: new_user)
       end
+
       # before { post(api_v1_auth_index_path, params: new_user)}
       it('creates a new user') do
         expect(json_response['email']).to(eq(new_user[:user][:email]))
@@ -59,9 +61,9 @@ RSpec.describe('Users', type: :request) do
         expect(json_response).to include('devices')
         expect(json_response['devices']).to(eq([]))
         expect(json_response).to include('measurements')
-        expect(json_response['measurements']).to(eq(nil))
+        expect(json_response['measurements']).to(be_nil)
         expect(json_response).to include('setting_place_google_place_id')
-        expect(json_response['setting_place_google_place_id']).to(eq(nil))
+        expect(json_response['setting_place_google_place_id']).to(be_nil)
 
 
       end
@@ -78,7 +80,7 @@ RSpec.describe('Users', type: :request) do
         expect(json_response).to include('devices')
         expect(json_response['devices']).to(eq([]))
         expect(json_response).to include('last_device_id')
-        expect(json_response['last_device_id']).to(eq(nil))
+        expect(json_response['last_device_id']).to(be_nil)
         # pp json_response
       end
     end

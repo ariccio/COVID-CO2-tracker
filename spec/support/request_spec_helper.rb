@@ -36,7 +36,7 @@ module RequestSpecHelper
       return new_valid_empty_user_jwt_headers
   end
 
-  def check_no_error(response, json_response, status)
+  def check_no_error(response, _json_response, status)
     expect(response).to(be_successful)
       expect(response).to(have_http_status(status))
   end

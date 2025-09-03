@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe('WholeNewMeasurementPaths', type: :request) do
+RSpec.describe('WholeNewMeasurementPaths') do
   describe('The main user path for a new user creating a new measurement') do
     let(:my_home) { 'ChIJbVog-MFYwokRDS9_fOijV2U' }
     let(:new_place_params) { { place: { google_place_id: my_home } } }
@@ -12,6 +12,7 @@ RSpec.describe('WholeNewMeasurementPaths', type: :request) do
 
     context('successful new measurement') do
       let(:reasonable_manufacturer_params) { { manufacturer: { name: Faker::Company.name } } }
+
       it('can create user, then manufacturer, then model, then device, then place, then measurement') do
         user_headers = new_valid_empty_user_req
         post(api_v1_manufacturers_path, headers: user_headers, params: reasonable_manufacturer_params)

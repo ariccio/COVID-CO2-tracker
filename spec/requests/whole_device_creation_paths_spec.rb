@@ -2,13 +2,14 @@
 
 require 'rails_helper'
 
-RSpec.describe('WholeDeviceCreationPaths', type: :request) do
+RSpec.describe('WholeDeviceCreationPaths') do
   describe('The main user path, creating new manufacturer, new model, and device instance') do
 
     context('successfully create all things') do
       # This uses a person name, but IDGAF
       let(:reasonable_manufacturer_params) { { manufacturer: { name: Faker::Company.name } } }
       let(:new_serial_name) { Faker::Device.serial }
+
       it('can create user, then manufacturer, then model, then device') do
         user_headers = new_valid_empty_user_req
         post(api_v1_manufacturers_path, headers: user_headers, params: reasonable_manufacturer_params)
@@ -34,10 +35,5 @@ RSpec.describe('WholeDeviceCreationPaths', type: :request) do
 
     end
 
-    context('fail in different places') do
-      before(:each) do
-
-      end
-    end
   end
 end

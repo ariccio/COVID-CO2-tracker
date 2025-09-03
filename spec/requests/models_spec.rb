@@ -2,16 +2,17 @@
 
 require 'rails_helper'
 
-RSpec.describe('Models', type: :request) do
+RSpec.describe('Models') do
   describe('GET /models') do
     let(:reasonable_manufacturer_params) { { manufacturer: { name: Faker::Company.name } } }
     let(:new_model_name) { Faker::Device.model_name }
     # https://www.devroom.io/2009/08/20/once-and-for-all-rails-migrations-integer-limit-option/
 
     context('Successfully create model') do
-      before(:each) do
+      before do
         @user_headers = new_valid_empty_user_req
       end
+
       it('Successfully creates a new model') do
         post(api_v1_manufacturers_path, headers: @user_headers, params: reasonable_manufacturer_params)
         check_no_error(response, json_response, :created)
@@ -66,13 +67,15 @@ RSpec.describe('Models', type: :request) do
 
     context('Fail to create model') do
       let(:max_id) { 9_223_372_036_854_775_807 }
-      before(:each) do
+
+      before do
         @user_headers = new_valid_empty_user_req
         post(api_v1_manufacturers_path, headers: @user_headers, params: reasonable_manufacturer_params)
         check_no_error(response, json_response, :created)
         @manufacturer_create_response = json_response
 
       end
+
       it('Fails with nil name') do
         post(api_v1_model_index_path, headers: @user_headers, params: { model: { name: nil, manufacturer_id: @manufacturer_create_response['manufacturer_id'] } })
         model_response = json_response
