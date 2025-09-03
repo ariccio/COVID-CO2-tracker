@@ -15,7 +15,7 @@ module Export
       query = apply_location_filters(query, filters)
 
       # Order by measurement time for consistent exports
-      query.order(measurementtime: :desc, id: :desc)
+      query.order(measurementtime: :asc, id: :asc)
     end
 
     private
@@ -54,16 +54,31 @@ module Export
 
     def apply_location_filters(query, filters)
       if filters[:place_id]
-        # Sanitize place_id before using in query
-        place_id = filters[:place_id].to_i
-        query = query.joins(sub_location: :place)
-                     .where(places: { id: place_id })
+        # Handle both numeric ID and google_place_id string
+        if filters[:place_id].to_s.match?(/^\d+$/)
+          # Numeric ID
+          place_id = filters[:place_id].to_i
+          query = query.joins(sub_location: :place)
+                       .where(places: { id: place_id })
+        else
+          # Google place ID string - SECURITY: Sanitize to prevent SQL injection
+          # ActiveRecord will parameterize this, but we add extra validation
+          sanitized_place_id = filters[:place_id].to_s.gsub(/[';-]/, '')
+          query = query.joins(sub_location: :place)
+                       .where(places: { google_place_id: sanitized_place_id })
+        end
       end
 
       if filters[:device_id]
         # Sanitize device_id before using in query
         device_id = filters[:device_id].to_i
         query = query.where(device_id:)
+      end
+
+      if filters[:device_serial]
+        # Filter by device serial number
+        query = query.joins(:device)
+                     .where(devices: { serial: filters[:device_serial] })
       end
 
       query
@@ -91,11 +106,30 @@ module Export
 
     def parse_date(date_param)
       return date_param if date_param.is_a?(Date) || date_param.is_a?(Time)
-
+      
+      # SECURITY: Strict date validation to prevent SQL injection
+      # Date.parse is too lenient and accepts strings like "' OR '1'='1"
+      date_string = date_param.to_s.strip
+      
+      # Reject any string containing SQL keywords or special characters
+      if date_string =~ /[';]|--|\bOR\b|\bAND\b|\bUNION\b|\bSELECT\b|\bDROP\b|\bDELETE\b|\bUPDATE\b|\bINSERT\b|\bEXEC\b/i
+        raise Export::BaseService::ExportError, 'Invalid date format provided'
+      end
+      
+      # Only accept standard date formats
       begin
-        Date.parse(date_param.to_s)
+        # Try ISO 8601 format first (YYYY-MM-DD)
+        if date_string =~ /\A\d{4}-\d{2}-\d{2}\z/
+          Date.strptime(date_string, '%Y-%m-%d')
+        # Also accept MM/DD/YYYY format
+        elsif date_string =~ /\A\d{1,2}\/\d{1,2}\/\d{4}\z/
+          Date.strptime(date_string, '%m/%d/%Y')
+        else
+          raise ArgumentError, 'Unrecognized date format'
+        end
       rescue ArgumentError
-        raise ArgumentError, "Invalid date format: #{date_param}"
+        # SECURITY: Never include raw user input in error messages
+        raise Export::BaseService::ExportError, 'Invalid date format provided'
       end
     end
   end

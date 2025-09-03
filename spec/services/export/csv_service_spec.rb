@@ -129,7 +129,7 @@ RSpec.describe(Export::CsvService) do
         it('raises validation error') do
           expect { service.export }.to(raise_error(
                                          Export::BaseService::ExportError,
-                                         'Date range too large (max 365 days)'
+                                         'Date range exceeds maximum of 365 days'
                                        ))
         end
       end

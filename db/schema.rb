@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_09_03_001159) do
+ActiveRecord::Schema[7.1].define(version: 2025_09_03_035656) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -52,7 +52,6 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_03_001159) do
   end
 
   create_table "export_tokens", force: :cascade do |t|
-    t.string "token", null: false
     t.string "description"
     t.datetime "expires_at"
     t.integer "usage_count", default: 0, null: false
@@ -62,7 +61,6 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_03_001159) do
     t.datetime "updated_at", null: false
     t.string "token_hash", null: false
     t.index ["expires_at"], name: "index_export_tokens_on_expires_at"
-    t.index ["token"], name: "index_export_tokens_on_token", unique: true
     t.index ["token_hash"], name: "index_export_tokens_on_token_hash", unique: true
   end
 

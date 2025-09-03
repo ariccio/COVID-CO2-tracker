@@ -51,14 +51,23 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
     end
   end
 
-  # Test environment
+  # Test environment - STRICT for security testing
   if Rails.env.test?
+    # Only allow specific test origins
     allow do
-      origins '*'
-      resource '*',
-               headers: :any,
-               methods: [:get, :post, :put, :patch, :delete, :options, :head],
-               credentials: false
+      origins 'https://trusted-test-origin.com', 'http://localhost:3000'
+      
+      resource '/api/v1/exports/*',
+               headers: ['Authorization', 'Content-Type'],
+               methods: [:get, :options],
+               credentials: false,
+               max_age: 86_400
+               
+      resource '/api/*',
+               headers: ['Authorization', 'Content-Type', 'Accept'],
+               methods: [:get, :post, :options],
+               credentials: false,
+               max_age: 86_400
     end
   end
 end

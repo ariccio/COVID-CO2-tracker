@@ -73,10 +73,10 @@ FactoryBot.define do
 
   factory :model do
     association :manufacturer
-    name { ['Aranet4', 'CO2Mini', 'Temtop M2000', 'AirThings Wave'].sample }
+    sequence(:name) { |n| "Model_#{n}" }
   end
 
   factory :manufacturer do
-    name { ['Aranet', 'CO2Meter', 'Temtop', 'AirThings'].sample }
+    sequence(:name) { |n| "Manufacturer_#{n}" }
   end
 end

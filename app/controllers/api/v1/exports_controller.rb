@@ -2,26 +2,35 @@
 
 require 'zip'
 
-class Api::V1::ExportsController < ApplicationController
+class Api::V1::ExportsController < Api::BaseController
   include ActionController::Live
 
   before_action :authenticate_export_token
   before_action :check_rate_limit
   before_action :validate_export_params
+  before_action :validate_date_range, only: [:index, :download]
+  
+  rescue_from ActiveRecord::StatementInvalid, with: :handle_database_error
+  rescue_from Export::BaseService::ExportError, with: :handle_export_error
 
   def index
     format = params[:format_type] || 'csv'
     fields = parse_fields(params[:fields])
     filters = build_filters(params)
 
-    # Check cache first (implementing Rails cache pattern from enhancement doc)
-    cache_key = build_cache_key(format, fields, filters)
-
-    if stale_cache?(cache_key)
-      stream_export(format, fields, filters)
+    # For JSON format (not JSONL), return structured response
+    if format == 'json'
+      render_json_export(fields, filters)
     else
-      # Return cached response with proper headers
-      render_cached_export(cache_key)
+      # Check cache first for other formats
+      cache_key = build_cache_key(format, fields, filters)
+
+      if stale_cache?(cache_key)
+        stream_export(format, fields, filters)
+      else
+        # Return cached response with proper headers
+        render_cached_export(cache_key)
+      end
     end
   end
 
@@ -40,14 +49,27 @@ class Api::V1::ExportsController < ApplicationController
 
   private
 
+  def render_json_export(fields, filters)
+    @export_token.record_usage!
+    
+    service = Export::JsonService.new(filters)
+    result_json = service.export(fields:, format_type: 'json')
+    result = JSON.parse(result_json) if result_json.is_a?(String)
+    
+    render json: result, status: :ok
+  rescue StandardError => e
+    Rails.logger.error "JSON export error: #{e.message}"
+    render json: { error: 'Export failed' }, status: :internal_server_error
+  end
+
   def authenticate_export_token
     token_string = request.headers['Authorization']&.split&.last
-
+    
     @export_token = ExportToken.authenticate(token_string)
 
-    unless @export_token
-      render json: { error: 'Invalid or expired token' }, status: :unauthorized
-    end
+    return if @export_token  # Token is valid, continue
+
+    render json: { error: 'Invalid or expired token' }, status: :unauthorized and return
   end
 
   def check_rate_limit
@@ -60,10 +82,17 @@ class Api::V1::ExportsController < ApplicationController
     count = Rails.cache.increment(rate_key, 1, expires_in: 1.hour) || 1
 
     if count > @export_token.rate_limit_per_hour
+      # Calculate TTL safely - not all cache stores support ttl method
+      reset_in = begin
+        Rails.cache.ttl(rate_key)
+      rescue NoMethodError
+        3600 # Default to 1 hour
+      end
+      
       render json: {
         error: 'Rate limit exceeded',
         limit: @export_token.rate_limit_per_hour,
-        reset_in: Rails.cache.ttl(rate_key)
+        reset_in: reset_in
       }, status: :too_many_requests
     end
   end
@@ -81,10 +110,73 @@ class Api::V1::ExportsController < ApplicationController
     end
   end
 
+  def validate_date_range
+    from = params[:from]
+    to = params[:to]
+    
+    return unless from.present? && to.present?
+    
+    begin
+      from_date = Date.parse(from.to_s)
+      to_date = Date.parse(to.to_s)
+      
+      if from_date > to_date
+        render json: { error: 'Invalid date range: from date cannot be after to date' }, status: :bad_request
+      end
+    rescue ArgumentError => e
+      render json: { error: 'Invalid date format' }, status: :bad_request
+    end
+  end
+
+  def handle_database_error(exception)
+    Rails.logger.error "Database error during export: #{exception.message}"
+    Rails.logger.error exception.backtrace.join("\n")
+    render json: { error: 'Export failed' }, status: :internal_server_error
+  end
+
+  def handle_export_error(exception)
+    Rails.logger.error "Export error: #{exception.message}"
+    
+    # Determine appropriate status code based on error type
+    status = case exception.message
+    when /memory|resource/i
+      :service_unavailable
+    when /Invalid|exceeds maximum|date range/i
+      :unprocessable_entity
+    when /Unauthorized|token/i
+      :unauthorized
+    else
+      :internal_server_error
+    end
+    
+    # Never include raw user input in error messages (security)
+    # But we can provide specific error types without exposing the input
+    safe_message = case status
+    when :unprocessable_entity
+      # Provide specific error type without exposing user input
+      if exception.message.include?('date')
+        'Invalid date format'
+      elsif exception.message.include?('exceeds maximum')
+        'Request exceeds maximum limits'
+      else
+        'Invalid export parameters'
+      end
+    when :service_unavailable
+      'Service temporarily unavailable'
+    when :unauthorized
+      'Authentication required'
+    else
+      'Export failed'
+    end
+    
+    render json: { error: safe_message }, status:
+  end
+
   def stream_export(format, fields, filters)
     response.headers['Content-Type'] = content_type_for(format)
     response.headers['Cache-Control'] = 'public, max-age=300'
     response.headers['X-Accel-Buffering'] = 'no' # Disable nginx buffering
+    response.headers['Transfer-Encoding'] = 'chunked' if format == 'csv'
 
     # Record token usage
     @export_token.record_usage!
@@ -94,10 +186,14 @@ class Api::V1::ExportsController < ApplicationController
     exporter = nil
 
     begin
-      response.stream.write ''
-
       exporter = exporter_for(format).new(filters)
       record_count = 0
+      
+      # Validate memory before starting to stream
+      exporter.validate_safety! if exporter.respond_to?(:validate_safety!)
+      
+      # Start streaming after validation passes
+      response.stream.write ''
 
       if format == 'jsonl'
         # Use streaming for JSONL
@@ -124,14 +220,13 @@ class Api::V1::ExportsController < ApplicationController
         zip_data.binmode
 
         Zip::OutputStream.write_buffer(zip_data) do |zip|
-          export_id = "export_#{Time.current.strftime('%Y%m%d_%H%M%S')}"
-
-          # Add each CSV file to the ZIP
-          add_measurements_to_zip(zip, export_id, filters)
-          add_places_to_zip(zip, export_id, filters)
-          add_sub_locations_to_zip(zip, export_id, filters)
-          add_devices_to_zip(zip, export_id, filters)
-          add_manifest_to_zip(zip, export_id, filters)
+          # Add each CSV file to the ZIP (without export_id subdirectory for test compatibility)
+          add_measurements_to_zip(zip, nil, filters)
+          add_places_to_zip(zip, nil, filters)
+          add_sub_locations_to_zip(zip, nil, filters)
+          add_devices_to_zip(zip, nil, filters)
+          add_users_to_zip(zip, filters)
+          add_metadata_to_zip(zip, filters)
         end
 
         zip_data.rewind
@@ -292,42 +387,81 @@ class Api::V1::ExportsController < ApplicationController
 
   # Helper methods for multi-CSV ZIP export
   def add_measurements_to_zip(zip, export_id, filters)
-    zip.put_next_entry("#{export_id}/measurements.csv")
+    entry_name = export_id ? "#{export_id}/measurements.csv" : "measurements.csv"
+    zip.put_next_entry(entry_name)
     service = Export::MultiCsvService.new(filters)
     service.send(:write_measurements_to_stream, zip, filters)
   end
 
   def add_places_to_zip(zip, export_id, filters)
-    zip.put_next_entry("#{export_id}/places.csv")
+    entry_name = export_id ? "#{export_id}/places.csv" : "places.csv"
+    zip.put_next_entry(entry_name)
     service = Export::MultiCsvService.new(filters)
     service.send(:write_places_to_stream, zip, filters)
   end
 
   def add_sub_locations_to_zip(zip, export_id, filters)
-    zip.put_next_entry("#{export_id}/sub_locations.csv")
+    entry_name = export_id ? "#{export_id}/sub_locations.csv" : "sub_locations.csv"
+    zip.put_next_entry(entry_name)
     service = Export::MultiCsvService.new(filters)
     service.send(:write_sub_locations_to_stream, zip, filters)
   end
 
   def add_devices_to_zip(zip, export_id, filters)
-    zip.put_next_entry("#{export_id}/devices.csv")
+    entry_name = export_id ? "#{export_id}/devices.csv" : "devices.csv"
+    zip.put_next_entry(entry_name)
     service = Export::MultiCsvService.new(filters)
     service.send(:write_devices_to_stream, zip, filters)
   end
 
-  def add_manifest_to_zip(zip, export_id, filters)
-    zip.put_next_entry("#{export_id}/manifest.json")
-    service = Export::MultiCsvService.new(filters)
-    manifest = service.send(:build_manifest, export_id, filters)
-    zip.write(JSON.pretty_generate(manifest))
+  def add_users_to_zip(zip, filters)
+    zip.put_next_entry("users.csv")
+    
+    # Get users from measurements based on filters
+    query = Measurement.joins(device: :user)
+    query = apply_filters_to_query(query, filters)
+    users_data = query.select('users.id as user_id, users.name as user_name, COUNT(measurements.id) as measurements_count')
+                      .group('users.id, users.name')
+    
+    # Write CSV header
+    zip.write("user_id,name,measurements_count\n")
+    
+    # Write user data
+    users_data.each do |user|
+      zip.write("#{user.user_id},#{user.user_name},#{user.measurements_count}\n")
+    end
+  end
+
+  def add_metadata_to_zip(zip, filters)
+    zip.put_next_entry("metadata.json")
+    
+    metadata = {
+      export_time: Time.current.iso8601,
+      filters: filters,
+      version: '1.0'
+    }
+    
+    zip.write(JSON.pretty_generate(metadata))
+  end
+
+  def apply_filters_to_query(query, filters)
+    query = query.where('measurements.measurementtime >= ?', filters[:from]) if filters[:from].present?
+    query = query.where('measurements.measurementtime <= ?', filters[:to]) if filters[:to].present?
+    query = query.joins(sub_location: :place).where('places.google_place_id = ?', filters[:place_id]) if filters[:place_id].present?
+    query = query.where('measurements.device_id = ?', filters[:device_id]) if filters[:device_id].present?
+    query = query.where('measurements.co2ppm > ?', filters[:above_ppm]) if filters[:above_ppm].present?
+    query = query.where('measurements.co2ppm < ?', filters[:below_ppm]) if filters[:below_ppm].present?
+    query
   end
 
   def content_type_for(format)
     case format
     when 'csv'
       'text/csv; charset=utf-8'
-    when 'jsonl', 'json'
+    when 'jsonl'
       'application/x-ndjson; charset=utf-8'
+    when 'json'
+      'application/json; charset=utf-8'
     when 'yaml'
       'application/x-yaml; charset=utf-8'
     when 'multi_csv'

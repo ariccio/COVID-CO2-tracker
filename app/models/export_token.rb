@@ -20,6 +20,9 @@ class ExportToken < ApplicationRecord
   def self.authenticate(token_string)
     return nil if token_string.blank?
 
+    # Reject tokens containing null bytes (security measure against injection attacks)
+    return nil if token_string.include?("\u0000")
+
     # Hash the incoming token to compare against stored hashes
     hashed_token = Digest::SHA256.hexdigest(token_string)
     active.find_by(token_hash: hashed_token)

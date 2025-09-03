@@ -37,7 +37,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
       .and_raise(IOError, 'Broken pipe')
   end
 
-  def attempt_sql_injection(injection_string, token:, endpoint: '/api/v1/exports')
+  def attempt_sql_injection(injection_string, token:, endpoint: '/api/v1/export')
     get endpoint,
         params: {
           format_type: 'csv',
@@ -158,7 +158,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         token = create_test_token
 
         # Try various ways to extract token through errors
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: { format_type: 'invalid' },
             headers: { 'Authorization' => "Bearer #{token.raw_token}" }
 
@@ -192,7 +192,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         # Try null byte injection in token
         malicious_token = "#{token.raw_token}\u0000admin"
 
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: { format_type: 'csv' },
             headers: { 'Authorization' => "Bearer #{malicious_token}" }
 
@@ -270,12 +270,12 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         true_condition = "1' AND '1'='1"
         false_condition = "1' AND '1'='2"
 
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: { format_type: 'csv', place_id: true_condition },
             headers: { 'Authorization' => "Bearer #{token.raw_token}" }
         true_response = response.body
 
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: { format_type: 'csv', place_id: false_condition },
             headers: { 'Authorization' => "Bearer #{token.raw_token}" }
         false_response = response.body
@@ -297,7 +297,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
           offset: "0' OR '1'='1"
         }
 
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: malicious_params,
             headers: { 'Authorization' => "Bearer #{token.raw_token}" }
 
@@ -329,7 +329,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
 
       it 'prevents mass assignment attacks' do
         # Attempt to modify token permissions through params
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: {
               format_type: 'csv',
               'export_token[permissions]' => { admin: true },
@@ -356,7 +356,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
 
         # First 3 requests should succeed
         3.times do |i|
-          get '/api/v1/exports',
+          get '/api/v1/export',
               params: { format_type: 'csv' },
               headers: { 'Authorization' => "Bearer #{token.raw_token}" }
 
@@ -365,7 +365,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         end
 
         # 4th request should be rate limited
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: { format_type: 'csv' },
             headers: { 'Authorization' => "Bearer #{token.raw_token}" }
 
@@ -380,7 +380,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
 
         Rails.cache.clear
 
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: { format_type: 'csv' },
             headers: { 'Authorization' => "Bearer #{token.raw_token}" }
 
@@ -400,7 +400,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
 
         # Use limit with normal casing
         2.times do
-          get '/api/v1/exports',
+          get '/api/v1/export',
               params: { format_type: 'csv' },
               headers: { 'Authorization' => "Bearer #{token.raw_token}" }
           expect(response).to have_http_status(:success)
@@ -415,7 +415,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         ]
 
         variations.each do |auth_header|
-          get '/api/v1/exports',
+          get '/api/v1/export',
               params: { format_type: 'csv' },
               headers: { 'Authorization' => auth_header }
 
@@ -433,20 +433,20 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
 
         # Use limit
         2.times do
-          get '/api/v1/exports',
+          get '/api/v1/export',
               params: { format_type: 'csv' },
               headers: { 'Authorization' => "Bearer #{token.raw_token}" }
           expect(response).to have_http_status(:success)
         end
 
         # Try bypass with different parameters (should still count)
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: { format_type: 'csv', extra: 'param' },
             headers: { 'Authorization' => "Bearer #{token.raw_token}" }
         expect(response).to have_http_status(:too_many_requests)
 
         # Try different format (should still count against same limit)
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: { format_type: 'json' },
             headers: { 'Authorization' => "Bearer #{token.raw_token}" }
         expect(response).to have_http_status(:too_many_requests)
@@ -464,20 +464,20 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
 
         # Use token1's limit
         2.times do
-          get '/api/v1/exports',
+          get '/api/v1/export',
               params: { format_type: 'csv' },
               headers: { 'Authorization' => "Bearer #{token1.raw_token}" }
           expect(response).to have_http_status(:success)
         end
 
         # Token1 should be rate limited
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: { format_type: 'csv' },
             headers: { 'Authorization' => "Bearer #{token1.raw_token}" }
         expect(response).to have_http_status(:too_many_requests)
 
         # Token2 should still work
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: { format_type: 'csv' },
             headers: { 'Authorization' => "Bearer #{token2.raw_token}" }
         expect(response).to have_http_status(:success)
@@ -494,13 +494,13 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
 
         # Use limit
         2.times do
-          get '/api/v1/exports',
+          get '/api/v1/export',
               params: { format_type: 'csv' },
               headers: { 'Authorization' => "Bearer #{token.raw_token}" }
         end
 
         # Should be rate limited
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: { format_type: 'csv' },
             headers: { 'Authorization' => "Bearer #{token.raw_token}" }
         expect(response).to have_http_status(:too_many_requests)
@@ -510,7 +510,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
           Rails.cache.clear # Simulate cache expiry
 
           # Should work again
-          get '/api/v1/exports',
+          get '/api/v1/export',
               params: { format_type: 'csv' },
               headers: { 'Authorization' => "Bearer #{token.raw_token}" }
           expect(response).to have_http_status(:success)
@@ -529,7 +529,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
 
         # Send 20 requests as fast as possible
         20.times do
-          get '/api/v1/exports',
+          get '/api/v1/export',
               params: { format_type: 'csv' },
               headers: { 'Authorization' => "Bearer #{token.raw_token}" }
           responses << response.status
@@ -540,7 +540,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
 
         # But further requests beyond limit should fail
         81.times do
-          get '/api/v1/exports',
+          get '/api/v1/export',
               params: { format_type: 'csv' },
               headers: { 'Authorization' => "Bearer #{token.raw_token}" }
         end
@@ -570,7 +570,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         end
 
         # Make request that will disconnect
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: { format_type: 'csv' },
             headers: { 'Authorization' => "Bearer #{token.raw_token}" }
 
@@ -586,7 +586,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
           .to receive(:generate_row)
           .and_raise(StandardError, 'Export error')
 
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: { format_type: 'csv' },
             headers: { 'Authorization' => "Bearer #{token.raw_token}" }
 
@@ -603,7 +603,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         simulate_client_disconnect
 
         5.times do
-          get '/api/v1/exports',
+          get '/api/v1/export',
               params: { format_type: 'csv' },
               headers: { 'Authorization' => "Bearer #{token.raw_token}" }
         end
@@ -660,7 +660,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         allow(GC).to receive(:start)
 
         # Should trigger GC when needed
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: { format_type: 'csv' },
             headers: { 'Authorization' => "Bearer #{token.raw_token}" }
 
@@ -678,7 +678,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
           }
         )
 
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: { format_type: 'csv' },
             headers: { 'Authorization' => "Bearer #{limited_token.raw_token}" }
 
@@ -699,7 +699,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
 
         # Should timeout or limit results
         Timeout.timeout(5) do
-          get '/api/v1/exports',
+          get '/api/v1/export',
               params: { format_type: 'csv', limit: 100 },
               headers: { 'Authorization' => "Bearer #{token.raw_token}" }
         end
@@ -734,7 +734,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         ]
 
         unauthorized_origins.each do |origin|
-          get '/api/v1/exports',
+          get '/api/v1/export',
               params: { format_type: 'csv' },
               headers: {
                 'Authorization' => "Bearer #{token.raw_token}",
@@ -748,7 +748,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
 
       it 'allows requests from whitelisted origins' do
         ['https://app.example.com', 'https://admin.example.com'].each do |origin|
-          get '/api/v1/exports',
+          get '/api/v1/export',
               params: { format_type: 'csv' },
               headers: {
                 'Authorization' => "Bearer #{token.raw_token}",
@@ -761,7 +761,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
       end
 
       it 'handles preflight requests correctly' do
-        options '/api/v1/exports',
+        options '/api/v1/export',
                 headers: {
                   'Origin' => 'https://app.example.com',
                   'Access-Control-Request-Method' => 'GET',
@@ -784,7 +784,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         ]
 
         malicious_origins.each do |origin|
-          get '/api/v1/exports',
+          get '/api/v1/export',
               params: { format_type: 'csv' },
               headers: {
                 'Authorization' => "Bearer #{token.raw_token}",
@@ -803,7 +803,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
       it 'sets secure CORS headers' do
         ENV['ALLOWED_ORIGINS'] = 'https://app.example.com'
 
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: { format_type: 'csv' },
             headers: {
               'Authorization' => "Bearer #{token.raw_token}",
@@ -822,7 +822,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
       it 'restricts allowed headers' do
         ENV['ALLOWED_ORIGINS'] = 'https://app.example.com'
 
-        options '/api/v1/exports',
+        options '/api/v1/export',
                 headers: {
                   'Origin' => 'https://app.example.com',
                   'Access-Control-Request-Headers' => 'X-Custom-Header,Authorization'
@@ -843,7 +843,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         # Development mode
         allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new('development'))
 
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: { format_type: 'csv' },
             headers: {
               'Authorization' => "Bearer #{token.raw_token}",
@@ -856,7 +856,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new('production'))
         ENV['ALLOWED_ORIGINS'] = 'https://app.example.com'
 
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: { format_type: 'csv' },
             headers: {
               'Authorization' => "Bearer #{token.raw_token}",
@@ -898,7 +898,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         ENV['ALLOWED_ORIGINS'] = 'https://app.example.com'
 
         # Try to bypass auth using CORS preflight
-        options '/api/v1/exports',
+        options '/api/v1/export',
                 headers: {
                   'Origin' => 'https://evil.com',
                   'Access-Control-Request-Method' => 'GET'
@@ -909,7 +909,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         expect(response.body).to be_empty
 
         # Actual request without auth should fail
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: { format_type: 'csv' },
             headers: { 'Origin' => 'https://evil.com' }
 
@@ -932,13 +932,13 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
 
         # Try to exhaust memory through multiple large requests
         5.times do
-          get '/api/v1/exports',
+          get '/api/v1/export',
               params: { format_type: 'csv', limit: 1_000_000 },
               headers: { 'Authorization' => "Bearer #{token.raw_token}" }
         end
 
         # Should be rate limited before memory exhaustion
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: { format_type: 'csv', limit: 1_000_000 },
             headers: { 'Authorization' => "Bearer #{token.raw_token}" }
 
@@ -967,7 +967,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         # Simulate concurrent requests
         threads = Array.new(10) do
           Thread.new do
-            get '/api/v1/exports',
+            get '/api/v1/export',
                 params: { format_type: 'csv' },
                 headers: { 'Authorization' => "Bearer #{token.raw_token}" }
           end
@@ -995,7 +995,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         ]
 
         escalation_attempts.each do |params|
-          get '/api/v1/exports',
+          get '/api/v1/export',
               params: params.merge(format_type: 'csv'),
               headers: { 'Authorization' => "Bearer #{limited_token.raw_token}" }
 
@@ -1028,7 +1028,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         Rails.cache.clear
 
         2.times do
-          get '/api/v1/exports',
+          get '/api/v1/export',
               params: { format_type: 'csv' },
               headers: { 'Authorization' => "Bearer #{token.raw_token}" }
         end
@@ -1050,13 +1050,13 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
 
         # First request fails
         expect do
-          get '/api/v1/exports',
+          get '/api/v1/export',
               params: { format_type: 'csv' },
               headers: { 'Authorization' => "Bearer #{token.raw_token}" }
         end.to raise_error(ActiveRecord::StatementInvalid)
 
         # System should recover
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: { format_type: 'csv' },
             headers: { 'Authorization' => "Bearer #{token.raw_token}" }
 
@@ -1082,7 +1082,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
 
         # Simulate memory pressure
         simulate_client_disconnect
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: { format_type: 'csv' },
             headers: { 'Authorization' => "Bearer #{token.raw_token}" }
 
@@ -1113,7 +1113,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         ]
 
         invalid_dates.each do |date|
-          get '/api/v1/exports',
+          get '/api/v1/export',
               params: { format_type: 'csv', from: date },
               headers: { 'Authorization' => "Bearer #{token.raw_token}" }
 
@@ -1126,7 +1126,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         # Very long parameter to test truncation/rejection
         long_param = 'a' * 10_000
 
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: {
               format_type: 'csv',
               description: long_param
@@ -1148,7 +1148,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         ]
 
         dangerous_formats.each do |format|
-          get '/api/v1/exports',
+          get '/api/v1/export',
               params: { format_type: format },
               headers: { 'Authorization' => "Bearer #{token.raw_token}" }
 
@@ -1203,7 +1203,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
     context 'Session Security' do
       it 'prevents session fixation attacks' do
         # Export tokens should not rely on session
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: { format_type: 'csv' },
             headers: {
               'Authorization' => "Bearer #{token.raw_token}",
@@ -1220,7 +1220,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         Rails.logger = Logger.new(log_output)
 
         # Make request with token
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: { format_type: 'csv' },
             headers: { 'Authorization' => "Bearer #{token.raw_token}" }
 

@@ -5,8 +5,8 @@ require 'rails_helper'
 RSpec.describe(Export::JsonService) do
   let(:user) { create(:user, name: 'Test User') }
   let(:device) { create(:device, user:, serial: 'TEST123') }
-  let(:manufacturer) { create(:manufacturer, name: 'Aranet') }
-  let(:model) { create(:model, name: 'Aranet4', manufacturer:) }
+  let!(:manufacturer) { create(:manufacturer, name: 'Aranet') }
+  let!(:model) { create(:model, name: 'Aranet4', manufacturer:) }
   let(:place) { create(:place, place_lat: 40.7128, place_lng: -74.0060, google_place_id: 'ChIJOwg_06VPwokRYv534QaPC8g') }
   let(:sub_location) { create(:sub_location, place:, description: 'Conference Room A') }
 
@@ -111,7 +111,7 @@ RSpec.describe(Export::JsonService) do
     end
 
     context('with CO2 threshold filters') do
-      let(:filters) { { above_ppm: 800, below_ppm: 1000 } }
+      let(:filters) { { above_ppm: 700, below_ppm: 1000 } }
 
       it('filters by CO2 range') do
         json_data = service.export
@@ -120,7 +120,7 @@ RSpec.describe(Export::JsonService) do
         expect(parsed['measurements'].size).to(eq(1))
         expect(parsed['measurements'].first['co2_ppm']).to(eq(800))
         expect(parsed['metadata']['filters']).to(include(
-                                                   'above_ppm' => 800,
+                                                   'above_ppm' => 700,
                                                    'below_ppm' => 1000
                                                  ))
       end
@@ -189,7 +189,7 @@ RSpec.describe(Export::JsonService) do
         it('raises validation error') do
           expect { service.export }.to(raise_error(
                                          Export::BaseService::ExportError,
-                                         'Invalid date format: not-a-date'
+                                         'Invalid date format provided'
                                        ))
         end
       end

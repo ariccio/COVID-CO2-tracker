@@ -1,0 +1,6 @@
+- TODO: BUGBUG: the values in rack_attack.rb are all far too low for our app. Neat code though.
+- TODO: BUGBUG: Why did claude remove the non-null validations?
+- TODO: a query builder *seems* like the wrong approach for rails exports, but IDK
+- TODO: the limit for the number of days worth of records that can be exported should probably be removed. I want to be able to export any period-length of records, limited only by other limits.
+- TODO: Heroku needs us to upgrade the postgres version. This is a high priority and must be done this month.
+- TODO: (at some point) need to work out rails deprecations

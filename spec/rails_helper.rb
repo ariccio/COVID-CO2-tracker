@@ -68,9 +68,25 @@ RSpec.configure do |config|
     DatabaseCleaner.clean_with(:truncation)
   end
 
+  config.before(:each) do |example|
+    # Use truncation strategy for export service tests to avoid transaction issues
+    if example.metadata[:file_path]&.include?('services/export')
+      DatabaseCleaner.strategy = :truncation
+    else
+      DatabaseCleaner.strategy = :transaction
+    end
+  end
+
   config.around do |example|
     DatabaseCleaner.cleaning do
       example.run
+    end
+  end
+
+  config.after(:each) do |example|
+    # Reset to transaction strategy after export tests
+    if example.metadata[:file_path]&.include?('services/export')
+      DatabaseCleaner.strategy = :transaction
     end
   end
 

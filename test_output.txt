@@ -1,0 +1,64 @@
+Start of config/application.rb
+22:56:25:052: Start of config/boot.rb
+	22:56:25:052: bootsnap setup
+22:56:25:115: end   of config/boot.rb
+
+22:56:25:115: require 'rails'
+22:56:25:236: require 'active_model/railtie'
+22:56:25:237: require 'active_job/railtie'
+22:56:25:242: require 'active_record/railtie'
+22:56:25:275: require 'action_controller/railtie'
+22:56:25:275: require 'action_mailer/railtie'
+22:56:25:277: require 'action_view/railtie'
+22:56:25:277: require 'sprockets/railtie'
+22:56:25:373: require 'rails/test_unit/railtie'
+22:56:25:382: requiring gems listed in gemfile
+DEPRECATION WARNING: `Rails.application.secrets` is deprecated in favor of `Rails.application.credentials` and will be removed in Rails 7.2. (called from <top (required)> at /Users/alexanderriccio/Documents/GitHub/COVID-CO2-tracker/config/environment.rb:7)
+22:56:25:945: DONE requiring gems listed in gemfile
+	22:56:25:945: Start Application class
+22:56:25:952: Starting middleware
+22:56:25:963: End      middleware
+	22:56:25:963: End   Application class
+
+22:56:25:963: end   of config/application.rb
+
+CONFIGURING as test environment
+Including /Users/alexanderriccio/Documents/GitHub/COVID-CO2-tracker/spec/support/request_spec_helper.rb...
+
+An error occurred while loading ./spec/services/export/json_service_spec.rb.
+Failure/Error:
+  RSpec.describe(Export::JsonService) do
+    let(:user) { create(:user, name: 'Test User') }
+    let(:device) { create(:device, user:, serial: 'TEST123') }
+    let(:manufacturer) { create(:manufacturer, name: 'Aranet') }
+    let(:model) { create(:model, name: 'Aranet4', manufacturer:) }
+    let(:place) { create(:place, place_lat: 40.7128, place_lng: -74.0060, google_place_id: 'ChIJOwg_06VPwokRYv534QaPC8g') }
+    let(:sub_location) { create(:sub_location, place:, description: 'Conference Room A') }
+  
+    before do
+      device.update!(model:)
+
+NameError:
+  uninitialized constant Export::JsonService
+# ./spec/services/export/json_service_spec.rb:5:in `<main>'
+
+An error occurred while loading ./spec/services/export/streaming_csv_service_spec.rb.
+Failure/Error:
+  RSpec.describe(Export::StreamingCsvService) do
+    let(:user) { create(:user, name: 'Test User') }
+    let(:device) { create(:device, user:, serial: 'TEST123') }
+    let(:place) { create(:place, place_lat: 40.7128, place_lng: -74.0060) }
+    let(:sub_location) { create(:sub_location, place:, description: 'Test Location') }
+  
+    describe('#stream') do
+      subject(:service) { described_class.new(filters) }
+  
+      let!(:measurements) do
+
+NameError:
+  uninitialized constant Export::StreamingCsvService
+# ./spec/services/export/streaming_csv_service_spec.rb:5:in `<main>'
+
+Finished in 0.00006 seconds (files took 1.55 seconds to load)
+0 examples, 0 failures, 2 errors occurred outside of examples
+

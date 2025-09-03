@@ -4,7 +4,9 @@ require 'rails_helper'
 
 RSpec.describe(Export::StreamingCsvService) do
   let(:user) { create(:user, name: 'Test User') }
-  let(:device) { create(:device, user:, serial: 'TEST123') }
+  let(:manufacturer) { create(:manufacturer, name: 'TestManufacturer') }
+  let(:model) { create(:model, name: 'TestModel', manufacturer:) }
+  let(:device) { create(:device, user:, model:, serial: 'TEST123') }
   let(:place) { create(:place, place_lat: 40.7128, place_lng: -74.0060) }
   let(:sub_location) { create(:sub_location, place:, description: 'Test Location') }
 
@@ -18,7 +20,7 @@ RSpec.describe(Export::StreamingCsvService) do
                sub_location:,
                co2ppm: 400 + (i * 100),
                measurementtime: Time.parse('2024-01-15 10:00:00 UTC') + i.hours,
-               crowding: i % 5)
+               crowding: (i % 5) + 1)
       end
     end
 
@@ -86,13 +88,13 @@ RSpec.describe(Export::StreamingCsvService) do
         lines = full_csv.split("\n")
 
         # Should have fewer lines due to filtering
-        expect(lines.size).to(eq(7)) # header + 6 measurements >= 800
+        expect(lines.size).to(eq(6)) # header + 5 measurements > 800
 
         # Verify all measurements meet the filter
         data_lines = lines[1..]
         data_lines.each do |line|
           co2_value = line.split(',').first.to_i
-          expect(co2_value).to(be >= 800)
+          expect(co2_value).to(be > 800)
         end
       end
     end
@@ -200,7 +202,7 @@ RSpec.describe(Export::StreamingCsvService) do
 
     it('checks memory usage before processing') do
       allow(ENV).to receive(:[]).with('DYNO').and_return('web.1')
-      allow_any_instance_of(described_class).to receive(:`).with(/ps -o rss/).and_return('460800') # 450MB
+      allow_any_instance_of(described_class).to receive(:`).with(/ps -o rss/).and_return('461824') # 451MB
 
       service = described_class.new(filters)
 

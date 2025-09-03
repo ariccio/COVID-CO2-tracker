@@ -6,6 +6,15 @@ module Export
   class CsvService < BaseService
     BATCH_SIZE = 1000
 
+    def export(fields: nil)
+      validate_safety!
+      export_to_string(@filters, fields: fields || @filters[:fields])
+    end
+
+    def perform(fields: nil)
+      export(fields: fields)
+    end
+
     def export_measurements(output_stream, filters = @filters, fields: nil)
       start_time = Time.current
       record_count = 0
@@ -13,13 +22,15 @@ module Export
       begin
         log_export_start('csv')
 
+        # Parse and validate fields
+        requested_fields = parse_fields(fields)
+        
         # Write headers
-        headers = fields || csv_headers
-        write_line(output_stream, CSV.generate_line(headers))
+        write_line(output_stream, CSV.generate_line(requested_fields))
 
         # Stream data in batches for memory efficiency
         measurements_query(filters).find_each(batch_size: BATCH_SIZE) do |measurement|
-          row_data = build_csv_row(measurement, headers)
+          row_data = build_csv_row(measurement, requested_fields)
           write_line(output_stream, CSV.generate_line(row_data))
           record_count += 1
 
@@ -75,7 +86,7 @@ module Export
 
       # Return values in the same order as headers
       headers.map do |header|
-        key = header.to_sym
+        key = header.to_s.to_sym
         value = data[key]
 
         # Format specific values for CSV
@@ -83,10 +94,22 @@ module Export
         when :is_realtime
           value ? 'true' : 'false'
         when :lat, :lng
-          value&.round(6)
+          value&.to_f&.round(6)
         else
           value
         end
+      end
+    end
+    
+    def parse_fields(fields)
+      return DEFAULT_FIELDS if fields.nil? || fields.empty?
+      return ALLOWED_FIELDS if fields == 'all'
+      
+      if fields.is_a?(Array)
+        valid_fields = fields & ALLOWED_FIELDS
+        valid_fields.empty? ? DEFAULT_FIELDS : valid_fields
+      else
+        DEFAULT_FIELDS
       end
     end
   end
