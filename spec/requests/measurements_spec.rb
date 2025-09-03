@@ -115,8 +115,8 @@ RSpec.describe('Measurements') do
         }
         post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement_1)
         # pp json_response
+        # Rails 7.1 changed belongs_to validation message from "can't be blank" to "must exist"
         formatted_error_check(response, json_response, :bad_request, 'measurement creation failed!', 'Device must exist')
-        formatted_error_check(response, json_response, :bad_request, 'measurement creation failed!', "Device can't be blank")
       end
 
       it('Cannot create measurement with invalid device') do
