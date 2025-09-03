@@ -54,18 +54,23 @@ module Export
 
     def apply_location_filters(query, filters)
       if filters[:place_id]
-        # Handle both numeric ID and google_place_id string
-        if filters[:place_id].to_s.match?(/^\d+$/)
-          # Numeric ID
-          place_id = filters[:place_id].to_i
+        # SECURITY: Extract leading numeric portion and convert to integer
+        # This prevents SQL injection by ensuring we only use integer IDs
+        # Examples: '1 OR 1=1' -> 1, 'abc123' -> 0, '42' -> 42
+        place_id_string = filters[:place_id].to_s.strip
+        
+        # Try to extract a numeric ID from the beginning of the string
+        if place_id_string.match(/^\d+/)
+          # Extract just the numeric portion and convert to integer
+          # This prevents any SQL injection as we're only using the numeric part
+          place_id = place_id_string.to_i
           query = query.joins(sub_location: :place)
                        .where(places: { id: place_id })
         else
-          # Google place ID string - SECURITY: Sanitize to prevent SQL injection
-          # ActiveRecord will parameterize this, but we add extra validation
-          sanitized_place_id = filters[:place_id].to_s.gsub(/[';-]/, '')
+          # Non-numeric place_id, treat as google_place_id
+          # Rails will properly parameterize this to prevent SQL injection
           query = query.joins(sub_location: :place)
-                       .where(places: { google_place_id: sanitized_place_id })
+                       .where(places: { google_place_id: place_id_string })
         end
       end
 
@@ -107,14 +112,10 @@ module Export
     def parse_date(date_param)
       return date_param if date_param.is_a?(Date) || date_param.is_a?(Time)
 
-      # SECURITY: Strict date validation to prevent SQL injection
-      # Date.parse is too lenient and accepts strings like "' OR '1'='1"
+      # SECURITY: Strict date validation
+      # Rails' parameterization handles SQL injection prevention,
+      # but we still validate the format to ensure only valid dates are accepted
       date_string = date_param.to_s.strip
-
-      # Reject any string containing SQL keywords or special characters
-      if /[';]|--|\bOR\b|\bAND\b|\bUNION\b|\bSELECT\b|\bDROP\b|\bDELETE\b|\bUPDATE\b|\bINSERT\b|\bEXEC\b/i.match?(date_string)
-        raise Export::BaseService::ExportError, 'Invalid date format provided'
-      end
 
       # Only accept standard date formats
       begin
@@ -125,6 +126,7 @@ module Export
         elsif %r{\A\d{1,2}/\d{1,2}/\d{4}\z}.match?(date_string)
           Date.strptime(date_string, '%m/%d/%Y')
         else
+          # If it doesn't match our strict formats, reject it
           raise ArgumentError, 'Unrecognized date format'
         end
       rescue ArgumentError

@@ -5,9 +5,9 @@ require 'zip'
 class Api::V1::ExportsController < Api::BaseController
   include ActionController::Live
 
-  before_action :authenticate_export_token
-  before_action :check_rate_limit
-  before_action :validate_export_params
+  before_action :authenticate_export_token, except: [:options]
+  before_action :check_rate_limit, except: [:options]
+  before_action :validate_export_params, except: [:options]
   before_action :validate_date_range, only: [:index, :download]
 
   rescue_from ActiveRecord::StatementInvalid, with: :handle_database_error
@@ -47,6 +47,12 @@ class Api::V1::ExportsController < Api::BaseController
     end
   end
 
+  # Handle CORS preflight OPTIONS requests
+  def options
+    # Preflight requests should return empty body with CORS headers
+    head :ok
+  end
+
   private
 
   def render_json_export(fields, filters)
@@ -80,8 +86,23 @@ class Api::V1::ExportsController < Api::BaseController
     return unless rate_key # Safety check
 
     count = Rails.cache.increment(rate_key, 1, expires_in: 1.hour) || 1
+    limit = @export_token.rate_limit_per_hour
+    remaining = [limit - count, 0].max
 
-    if count > @export_token.rate_limit_per_hour
+    # Calculate reset time
+    reset_time = begin
+      ttl = Rails.cache.ttl(rate_key) rescue 3600
+      Time.current.to_i + ttl
+    rescue NoMethodError
+      Time.current.to_i + 3600
+    end
+
+    # Set rate limit headers for all requests
+    response.headers['X-RateLimit-Limit'] = limit.to_s
+    response.headers['X-RateLimit-Remaining'] = remaining.to_s
+    response.headers['X-RateLimit-Reset'] = reset_time.to_s
+
+    if count > limit
       # Calculate TTL safely - not all cache stores support ttl method
       reset_in = begin
         Rails.cache.ttl(rate_key)
@@ -91,7 +112,7 @@ class Api::V1::ExportsController < Api::BaseController
 
       render json: {
         error: 'Rate limit exceeded',
-        limit: @export_token.rate_limit_per_hour,
+        limit:,
         reset_in:
       }, status: :too_many_requests
     end

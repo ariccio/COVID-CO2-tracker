@@ -107,8 +107,14 @@ class Rack::Attack
   end
 end
 
-# Enable Rack::Attack
+# Enable Rack::Attack middleware
 Rails.application.config.middleware.use Rack::Attack
+
+# Disable Rack::Attack in test environment by default
+# Individual tests can enable it when needed (e.g., security tests)
+if Rails.env.test?
+  Rack::Attack.enabled = false
+end
 
 # Log attacks in development
 if Rails.env.development?

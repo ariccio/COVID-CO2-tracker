@@ -51,23 +51,40 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
     end
   end
 
-  # Test environment - STRICT for security testing
+  # Test environment - Flexible for security testing
   if Rails.env.test?
-    # Only allow specific test origins
-    allow do
-      origins 'https://trusted-test-origin.com', 'http://localhost:3000'
+    # In test, allow configuration via ENV for testing different scenarios
+    test_origins = if ENV['ALLOWED_ORIGINS'].present?
+                     ENV['ALLOWED_ORIGINS'].split(',').map(&:strip).reject(&:empty?)
+                   else
+                     # Default test origins
+                     ['https://trusted-test-origin.com', 'http://localhost:3000']
+                   end
 
-      resource '/api/v1/exports/*',
-               headers: ['Authorization', 'Content-Type'],
-               methods: [:get, :options],
-               credentials: false,
-               max_age: 86_400
+    if test_origins.any?
+      allow do
+        origins(*test_origins)
 
-      resource '/api/*',
-               headers: ['Authorization', 'Content-Type', 'Accept'],
-               methods: [:get, :post, :options],
-               credentials: false,
-               max_age: 86_400
+        # Export endpoints
+        resource '/api/v1/export',
+                 headers: ['Authorization', 'Content-Type', 'Accept'],
+                 methods: [:get, :post, :options],
+                 credentials: true,
+                 max_age: 86_400
+
+        resource '/api/v1/exports/*',
+                 headers: ['Authorization', 'Content-Type'],
+                 methods: [:get, :options],
+                 credentials: false,
+                 max_age: 86_400
+
+        # Other API endpoints
+        resource '/api/*',
+                 headers: ['Authorization', 'Content-Type', 'Accept'],
+                 methods: [:get, :post, :options],
+                 credentials: false,
+                 max_age: 86_400
+      end
     end
   end
 end

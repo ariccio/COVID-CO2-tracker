@@ -59,7 +59,7 @@ RSpec.describe 'Export Security', type: :request do
       # Attempt SQL injection in date parameter
       malicious_date = "2024-01-01'; DROP TABLE measurements; --"
 
-      get '/api/v1/exports',
+      get '/api/v1/export',
           params: {
             format_type: 'csv',
             from: malicious_date
@@ -93,18 +93,23 @@ RSpec.describe 'Export Security', type: :request do
 
       # Should convert to integer, preventing injection
       query = query_builder.build(filters:)
-      expect(query.to_sql).to include('places.id = 1')
+      # ActiveRecord properly quotes table and column names
+      expect(query.to_sql).to include('"places"."id" = 1')
       expect(query.to_sql).not_to include('DELETE')
     end
   end
 
-  describe 'Rate Limiting Security' do
+  describe 'Rate Limiting Security', rack_attack: true do
+    before(:each) do
+      enable_rack_attack!
+      reset_rack_attack_cache!
+    end
     let(:token) do
       ExportToken.create!(
         description: 'Test token',
         expires_at: 1.day.from_now,
         permissions: {
-          formats: ['csv'],
+          formats: ['csv', 'json'],
           rate_limit_per_hour: 5
         }
       )
@@ -113,11 +118,12 @@ RSpec.describe 'Export Security', type: :request do
     it 'uses secure unpredictable rate limiting keys' do
       key = token.rate_limit_key
 
-      # Key should be based on token hash, not ID
-      expect(key).not_to include(token.id.to_s)
+      # Key should be based on token hash, not sequential ID
+      # Check that it's a proper hash-based key
+      expect(key).to match(/^export_rate:[a-f0-9]{64}$/)
       expect(key).to include('export_rate:')
 
-      # Key should be unpredictable
+      # Key should be unpredictable (hash length of 64 characters + prefix)
       expect(key.length).to be > 50
     end
 
@@ -125,23 +131,23 @@ RSpec.describe 'Export Security', type: :request do
       Rails.cache.clear
 
       # Make requests up to the limit
-      5.times do
-        get '/api/v1/exports',
-            params: { format_type: 'csv' },
+      5.times do |i|
+        get '/api/v1/export',
+            params: { format_type: 'json' }, # Use JSON to avoid caching issues
             headers: { 'Authorization' => "Bearer #{token.raw_token}" }
-        expect(response).to have_http_status(:success)
+        expect(response).to have_http_status(:success), "Request #{i + 1} failed with status #{response.status}"
       end
 
       # Next request should be rate limited
-      get '/api/v1/exports',
-          params: { format_type: 'csv' },
+      get '/api/v1/export',
+          params: { format_type: 'json' },
           headers: { 'Authorization' => "Bearer #{token.raw_token}" }
       expect(response).to have_http_status(:too_many_requests)
 
       # Trying with token variations should still be rate limited
       # (using same token with different casing/spacing)
-      get '/api/v1/exports',
-          params: { format_type: 'csv' },
+      get '/api/v1/export',
+          params: { format_type: 'json' },
           headers: { 'Authorization' => "bearer #{token.raw_token}" }
       expect(response).to have_http_status(:too_many_requests)
     end
@@ -157,11 +163,14 @@ RSpec.describe 'Export Security', type: :request do
     end
 
     it 'handles client disconnects gracefully' do
+      # Mock Rails.logger to track logging
+      allow(Rails.logger).to receive(:warn)
+      
       # Mock a client disconnect scenario
       allow_any_instance_of(ActionDispatch::Response::Buffer).to receive(:write).and_raise(IOError)
 
       expect do
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: { format_type: 'csv' },
             headers: { 'Authorization' => "Bearer #{token.raw_token}" }
       end.not_to raise_error
@@ -191,18 +200,12 @@ RSpec.describe 'Export Security', type: :request do
       )
     end
 
-    context 'in production' do
-      before do
-        allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new('production'))
-        ENV['ALLOWED_ORIGINS'] = 'https://app.example.com,https://www.example.com'
-      end
-
-      after do
-        ENV.delete('ALLOWED_ORIGINS')
-      end
+    context 'simulating production-like CORS' do
+      # NOTE: In test environment, CORS is configured at boot time.
+      # We test with the default test origins: 'https://trusted-test-origin.com' and 'http://localhost:3000'
 
       it 'blocks requests from unauthorized origins' do
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: { format_type: 'csv' },
             headers: {
               'Authorization' => "Bearer #{token.raw_token}",
@@ -214,21 +217,21 @@ RSpec.describe 'Export Security', type: :request do
       end
 
       it 'allows requests from authorized origins' do
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: { format_type: 'csv' },
             headers: {
               'Authorization' => "Bearer #{token.raw_token}",
-              'Origin' => 'https://app.example.com'
+              'Origin' => 'https://trusted-test-origin.com'
             }
 
         # Should include CORS headers for authorized origin
-        expect(response.headers['Access-Control-Allow-Origin']).to eq('https://app.example.com')
+        expect(response.headers['Access-Control-Allow-Origin']).to eq('https://trusted-test-origin.com')
       end
     end
 
     context 'in development' do
       it 'allows localhost origins' do
-        get '/api/v1/exports',
+        get '/api/v1/export',
             params: { format_type: 'csv' },
             headers: {
               'Authorization' => "Bearer #{token.raw_token}",
@@ -252,7 +255,7 @@ RSpec.describe 'Export Security', type: :request do
 
     it 'validates export format to prevent format injection' do
       # Attempt to use malicious format
-      get '/api/v1/exports',
+      get '/api/v1/export',
           params: { format_type: '../../../etc/passwd' },
           headers: { 'Authorization' => "Bearer #{token.raw_token}" }
 
@@ -267,7 +270,7 @@ RSpec.describe 'Export Security', type: :request do
         permissions: { formats: ['csv'] }
       )
 
-      get '/api/v1/exports',
+      get '/api/v1/export',
           params: { format_type: 'csv' },
           headers: { 'Authorization' => "Bearer #{expired_token.raw_token}" }
 
@@ -282,7 +285,7 @@ RSpec.describe 'Export Security', type: :request do
       )
 
       # Try to export JSON
-      get '/api/v1/exports',
+      get '/api/v1/export',
           params: { format_type: 'json' },
           headers: { 'Authorization' => "Bearer #{restricted_token.raw_token}" }
 
