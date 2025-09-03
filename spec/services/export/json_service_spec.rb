@@ -183,7 +183,7 @@ RSpec.describe(Export::JsonService) do
           expect { service.export }.to(raise_error(
             Export::BaseService::ExportError,
             "Invalid CO2 range: 'above_ppm' must be less than 'below_ppm'"
-          )
+          ))
         end
       end
       
@@ -194,7 +194,7 @@ RSpec.describe(Export::JsonService) do
           expect { service.export }.to(raise_error(
             Export::BaseService::ExportError,
             'Invalid date format: not-a-date'
-          )
+          ))
         end
       end
     end

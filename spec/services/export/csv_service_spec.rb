@@ -122,7 +122,7 @@ RSpec.describe(Export::CsvService) do
           expect { service.export }.to(raise_error(
             Export::BaseService::ExportError,
             "Invalid date range: 'from' date must be before 'to' date"
-          )
+          ))
         end
       end
       
@@ -133,7 +133,7 @@ RSpec.describe(Export::CsvService) do
           expect { service.export }.to(raise_error(
             Export::BaseService::ExportError,
             'Date range too large (max 365 days)'
-          )
+          ))
         end
       end
       
@@ -144,7 +144,7 @@ RSpec.describe(Export::CsvService) do
           expect { service.export }.to(raise_error(
             Export::BaseService::ExportError,
             'Invalid CO2 threshold: must be non-negative'
-          )
+          ))
         end
       end
       

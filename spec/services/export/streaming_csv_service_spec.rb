@@ -209,7 +209,7 @@ RSpec.describe(Export::StreamingCsvService) do
       expect { service.stream { |_| } }.to(raise_error(
         Export::BaseService::ExportError,
         'Insufficient memory for export operation'
-      )
+      ))
     end
   end
 end
