@@ -7,20 +7,58 @@
 
 # Read more: https://github.com/cyu/rack-cors
 
-# TODO: was this an artifact from early dev?
-
-# This block has strange formatting! See https://www.rubydoc.info/gems/rack-cors/0.4.0 for examples.
-
-# https://github.com/cyu/rack-cors/blob/0e68b881ef6c428bbf928b2c4a92ab49a34823e3/examples/rails6/config/initializers/cors.rb#L6
-::Rails.application.config.middleware.insert_before(0, ::Rack::Cors, debug: true, logger: (-> { Rails.logger })) do
-  allow do
-    origins('localhost:3001')
-    origins('localhost:3000')
-    # origins('localhost:3002')
-    resource(
-      '*',
-      headers: :any,
-      methods: [:get, :post, :put, :patch, :delete, :options, :head]
-    )
+# SECURITY: Configure strict CORS with explicit allowed origins
+Rails.application.config.middleware.insert_before 0, Rack::Cors do
+  # Development configuration
+  if Rails.env.development?
+    allow do
+      origins 'localhost:3000', 'localhost:3001', '127.0.0.1:3000', '127.0.0.1:3001'
+      
+      resource '*',
+        headers: :any,
+        methods: [:get, :post, :put, :patch, :delete, :options, :head],
+        credentials: false,
+        max_age: 86400
+    end
+  end
+  
+  # Production configuration - STRICT
+  if Rails.env.production?
+    # Get allowed origins from environment variable
+    allowed_origins = ENV.fetch('ALLOWED_ORIGINS', '').split(',').map(&:strip).reject(&:empty?)
+    
+    if allowed_origins.any?
+      allow do
+        origins(*allowed_origins)
+        
+        # API endpoints - restricted methods
+        resource '/api/v1/exports/*',
+          headers: ['Authorization', 'Content-Type'],
+          methods: [:get, :options],
+          credentials: false,
+          max_age: 86400
+        
+        # Other API endpoints
+        resource '/api/*',
+          headers: :any,
+          methods: [:get, :post, :put, :patch, :delete, :options],
+          credentials: true,
+          max_age: 86400
+      end
+    else
+      # If no origins configured, deny all cross-origin requests
+      Rails.logger.warn "CORS: No allowed origins configured. Cross-origin requests will be blocked."
+    end
+  end
+  
+  # Test environment
+  if Rails.env.test?
+    allow do
+      origins '*'
+      resource '*',
+        headers: :any,
+        methods: [:get, :post, :put, :patch, :delete, :options, :head],
+        credentials: false
+    end
   end
 end

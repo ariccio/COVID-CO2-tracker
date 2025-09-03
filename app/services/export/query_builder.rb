@@ -21,12 +21,14 @@ module Export
     def apply_date_filters(query, filters)
       if filters[:from]
         from_date = parse_date(filters[:from])
-        query = query.where('measurementtime >= ?', from_date.beginning_of_day)
+        # Use parameterized query with named placeholder for extra safety
+        query = query.where('measurementtime >= :from_date', from_date: from_date.beginning_of_day)
       end
       
       if filters[:to]
         to_date = parse_date(filters[:to])
-        query = query.where('measurementtime <= ?', to_date.end_of_day)
+        # Use parameterized query with named placeholder for extra safety
+        query = query.where('measurementtime <= :to_date', to_date: to_date.end_of_day)
       end
       
       query
@@ -34,11 +36,15 @@ module Export
     
     def apply_co2_filters(query, filters)
       if filters[:above_ppm]
-        query = query.where('co2ppm > ?', filters[:above_ppm].to_i)
+        # Sanitize and use parameterized query with named placeholder
+        ppm_value = filters[:above_ppm].to_i
+        query = query.where('co2ppm > :ppm', ppm: ppm_value)
       end
       
       if filters[:below_ppm]
-        query = query.where('co2ppm < ?', filters[:below_ppm].to_i)
+        # Sanitize and use parameterized query with named placeholder
+        ppm_value = filters[:below_ppm].to_i
+        query = query.where('co2ppm < :ppm', ppm: ppm_value)
       end
       
       query
@@ -46,12 +52,16 @@ module Export
     
     def apply_location_filters(query, filters)
       if filters[:place_id]
+        # Sanitize place_id before using in query
+        place_id = filters[:place_id].to_i
         query = query.joins(sub_location: :place)
-                     .where(places: { id: filters[:place_id] })
+                     .where(places: { id: place_id })
       end
       
       if filters[:device_id]
-        query = query.where(device_id: filters[:device_id])
+        # Sanitize device_id before using in query
+        device_id = filters[:device_id].to_i
+        query = query.where(device_id: device_id)
       end
       
       query

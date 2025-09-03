@@ -51,8 +51,10 @@ class Api::V1::ExportsController < ApplicationController
   def check_rate_limit
     return unless @export_token
     
-    # Implement rate limiting from enhancement doc
-    rate_key = "export_rate:#{@export_token.id}"
+    # Use secure rate limiting key that uses token hash instead of predictable ID
+    rate_key = @export_token.rate_limit_key
+    return unless rate_key # Safety check
+    
     count = Rails.cache.increment(rate_key, 1, expires_in: 1.hour) || 1
     
     if count > @export_token.rate_limit_per_hour
@@ -85,6 +87,10 @@ class Api::V1::ExportsController < ApplicationController
     # Record token usage
     @export_token.record_usage!
     
+    # Track resources for cleanup
+    zip_data = nil
+    exporter = nil
+    
     begin
       response.stream.write ''
       
@@ -94,7 +100,8 @@ class Api::V1::ExportsController < ApplicationController
       if format == 'jsonl'
         # Use streaming for JSONL
         exporter.stream_measurements(filters, fields: fields).each do |line|
-          response.stream.write line
+          # Check if client is still connected
+          raise IOError, "Client disconnected" unless response.stream.write line
           record_count += 1
           
           if record_count >= @export_token.max_records
@@ -134,8 +141,34 @@ class Api::V1::ExportsController < ApplicationController
       # Cache the result for future requests
       cache_export_metadata(format, fields, filters, record_count)
       
+    rescue IOError, Errno::EPIPE => e
+      # Client disconnected during streaming
+      Rails.logger.warn "Client disconnected during export: #{e.message}"
+      # Don't cache incomplete results
+    rescue => e
+      # Log other errors
+      Rails.logger.error "Export streaming error: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+      raise
     ensure
-      response.stream.close
+      # Ensure all resources are properly cleaned up
+      response.stream.close rescue nil
+      
+      # Clean up ZIP data if it was created
+      if zip_data
+        zip_data.close rescue nil
+        zip_data = nil
+      end
+      
+      # Ensure exporter cleanup if it has cleanup methods
+      if exporter && exporter.respond_to?(:cleanup)
+        exporter.cleanup rescue nil
+      end
+      
+      # Force garbage collection for large exports to free memory immediately
+      if record_count && record_count > 10_000
+        GC.start
+      end
     end
   end
   

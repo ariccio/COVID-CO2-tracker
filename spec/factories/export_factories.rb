@@ -38,7 +38,7 @@ FactoryBot.define do
   factory :user do
     sequence(:email) { |n| "user#{n}@example.com" }
     name { Faker::Name.name }
-    password { 'password123' }
+    sequence(:sub_google_uid) { |n| "google_uid_#{n}_#{SecureRandom.hex(8)}" }
     
     trait :with_devices do
       after(:create) do |user|
@@ -51,6 +51,7 @@ FactoryBot.define do
     sequence(:google_place_id) { |n| "ChIJ_test_place_#{n}" }
     place_lat { Faker::Address.latitude }
     place_lng { Faker::Address.longitude }
+    last_fetched { Time.current }
     
     trait :new_york do
       place_lat { 40.7128 }

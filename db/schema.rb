@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_08_28_091545) do
+ActiveRecord::Schema[7.1].define(version: 2025_09_03_001159) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -47,6 +47,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_08_28_091545) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["model_id"], name: "index_devices_on_model_id"
+    t.index ["serial"], name: "index_devices_on_serial"
     t.index ["user_id"], name: "index_devices_on_user_id"
   end
 
@@ -59,8 +60,10 @@ ActiveRecord::Schema[7.1].define(version: 2025_08_28_091545) do
     t.jsonb "permissions", default: {}, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "token_hash", null: false
     t.index ["expires_at"], name: "index_export_tokens_on_expires_at"
     t.index ["token"], name: "index_export_tokens_on_token", unique: true
+    t.index ["token_hash"], name: "index_export_tokens_on_token_hash", unique: true
   end
 
   create_table "extra_measurement_infos", force: :cascade do |t|
@@ -87,6 +90,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_08_28_091545) do
     t.bigint "extra_measurement_info_id"
     t.index ["device_id"], name: "index_measurements_on_device_id"
     t.index ["extra_measurement_info_id"], name: "index_measurements_on_extra_measurement_info_id"
+    t.index ["measurementtime", "co2ppm"], name: "index_measurements_on_time_and_co2"
     t.index ["measurementtime"], name: "index_measurements_on_measurementtime"
     t.index ["sub_location_id"], name: "index_measurements_on_sub_location_id"
   end
