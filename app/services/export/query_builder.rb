@@ -106,23 +106,23 @@ module Export
 
     def parse_date(date_param)
       return date_param if date_param.is_a?(Date) || date_param.is_a?(Time)
-      
+
       # SECURITY: Strict date validation to prevent SQL injection
       # Date.parse is too lenient and accepts strings like "' OR '1'='1"
       date_string = date_param.to_s.strip
-      
+
       # Reject any string containing SQL keywords or special characters
-      if date_string =~ /[';]|--|\bOR\b|\bAND\b|\bUNION\b|\bSELECT\b|\bDROP\b|\bDELETE\b|\bUPDATE\b|\bINSERT\b|\bEXEC\b/i
+      if /[';]|--|\bOR\b|\bAND\b|\bUNION\b|\bSELECT\b|\bDROP\b|\bDELETE\b|\bUPDATE\b|\bINSERT\b|\bEXEC\b/i.match?(date_string)
         raise Export::BaseService::ExportError, 'Invalid date format provided'
       end
-      
+
       # Only accept standard date formats
       begin
         # Try ISO 8601 format first (YYYY-MM-DD)
-        if date_string =~ /\A\d{4}-\d{2}-\d{2}\z/
+        if /\A\d{4}-\d{2}-\d{2}\z/.match?(date_string)
           Date.strptime(date_string, '%Y-%m-%d')
         # Also accept MM/DD/YYYY format
-        elsif date_string =~ /\A\d{1,2}\/\d{1,2}\/\d{4}\z/
+        elsif %r{\A\d{1,2}/\d{1,2}/\d{4}\z}.match?(date_string)
           Date.strptime(date_string, '%m/%d/%Y')
         else
           raise ArgumentError, 'Unrecognized date format'

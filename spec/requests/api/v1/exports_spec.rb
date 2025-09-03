@@ -320,7 +320,7 @@ RSpec.describe('API::V1::Exports') do
       # Mock a memory store cache instead of null store
       memory_store = ActiveSupport::Cache::MemoryStore.new
       allow(Rails).to receive(:cache).and_return(memory_store)
-      
+
       # Set up the cache with a high count to trigger rate limit
       memory_store.write('test_rate_key', 1000, expires_in: 1.hour)
 
@@ -359,7 +359,7 @@ RSpec.describe('API::V1::Exports') do
       # Allow ENV to work normally but return specific value for DYNO
       allow(ENV).to receive(:[]).and_call_original
       allow(ENV).to receive(:[]).with('DYNO').and_return('web.1')
-      
+
       # Mock the BaseService validate_safety! to raise memory error
       allow_any_instance_of(Export::BaseService)
         .to receive(:validate_safety!)

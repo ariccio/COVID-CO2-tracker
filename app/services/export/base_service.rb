@@ -12,7 +12,7 @@ module Export
     ].freeze
 
     DEFAULT_FIELDS = %w[co2_ppm timestamp lat lng].freeze
-    
+
     # Resource limits for security and performance
     MAX_EXPORT_RECORDS = ENV.fetch('MAX_EXPORT_RECORDS', 1_000_000).to_i
     MAX_DATE_RANGE_DAYS = ENV.fetch('MAX_EXPORT_DAYS', 365).to_i
@@ -31,11 +31,9 @@ module Export
 
     def validate_safety!
       # Skip transaction check in test environment when using DatabaseCleaner
-      unless Rails.env.test?
-        # Ensure no DELETE/UPDATE permissions by checking we're not in a transaction
-        if ActiveRecord::Base.connection.transaction_open?
-          raise ExportError, 'Cannot export during an open transaction'
-        end
+      # Ensure no DELETE/UPDATE permissions by checking we're not in a transaction
+      if !Rails.env.test? && ActiveRecord::Base.connection.transaction_open?
+        raise ExportError, 'Cannot export during an open transaction'
       end
 
       # Check memory usage
@@ -44,7 +42,7 @@ module Export
         Rails.logger.error "Export aborted: Memory usage #{memory_mb}MB exceeds safe threshold"
         raise ExportError, 'Insufficient memory for export operation'
       end
-      
+
       # Enforce maximum export size limit
       query = measurements_query(@filters)
       estimated_count = query.limit(MAX_EXPORT_RECORDS + 1).count
@@ -52,14 +50,18 @@ module Export
         raise ExportError, "Export size exceeds maximum of #{MAX_EXPORT_RECORDS} records"
       end
     end
-    
+
     def current_memory_usage_mb
       if ENV['DYNO'].present?
         # Heroku environment
         `ps -o rss= -p #{Process.pid}`.to_i / 1024
       else
         # Generic Unix/Linux
-        (`ps -o rss= -p #{Process.pid}`.to_i / 1024) rescue 0
+        begin
+          (`ps -o rss= -p #{Process.pid}`.to_i / 1024)
+        rescue StandardError
+          0
+        end
       end
     end
 
@@ -68,7 +70,7 @@ module Export
       if @filters[:from] && @filters[:to]
         from_date = parse_date(@filters[:from])
         to_date = parse_date(@filters[:to])
-        
+
         # Enforce maximum date range for resource protection
         days_diff = (to_date - from_date).to_i
         if days_diff > MAX_DATE_RANGE_DAYS

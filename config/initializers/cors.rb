@@ -56,13 +56,13 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
     # Only allow specific test origins
     allow do
       origins 'https://trusted-test-origin.com', 'http://localhost:3000'
-      
+
       resource '/api/v1/exports/*',
                headers: ['Authorization', 'Content-Type'],
                methods: [:get, :options],
                credentials: false,
                max_age: 86_400
-               
+
       resource '/api/*',
                headers: ['Authorization', 'Content-Type', 'Accept'],
                methods: [:get, :post, :options],

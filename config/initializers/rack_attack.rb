@@ -65,25 +65,37 @@ class Rack::Attack
   # === CUSTOM RESPONSES ===
   # Customize throttled response
   self.throttled_responder = lambda do |env|
+    # Handle both env hash and request object
+    request_env = env.is_a?(Rack::Attack::Request) ? env.env : env
+    
     # Get the matched throttle
-    match_data = env['rack.attack.match_data']
-    throttle_name = env['rack.attack.matched']
+    match_data = request_env['rack.attack.match_data']
+    throttle_name = request_env['rack.attack.matched']
 
-    # Calculate retry time
-    now = match_data[:epoch_time]
-    retry_after = match_data[:period] - (now % match_data[:period])
+    # Ensure match_data is a hash (sometimes it can be nil or another object in tests)
+    if match_data.is_a?(Hash)
+      # Calculate retry time
+      now = match_data[:epoch_time]
+      retry_after = match_data[:period] - (now % match_data[:period])
 
-    # Build response headers
-    headers = {
-      'Content-Type' => 'application/json',
-      'Retry-After' => retry_after.to_s,
-      'X-RateLimit-Limit' => match_data[:limit].to_s,
-      'X-RateLimit-Remaining' => '0',
-      'X-RateLimit-Reset' => (now + retry_after).to_s
-    }
+      # Build response headers
+      headers = {
+        'Content-Type' => 'application/json',
+        'Retry-After' => retry_after.to_s,
+        'X-RateLimit-Limit' => match_data[:limit].to_s,
+        'X-RateLimit-Remaining' => '0',
+        'X-RateLimit-Reset' => (now + retry_after).to_s
+      }
+    else
+      # Fallback headers when match_data is not available
+      headers = {
+        'Content-Type' => 'application/json',
+        'Retry-After' => '60'
+      }
+    end
 
     # Log the rate limit event
-    Rails.logger.warn("Rate limit exceeded: #{throttle_name} for #{env['REQUEST_PATH']}")
+    Rails.logger.warn("Rate limit exceeded: #{throttle_name} for #{request_env['REQUEST_PATH'] || request_env['PATH_INFO']}")
 
     # Return 429 Too Many Requests
     [429, headers, [{ error: 'Too many requests. Please retry later.' }.to_json]]

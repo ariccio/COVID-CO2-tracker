@@ -12,7 +12,7 @@ module Export
     end
 
     def perform(fields: nil)
-      export(fields: fields)
+      export(fields:)
     end
 
     def export_measurements(output_stream, filters = @filters, fields: nil)
@@ -24,7 +24,7 @@ module Export
 
         # Parse and validate fields
         requested_fields = parse_fields(fields)
-        
+
         # Write headers
         write_line(output_stream, CSV.generate_line(requested_fields))
 
@@ -100,11 +100,11 @@ module Export
         end
       end
     end
-    
+
     def parse_fields(fields)
-      return DEFAULT_FIELDS if fields.nil? || fields.empty?
+      return DEFAULT_FIELDS if fields.blank?
       return ALLOWED_FIELDS if fields == 'all'
-      
+
       if fields.is_a?(Array)
         valid_fields = fields & ALLOWED_FIELDS
         valid_fields.empty? ? DEFAULT_FIELDS : valid_fields

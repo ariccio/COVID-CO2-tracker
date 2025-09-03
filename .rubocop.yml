@@ -145,3 +145,49 @@ AllCops:
   NewCops: enable
   SuggestExtensions: true
 
+# RSpec Configuration - Aligned with project patterns
+RSpec/ExampleLength:
+  Max: 15  # Project uses longer integration tests
+  Exclude:
+    - 'spec/requests/**/*'  # Request specs often need more lines
+    - 'spec/security/**/*'  # Security specs are comprehensive
+
+RSpec/MultipleExpectations:
+  Max: 3  # Allow multiple expectations for thorough testing
+  Exclude:
+    - 'spec/requests/**/*'  # Integration tests need multiple assertions
+    - 'spec/security/**/*'  # Security tests verify multiple conditions
+
+RSpec/MultipleMemoizedHelpers:
+  Max: 10  # Complex tests need more setup
+  Exclude:
+    - 'spec/security/**/*'  # Security specs have extensive setup
+
+RSpec/ContextWording:
+  Enabled: false  # Project uses various context descriptions
+
+RSpec/InstanceVariable:
+  Exclude:
+    - 'spec/requests/**/*'  # Sometimes needed for request specs
+    - 'spec/security/**/*'  # Used in security test setup
+
+RSpec/NestedGroups:
+  Max: 4  # Allow deeper nesting for complex scenarios
+
+# Naming Configuration
+Naming/VariableNumber:
+  CheckMethodNames: false  # Allow numbered methods
+  CheckSymbols: false
+  AllowedIdentifiers:
+    - 'e2e'
+    - 'oauth2'
+    - 'CO2'
+    - 'co2'
+
+# Rails Configuration
+Rails/SkipsModelValidations:
+  AllowedMethods:
+    - 'touch'  # touch is generally safe
+    - 'increment!'
+    - 'decrement!'
+
