@@ -10,6 +10,23 @@ This file is intended to route claude to the main ai-agent-agnostic instruction 
 ## Shared Memory Access
 The `copilot_notes/` directory contains important context and memory from other AI agents. Check filenames there for relevant information when starting tasks.
 
+## ⚠️ CRITICAL: Known Issues and Anti-Patterns
+
+### The Time.zone Ping-Pong Pattern - DO NOT REPEAT
+**NEVER** change `Time.now` to `Time.zone.now` in these files:
+- `config/boot.rb`
+- `config/application.rb`
+- `config/environment.rb`
+- `config/environments/*.rb`
+
+These files run BEFORE Rails initializes. Time.zone doesn't exist yet!
+This mistake has been made and reverted multiple times. See: `copilot_notes/time-zone-ping-pong-analysis.md`
+
+### Before Making ANY Time-Related Changes
+1. **MUST READ**: `copilot_notes/time-zone-ping-pong-analysis.md`
+2. **MUST CHECK**: `.rubocop.yml` exclusions - they prevent real bugs
+3. **MUST TEST**: Run `rails runner "puts 'Success'"` after any config changes
+
 ## 🧠 Memory Infrastructure Active
 The COVID CO2 Tracker now uses an advanced memory and context management system.
 

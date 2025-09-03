@@ -5,7 +5,7 @@ class User < ApplicationRecord
   # app/models/user.rb:6:3: C: Rails/HasManyOrHasOneDependent: Specify a :dependent option.
   has_many :devices, dependent: :restrict_with_exception
   has_many :measurement, -> { distinct }, through: :devices
-  has_one :user_setting
+  has_one :user_setting, dependent: :destroy
 
   # Note to self, from active record doctor:
   # add `NOT NULL` to users.email - models validates its presence but it's not non-NULL in the database

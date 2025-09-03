@@ -31,12 +31,12 @@ RSpec.describe('API::V1::Exports') do
 
   before do
     # Mock token authentication and set the instance variable
-    mock_token = double('ExportToken',
-                        rate_limit_key: 'test_rate_key',
-                        rate_limit_per_hour: 100,
-                        max_records: 10_000,
-                        can_export_format?: true,
-                        record_usage!: true)
+    mock_token = instance_double('ExportToken',
+                                 rate_limit_key: 'test_rate_key',
+                                 rate_limit_per_hour: 100,
+                                 max_records: 10_000,
+                                 can_export_format?: true,
+                                 record_usage!: true)
 
     allow_any_instance_of(Api::V1::ExportsController)
       .to receive(:authenticate_export_token) do |controller|
@@ -325,9 +325,9 @@ RSpec.describe('API::V1::Exports') do
       memory_store.write('test_rate_key', 1000, expires_in: 1.hour)
 
       # Create a mock export token with a low rate limit
-      mock_token = double('ExportToken',
-                          rate_limit_key: 'test_rate_key',
-                          rate_limit_per_hour: 10)
+      mock_token = instance_double('ExportToken',
+                                   rate_limit_key: 'test_rate_key',
+                                   rate_limit_per_hour: 10)
 
       allow_any_instance_of(Api::V1::ExportsController)
         .to receive(:authenticate_export_token) do |controller|

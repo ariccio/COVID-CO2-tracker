@@ -50,6 +50,14 @@ Style/ClassAndModuleChildren:
 Style/RedundantReturn:
   Enabled: false
 
+# Rails cops configuration
+Rails/TimeZone:
+  Exclude:
+    - 'config/boot.rb'
+    - 'config/application.rb'
+    - 'config/environments/*.rb'
+  # These files run before Rails is initialized, so Time.zone is not available
+
 Rails/Output:
   Enabled: false
   Severity: info
@@ -174,6 +182,14 @@ RSpec/InstanceVariable:
 RSpec/NestedGroups:
   Max: 4  # Allow deeper nesting for complex scenarios
 
+# Configure RSpec to recognize custom expectation helpers
+RSpec/NoExpectationExample:
+  AllowedPatterns:
+    - "^expect_"
+    - "^assert_"
+    - "check_no_error"
+    - "formatted_error_check"
+
 # Naming Configuration
 Naming/VariableNumber:
   CheckMethodNames: false  # Allow numbered methods
@@ -190,4 +206,7 @@ Rails/SkipsModelValidations:
     - 'touch'  # touch is generally safe
     - 'increment!'
     - 'decrement!'
+  Exclude:
+    - 'spec/**/*'  # Allowed in tests for setting up specific test conditions
+    - 'test/**/*'
 

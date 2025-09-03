@@ -1,6 +1,6 @@
 # 🧠 COVID CO2 Tracker Semantic Knowledge Index
 *AI-optimized task pattern matching for rapid context loading*
-*Last Updated: 2025-09-02 | Total Files: 41 (25 archived) | Total Words: ~40,000*
+*Last Updated: 2025-09-03 | Total Files: 44 (25 archived) | Total Words: ~42,000*
 
 ## 🚨 ALWAYS START HERE
 This index maps task patterns → relevant files with ACTUAL word counts for precise context budget management.
@@ -67,6 +67,13 @@ This index maps task patterns → relevant files with ACTUAL word counts for pre
 | `QUICK-REFERENCE-CARD.md` | 773 | Essential commands | commands, shortcuts, tips |
 | `PROBLEM_SOLUTION_MAP_CO2.md` | 299 | Problem → solution mapping | troubleshooting, fixes |
 
+### ⚠️ CRITICAL: Known Issues & Anti-Patterns (2,885 words)
+| File | Words | Description | Keywords |
+|------|-------|-------------|----------|
+| `time-zone-ping-pong-analysis.md` | 1,576 | Time.zone startup failure pattern | CRITICAL, Rails init, Time.now |
+| `ai-session-pattern-analysis.md` | 1,084 | AI session behavior patterns | sessions, memory, patterns |
+| `GOTCHA-TEMPLATE.md` | 225 | Template for documenting gotchas | template, documentation |
+
 ### 📝 Session & Continuation Files (2,410 words)
 | File | Words | Description | Keywords |
 |------|-------|-------------|----------|
@@ -87,6 +94,19 @@ This index maps task patterns → relevant files with ACTUAL word counts for pre
 ## 🎯 TASK PATTERN MATCHER V2
 
 ### When You Need To...
+
+#### AVOID KNOWN GOTCHAS (READ FIRST)
+```yaml
+Time.zone Issues in Config Files:
+  1. time-zone-ping-pong-analysis.md (1,576 words) # CRITICAL - READ THIS
+  2. Check .rubocop.yml exclusions before "fixing" anything
+  Total: ~1,600 words
+
+AI Session Issues:
+  1. ai-session-pattern-analysis.md (1,084 words) # Understand patterns
+  2. GOTCHA-TEMPLATE.md (225 words) # How to document new issues
+  Total: ~1,300 words
+```
 
 #### Fix Production Issues
 ```yaml

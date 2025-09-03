@@ -19,6 +19,56 @@ Please follow all these instructions to the best of your brilliant ability - we'
 - Your context window may often be technically limited to something like 200000 tokens, but may in practice (for many different reasons) begin to encounter technical limitations in as little as 150,000 tokens or fewer. As you approach this limit, I often may benefit from a reminder of some sort, and I may even want you to assist me in preserving your maximum reasoning ability, details, focus, intelligence, or goal-directed abilities across context compaction by generating copy-and-pasteable prompts, notes on disk with ALL relevant thoughts, reasoning, context, state, and anything else necessary to seamlessly continue. Sometimes it may even help to treat this task as if I will instantiate an entirely new session of a separate agentic coding system instead of simply compacting the context. I am not explicitly asking you to always take action to follow the instructions in this list item, but it may help to keep this intent and pattern of user-developer-coworker-behavior in mind... ESPECIALLY for the longest running and most complex multi-step tasks we work on together.
 - If you find yourself unable to recall or follow all instructions due to context length, explicitly state: "⚠️ WARNING Context pressure detected - focusing on critical instructions only"
 
+## Context Management for Complex Tasks
+
+### When Approaching Context Limits
+If you're working on complex tasks and context limits:
+
+1. **IMMEDIATELY save ALL state to copilot_notes/** (example from another repository that was focused primarily on deobfuscating javascript)
+   ```javascript
+   // Save with extremely descriptive filename
+   const stateFilename = `copilot_notes/cli_js_webpack_bundle_extraction_stage2_modules_found_157_continuing_from_line_3847.md`;
+   ```
+
+2. **Create continuation prompt for next session** (example from another repository that was focused primarily on deobfuscating javascript)
+   ```
+   Continue deobfuscation of cli.js from stage 2.
+   Previous state saved in: copilot_notes/cli_js_webpack_bundle_extraction_stage2_modules_found_157_continuing_from_line_3847.md
+   Next task: Extract remaining modules starting from line 3847
+   ```
+
+3. **Track what references were useful**  (example from another repository that was focused primarily on deobfuscating javascript)
+   - ✓ TypeScript definitions helped map minified names
+   - ✓ Package.json revealed version 1.0.98
+   - ✗ README.md was not useful for technical details
+
+
+## Rails-Specific Critical Instructions - READ FIRST
+
+### ⚠️ CRITICAL: Rails Initialization Order
+**THE FOLLOWING FILES RUN BEFORE RAILS IS INITIALIZED:**
+- `config/boot.rb`
+- `config/application.rb`
+- `config/environment.rb`
+- `config/environments/*.rb` (during initialization phase)
+
+**IN THESE FILES:**
+- ❌ **NEVER** use `Time.zone.now` - Time.zone doesn't exist yet!
+- ✅ **ALWAYS** use `Time.now` instead
+- **ERROR IF YOU USE Time.zone**: `NoMethodError: undefined method 'zone' for Time:Class`
+
+**This has been attempted and reverted MULTIPLE times. DO NOT REPEAT THIS MISTAKE.**
+
+### 📋 Required Pre-Work Checklist for Rails Tasks
+1. **Check for known issues**: `ls copilot_notes/*.md | grep -E "time|zone|ping|pong|analysis"`
+2. **Read if exists**: `copilot_notes/time-zone-ping-pong-analysis.md`
+3. **Review Rubocop config**: Check `.rubocop.yml` - exclusions exist for good reasons!
+4. **After ANY config/ changes**: Test with `rails runner "puts 'Rails started successfully'"`
+
+### 🚫 Known Anti-Patterns to Avoid
+1. **Time.zone in initialization files** - Breaks application startup
+2. **Overriding Rubocop exclusions** - They prevent real bugs
+3. **"Fixing" Time.now to Time.zone.now in config/** - This is NOT a fix, it's a bug
 
 ## Goals
 - We want to be ethical while pursuing business goals. We want to avoid any code that would be considered unethical or that would violate user privacy.
@@ -26,6 +76,11 @@ Please follow all these instructions to the best of your brilliant ability - we'
 - Promote indoor air transparency:
 - Support public health advocacy
 - Integrate with broader mitigation strategies
+
+## 🧠 CRITICAL: Subagent Context Preservation Protocol
+
+### BEFORE Invoking ANY Subagent (MANDATORY)
+- YOU MUST read the instructions in `general-subagent-instructions-and-requirements.md`
 
 
 ## meta
@@ -41,6 +96,13 @@ Please follow all these instructions to the best of your brilliant ability - we'
 - Once in a while, when finished with other tasks as part of responding, take some time to review these instructions holistically and consider if there are any improvements,  additions, removals, or distillations, that would make them more effective. Consider the overall goals of the project and whether the instructions align with those goals. If you identify any gaps or areas for any improvements,  additions, removals, or distillations, suggest those specific changes, improvements,  additions, removals, or distillations, to enhance the instructions. You have shown us before that you know how to be helpful in ways and at times that we don't anticipate! We like that.
 - We wish to maintain your maximum intelligent reasoning and planning abilities when faced with complex and long tasks by being mindful of the limitations of the LLM context window. We will do this with a deliberate plan to manage context with some engineering! Here's the plan for complex task context management: If, at any point in working on a complex or multistep task you are **generating a response that appears will exceed the token capacity of the available context window**, before that context window is full, **you MUST first commit to a new file in the `copilot_notes` folder  ALL the relevant contextual information necessary for another independent invocation of an agentic LLM** (with a clean/empty context window) to reference to seamlessly continue, including (but NOT limited to) any important reasoning/thinking tokens, planning thoughts, concrete plan/checklist text, and original prompt inputs - You must do this while being careful that your output tokens not fill the context window BEFORE you are done, and you may switch to thinking in mental checklists if absolutely necessary during this step. **You MUST** then emit a prompt that the user can copy and paste to provide to the next agentic LLM instance/iteration to begin the seamless continuing operation; if one additional iteration is unlikely to be enough, you should consider breaking the task down into individual prompts that the user can chain together (either manually, or ideally automatically) to guide (or "drive", like a car) the agentic LLM to complete the overall task; don't forget to include relevant information on the breakdown in the newly-created `copilot_notes` file - perhaps even each iteration should update the file with progress, or create successive files. Once done with this planning and bookkeeping, you may do only the parts of the task that you are able to do without filling the context window. This is a difficult plan to manage your context window, but remember: *try to be intelligent and set the stage for your next run*.
 - Consider summarizing the specific instructions you've followed when answering.
+- If you do not have access to the information available to solve a difficult or recurrent problem, but you suspect that it might be available on the web, provide the user with a prompt that they can copy and paste into the web interface of an AI like Claude or ChatGPT or Gemini, using deep research, to find said information. Ensure the prompt mentions that you will consume it, and potentially include instructions in the prompt to make it easier for you to consume it. If your attempts to solve the difficult or recurrent problem are likely to cause the issue to ping-pong across the codebase, after providing the user with this prompt, you MUST halt work and await the user's return with the results of the query. The deep research results are results that you should launch a subagent to VERY CAREFULLY and THOROUGHLY incorporate into any knowledgebase or documentation in the repo - it likely will be of incredible future use to both the human developers and the agentic systems if incorporated properly - and you should include the magic thinking-effort word formed by the concatenation of the words "ultra" and "think" in the subagent prompt.
+
+### MCP Servers
+- Some MCP servers are flaky and developers can miss failures when long agentic coding sessions encounter the flakyness. If you are going to be writing an on-disk summary of your work, add explicit mention of MCP server failures and potentially relevant info for debugging to the summary.
+- If you attempt to use an MCP server and it fails, ask the user if they'd like you to proceed a different way (specifying the nature of that different way andwhat that different way entails) instead of merely proceeding.
+- Look for a folder at the root of the repository called `agentic_logs`. If it exists, look for a file that looks like an agent may have written information to it about failures with that specific MCP server. If the folder doesn't exist, create it, and create a relevant-and-descriptively-named file in that folder where we will both keep track of MCP server issues as entries in this file, helped by you writing failures along with ANY and ALL potentially relevant info for debugging. If the file already exists, add to it in the same way. It may be a good idea to add information about the environment and the time to each entry.
+- If you notice that the issue you're facing is recurrent based on the content of the file, consider either launching a subagent to investigate further or updating the file with additional context and information... unless the issue is one that is likely best solved using the aforementioned "deep research" instructions (in which case, follow those).
 
 ## syntax preferences and formatting
 - In all languages, where parenthesis are optional, prefer to generate them, e.g. `if (condition)` instead of `if condition`.
@@ -92,7 +154,18 @@ Please follow all these instructions to the best of your brilliant ability - we'
 - If a definition is added, search for both the definition AND its call site to ensure both exist and are correct
 - If a tool call seems to have no effect, try an alternative approach rather than continuing with the assumption it worked
 - When dealing with missing definitions, search the entire file to confirm the definition doesn't exist elsewhere before adding it
-- Use emojis and similar unicode characters only where they add clarity and value to the code. The `✗` emoji actually does work well quite often for ERRORS, and the `✓` works well for the top level successes.  Do not use them gratuitously or excessively. Do not dilute the user's attention - for many remaining use cases something less obtrusive like one of these may suffice unless something truly rare in the codebase is happening: "✓ ✗ → ← ↑ ↓ ⚠ ℹ ★ ☆ ◆ ◇ ● ○"
+- Use emojis and similar unicode characters only where they add clarity and value to the code. The `✗` emoji actually does work well quite often for ERRORS, and the `✓` works well for the top level successes.  Do not use them gratuitously or excessively. Do not dilute the user's attention - for many remaining use cases something less obtrusive like one of these may suffice unless something truly rare in the codebase is happening: "✓ ✗ → ← ↑ ↓ ⚠ ℹ ★ ☆ ◆ ◇ ● ○". Unicode has many other "textual representations" that are preferable to emojis.
+- **Specific emoji replacement guidelines**: When replacing prominent emojis with less intrusive Unicode characters, use these proven replacements:
+  - `📝` → `※` (note/documentation creation)
+  - `📊` → `◆` (statistics, data summaries, analytics)
+  - `🤖` → `→` (process indicators, automation, AI actions)
+  - `✅` → `✓` (success states, confirmations)
+  - `❌` → `✗` (error states, failures)
+  - `⚠️` → `⚠` (warnings - remove emoji variation selector)
+  - `🔧` → `◇` (tools, fixing, maintenance operations)
+  - `🧠` → `●` (main headers, important concepts)
+  These replacements maintain semantic meaning while reducing visual noise and improving professional appearance in development tooling.
+
 
 ## Consider verifying by building
 - Where build tools are available on the in-use platform: ALWAYS build the code after making changes, especially complex changes involving multiple files, to verify that your changes don't break existing functionality.
