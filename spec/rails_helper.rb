@@ -11,6 +11,22 @@ require 'rspec/rails'
 
 require 'database_cleaner-active_record'
 
+# Suppress the "Scoped order is ignored, it's forced to be batch order" warnings in tests
+# This warning is expected when using find_each/find_in_batches with ordering
+# These are not errors - just Rails informing us that batch processing ignores custom ordering
+#
+# The warning comes from Rails itself when find_each/find_in_batches is called on a
+# relation that has custom ordering. The batching mechanism needs to order by primary key
+# for efficient batching, so any custom ordering is ignored. This is expected behavior.
+#
+# Since we intentionally apply ordering for consistent exports (even though it gets ignored
+# during batching), we suppress this warning in tests to reduce noise.
+if Rails.env.test?
+  # Set ActiveRecord logger to only show errors, not warnings
+  ActiveRecord::Base.logger = Logger.new(STDOUT)
+  ActiveRecord::Base.logger.level = Logger::ERROR
+end
+
 # Requires supporting ruby files with custom matchers and macros, etc, in
 # spec/support/ and its subdirectories. Files matching `spec/**/*_spec.rb` are
 # run as spec files by default. This means that files in spec/support that end

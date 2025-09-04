@@ -38,12 +38,14 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
   end
 
   def attempt_sql_injection(injection_string, token:, endpoint: '/api/v1/export')
-    get endpoint,
-        params: {
-          format_type: 'csv',
-          from: injection_string
-        },
-        headers: { 'Authorization' => "Bearer #{token.raw_token}" }
+    suppress_logs do
+      get endpoint,
+          params: {
+            format_type: 'csv',
+            from: injection_string
+          },
+          headers: { 'Authorization' => "Bearer #{token.raw_token}" }
+    end
   end
 
   # Setup test data
@@ -1054,8 +1056,13 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
           test_logger = Logger.new(log_output)
           Rails.logger = test_logger
 
-          # Trigger SQL injection attempt
-          attempt_sql_injection("'; DROP TABLE measurements; --", token:)
+          # Trigger SQL injection attempt WITHOUT suppression (we want to capture logs)
+          get '/api/v1/export',
+              params: {
+                format_type: 'csv',
+                from: "'; DROP TABLE measurements; --"
+              },
+              headers: { 'Authorization' => "Bearer #{token.raw_token}" }
 
           # Check logs for security events
           log_content = log_output.string

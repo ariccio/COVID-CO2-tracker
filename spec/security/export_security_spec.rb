@@ -55,10 +55,14 @@ RSpec.describe 'Export Security', type: :request do
       )
     end
 
+    around do |example|
+      suppress_logs { example.run }
+    end
+
     it 'sanitizes date parameters against SQL injection' do
       # Attempt SQL injection in date parameter
       malicious_date = "2024-01-01'; DROP TABLE measurements; --"
-
+      
       get '/api/v1/export',
           params: {
             format_type: 'csv',

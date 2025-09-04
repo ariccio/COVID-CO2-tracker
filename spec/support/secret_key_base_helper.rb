@@ -4,16 +4,20 @@
 module SecretKeyBaseHelper
   def with_production_environment
     original_env = Rails.env
-    original_secret = Rails.application.secrets.secret_key_base
+    # Use credentials instead of deprecated secrets
+    original_secret = Rails.application.credentials.secret_key_base
     
     # Set a test secret_key_base for production environment
     allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new('production'))
-    Rails.application.secrets.secret_key_base = 'test-secret-key-base-for-production-environment-testing-only'
+    # Mock credentials to avoid the deprecation warning
+    allow(Rails.application.credentials).to receive(:secret_key_base)
+      .and_return('test-secret-key-base-for-production-environment-testing-only')
     
     yield
   ensure
     allow(Rails).to receive(:env).and_return(original_env)
-    Rails.application.secrets.secret_key_base = original_secret
+    # Reset the mock
+    allow(Rails.application.credentials).to receive(:secret_key_base).and_call_original
   end
 end
 
