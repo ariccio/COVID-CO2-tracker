@@ -347,12 +347,12 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
     end
   end
 
-  describe '3. Rate Limiting Tests', rack_attack: true do
-    before(:each) do
+  describe '3. Rate Limiting Tests', :rack_attack do
+    before do
       enable_rack_attack!
       reset_rack_attack_cache!
     end
-    
+
     context 'Basic Rate Limiting' do
       it 'enforces per-hour rate limits' do
         token = create_test_token(
@@ -549,7 +549,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
 
         # Clear cache to reset burst throttle for next part
         Rails.cache.clear
-        
+
         # Now test the per-hour limit (100 requests)
         # Make requests up to the hourly limit
         100.times do
@@ -614,7 +614,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         # Should handle the error gracefully
         expect(response).to have_http_status(:internal_server_error)
         expect(response.body).to include('Export failed')
-        
+
         # Verify no temp files are left (though none should be created)
         temp_files = Dir.glob('/tmp/export_*.tmp')
         expect(temp_files).to be_empty
@@ -634,11 +634,11 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
           get '/api/v1/export',
               params: { format_type: 'json' },
               headers: { 'Authorization' => "Bearer #{token.raw_token}" }
-          
+
           # Error is handled internally, returns error response
           expect(response).to have_http_status(:internal_server_error)
         end
-        
+
         expect(error_count).to eq(5)
 
         # Force garbage collection
@@ -693,14 +693,14 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         # Test that the controller triggers GC for large exports
         # Since we don't have 10,000+ records in test, we'll verify
         # the logic exists and that normal exports work fine
-        
+
         # Verify exports complete successfully with available records
         get '/api/v1/export',
             params: { format_type: 'csv' },
             headers: { 'Authorization' => "Bearer #{token.raw_token}" }
-        
+
         expect(response).to have_http_status(:success)
-        
+
         # The controller has GC.start in ensure block for large exports (>10,000 records)
         # We can't easily test this without creating 10,000+ records,
         # but the logic is there in app/controllers/api/v1/exports_controller.rb:300-302
@@ -726,10 +726,10 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
 
         # Count lines in JSONL response (each record is one line)
         jsonl_lines = response.body.split("\n").reject(&:empty?)
-        
+
         # Should respect the limit (may have warning message as last line)
         expect(jsonl_lines.size).to be <= 51 # 50 records + possible warning
-        
+
         # Verify the token's max_records is set correctly
         expect(limited_token.max_records).to eq(50)
       end
@@ -854,7 +854,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
 
         # Check all security headers
         expect(response.headers['Access-Control-Allow-Credentials']).to eq('true')
-        # Note: The Allow-Methods header is set by rack-cors based on the resource configuration
+        # NOTE: The Allow-Methods header is set by rack-cors based on the resource configuration
         # In test environment, we allow GET, POST, OPTIONS for /api/v1/export
         expect(response.headers['Vary']).to include('Origin')
       end
@@ -869,10 +869,10 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
 
         # Check that the OPTIONS request succeeded
         expect(response).to have_http_status(:ok)
-        
+
         # Check for CORS headers
         expect(response.headers['Access-Control-Allow-Origin']).to eq('https://trusted-test-origin.com')
-        
+
         allowed_headers = response.headers['Access-Control-Allow-Headers']
         # rack-cors sets this based on the configured headers for the resource
         expect(allowed_headers).to be_present
@@ -909,7 +909,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
 
   describe '6. Integration Security Tests' do
     context 'Combined Attack Vectors' do
-      it 'handles SQL injection with rate limit bypass attempt', rack_attack: true do
+      it 'handles SQL injection with rate limit bypass attempt', :rack_attack do
         token = create_test_token(
           permissions: { formats: ['csv', 'json'], rate_limit_per_hour: 2 }
         )
@@ -954,10 +954,10 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         expect(response.headers['Access-Control-Allow-Origin']).to be_nil
       end
 
-      it 'handles memory exhaustion with rate limiting', rack_attack: true do
+      it 'handles memory exhaustion with rate limiting', :rack_attack do
         skip 'Memory constraints cannot be accurately simulated in test environment'
-        
-        # Note: This test verifies rate limiting prevents memory exhaustion
+
+        # NOTE: This test verifies rate limiting prevents memory exhaustion
         # In production, rate limits kick in before memory issues
         token = create_test_token(
           permissions: {
@@ -1046,7 +1046,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         end
       end
 
-      it 'logs security events for monitoring', rack_attack: true do
+      it 'logs security events for monitoring', :rack_attack do
         original_logger = Rails.logger
         begin
           token = create_test_token
@@ -1112,7 +1112,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         get '/api/v1/export',
             params: { format_type: 'json' },
             headers: { 'Authorization' => "Bearer #{token.raw_token}" }
-        
+
         # May return error or empty results depending on error handling
         expect(response).to have_http_status(:internal_server_error).or have_http_status(:success)
 
@@ -1144,8 +1144,8 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         # Try export with mock disconnect (shouldn't affect data)
         allow_any_instance_of(ActionDispatch::Response::Buffer)
           .to receive(:write)
-          .and_return(true)  # Don't actually raise, just mock
-        
+          .and_return(true) # Don't actually raise, just mock
+
         get '/api/v1/export',
             params: { format_type: 'csv' },
             headers: { 'Authorization' => "Bearer #{token.raw_token}" }
@@ -1234,7 +1234,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         # Token should have sufficient entropy (base64 encoding of 32 bytes)
         expect(token.raw_token).to match(/\A[A-Za-z0-9_-]+\z/) # URL-safe base64 characters
         expect(token.raw_token.length).to be >= 43 # base64 of 32 bytes is ~43 chars
-        
+
         # Verify high entropy
         entropy = token.raw_token.each_char.sum(&:ord)
         expect(entropy).to be > 2000 # High entropy value for base64

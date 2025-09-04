@@ -91,7 +91,11 @@ class Api::V1::ExportsController < Api::BaseController
 
     # Calculate reset time
     reset_time = begin
-      ttl = Rails.cache.ttl(rate_key) rescue 3600
+      ttl = begin
+        Rails.cache.ttl(rate_key)
+      rescue StandardError
+        3600
+      end
       Time.current.to_i + ttl
     rescue NoMethodError
       Time.current.to_i + 3600

@@ -11,8 +11,8 @@ module LogSuppressionHelper
   end
 
   # Suppress logs for SQL injection tests
-  def with_suppressed_sql_injection_logs(&block)
-    suppress_logs(&block)
+  def with_suppressed_sql_injection_logs(&)
+    suppress_logs(&)
   end
 end
 
@@ -21,7 +21,7 @@ RSpec.configure do |config|
 end
 
 # Shared context for tests that generate expected error logs
-RSpec.shared_context 'suppress error logs', suppress_error_logs: true do
+RSpec.shared_context 'suppress error logs', :suppress_error_logs do
   around do |example|
     original_level = Rails.logger.level
     Rails.logger.level = Logger::FATAL

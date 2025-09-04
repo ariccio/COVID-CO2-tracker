@@ -67,7 +67,7 @@ class Rack::Attack
   self.throttled_responder = lambda do |env|
     # Handle both env hash and request object
     request_env = env.is_a?(Rack::Attack::Request) ? env.env : env
-    
+
     # Get the matched throttle
     match_data = request_env['rack.attack.match_data']
     throttle_name = request_env['rack.attack.matched']

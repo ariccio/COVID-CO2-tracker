@@ -48,7 +48,7 @@
       # Export API endpoints
       get '/export', to: 'exports#index'
       get '/export/download', to: 'exports#download'
-      
+
       # Handle CORS preflight requests
       match '/export', to: 'exports#options', via: :options
       match '/export/*path', to: 'exports#options', via: :options

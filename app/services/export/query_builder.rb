@@ -58,9 +58,9 @@ module Export
         # This prevents SQL injection by ensuring we only use integer IDs
         # Examples: '1 OR 1=1' -> 1, 'abc123' -> 0, '42' -> 42
         place_id_string = filters[:place_id].to_s.strip
-        
+
         # Try to extract a numeric ID from the beginning of the string
-        if place_id_string.match(/^\d+/)
+        if /^\d+/.match?(place_id_string)
           # Extract just the numeric portion and convert to integer
           # This prevents any SQL injection as we're only using the numeric part
           place_id = place_id_string.to_i

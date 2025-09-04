@@ -62,7 +62,7 @@ RSpec.describe 'Export Security', type: :request do
     it 'sanitizes date parameters against SQL injection' do
       # Attempt SQL injection in date parameter
       malicious_date = "2024-01-01'; DROP TABLE measurements; --"
-      
+
       get '/api/v1/export',
           params: {
             format_type: 'csv',
@@ -103,11 +103,12 @@ RSpec.describe 'Export Security', type: :request do
     end
   end
 
-  describe 'Rate Limiting Security', rack_attack: true do
-    before(:each) do
+  describe 'Rate Limiting Security', :rack_attack do
+    before do
       enable_rack_attack!
       reset_rack_attack_cache!
     end
+
     let(:token) do
       ExportToken.create!(
         description: 'Test token',
@@ -169,7 +170,7 @@ RSpec.describe 'Export Security', type: :request do
     it 'handles client disconnects gracefully' do
       # Mock Rails.logger to track logging
       allow(Rails.logger).to receive(:warn)
-      
+
       # Mock a client disconnect scenario
       allow_any_instance_of(ActionDispatch::Response::Buffer).to receive(:write).and_raise(IOError)
 
@@ -186,25 +187,25 @@ RSpec.describe 'Export Security', type: :request do
     it 'cleans up resources in ensure block' do
       # Test behavior, not implementation: verify resources are cleaned up after streaming
       # This test verifies that even when errors occur, connections don't leak
-      
+
       initial_connections = ActiveRecord::Base.connection_pool.connections.size
-      
+
       # Perform multiple requests to test connection pooling
       3.times do
         get '/api/v1/export',
             params: { format_type: 'csv' },
             headers: { 'Authorization' => "Bearer #{token.raw_token}" }
-        
+
         expect(response).to have_http_status(:success)
       end
-      
+
       # Clear connections to get accurate count
       ActiveRecord::Base.clear_active_connections!
       final_connections = ActiveRecord::Base.connection_pool.connections.size
-      
+
       # Connections should be properly managed and not leak
-      expect(final_connections).to be <= initial_connections + 2  # Allow for some pooling
-      
+      expect(final_connections).to be <= initial_connections + 2 # Allow for some pooling
+
       # The ensure block in stream_export handles cleanup automatically
       # This is proven by the fact that connections don't grow unbounded
     end
