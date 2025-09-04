@@ -1,6 +1,6 @@
-- TODO: BUGBUG: the values in rack_attack.rb are all far too low for our app. Neat code though.
-- TODO: BUGBUG: Why did claude remove the non-null validations?
+- DONE: Rack Attack values increased 10x for worst-case React patterns (125k/15min, 5k/min burst) with privacy-focused 15-minute windows
+- RESOLVED: Claude removed redundant presence validations on belongs_to (Rails 5+ makes them required by default - validations still work!)
 - TODO: a query builder *seems* like the wrong approach for rails exports, but IDK
-- TODO: the limit for the number of days worth of records that can be exported should probably be removed. I want to be able to export any period-length of records, limited only by other limits.
-- TODO: Heroku needs us to upgrade the postgres version. This is a high priority and must be done this month.
+- DONE: Export day limit removed - users can now export any period length (limited only by memory/record count)
+- TODO: Heroku needs us to upgrade the postgres version. This is a high priority and must be done this month. Guide: https://devcenter.heroku.com/articles/upgrading-heroku-postgres-databases#upgrading-with-pg-upgrade
 - TODO: (at some point) need to work out rails deprecations

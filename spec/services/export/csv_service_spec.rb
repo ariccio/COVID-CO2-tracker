@@ -125,11 +125,9 @@ RSpec.describe(Export::CsvService) do
       context('with date range exceeding 365 days') do
         let(:filters) { { from: '2023-01-01', to: '2024-01-02' } }
 
-        it('raises validation error') do
-          expect { service.export }.to(raise_error(
-                                         Export::BaseService::ExportError,
-                                         'Date range exceeds maximum of 365 days'
-                                       ))
+        it('allows export without day limit') do
+          # Day limit removed per TODO - exports can now span any period
+          expect { service.export }.not_to(raise_error)
         end
       end
 

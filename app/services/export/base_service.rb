@@ -15,7 +15,7 @@ module Export
 
     # Resource limits for security and performance
     MAX_EXPORT_RECORDS = ENV.fetch('MAX_EXPORT_RECORDS', 1_000_000).to_i
-    MAX_DATE_RANGE_DAYS = ENV.fetch('MAX_EXPORT_DAYS', 365).to_i
+    # MAX_DATE_RANGE_DAYS removed - no limit on export date range
     MAX_MEMORY_MB = ENV.fetch('MAX_EXPORT_MEMORY_MB', 450).to_i
 
     def initialize(filters = {})
@@ -71,19 +71,9 @@ module Export
         from_date = parse_date(@filters[:from])
         to_date = parse_date(@filters[:to])
 
-        # Enforce maximum date range for resource protection
-        days_diff = (to_date - from_date).to_i
-        if days_diff > MAX_DATE_RANGE_DAYS
-          raise ExportError, "Date range exceeds maximum of #{MAX_DATE_RANGE_DAYS} days"
-        end
-
+        # Date range validation - removed day limit per TODO
         if from_date > to_date
           raise ExportError, "Invalid date range: 'from' date must be before 'to' date"
-        end
-
-        days = (to_date - from_date).to_i
-        if days > 365
-          raise ExportError, 'Date range too large (max 365 days)'
         end
       end
 

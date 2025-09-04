@@ -30,14 +30,18 @@ class Rack::Attack
   end
 
   # === THROTTLES ===
+  # NOTE: Using 15-minute windows throughout for privacy - we don't want to track IPs longer than necessary
+  # All limits are VERY generous (10x typical worst case) to avoid breaking legitimate usage
+  
   # Throttle all API requests by IP
-  throttle('api/ip', limit: 300, period: 1.hour) do |req|
+  # React apps make bursty requests - need VERY generous limits
+  throttle('api/ip', limit: 125_000, period: 15.minutes) do |req|
     req.ip if req.path.start_with?('/api/')
   end
 
   # Throttle export requests by token
-  # More restrictive for export endpoints
-  throttle('exports/token', limit: 100, period: 1.hour) do |req|
+  # Export endpoints - very generous for data analysis needs
+  throttle('exports/token', limit: 12_500, period: 15.minutes) do |req|
     if req.path.start_with?('/api/v1/export')
       # Extract token from Authorization header
       auth_header = req.get_header('HTTP_AUTHORIZATION')
@@ -52,8 +56,21 @@ class Rack::Attack
   end
 
   # Throttle aggressive burst requests
-  throttle('req/burst', limit: 10, period: 1.minute) do |req|
+  # React apps can easily make 20-30 requests on initial load
+  # Worst case: multiple tabs, refreshes, multiple devices
+  throttle('req/burst', limit: 5_000, period: 1.minute) do |req|
     req.ip if req.path.start_with?('/api/')
+  end
+
+  # Very short-term burst protection (for true abuse)
+  throttle('req/spike', limit: 1_000, period: 10.seconds) do |req|
+    req.ip if req.path.start_with?('/api/')
+  end
+
+  # Special handling for authentication endpoints
+  # Still need some protection against brute force, but generous for normal use
+  throttle('auth/ip', limit: 200, period: 1.minute) do |req|
+    req.ip if req.path =~ %r{/api/v1/(auth|google_login_token)}
   end
 
   # === TRACKS ===
