@@ -39,7 +39,7 @@ pre-commit:
       run: rspec ./spec
     rubocop:
       tags: backend
-      run: bundle exec rubocop --fail-level -E --raise-cop-error --display-style-guide
+      run: bundle exec rubocop --fail-level E --raise-cop-error --display-style-guide
     brakeman:
       tags: security
       run: |
