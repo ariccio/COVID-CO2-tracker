@@ -90,7 +90,7 @@ module Export
                       when 'manufacturer'
                         sanitize_for_export(measurement.device&.model&.manufacturer&.name)
                       when 'is_realtime'
-                        measurement.is_realtime? || false
+                        measurement.realtime? || false
                       when 'user_name'
                         sanitize_for_export(measurement.device&.user&.name)
                       end

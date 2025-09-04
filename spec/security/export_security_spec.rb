@@ -172,7 +172,11 @@ RSpec.describe 'Export Security', type: :request do
       allow(Rails.logger).to receive(:warn)
 
       # Mock a client disconnect scenario
+      # Since we can't easily avoid allow_any_instance_of for framework classes,
+      # we'll use rubocop:disable for this specific case
+      # rubocop:disable RSpec/AnyInstance
       allow_any_instance_of(ActionDispatch::Response::Buffer).to receive(:write).and_raise(IOError)
+      # rubocop:enable RSpec/AnyInstance
 
       expect do
         get '/api/v1/export',

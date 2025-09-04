@@ -12,7 +12,7 @@ class Measurement < ApplicationRecord
 
   validates :co2ppm, presence: true
   validates :measurementtime, presence: true
-  validates :crowding, presence: true, unless: :is_realtime?
+  validates :crowding, presence: true, unless: :realtime?
 
 
   validates :co2ppm, numericality: { greater_than_or_equal_to: 0 }
@@ -20,8 +20,8 @@ class Measurement < ApplicationRecord
   validates :co2ppm, numericality: { less_than: 50_000, message: "co2ppm is greater than level where it's immediately dangerous to life or health, if you're not feeling sick, check your meter." }
   validates :co2ppm, numericality: { less_than: 40_000, message: "co2ppm is greater than level where it's immediately dangerous to life or health, if you're not feeling sick, check your meter." }
   validates :co2ppm, numericality: { less_than: 30_000, message: "co2ppm is greater than American Conference of Governmental Industrial Hygienists short term Threshold Limit Value of 30,000ppm, if you're not feeling sick, check your meter." }
-  validates :crowding, numericality: { greater_than_or_equal_to: 1 }, unless: :is_realtime?
-  validates :crowding, numericality: { less_than_or_equal_to: 5 }, unless: :is_realtime?
+  validates :crowding, numericality: { greater_than_or_equal_to: 1 }, unless: :realtime?
+  validates :crowding, numericality: { less_than_or_equal_to: 5 }, unless: :realtime?
 
   validates_datetime :measurementtime
   validates_datetime :measurementtime, on_or_before: -> { ::Time.current }, invalid_datetime_message: 'Measurement is in future, what?'
@@ -31,7 +31,7 @@ class Measurement < ApplicationRecord
 
   EARLIEST_TIME = ::Time.zone.parse('2020-01-01')
 
-  def is_realtime?
+  def realtime?
     return false unless extra_measurement_info
 
     # byebug

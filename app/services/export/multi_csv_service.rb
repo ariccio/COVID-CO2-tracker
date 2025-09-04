@@ -111,7 +111,7 @@ module Export
             measurement.crowding,
             measurement.device_id,
             measurement.sub_location_id,
-            measurement.is_realtime?
+            measurement.realtime?
           ]
           count += 1
         end
@@ -223,7 +223,7 @@ module Export
           measurement.crowding,
           measurement.device_id,
           measurement.sub_location_id,
-          measurement.is_realtime?
+          measurement.realtime?
         ]
         stream.write(CSV.generate_line(row))
       end

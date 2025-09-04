@@ -77,29 +77,29 @@ RSpec.describe('Devices') do
 
       it('fails to create a user-duplicate device instance') do
         post(api_v1_device_index_path, headers: @user_headers, params: { device: { serial: new_serial_name, model_id: @created_model_id } })
-        device_create_response_1 = json_response
-        check_no_error(response, device_create_response_1, :created)
+        device_create_response1 = json_response
+        check_no_error(response, device_create_response1, :created)
 
         post(api_v1_device_index_path, headers: @user_headers, params: { device: { serial: new_serial_name, model_id: @created_model_id } })
-        device_create_response_2 = json_response
+        device_create_response2 = json_response
         # pp json_response
         expected_error_str = "You already uploaded a #{new_model_name} to your account with the serial # '#{new_serial_name}'! Use that to add measurements."
-        formatted_error_check(response, device_create_response_2, :bad_request, expected_error_str, nil)
+        formatted_error_check(response, device_create_response2, :bad_request, expected_error_str, nil)
         #
       end
 
       it('(currently) fails to create a model-global-duplicate device instance') do
         post(api_v1_device_index_path, headers: @user_headers, params: { device: { serial: new_serial_name, model_id: @created_model_id } })
-        device_create_response_1 = json_response
-        check_no_error(response, device_create_response_1, :created)
+        device_create_response1 = json_response
+        check_no_error(response, device_create_response1, :created)
 
-        @user_headers_2 = new_valid_empty_user_req
-        post(api_v1_device_index_path, headers: @user_headers_2, params: { device: { serial: new_serial_name, model_id: @created_model_id } })
-        device_create_response_2 = json_response
+        @user_headers2 = new_valid_empty_user_req
+        post(api_v1_device_index_path, headers: @user_headers2, params: { device: { serial: new_serial_name, model_id: @created_model_id } })
+        device_create_response2 = json_response
         # pp json_response
         expected_error_str = "#{new_model_name} with serial # '#{new_serial_name}' already exists in global database."
         # expected_error_str = "fartipelago"
-        formatted_error_check(response, device_create_response_2, :bad_request, expected_error_str, nil)
+        formatted_error_check(response, device_create_response2, :bad_request, expected_error_str, nil)
 
       end
 

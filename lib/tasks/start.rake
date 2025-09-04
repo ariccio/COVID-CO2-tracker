@@ -18,6 +18,7 @@ task test: :environment do
   begin
     require 'rspec/core/rake_task'
     RSpec::Core::RakeTask.new(:spec)
-  rescue LoadError
+  rescue LoadError => e
+    puts "RSpec is not available. Please add it to your Gemfile: #{e.message}"
   end
 end

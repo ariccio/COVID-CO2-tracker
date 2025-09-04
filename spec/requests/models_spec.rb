@@ -177,6 +177,7 @@ RSpec.describe('Models') do
                                                    'name' => new_model_name
                                                    }
                                                ]))
+          # rubocop:enable Layout/FirstHashElementIndentation, Layout/MultilineMethodCallBraceLayout
         end
 
         num_models = json_response['models'].count { |model| model['name'] == new_model_name }

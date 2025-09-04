@@ -44,7 +44,7 @@ RSpec.describe('Measurements') do
     context('successful measurement creation') do
       it('Can create a new measurement for a place with a new sublocation') do
         fake_co2 = Faker::Number.between(from: 400, to: 9999)
-        new_measurement_1 = {
+        new_measurement1 = {
           measurement: {
             device_id: @created_device_id,
             co2ppm: fake_co2,
@@ -54,17 +54,17 @@ RSpec.describe('Measurements') do
             sub_location_id: -1
           }
         }
-        post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement_1)
+        post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement1)
         # pp json_response
         check_no_error(response, json_response, :created)
-        new_measurement_1_response = json_response
-        # pp new_measurement_1_response
+        new_measurement1_response = json_response
+        # pp new_measurement1_response
         # {"measurement_id"=>1, "device_id"=>1, "co2ppm"=>1032, "place_id"=>1, "measurementtime"=>"2024-07-02T01:24:43.038Z"}
-        expect(new_measurement_1_response['device_id']).to(eq(@created_device_id))
-        expect(new_measurement_1_response['co2ppm']).to(eq(fake_co2))
+        expect(new_measurement1_response['device_id']).to(eq(@created_device_id))
+        expect(new_measurement1_response['co2ppm']).to(eq(fake_co2))
       end
       # it("Can create measurement for extant sublocation") do
-      #   new_measurement_1 = {
+      #   new_measurement1 = {
       #     measurement: {
       #       device_id: @created_device_id,
       #       co2ppm: Faker::Number.between(from: 400, to: 9999),
@@ -74,10 +74,10 @@ RSpec.describe('Measurements') do
       #       sub_location_id: -1
       #     }
       #   }
-      #   post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement_1)
+      #   post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement1)
       #   # pp json_response
       #   check_no_error(response, json_response, :created)
-      #   new_measurement_1_response = json_response
+      #   new_measurement1_response = json_response
       # end
 
 
@@ -87,7 +87,7 @@ RSpec.describe('Measurements') do
       let(:max_id) { 9_223_372_036_854_775_807 }
 
       it('Cannot create measurement without logged in user') do
-        new_measurement_1 = {
+        new_measurement1 = {
           measurement: {
             device_id: @created_device_id,
             co2ppm: Faker::Number.between(from: 400, to: 9999),
@@ -97,13 +97,13 @@ RSpec.describe('Measurements') do
             sub_location_id: -1
           }
         }
-        post(api_v1_measurement_index_path, headers: nil, params: new_measurement_1)
+        post(api_v1_measurement_index_path, headers: nil, params: new_measurement1)
         formatted_error_check(response, json_response, :unauthorized, 'Please log in', 'unauthorized')
         # pp json_response
       end
 
       it('Cannot create measurement without device') do
-        new_measurement_1 = {
+        new_measurement1 = {
           measurement: {
             device_id: nil,
             co2ppm: Faker::Number.between(from: 400, to: 9999),
@@ -113,7 +113,7 @@ RSpec.describe('Measurements') do
             sub_location_id: -1
           }
         }
-        post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement_1)
+        post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement1)
         # pp json_response
         # Rails 7.1 changed belongs_to validation message from "can't be blank" to "must exist"
         formatted_error_check(response, json_response, :bad_request, 'measurement creation failed!', 'Device must exist')
@@ -121,7 +121,7 @@ RSpec.describe('Measurements') do
 
       it('Cannot create measurement with invalid device') do
         minimum_invalid_id = (@created_device_id + 1)
-        new_measurement_1 = {
+        new_measurement1 = {
           measurement: {
             device_id: Faker::Number.between(from: minimum_invalid_id, to: max_id),
             co2ppm: Faker::Number.between(from: 400, to: 9999),
@@ -131,13 +131,13 @@ RSpec.describe('Measurements') do
             sub_location_id: -1
           }
         }
-        post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement_1)
+        post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement1)
         # pp json_response
         formatted_error_check(response, json_response, :bad_request, 'measurement creation failed!', 'Device must exist')
       end
 
       it('Cannot create measurement with negative co2') do
-        new_measurement_1 = {
+        new_measurement1 = {
           measurement: {
             device_id: @created_device_id,
             co2ppm: Faker::Number.between(from: -1000, to: -1),
@@ -147,13 +147,13 @@ RSpec.describe('Measurements') do
             sub_location_id: -1
           }
         }
-        post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement_1)
+        post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement1)
         # pp json_response
         formatted_error_check(response, json_response, :bad_request, 'measurement creation failed!', 'Co2ppm must be greater than or equal to 0')
       end
 
       it('Cannot create measurement with excessive co2') do
-        new_measurement_1 = {
+        new_measurement1 = {
           measurement: {
             device_id: @created_device_id,
             co2ppm: Faker::Number.between(from: 30_000, to: 1_000_000),
@@ -163,13 +163,13 @@ RSpec.describe('Measurements') do
             sub_location_id: -1
           }
         }
-        post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement_1)
+        post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement1)
         # pp json_response
         formatted_error_check(response, json_response, :bad_request, 'measurement creation failed!', nil)
       end
 
       it('Cannot create measurement with nonsense place') do
-        new_measurement_1 = {
+        new_measurement1 = {
           measurement: {
             device_id: @created_device_id,
             co2ppm: Faker::Number.between(from: 400, to: 9999),
@@ -179,14 +179,14 @@ RSpec.describe('Measurements') do
             sub_location_id: -1
           }
         }
-        post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement_1)
+        post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement1)
         # pp json_response
 
         formatted_error_check(response, json_response, :bad_request, "couldn't find google_place_id: fartipelago to create measurement for. Possible bug.", nil)
       end
 
       it('Cannot create measurement with negative crowding') do
-        new_measurement_1 = {
+        new_measurement1 = {
           measurement: {
             device_id: @created_device_id,
             co2ppm: Faker::Number.between(from: 400, to: 9999),
@@ -196,13 +196,13 @@ RSpec.describe('Measurements') do
             sub_location_id: -1
           }
         }
-        post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement_1)
+        post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement1)
         # pp json_response
         formatted_error_check(response, json_response, :bad_request, 'measurement creation failed!', 'Crowding must be greater than or equal to 1')
       end
 
       it('Cannot create measurement with excessive crowding') do
-        new_measurement_1 = {
+        new_measurement1 = {
           measurement: {
             device_id: @created_device_id,
             co2ppm: Faker::Number.between(from: 400, to: 9999),
@@ -212,7 +212,7 @@ RSpec.describe('Measurements') do
             sub_location_id: -1
           }
         }
-        post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement_1)
+        post(api_v1_measurement_index_path, headers: @user_headers, params: new_measurement1)
         # pp json_response
         formatted_error_check(response, json_response, :bad_request, 'measurement creation failed!', 'Crowding must be less than or equal to 5')
       end

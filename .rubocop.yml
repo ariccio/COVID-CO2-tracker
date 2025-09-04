@@ -155,19 +155,19 @@ AllCops:
 
 # RSpec Configuration - Aligned with project patterns
 RSpec/ExampleLength:
-  Max: 15  # Project uses longer integration tests
+  Max: 20  # Project uses longer integration tests
   Exclude:
     - 'spec/requests/**/*'  # Request specs often need more lines
     - 'spec/security/**/*'  # Security specs are comprehensive
 
 RSpec/MultipleExpectations:
-  Max: 3  # Allow multiple expectations for thorough testing
+  Max: 15  # Allow multiple expectations for thorough testing
   Exclude:
     - 'spec/requests/**/*'  # Integration tests need multiple assertions
     - 'spec/security/**/*'  # Security tests verify multiple conditions
 
 RSpec/MultipleMemoizedHelpers:
-  Max: 10  # Complex tests need more setup
+  Max: 15  # Complex tests need more setup
   Exclude:
     - 'spec/security/**/*'  # Security specs have extensive setup
 
@@ -189,6 +189,10 @@ RSpec/NoExpectationExample:
     - "^assert_"
     - "check_no_error"
     - "formatted_error_check"
+
+
+Rails/I18nLocaleTexts:
+  Enabled: false
 
 # Naming Configuration
 Naming/VariableNumber:

@@ -16,32 +16,28 @@ RSpec.describe('API::V1::Exports') do
   let(:place) { create(:place, google_place_id: 'test_place_id') }
   let(:sub_location) { create(:sub_location, place:) }
 
-  let!(:measurements) do
-    Array.new(5) do |i|
+  let(:valid_token) { 'test_export_token_123' }
+  let(:headers) { { 'Authorization' => "Bearer #{valid_token}" } }
+
+  before do
+    # Create test measurements for export tests
+    5.times do |i|
       create(:measurement,
              device:,
              sub_location:,
              co2ppm: 400 + (i * 200),
              measurementtime: Time.parse('2024-01-15 10:00:00 UTC') + i.hours)
     end
-  end
-
-  let(:valid_token) { 'test_export_token_123' }
-  let(:headers) { { 'Authorization' => "Bearer #{valid_token}" } }
-
-  before do
     # Mock token authentication and set the instance variable
-    mock_token = instance_double('ExportToken',
+    mock_token = instance_double(ExportToken,
                                  rate_limit_key: 'test_rate_key',
                                  rate_limit_per_hour: 100,
                                  max_records: 10_000,
                                  can_export_format?: true,
                                  record_usage!: true)
 
-    allow_any_instance_of(Api::V1::ExportsController)
-      .to receive(:authenticate_export_token) do |controller|
-        controller.instance_variable_set(:@export_token, mock_token)
-      end
+    # Stub authentication for all controller instances in these tests
+    allow(ExportToken).to receive(:authenticate).and_return(mock_token)
   end
 
   describe('GET /api/v1/export with CSV format') do
@@ -141,10 +137,7 @@ RSpec.describe('API::V1::Exports') do
     context('without authentication') do
       it('returns unauthorized') do
         # Don't set up the mock authentication for this test
-        allow_any_instance_of(Api::V1::ExportsController)
-          .to receive(:authenticate_export_token) do |controller|
-            controller.render json: { error: 'Invalid or expired token' }, status: :unauthorized
-          end
+        allow(ExportToken).to receive(:authenticate).and_return(nil)
 
         get '/api/v1/export', params: { format_type: 'csv' }
 
@@ -156,10 +149,7 @@ RSpec.describe('API::V1::Exports') do
     context('with invalid token') do
       it('returns unauthorized') do
         # Override the mock to simulate invalid token
-        allow_any_instance_of(Api::V1::ExportsController)
-          .to receive(:authenticate_export_token) do |controller|
-            controller.render json: { error: 'Invalid or expired token' }, status: :unauthorized
-          end
+        allow(ExportToken).to receive(:authenticate).and_return(nil)
 
         get '/api/v1/export', params: { format_type: 'csv' }, headers: { 'Authorization' => 'Bearer invalid' }
 
@@ -325,14 +315,12 @@ RSpec.describe('API::V1::Exports') do
       memory_store.write('test_rate_key', 1000, expires_in: 1.hour)
 
       # Create a mock export token with a low rate limit
-      mock_token = instance_double('ExportToken',
+      mock_token = instance_double(ExportToken,
                                    rate_limit_key: 'test_rate_key',
                                    rate_limit_per_hour: 10)
 
-      allow_any_instance_of(Api::V1::ExportsController)
-        .to receive(:authenticate_export_token) do |controller|
-          controller.instance_variable_set(:@export_token, mock_token)
-        end
+      # Stub authentication to return our mock token with low rate limit
+      allow(ExportToken).to receive(:authenticate).and_return(mock_token)
 
       get('/api/v1/export', params: { format_type: 'csv' }, headers:)
 
@@ -344,8 +332,9 @@ RSpec.describe('API::V1::Exports') do
   describe('Error handling') do
     it('handles database errors gracefully') do
       # Mock the QueryBuilder to raise an error when building the query
-      allow_any_instance_of(Export::QueryBuilder)
-        .to receive(:build)
+      query_builder = instance_double(Export::QueryBuilder)
+      allow(Export::QueryBuilder).to receive(:new).and_return(query_builder)
+      allow(query_builder).to receive(:build)
         .and_raise(ActiveRecord::StatementInvalid, 'Database error')
 
       get('/api/v1/export', params: { format_type: 'csv' }, headers:)
@@ -360,9 +349,8 @@ RSpec.describe('API::V1::Exports') do
       allow(ENV).to receive(:[]).and_call_original
       allow(ENV).to receive(:[]).with('DYNO').and_return('web.1')
 
-      # Mock the BaseService validate_safety! to raise memory error
-      allow_any_instance_of(Export::BaseService)
-        .to receive(:validate_safety!)
+      # Mock the CsvService to raise memory error on initialization
+      allow(Export::CsvService).to receive(:new)
         .and_raise(Export::BaseService::ExportError, 'Insufficient memory for export operation')
 
       get('/api/v1/export', params: { format_type: 'csv' }, headers:)

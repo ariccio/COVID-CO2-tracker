@@ -32,9 +32,12 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
   end
 
   def simulate_client_disconnect
+    # rubocop:disable RSpec/AnyInstance
+    # We need to stub framework classes that we don't control instantiation of
     allow_any_instance_of(ActionDispatch::Response::Buffer)
       .to receive(:write)
       .and_raise(IOError, 'Broken pipe')
+    # rubocop:enable RSpec/AnyInstance
   end
 
   def attempt_sql_injection(injection_string, token:, endpoint: '/api/v1/export')
@@ -49,7 +52,10 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
   end
 
   # Setup test data
-  before(:all) do
+  # Using before(:context) for expensive setup that creates 100 test records
+  # This is safe because use_transactional_fixtures = false and DatabaseCleaner handles cleanup
+  # rubocop:disable RSpec/BeforeAfterAll
+  before(:context) do
     # Create test measurements for export tests
     @place = Place.create!(
       google_place_id: 'ChIJtest123456789',
@@ -82,7 +88,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
     end
   end
 
-  after(:all) do
+  after(:context) do
     Measurement.destroy_all
     SubLocation.destroy_all
     Device.destroy_all
@@ -91,6 +97,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
     Manufacturer.destroy_all
     Place.destroy_all
   end
+  # rubocop:enable RSpec/BeforeAfterAll
 
   describe '1. Token Security Tests' do
     context 'Token Hashing' do
@@ -577,6 +584,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         # Track open streams
         open_streams = []
 
+        # rubocop:disable RSpec/AnyInstance
         allow_any_instance_of(ActionDispatch::Response::Buffer) do |buffer|
           allow(buffer).to receive(:write) do |_data|
             open_streams << buffer
@@ -587,6 +595,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
             open_streams.delete(buffer)
           end
         end
+        # rubocop:enable RSpec/AnyInstance
 
         # Make request that will disconnect
         get '/api/v1/export',
@@ -603,8 +612,9 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         # We'll test that errors are handled gracefully with proper cleanup.
 
         # Mock to raise an error that will be caught by rescue_from
-        allow_any_instance_of(Export::CsvService)
-          .to receive(:export_measurements)
+        csv_service = instance_double(Export::CsvService)
+        allow(Export::CsvService).to receive(:new).and_return(csv_service)
+        allow(csv_service).to receive(:export_measurements)
           .and_raise(Export::BaseService::ExportError, 'Test error')
 
         get '/api/v1/export',
@@ -625,7 +635,9 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
 
         # Simulate error during export service
         error_count = 0
-        allow_any_instance_of(Export::JsonService).to receive(:export) do
+        json_service = instance_double(Export::JsonService)
+        allow(Export::JsonService).to receive(:new).and_return(json_service)
+        allow(json_service).to receive(:export) do
           error_count += 1
           raise IOError, 'Broken pipe'
         end
@@ -740,8 +752,9 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
           loop { y << Measurement.first }
         end
 
-        allow_any_instance_of(Export::QueryBuilder)
-          .to receive(:build)
+        query_builder = instance_double(Export::QueryBuilder)
+        allow(Export::QueryBuilder).to receive(:new).and_return(query_builder)
+        allow(query_builder).to receive(:build)
           .and_return(infinite_enum)
 
         # Should timeout or limit results
@@ -1142,9 +1155,11 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         end
 
         # Try export with mock disconnect (shouldn't affect data)
+        # rubocop:disable RSpec/AnyInstance
         allow_any_instance_of(ActionDispatch::Response::Buffer)
           .to receive(:write)
           .and_return(true) # Don't actually raise, just mock
+        # rubocop:enable RSpec/AnyInstance
 
         get '/api/v1/export',
             params: { format_type: 'csv' },

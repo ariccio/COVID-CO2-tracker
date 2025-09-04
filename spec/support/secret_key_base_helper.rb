@@ -4,8 +4,6 @@
 module SecretKeyBaseHelper
   def with_production_environment
     original_env = Rails.env
-    # Use credentials instead of deprecated secrets
-    original_secret = Rails.application.credentials.secret_key_base
 
     # Set a test secret_key_base for production environment
     allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new('production'))

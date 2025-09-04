@@ -40,7 +40,7 @@ RSpec.describe('WholeNewMeasurementPaths') do
         check_no_error(response, created_place, :created)
 
 
-        new_measurement_1 = {
+        new_measurement1 = {
           measurement: {
             device_id: device_create_response['device_id'],
             co2ppm: Faker::Number.between(from: 400, to: 9999),
@@ -51,8 +51,8 @@ RSpec.describe('WholeNewMeasurementPaths') do
           }
         }
 
-        # pp new_measurement_1
-        post(api_v1_measurement_index_path, headers: user_headers, params: new_measurement_1)
+        # pp new_measurement1
+        post(api_v1_measurement_index_path, headers: user_headers, params: new_measurement1)
         # pp json_response
         # pp response
         check_no_error(response, json_response, :created)

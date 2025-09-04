@@ -230,9 +230,9 @@ class Api::V1::ExportsController < Api::BaseController
 
           next unless record_count >= @export_token.max_records
 
-          response.stream.write({
+          response.stream.write("#{({
             warning: "Export limited to #{@export_token.max_records} records"
-          }.to_json + "\n")
+          }.to_json)}\n")
           break
         end
       elsif format == 'multi_csv'

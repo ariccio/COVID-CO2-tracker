@@ -11,16 +11,15 @@ RSpec.describe(Export::CsvService) do
   describe('#export') do
     subject(:service) { described_class.new(filters) }
 
-    let!(:measurement1) do
+    before do
+      # Create test measurements for CSV export tests
       create(:measurement,
              device:,
              sub_location:,
              co2ppm: 800,
              measurementtime: Time.parse('2024-01-15 10:00:00 UTC'),
              crowding: 3)
-    end
 
-    let!(:measurement2) do
       create(:measurement,
              device:,
              sub_location:,

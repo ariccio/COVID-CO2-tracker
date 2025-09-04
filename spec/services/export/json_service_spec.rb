@@ -26,7 +26,8 @@ RSpec.describe(Export::JsonService) do
              crowding: 3)
     end
 
-    let!(:measurement2) do
+    before do
+      # Create second measurement for testing multiple records
       create(:measurement,
              device:,
              sub_location:,

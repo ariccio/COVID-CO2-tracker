@@ -136,7 +136,7 @@ module Export
         device_serial: sanitize_for_export(measurement.device&.serial),
         device_model: sanitize_for_export(measurement.device&.model&.name),
         manufacturer: sanitize_for_export(measurement.device&.model&.manufacturer&.name),
-        is_realtime: measurement.is_realtime?,
+        is_realtime: measurement.realtime?,
         user_name: sanitize_for_export(measurement.device&.user&.name)
       }
     end

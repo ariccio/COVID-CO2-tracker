@@ -13,8 +13,9 @@ RSpec.describe(Export::StreamingCsvService) do
   describe('#stream') do
     subject(:service) { described_class.new(filters) }
 
-    let!(:measurements) do
-      Array.new(10) do |i|
+    before do
+      # Create test measurements for streaming tests
+      10.times do |i|
         create(:measurement,
                device:,
                sub_location:,
@@ -202,14 +203,14 @@ RSpec.describe(Export::StreamingCsvService) do
 
     it('checks memory usage before processing') do
       allow(ENV).to receive(:[]).with('DYNO').and_return('web.1')
-      allow_any_instance_of(described_class).to receive(:`).with(/ps -o rss/).and_return('461824') # 451MB
-
       service = described_class.new(filters)
+      # Mock the backtick method on the specific instance
+      allow(service).to receive(:`).with(/ps -o rss/).and_return('461824') # 451MB
 
-      expect { service.stream { |_| } }.to(raise_error(
-                                             Export::BaseService::ExportError,
-                                             'Insufficient memory for export operation'
-                                           ))
+      expect { service.stream { |_| nil } }.to(raise_error(
+                                                 Export::BaseService::ExportError,
+                                                 'Insufficient memory for export operation'
+                                               ))
     end
   end
 end

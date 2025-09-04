@@ -31,6 +31,9 @@ gem 'rack-cors'
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug', platforms: [:mri, :mingw, :x64_mingw, :mswin]
+  gem 'cypress-rails'
+  # gem "cypress-rails", git: 'https://github.com/ariccio/cypress-rails.git', branch: 'add-baseurl-override'
+  # gem "cypress-rails", git: 'https://github.com/ariccio/cypress-rails.git', branch: 'add-baseurl-override-squashed'
 end
 
 group :test do
@@ -117,11 +120,4 @@ gem 'rubocop-rails', require: false
 gem 'rubocop-rspec', require: false
 gem 'rubocop-rspec_rails', require: false
 
-
-group :development, :test do
-  gem 'cypress-rails'
-  # gem "cypress-rails", git: 'https://github.com/ariccio/cypress-rails.git', branch: 'add-baseurl-override'
-  # gem "cypress-rails", git: 'https://github.com/ariccio/cypress-rails.git', branch: 'add-baseurl-override-squashed'
-
-end
 gem 'rails-mcp-server', '~> 1.1', groups: [:development, :test]

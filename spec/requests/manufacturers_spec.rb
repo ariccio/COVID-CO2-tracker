@@ -68,12 +68,12 @@ RSpec.describe('Manufacturers') do
         # }.to(raise_error(::ActionController::ParameterMissing))
       end
 
-      it('Cannot create empty manufacturer with valid user') do
+      it('Cannot create manufacturer with empty hash parameters') do
         post(api_v1_manufacturers_path, headers: @user_headers, params: empty_manufacturer_params)
         formatted_error_check(response, json_response, :bad_request, 'manufacturer creation failed! parameter missing: manufacturer', 'param is missing or the value is empty: manufacturer')
       end
 
-      it('Cannot create empty manufacturer with valid user') do
+      it('Cannot create manufacturer with nil parameters') do
         post(api_v1_manufacturers_path, headers: @user_headers, params: empty_params)
         formatted_error_check(response, json_response, :bad_request, 'manufacturer creation failed! parameter missing: manufacturer', 'param is missing or the value is empty: manufacturer')
         # I expect an error to be raised in production. In production, it will be reported via sentry should this happen.
