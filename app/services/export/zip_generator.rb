@@ -65,19 +65,19 @@ module Export
 
     def add_users_to_zip(zip, include_names: true)
       zip.put_next_entry('users.csv')
-      
+
       # Build users query - get distinct user IDs first
       # Remove ordering before using distinct to avoid SQL errors
       query = @query_builder.build
       user_ids = query.joins(:device).reorder(nil).distinct.pluck('devices.user_id')
-      
+
       # Then query users with their measurement counts
       users = User.where(id: user_ids)
-                 .left_joins(devices: :measurements)
-                 .group('users.id')
-                 .select('users.id as user_id',
-                        'users.name as user_name',
-                        'COUNT(measurements.id) as measurements_count')
+                  .left_joins(devices: :measurements)
+                  .group('users.id')
+                  .select('users.id as user_id',
+                          'users.name as user_name',
+                          'COUNT(measurements.id) as measurements_count')
 
       # Write header
       zip.write("user_id,name,measurements_count\n")
@@ -94,14 +94,14 @@ module Export
 
     def add_metadata_to_zip(zip)
       zip.put_next_entry('metadata.json')
-      
+
       metadata = {
         export_time: Time.current.iso8601,
         filters: @filters,
         total_records: @query_builder.build.count,
         format_version: '2.0'
       }
-      
+
       zip.write(JSON.pretty_generate(metadata))
     end
   end

@@ -178,7 +178,7 @@ class Api::V1::ExportsController < Api::BaseController
             record_count += 1
           rescue IOError, Errno::EPIPE, Errno::ECONNRESET => e
             Rails.logger.warn "Export stream interrupted after #{record_count} records: #{e.class.name}"
-            raise IOError, "Client disconnected during export"
+            raise IOError, 'Client disconnected during export'
           end
 
           next unless record_count >= @export_token.max_records

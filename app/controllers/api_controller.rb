@@ -39,6 +39,7 @@ end
 class ApiController < ::ActionController::API
   include ::ActionController::Cookies
   include ::Errors
+
   before_action :authorized
   def encode_token(payload)
     encode_with_jwt(payload)

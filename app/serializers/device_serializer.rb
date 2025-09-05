@@ -2,6 +2,7 @@
 
 class DeviceSerializer
   include ::JSONAPI::Serializer
+
   attributes :id, :serial
 
   belongs_to :model

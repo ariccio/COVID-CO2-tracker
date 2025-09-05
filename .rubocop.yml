@@ -13,6 +13,7 @@ plugins:
   - rubocop-performance
   - rubocop-rspec
   - rubocop-rspec_rails
+  - rubocop-factory_bot
 
 
 Layout/EndOfLine:
@@ -78,6 +79,9 @@ Style/MethodCallWithoutArgsParentheses:
 
 Style/RedundantConstantBase:
   Enabled: false
+
+Layout/EmptyLinesAfterModuleInclusion:
+  Enabled: true
 
 Layout/EmptyLinesAroundBlockBody:
   Enabled: false
@@ -199,6 +203,13 @@ Lint/MixedCaseRange:
 Lint/NoReturnInBeginEndBlocks:
   Enabled: true
 
+# Lint/NumberConversion:
+#   Enabled: true
+#   Severity: info
+
+Lint/RedundantCopDisableDirective:
+  Enabled: true
+
 Lint/RefinementImportMethods:
   Enabled: true
 
@@ -241,15 +252,19 @@ Style/InverseMethods:
   Severity: info
 
 Metrics/AbcSize:
-  Enabled: false
+  Enabled: true
+  Max: 35
 
 Metrics/CyclomaticComplexity:
-  Enabled: false
+  Enabled: true
+  Max: 30
 
 Metrics/PerceivedComplexity:
-  Enabled: false
+  Enabled: true
+  Max: 20
 
 AllCops:
+  ActiveSupportExtensionsEnabled: true
   Exclude:
     - 'db/schema.rb'
     - 'db/migrate/*'
@@ -300,9 +315,25 @@ RSpec/NoExpectationExample:
     - "check_no_error"
     - "formatted_error_check"
 
+# RSpecRails Configuration - Pending cops explicitly enabled
+RSpecRails/AvoidSetupHook:
+  Enabled: true
+
+RSpecRails/HaveHttpStatus:
+  Enabled: true
+
+RSpecRails/InferredSpecType:
+  Enabled: true
+
+RSpecRails/MinitestAssertions:
+  Enabled: true
+
 
 Rails/I18nLocaleTexts:
   Enabled: false
+
+Naming/FileName:
+  Severity: info
 
 # Naming Configuration
 Naming/VariableNumber:
@@ -314,6 +345,51 @@ Naming/VariableNumber:
     - 'CO2'
     - 'co2'
 
+Performance/ChainArrayAllocation:
+  Enabled: true
+
+Performance/ConstantRegexp:
+  Enabled: true
+
+Performance/MapMethodChain:
+  Enabled: true
+
+Performance/MethodObjectAsBlock:
+  Enabled: true
+
+Performance/RedundantEqualityComparisonBlock:
+  Enabled: true
+
+Performance/RedundantSortBlock:
+  Enabled: true
+
+Performance/RedundantSplitRegexpArgument:
+  Enabled: true
+
+Performance/ReverseFirst:
+  Enabled: true
+
+Performance/SelectMap:
+  Enabled: true
+
+Performance/SortReverse:
+  Enabled: true
+
+Performance/Squeeze:
+  Enabled: true
+
+Performance/StringIdentifierArgument:
+  Enabled: true
+
+Performance/StringInclude:
+  Enabled: true
+
+Performance/Sum:
+  Enabled: true
+
+Performance/ZipWithoutBlock:
+  Enabled: true
+
 # Rails Configuration
 Rails/SkipsModelValidations:
   AllowedMethods:
@@ -323,4 +399,363 @@ Rails/SkipsModelValidations:
   Exclude:
     - 'spec/**/*'  # Allowed in tests for setting up specific test conditions
     - 'test/**/*'
+
+# Pending Rails Cops - Explicitly enabled
+Rails/ActionControllerFlashBeforeRender:
+  Enabled: true
+
+Rails/ActionControllerTestCase:
+  Enabled: true
+
+Rails/ActiveSupportOnLoad:
+  Enabled: true
+
+Rails/AttributeDefaultBlockValue:
+  Enabled: true
+
+Rails/BulkChangeTable:
+  Enabled: true
+
+Rails/CompactBlank:
+  Enabled: true
+
+Rails/CreateTableWithTimestamps:
+  Enabled: true
+
+Rails/DangerousColumnNames:
+  Enabled: true
+
+Rails/DeprecatedActiveModelErrorsMethods:
+  Enabled: true
+
+Rails/DotSeparatedKeys:
+  Enabled: true
+
+Rails/DuplicateAssociation:
+  Enabled: true
+
+Rails/DuplicateScope:
+  Enabled: true
+
+Rails/DurationArithmetic:
+  Enabled: true
+
+Rails/EagerEvaluationLogMessage:
+  Enabled: true
+
+Rails/EnumSyntax:
+  Enabled: true
+
+Rails/EnvLocal:
+  Enabled: true
+
+Rails/HelperInstanceVariable:
+  Enabled: true
+
+Rails/I18nLazyLookup:
+  Enabled: true
+
+Rails/I18nLocaleAssignment:
+  Enabled: true
+
+Rails/IgnoredColumnsAssignment:
+  Enabled: true
+
+Rails/MailerName:
+  Enabled: true
+
+Rails/MigrationClassName:
+  Enabled: true
+
+Rails/MultipleRoutePaths:
+  Enabled: true
+
+Rails/NegateInclude:
+  Enabled: true
+
+Rails/OrderArguments:
+  Enabled: true
+
+Rails/Pluck:
+  Enabled: true
+
+Rails/PluckInWhere:
+  Enabled: true
+
+Rails/RedundantActiveRecordAllMethod:
+  Enabled: true
+
+Rails/RedundantPresenceValidationOnBelongsTo:
+  Enabled: true
+
+Rails/RedundantTravelBack:
+  Enabled: true
+
+Rails/RequireDependency:
+  Enabled: true
+
+Rails/ResponseParsedBody:
+  Enabled: true
+
+Rails/RootJoinChain:
+  Enabled: true
+
+Rails/RootPathnameMethods:
+  Enabled: true
+
+Rails/RootPublicPath:
+  Enabled: true
+
+Rails/SaveBang:
+  Enabled: true
+
+Rails/SelectMap:
+  Enabled: true
+
+Rails/ShortI18n:
+  Enabled: true
+
+Rails/SquishedSQLHeredocs:
+  Enabled: true
+
+Rails/StripHeredoc:
+  Enabled: true
+
+Rails/TimeZoneAssignment:
+  Enabled: true
+
+Rails/ToFormattedS:
+  Enabled: true
+
+Rails/TransactionExitStatement:
+  Enabled: true
+
+Rails/UniqBeforePluck:
+  Enabled: true
+
+Rails/UniqueValidationWithoutIndex:
+  Enabled: true
+
+Rails/UnusedIgnoredColumns:
+  Enabled: true
+
+Rails/UnusedRenderContent:
+  Enabled: true
+
+Rails/WhereMissing:
+  Enabled: true
+
+Rails/WhereNot:
+  Enabled: true
+
+Rails/WhereNotWithMultipleConditions:
+  Enabled: true
+
+Rails/WhereRange:
+  Enabled: true
+
+# Pending Style Cops - Explicitly enabled to catch potential improvements
+# These are marked as "Pending" in RuboCop defaults, so we enable them explicitly
+
+Style/ArgumentsForwarding:
+  Enabled: true
+  # Identifies places where arguments forwarding can be simplified
+
+Style/ArrayIntersect:
+  Enabled: true
+  # Prefers Array#intersect? over (array1 & array2).any?
+
+Style/CollectionCompact:
+  Enabled: true
+  # Prefers compact/compact! over custom nil rejection
+
+Style/ComparableClamp:
+  Enabled: true
+  # Enforces use of Comparable#clamp instead of min/max comparisons
+
+Style/DataInheritance:
+  Enabled: true
+  SafeAutoCorrect: false  # Marked as unsafe
+  # Checks for inheritance from Data.define
+
+Style/DirEmpty:
+  Enabled: true
+  # Prefers Dir.empty?('path') over Dir.entries('path').size == 2
+
+Style/ExactRegexpMatch:
+  Enabled: true
+  # Enforces use of Regexp#match? over =~ when MatchData is not used
+
+Style/FileEmpty:
+  Enabled: true
+  # Prefers File.empty?('path') over File.size('path') == 0
+
+Style/FileRead:
+  Enabled: true
+  # Prefers File.read/binread/write/binwrite over File.open with block
+
+Style/FileWrite:
+  Enabled: true
+  # Prefers File.write/binwrite over File.open with write mode
+
+Style/HashExcept:
+  Enabled: true
+  # Prefers Hash#except over reject with specific keys
+
+Style/IfWithBooleanLiteralBranches:
+  Enabled: true
+  SafeAutoCorrect: false  # Can change behavior with predicates
+  # Detects if statements that return boolean literals
+
+Style/MapCompactWithConditionalBlock:
+  Enabled: true
+  # Prefers filter_map over map { ... }.compact
+
+Style/MapIntoArray:
+  Enabled: true
+  # Prefers literal arrays over map.to_a
+
+Style/MapToHash:
+  Enabled: true
+  # Prefers to_h with block over map { }.to_h
+
+Style/MapToSet:
+  Enabled: true
+  # Prefers Set.new with block over map.to_set
+
+Style/MinMaxComparison:
+  Enabled: true
+  # Prefers [a, b].min over a < b ? a : b
+
+Style/MultilineMethodSignature:
+  Enabled: true
+  # Checks for multiline method signatures
+
+Style/NestedFileDirname:
+  Enabled: true
+  # Prefers __dir__ over File.dirname(__FILE__)
+
+Style/NilLambda:
+  Enabled: true
+  # Checks for lambdas that always return nil
+
+Style/NumberedParameters:
+  Enabled: true
+  EnforcedStyle: disallow
+  # We prefer explicit parameter names for clarity
+
+Style/NumberedParametersLimit:
+  Enabled: true
+  Max: 0  # Disallow numbered parameters entirely for clarity
+
+Style/ObjectThen:
+  Enabled: true
+  EnforcedStyle: then
+  # Prefers .then over .yield_self
+
+Style/OpenStructUse:
+  Enabled: true
+  # Discourages OpenStruct use (performance/security concerns)
+
+Style/OperatorMethodCall:
+  Enabled: true
+  # Checks for redundant operator method calls
+
+Style/QuotedSymbols:
+  Enabled: true
+  EnforcedStyle: same_as_string_literals
+  # Aligns quoted symbol style with string literal style
+
+Style/RedundantArrayConstructor:
+  Enabled: true
+  # Detects redundant Array constructor calls
+
+Style/RedundantCurrentDirectoryInPath:
+  Enabled: true
+  # Removes unnecessary './' from paths
+
+Style/RedundantDoubleSplatHashBraces:
+  Enabled: true
+  # Removes redundant braces in double splat
+
+Style/RedundantEach:
+  Enabled: true
+  # Detects redundant .each calls
+
+Style/RedundantFilterChain:
+  Enabled: true
+  # Simplifies chained select/reject/filter calls
+
+Style/RedundantHeredocDelimiterQuotes:
+  Enabled: true
+  # Removes unnecessary quotes from heredoc delimiters
+
+Style/RedundantInitialize:
+  Enabled: true
+  # Detects unnecessary initialize methods
+
+Style/RedundantLineContinuation:
+  Enabled: true
+  # Removes unnecessary line continuations
+
+Style/RedundantRegexpArgument:
+  Enabled: true
+  # Simplifies regexp arguments
+
+Style/RedundantRegexpConstructor:
+  Enabled: true
+  # Detects redundant Regexp.new calls
+
+Style/RedundantStringEscape:
+  Enabled: true
+  # Removes unnecessary string escapes
+
+Style/RequireOrder:
+  Enabled: true
+  # Enforces consistent ordering of require statements
+
+Style/ReturnNilInPredicateMethodDefinition:
+  Enabled: true
+  # Ensures predicate methods don't explicitly return nil
+
+Style/SelectByRegexp:
+  Enabled: true
+  # Prefers select/reject with regexp over block with match
+
+Style/SendWithLiteralMethodName:
+  Enabled: true
+  # Prefers public_send over send with literal method names
+
+Style/SingleLineDoEndBlock:
+  Enabled: true
+  # Checks for single-line do...end blocks
+
+Style/StringChars:
+  Enabled: true
+  # Prefers chars over split('') or split(//)
+
+Style/SuperArguments:
+  Enabled: true
+  # Checks for redundant arguments in super calls
+
+Style/SuperWithArgsParentheses:
+  Enabled: true
+  # Enforces parentheses with super arguments
+
+Style/SymbolProc:
+  Enabled: false  # Often less readable than explicit blocks
+
+Style/TopLevelMethodDefinition:
+  Enabled: true
+  # Warns about top-level method definitions
+
+Style/UnlessLogicalOperators:
+  Enabled: true
+  EnforcedStyle: forbid_mixed_logical_operators
+  # EnforcedStyle: forbid_logical_operators
+  # # Forbids && and || in unless conditions (confusing)
+
+Style/YAMLFileRead:
+  Enabled: true
+  # Prefers YAML.load_file over File.read + YAML.load
 

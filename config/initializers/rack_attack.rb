@@ -18,7 +18,7 @@ class Rack::Attack
   # Allow localhost in development
   if Rails.env.development?
     safelist('allow-localhost') do |req|
-      req.ip == '127.0.0.1' || req.ip == '::1'
+      ['127.0.0.1', '::1'].include?(req.ip)
     end
   end
 
@@ -32,7 +32,7 @@ class Rack::Attack
   # === THROTTLES ===
   # NOTE: Using 15-minute windows throughout for privacy - we don't want to track IPs longer than necessary
   # All limits are VERY generous (10x typical worst case) to avoid breaking legitimate usage
-  
+
   # Throttle all API requests by IP
   # React apps make bursty requests - need VERY generous limits
   throttle('api/ip', limit: 125_000, period: 15.minutes) do |req|
@@ -70,7 +70,7 @@ class Rack::Attack
   # Special handling for authentication endpoints
   # Still need some protection against brute force, but generous for normal use
   throttle('auth/ip', limit: 200, period: 1.minute) do |req|
-    req.ip if req.path =~ %r{/api/v1/(auth|google_login_token)}
+    req.ip if %r{/api/v1/(auth|google_login_token)}.match?(req.path)
   end
 
   # === TRACKS ===

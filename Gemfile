@@ -121,3 +121,5 @@ gem 'rubocop-rspec', require: false
 gem 'rubocop-rspec_rails', require: false
 
 gem 'rails-mcp-server', '~> 1.1', groups: [:development, :test]
+
+gem "rubocop-factory_bot", "~> 2.27", :require => false
