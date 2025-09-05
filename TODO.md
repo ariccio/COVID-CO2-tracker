@@ -47,3 +47,5 @@
 - Performance optimizations are excellent (indexing, streaming, batching)
 - Rate limiting is well-designed with privacy-conscious 15-minute windows
 - Emergency procedures documentation is outstanding
+
+- Replace code examples in instructions with flexible prose descriptions (generally get better results from agentic LLMs with concise prose rather than verbose examples)

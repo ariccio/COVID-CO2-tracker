@@ -288,11 +288,13 @@ RSpec.describe 'Export Security', type: :request do
     end
 
     it 'enforces token expiration' do
-      expired_token = ExportToken.create!(
+      expired_token = ExportToken.new(
         description: 'Expired token',
         expires_at: 1.hour.ago,
         permissions: { formats: ['csv'] }
       )
+      expired_token.skip_expiration_validation = true
+      expired_token.save!
 
       get '/api/v1/export',
           params: { format_type: 'csv' },

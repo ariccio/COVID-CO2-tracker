@@ -1,13 +1,12 @@
 # frozen_string_literal: true
 
 class ExportToken < ApplicationRecord
-  require 'digest'
-
-  # Remove has_secure_token - we'll handle token generation manually with hashing
+  # Token generation and storage using SHA256 hashing for security
 
   validates :description, presence: true
   validates :expires_at, presence: true
-  validates :token_hash, presence: true, uniqueness: true
+  validates :token_hash, uniqueness: true, allow_nil: true
+  validate :expiration_must_be_in_future, on: :create
 
   scope :active, -> { where('expires_at > ?', Time.current) }
   scope :expired, -> { where(expires_at: ..Time.current) }
@@ -15,11 +14,17 @@ class ExportToken < ApplicationRecord
   # Transient attribute to hold the raw token value (only available on creation)
   attr_accessor :raw_token
 
+  # Testing flag to skip expiration validation (used only in tests)
+  attr_accessor :skip_expiration_validation
+
   # Callback to generate and hash token before creation
   before_create :generate_and_hash_token
 
   def self.authenticate(token_string)
     return nil if token_string.blank?
+
+    # Reject excessively long tokens to prevent DoS attacks
+    return nil if token_string.length > 1000
 
     # Reject tokens containing null bytes (security measure against injection attacks)
     return nil if token_string.include?("\u0000")
@@ -43,16 +48,20 @@ class ExportToken < ApplicationRecord
   end
 
   def can_export_format?(format)
-    return true if permissions['formats'].nil?
+    return true if (permissions.nil? || permissions['formats'].nil?)
 
     permissions['formats'].include?(format.to_s)
   end
 
   def max_records
+    return 100_000 if permissions.nil?
+
     permissions['max_records'] || 100_000
   end
 
   def rate_limit_per_hour
+    return 10 if permissions.nil?
+
     permissions['rate_limit_per_hour'] || 10
   end
 
@@ -69,5 +78,13 @@ class ExportToken < ApplicationRecord
     self.raw_token = SecureRandom.urlsafe_base64(32)
     # Store only the SHA256 hash
     self.token_hash = Digest::SHA256.hexdigest(raw_token)
+  end
+
+  def expiration_must_be_in_future
+    return if skip_expiration_validation
+
+    if expires_at.present? && expires_at <= Time.current
+      errors.add(:expires_at, 'must be in the future')
+    end
   end
 end

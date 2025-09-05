@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'open3'
+
 module Export
   class BaseService
     class ExportError < StandardError; end
@@ -26,7 +28,7 @@ module Export
     protected
 
     def measurements_query(filters = @filters)
-      Export::QueryBuilder.new.build(filters:)
+      return Export::QueryBuilder.new.build(filters:)
     end
 
     def validate_safety!
@@ -39,29 +41,75 @@ module Export
       # Check memory usage
       memory_mb = current_memory_usage_mb
       if memory_mb > MAX_MEMORY_MB
-        Rails.logger.error "Export aborted: Memory usage #{memory_mb}MB exceeds safe threshold"
+        Rails.logger.error("Export aborted: Memory usage #{memory_mb}MB exceeds safe threshold")
         raise ExportError, 'Insufficient memory for export operation'
       end
 
       # Enforce maximum export size limit
       query = measurements_query(@filters)
-      estimated_count = query.limit(MAX_EXPORT_RECORDS + 1).count
+      estimated_count = estimate_query_count(query, MAX_EXPORT_RECORDS + 1)
+
       if estimated_count > MAX_EXPORT_RECORDS
         raise ExportError, "Export size exceeds maximum of #{MAX_EXPORT_RECORDS} records"
       end
     end
 
-    def current_memory_usage_mb
-      if ENV['DYNO'].present?
-        # Heroku environment
-        `ps -o rss= -p #{Process.pid}`.to_i / 1024
+    def estimate_query_count(query, limit)
+      # Use more efficient counting based on whether query is loaded
+      # For loaded relations, use size; for unloaded, use limit + count
+      if query.respond_to?(:loaded?) && query.loaded?
+        Rails.logger.info('Export safety: Using size on already loaded query')
+        return query.size
       else
-        # Generic Unix/Linux
-        begin
-          (`ps -o rss= -p #{Process.pid}`.to_i / 1024)
-        rescue StandardError
-          0
+        # Use limit to avoid counting entire table
+        Rails.logger.info('Export safety: Using count with limit for unloaded query')
+        return query.limit(limit).count
+      end
+    end
+
+    def current_memory_usage_mb
+      pid = Process.pid
+
+      # Try ps command first (works on most Unix-like systems including Heroku)
+      stdout, stderr, status = Open3.capture3('ps', '-o', 'rss=', '-p', pid.to_s)
+
+      if status.success?
+        memory_kb = stdout.strip.to_i
+        if memory_kb.positive?
+          return memory_kb / 1024
+        else
+          Rails.logger.warn("Memory check: ps returned zero or invalid value: #{stdout.inspect} for pid #{pid}")
         end
+      else
+        Rails.logger.warn("Memory check: ps command failed with status #{status.exitstatus}: #{stderr} for pid #{pid}")
+      end
+
+      # Fallback: try /proc filesystem (Linux)
+      proc_status_path = "/proc/#{pid}/status"
+
+      unless File.exist?(proc_status_path)
+        # Unable to determine memory usage - fail the export for safety
+        Rails.logger.error("Memory check failed for pid #{pid}: ps command failed, then /proc/#{pid}/status does not exist")
+        raise ExportError, "Unable to determine memory usage for safety check (pid #{pid}): ps failed, then /proc/#{pid}/status not found"
+      end
+
+      begin
+        File.readlines(proc_status_path).each do |line|
+          next unless line.start_with?('VmRSS:')
+
+          memory_kb = line.split[1].to_i
+          if memory_kb.positive?
+            Rails.logger.info("Memory check: Using /proc/status fallback for pid #{pid}, found #{memory_kb / 1024}MB")
+            return memory_kb / 1024
+          end
+        end
+
+        # Got through the file but didn't find VmRSS
+        Rails.logger.error("Memory check failed for pid #{pid}: ps command failed, then VmRSS not found in /proc/#{pid}/status")
+        raise ExportError, "Unable to determine memory usage for safety check (pid #{pid}): ps failed, then VmRSS not found in /proc/#{pid}/status"
+      rescue StandardError => e
+        Rails.logger.error("Memory check failed for pid #{pid}: ps command failed, then reading /proc/#{pid}/status failed: #{e.message}")
+        raise ExportError, "Unable to determine memory usage for safety check (pid #{pid}): ps failed, then reading /proc/#{pid}/status failed: #{e.message}"
       end
     end
 
@@ -77,17 +125,40 @@ module Export
         end
       end
 
-      # Validate CO2 thresholds
-      if @filters[:above_ppm]&.to_i&.negative?
-        raise ExportError, 'Invalid CO2 threshold: must be non-negative'
+      # Validate CO2 thresholds with explicit nil and conversion checks
+
+      # Check above_ppm threshold
+      if @filters.key?(:above_ppm)
+        if @filters[:above_ppm].nil?
+          raise ExportError, "Invalid CO2 threshold: 'above_ppm' parameter is present but nil"
+        end
+
+        above_ppm = @filters[:above_ppm].to_i
+        if above_ppm.negative?
+          raise ExportError, "Invalid CO2 threshold: 'above_ppm' must be non-negative (got #{@filters[:above_ppm]})"
+        end
       end
 
-      if @filters[:below_ppm]&.to_i&.negative?
-        raise ExportError, 'Invalid CO2 threshold: must be non-negative'
+      # Check below_ppm threshold
+      if @filters.key?(:below_ppm)
+        if @filters[:below_ppm].nil?
+          raise ExportError, "Invalid CO2 threshold: 'below_ppm' parameter is present but nil"
+        end
+
+        below_ppm = @filters[:below_ppm].to_i
+        if below_ppm.negative?
+          raise ExportError, "Invalid CO2 threshold: 'below_ppm' must be non-negative (got #{@filters[:below_ppm]})"
+        end
       end
 
-      if @filters[:above_ppm] && @filters[:below_ppm] && @filters[:above_ppm].to_i >= (@filters[:below_ppm].to_i)
-        raise ExportError, "Invalid CO2 range: 'above_ppm' must be less than 'below_ppm'"
+      # Check that range is valid if both thresholds are provided
+      if @filters[:above_ppm] && @filters[:below_ppm]
+        above_ppm = @filters[:above_ppm].to_i
+        below_ppm = @filters[:below_ppm].to_i
+
+        if above_ppm >= below_ppm
+          raise ExportError, "Invalid CO2 range: 'above_ppm' (#{above_ppm}) must be less than 'below_ppm' (#{below_ppm})"
+        end
       end
     end
 
@@ -95,7 +166,7 @@ module Export
       return date_param if date_param.is_a?(Date) || date_param.is_a?(Time)
 
       begin
-        Date.parse(date_param.to_s)
+        return Date.parse(date_param.to_s)
       rescue ArgumentError
         raise ExportError, "Invalid date format: #{date_param}"
       end
@@ -104,17 +175,20 @@ module Export
     def sanitize_for_export(value)
       return '' if value.nil?
 
-      value.to_s.strip
+      return value.to_s.strip
     end
 
     def format_timestamp(time)
       return '' if time.nil?
 
-      time.iso8601
+      return time.iso8601
     end
 
     def build_measurement_data(measurement)
-      {
+      device_model = measurement.device&.model
+      manufacturer_name = device_model&.manufacturer&.name
+
+      return {
         measurement_id: measurement.id,
         co2_ppm: measurement.co2ppm,
         timestamp: format_timestamp(measurement.measurementtime),
@@ -124,15 +198,15 @@ module Export
         place_name: sanitize_for_export(measurement.sub_location&.description),
         place_google_id: sanitize_for_export(measurement.sub_location&.place&.google_place_id),
         device_serial: sanitize_for_export(measurement.device&.serial),
-        device_model: sanitize_for_export(measurement.device&.model&.name),
-        manufacturer: sanitize_for_export(measurement.device&.model&.manufacturer&.name),
+        device_model: sanitize_for_export(device_model&.name),
+        manufacturer: sanitize_for_export(manufacturer_name),
         is_realtime: measurement.realtime?,
         user_name: sanitize_for_export(measurement.device&.user&.name)
       }
     end
 
     def log_export_start(format)
-      Rails.logger.info({
+      return Rails.logger.info({
         event: 'export_started',
         format:,
         filters: @filters.slice(:from, :to, :place_id, :above_ppm, :below_ppm),
@@ -141,7 +215,7 @@ module Export
     end
 
     def log_export_complete(format, record_count, duration)
-      Rails.logger.info({
+      return Rails.logger.info({
         event: 'export_completed',
         format:,
         records: record_count,
@@ -151,7 +225,7 @@ module Export
     end
 
     def log_export_error(format, error)
-      Rails.logger.error({
+      return Rails.logger.error({
         event: 'export_failed',
         format:,
         error: error.message,

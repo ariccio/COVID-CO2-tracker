@@ -172,6 +172,8 @@ git log -p --reverse -S "[suspicious-pattern]" | head -100
 - In all languages, where parenthesis are optional, prefer to generate them, e.g. `if (condition)` instead of `if condition`.
 - While some people consider parentheses around single parameters in closures to be LESS clear, I prefer them.
 - In all languages where braces are optional, prefer to generate them, e.g. `if (condition) { ... }` instead of `if (condition) ...`.
+- **Always use parentheses for method calls with arguments** - Even when Ruby allows omitting them, always include parentheses for clarity. For example, use `Rails.logger.info("Message")` instead of `Rails.logger.info "Message"`, and `raise(ExportError, "message")` instead of `raise ExportError, "message"`. This makes method boundaries explicit and improves readability.
+- **In Ruby, always use explicit return statements** - While Ruby traditionally uses implicit returns (the last evaluated expression), prefer explicit `return` statements for clarity. This makes the code's intent obvious and reduces confusion about what value is being returned. For example, use `return query.size` instead of just `query.size` at the end of a method.
 - Explicitness and clarity is preferred over brevity and conciseness.
 - Prefer to keep function length short enough to fit within a single screen height (about 40-60 lines of code). If necessary, break functions into smaller helper functions. More parameters are preferable to longer functions.
 - If generating code that uses poorly documented or undocumented APIs, include a comment that explains how the code works and why it is necessary.
@@ -202,6 +204,8 @@ git log -p --reverse -S "[suspicious-pattern]" | head -100
 ## confusing and bug-prone constructs
 - **Avoid creating massive class methods** that do multiple things. Long methods with extensive inline logic (especially 50+ lines) are hard to test, debug, and maintain. Break them into smaller helper functions.
 - **Avoid inline complex switch statements** within methods - extract them into separate functions with descriptive names that clearly indicate their purpose.
+- **Extract complex conditionals into separate methods** - When you have multi-line conditional logic (especially with if/elsif/else branches doing different computations), extract it into a dedicated method with a clear, descriptive name. For example, instead of embedding query optimization logic inline, create methods like `estimate_query_count(query, limit)` that encapsulate the decision-making and implementation.
+- **Prefer early returns over nested conditionals ("arrow code")** - Check for failure conditions first and return/raise immediately with specific error messages, rather than nesting the happy path inside conditionals. This flattens the code structure, reduces indentation levels, and makes the main logic flow more obvious. When multiple fallback methods might fail, include the chain of failures in error messages (e.g., "ps failed, then /proc reading failed") along with relevant context like PIDs or paths.
 - **Don't embed complex closure logic directly in method calls** - extract complex closures into named variables or separate functions for clarity and testability. 
   - We want to be able to glance at a method and understand its inputs and outputs neatly.
   - Consider extracting the logic from inline closures if they become even slightly complex. Complex inline closures promote nesting and increase cognitive load. Consider other options if you see no reasonable way to avoid complex inline closures.
@@ -215,6 +219,7 @@ git log -p --reverse -S "[suspicious-pattern]" | head -100
 - ALWAYS verify tool results after making edits - in the context of vscode, ALWAYS AT LEAST `grep_search` or `read_file` to confirm changes were actually applied
 - Do not assume a tool call succeeded just because it didn't return an error message
 - After structural changes (adding functions, views, or properties), where the `get_errors` or similar tool is available, ALWAYS at least use `get_errors` to check for compilation errors
+- **In Ruby projects, ALWAYS run Rubocop after completing your changes** - After finishing a set of related edits (not necessarily after each individual edit), run `bundle exec rubocop --raise-cop-error --display-style-guide path/to/file.rb` or `bundle exec rubocop --fail-level E --raise-cop-error --display-style-guide path/to/file.rb` to catch style issues. The `--display-style-guide` flag helps understand why rules exist. Fix any issues before considering the task complete
 - If a definition is added, search for both the definition AND its call site to ensure both exist and are correct
 - If a tool call seems to have no effect, try an alternative approach rather than continuing with the assumption it worked
 - When dealing with missing definitions, search the entire file to confirm the definition doesn't exist elsewhere before adding it
@@ -240,6 +245,12 @@ git log -p --reverse -S "[suspicious-pattern]" | head -100
 ## errors, nulls, and optionals
 - In all languages, prefer to bubble all encountered errors and exceptions up to a relevant place where the user can see them - there should be no silent failures of the application functionality.
 - Prefer to check and handle null values explicitly, rather than using null-coalescing operators or similar constructs.
+- **Break multi-step nil/optional checks into separate validations** - When checking nested values or chained operations that could be nil, validate each step explicitly with specific error messages. For example, instead of `@filters[:value]&.to_i&.negative?`, prefer:
+  1. First check if the key exists and value is not nil (with specific error message)
+  2. Then check if conversion succeeds with meaningful context
+  3. Finally check the business logic condition
+  This approach provides precise error messages at each failure point and makes debugging much easier.
+- **Never return seemingly valid default values on error** - Returning `0`, empty strings, or other defaults on failure hides problems. Instead, raise explicit errors or return error types that force callers to handle the failure case. For example, never return `0` when memory detection fails - raise an error instead.
 - We cannot afford to waste a shitload of time constantly tracking down issues - especially ones that lack all useful information. I'm serious, ensure that errors are OBVIOUS as early as possible and as clearly as possible. Even piping `stderr` to `/dev/null` in shell scripts to swallow noisy warnings is disliked in our codebase.
 
 ## cranky users
