@@ -93,20 +93,29 @@ module Export
       # Always include these for efficiency
       includes = []
 
-      # Determine what to include based on requested fields
-      if fields.nil? || fields.any? { |f| f.to_s.match?(/device|serial|model|manufacturer/) }
-        includes << { device: { model: :manufacturer } }
-      end
-
-      if fields.nil? || fields.any? { |f| f.to_s.match?(/place|lat|lng|google/) }
-        includes << { sub_location: :place }
-      end
-
-      if fields.nil? || fields.any? { |f| f.to_s == 'is_realtime' }
-        includes << :extra_measurement_info
-      end
+      includes << { device: { model: :manufacturer } } if needs_device_includes?(fields)
+      includes << { sub_location: :place } if needs_location_includes?(fields)
+      includes << :extra_measurement_info if needs_realtime_includes?(fields)
 
       includes
+    end
+
+    def needs_device_includes?(fields)
+      return true if fields.nil?
+
+      fields.any? { |f| f.to_s.match?(/device|serial|model|manufacturer/) }
+    end
+
+    def needs_location_includes?(fields)
+      return true if fields.nil?
+
+      fields.any? { |f| f.to_s.match?(/place|lat|lng|google/) }
+    end
+
+    def needs_realtime_includes?(fields)
+      return true if fields.nil?
+
+      fields.any? { |f| f.to_s == 'is_realtime' }
     end
 
     def parse_date(date_param)

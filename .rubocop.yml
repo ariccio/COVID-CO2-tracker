@@ -253,16 +253,16 @@ Style/InverseMethods:
 
 Metrics/AbcSize:
   Enabled: true
-  Max: 35
+  Max: 34
   # When fixing: see copilot_notes/REFACTOR_RISK_PATTERNS.md for safety checks
 
 Metrics/CyclomaticComplexity:
   Enabled: true
-  Max: 30
+  Max: 15
 
 Metrics/PerceivedComplexity:
   Enabled: true
-  Max: 20
+  Max: 7
 
 AllCops:
   ActiveSupportExtensionsEnabled: true

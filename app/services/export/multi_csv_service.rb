@@ -10,40 +10,17 @@ module Export
 
     def export_to_directory(output_dir, filters = @filters)
       start_time = Time.current
-      export_id = "export_#{Time.current.strftime('%Y%m%d_%H%M%S')}"
-      export_path = File.join(output_dir, export_id)
-      FileUtils.mkdir_p(export_path)
-
-      manifest = {
-        export_id:,
-        created_at: Time.current.iso8601,
-        filters:,
-        files: [],
-        record_counts: {}
-      }
+      export_path = setup_export_directory(output_dir)
+      manifest = initialize_manifest(export_path, filters)
 
       begin
         log_export_start('multi_csv')
-
-        # Export each entity type
-        export_measurements_file(File.join(export_path, 'measurements.csv'), filters, manifest)
-        export_places_file(File.join(export_path, 'places.csv'), filters, manifest)
-        export_sub_locations_file(File.join(export_path, 'sub_locations.csv'), filters, manifest)
-        export_devices_file(File.join(export_path, 'devices.csv'), filters, manifest)
-
-        # Write manifest
-        File.write(File.join(export_path, 'manifest.json'), JSON.pretty_generate(manifest))
-        manifest[:files] << 'manifest.json'
-
-        duration = Time.current - start_time
-        total_records = manifest[:record_counts].values.sum
-        log_export_complete('multi_csv', total_records, duration)
-
-        export_path
+        export_all_entity_files(export_path, filters, manifest)
+        write_manifest_file(export_path, manifest)
+        finalize_export_logging(start_time, manifest)
+        return export_path
       rescue StandardError => e
-        log_export_error('multi_csv', e)
-        FileUtils.rm_rf(export_path)
-        raise
+        handle_export_failure(e, export_path)
       end
     end
 
@@ -94,6 +71,65 @@ module Export
     end
 
     private
+
+    def setup_export_directory(output_dir)
+      export_id = generate_export_id
+      export_path = File.join(output_dir, export_id)
+      FileUtils.mkdir_p(export_path)
+      return export_path
+    end
+
+    def generate_export_id
+      return "export_#{Time.current.strftime('%Y%m%d_%H%M%S')}"
+    end
+
+    def initialize_manifest(export_path, filters)
+      export_id = File.basename(export_path)
+      return {
+        export_id:,
+        created_at: Time.current.iso8601,
+        filters:,
+        files: [],
+        record_counts: {}
+      }
+    end
+
+    def export_all_entity_files(export_path, filters, manifest)
+      export_measurements_file(build_file_path(export_path, 'measurements.csv'), filters, manifest)
+      export_places_file(build_file_path(export_path, 'places.csv'), filters, manifest)
+      export_sub_locations_file(build_file_path(export_path, 'sub_locations.csv'), filters, manifest)
+      export_devices_file(build_file_path(export_path, 'devices.csv'), filters, manifest)
+    end
+
+    def build_file_path(export_path, filename)
+      return File.join(export_path, filename)
+    end
+
+    def write_manifest_file(export_path, manifest)
+      manifest_path = File.join(export_path, 'manifest.json')
+      File.write(manifest_path, JSON.pretty_generate(manifest))
+      manifest[:files] << 'manifest.json'
+    end
+
+    def finalize_export_logging(start_time, manifest)
+      duration = calculate_export_duration(start_time)
+      total_records = sum_manifest_records(manifest)
+      log_export_complete('multi_csv', total_records, duration)
+    end
+
+    def calculate_export_duration(start_time)
+      return Time.current - start_time
+    end
+
+    def sum_manifest_records(manifest)
+      return manifest[:record_counts].values.sum
+    end
+
+    def handle_export_failure(exception, export_path)
+      log_export_error('multi_csv', exception)
+      FileUtils.rm_rf(export_path)
+      raise exception
+    end
 
     def export_measurements_file(file_path, filters, manifest)
       count = 0
@@ -180,32 +216,71 @@ module Export
     end
 
     def export_devices_file(file_path, filters, manifest)
-      # Get unique devices from filtered measurements
-      device_ids = measurements_query(filters)
-                   .where.not(device_id: nil)
-                   .reorder(nil) # Remove any order clauses for distinct
-                   .distinct
-                   .pluck(:device_id)
-
+      device_ids = extract_unique_device_ids(filters)
       return if device_ids.empty?
 
+      count = write_devices_csv(file_path, device_ids)
+      update_manifest_for_devices(manifest, count)
+    end
+
+    def extract_unique_device_ids(filters)
+      return measurements_query(filters)
+             .where.not(device_id: nil)
+             .reorder(nil)
+             .distinct
+             .pluck(:device_id)
+    end
+
+    def write_devices_csv(file_path, device_ids)
       count = 0
       CSV.open(file_path, 'w') do |csv|
-        csv << %w[device_id serial model_id model_name manufacturer_id manufacturer_name]
-
-        Device.includes(model: :manufacturer).where(id: device_ids).find_each do |device|
-          csv << [
-            device.id,
-            sanitize_for_export(device.serial),
-            device.model_id,
-            sanitize_for_export(device.model&.name),
-            device.model&.manufacturer_id,
-            sanitize_for_export(device.model&.manufacturer&.name)
-          ]
-          count += 1
-        end
+        write_device_headers(csv)
+        count = write_device_records(csv, device_ids)
       end
+      return count
+    end
 
+    def write_device_headers(csv)
+      csv << %w[device_id serial model_id model_name manufacturer_id manufacturer_name]
+    end
+
+    def write_device_records(csv, device_ids)
+      count = 0
+      Device.includes(model: :manufacturer).where(id: device_ids).find_each do |device|
+        csv << build_device_row(device)
+        count += 1
+      end
+      return count
+    end
+
+    def build_device_row(device)
+      return [
+        device.id,
+        extract_device_serial(device),
+        device.model_id,
+        extract_device_model_name(device),
+        extract_device_manufacturer_id(device),
+        extract_device_manufacturer_name(device)
+      ]
+    end
+
+    def extract_device_serial(device)
+      return sanitize_for_export(device.serial)
+    end
+
+    def extract_device_model_name(device)
+      return sanitize_for_export(device.model&.name)
+    end
+
+    def extract_device_manufacturer_id(device)
+      return device.model&.manufacturer_id
+    end
+
+    def extract_device_manufacturer_name(device)
+      return sanitize_for_export(device.model&.manufacturer&.name)
+    end
+
+    def update_manifest_for_devices(manifest, count)
       manifest[:files] << 'devices.csv'
       manifest[:record_counts][:devices] = count
     end

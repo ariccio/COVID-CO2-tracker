@@ -112,39 +112,46 @@ class Api::V1::ExportsController < Api::BaseController
   def handle_export_error(exception)
     Rails.logger.error "Export error: #{exception.message}"
 
-    # Determine appropriate status code based on error type
-    status = case exception.message
-             when /memory|resource/i
-               :service_unavailable
-             when /Invalid|exceeds maximum|date range/i
-               :unprocessable_entity
-             when /Unauthorized|token/i
-               :unauthorized
-             else
-               :internal_server_error
-             end
-
-    # Never include raw user input in error messages (security)
-    # But we can provide specific error types without exposing the input
-    safe_message = case status
-                   when :unprocessable_entity
-      # Provide specific error type without exposing user input
-                     if exception.message.include?('date')
-                       'Invalid date format'
-                     elsif exception.message.include?('exceeds maximum')
-                       'Request exceeds maximum limits'
-                     else
-                       'Invalid export parameters'
-                     end
-                   when :service_unavailable
-                     'Service temporarily unavailable'
-                   when :unauthorized
-                     'Authentication required'
-                   else
-                     'Export failed'
-                   end
+    status = determine_error_status(exception)
+    safe_message = generate_safe_error_message(status, exception)
 
     render json: { error: safe_message }, status:
+  end
+
+  def determine_error_status(exception)
+    message = exception.message
+
+    return :service_unavailable if message.match?(/memory|resource/i)
+
+    return :unprocessable_entity if message.match?(/Invalid|exceeds maximum|date range/i)
+
+    return :unauthorized if message.match?(/Unauthorized|token/i)
+
+    return :internal_server_error
+  end
+
+  def generate_safe_error_message(status, exception)
+    case status
+    when :unprocessable_entity
+      generate_unprocessable_entity_message(exception)
+    when :service_unavailable
+      'Service temporarily unavailable'
+    when :unauthorized
+      'Authentication required'
+    else
+      'Export failed'
+    end
+  end
+
+  def generate_unprocessable_entity_message(exception)
+    # Provide specific error type without exposing user input
+    message = exception.message
+
+    return 'Invalid date format' if message.include?('date')
+
+    return 'Request exceeds maximum limits' if message.include?('exceeds maximum')
+
+    return 'Invalid export parameters'
   end
 
   def stream_export(format, fields, filters)
