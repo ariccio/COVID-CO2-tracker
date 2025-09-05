@@ -148,20 +148,17 @@ class Api::V1::ExportsController < Api::BaseController
   end
 
   def stream_export(format, fields, filters)
-    response.headers['Content-Type'] = content_type_for(format)
-    response.headers['Cache-Control'] = 'public, max-age=300'
-    response.headers['X-Accel-Buffering'] = 'no' # Disable nginx buffering
-    response.headers['Transfer-Encoding'] = 'chunked' if format == 'csv'
+    setup_export_response_headers(format)
 
     # Record token usage
     @export_token.record_usage!
 
     # Track resources for cleanup
     exporter = nil
+    record_count = 0
 
     begin
       exporter = exporter_for(format).new(filters)
-      record_count = 0
 
       # Validate memory before starting to stream
       exporter.validate_safety! if exporter.respond_to?(:validate_safety!)
@@ -169,73 +166,94 @@ class Api::V1::ExportsController < Api::BaseController
       # Start streaming after validation passes
       response.stream.write ''
 
-      if format == 'jsonl'
-        # Use streaming for JSONL
-        exporter.stream_measurements(filters, fields:).each do |line|
-          # Check if client is still connected
-          begin
-            response.stream.write(line)
-            record_count += 1
-          rescue IOError, Errno::EPIPE, Errno::ECONNRESET => e
-            Rails.logger.warn "Export stream interrupted after #{record_count} records: #{e.class.name}"
-            raise IOError, 'Client disconnected during export'
-          end
-
-          next unless record_count >= @export_token.max_records
-
-          response.stream.write("#{({
-            warning: "Export limited to #{@export_token.max_records} records"
-          }.to_json)}\n")
-          break
-        end
-      elsif format == 'multi_csv'
-        # Stream ZIP file for multi-CSV
-        response.headers['Content-Type'] = 'application/zip'
-        response.headers['Content-Disposition'] = 'attachment; filename="co2_export_multi.zip"'
-        response.headers['Transfer-Encoding'] = 'chunked'
-
-        # Use ZipGenerator service to create and stream ZIP
-        zip_generator = Export::ZipGenerator.new(@export_token, filters)
-        zip_generator.generate_to_stream(response.stream)
-      else
-        # Use standard export for CSV
-        exporter.export_measurements(response.stream, filters, fields:)
-      end
+      record_count = stream_format_specific_export(format, exporter, filters, fields)
 
       # Cache the result for future requests
       cache_export_metadata(format, fields, filters, record_count)
 
     rescue IOError, Errno::EPIPE => e
-      # Client disconnected during streaming
-      Rails.logger.warn "Client disconnected during export: #{e.message}"
-      # Don't cache incomplete results
+      handle_client_disconnect_during_export(e)
     rescue StandardError => e
-      # Log other errors
-      Rails.logger.error "Export streaming error: #{e.message}"
-      Rails.logger.error e.backtrace.join("\n")
+      handle_export_error_with_logging(e)
       raise
     ensure
-      # Ensure all resources are properly cleaned up
-      begin
-        response.stream.close
-      rescue StandardError
-        nil
-      end
-
-      # Ensure exporter cleanup if it has cleanup methods
-      if exporter.respond_to?(:cleanup)
-        begin
-          exporter.cleanup
-        rescue StandardError
-          nil
-        end
-      end
-
-      # Force garbage collection for large exports to free memory immediately
-      if record_count && record_count > 10_000
-        GC.start
-      end
+      cleanup_export_resources(response, exporter, record_count)
     end
+  end
+
+  def setup_export_response_headers(format)
+    response.headers['Content-Type'] = content_type_for(format)
+    response.headers['Cache-Control'] = 'public, max-age=300'
+    response.headers['X-Accel-Buffering'] = 'no' # Disable nginx buffering
+    response.headers['Transfer-Encoding'] = 'chunked' if format == 'csv'
+  end
+
+  def stream_format_specific_export(format, exporter, filters, fields)
+    if format == 'jsonl'
+      return stream_jsonl_format(exporter, filters, fields, 0)
+    elsif format == 'multi_csv'
+      return stream_multi_csv_format(filters)
+    else
+      return stream_csv_format(exporter, filters, fields)
+    end
+  end
+
+  def stream_multi_csv_format(filters)
+    # Stream ZIP file for multi-CSV
+    response.headers['Content-Type'] = 'application/zip'
+    response.headers['Content-Disposition'] = 'attachment; filename="co2_export_multi.zip"'
+    response.headers['Transfer-Encoding'] = 'chunked'
+
+    # Use ZipGenerator service to create and stream ZIP
+    zip_generator = Export::ZipGenerator.new(@export_token, filters)
+    zip_generator.generate_to_stream(response.stream)
+    return 0 # Multi-CSV doesn't track individual record count
+  end
+
+  def stream_csv_format(exporter, filters, fields)
+    # Use standard export for CSV
+    exporter.export_measurements(response.stream, filters, fields:)
+    return 0 # CSV export doesn't return count in this implementation
+  end
+
+  def handle_client_disconnect_during_export(error)
+    # Client disconnected during streaming
+    Rails.logger.warn "Client disconnected during export: #{error.message}"
+    # Don't cache incomplete results
+  end
+
+  def handle_export_error_with_logging(error)
+    # Log other errors
+    Rails.logger.error "Export streaming error: #{error.message}"
+    Rails.logger.error error.backtrace.join("\n")
+  end
+
+  def cleanup_export_resources(response, exporter, record_count)
+    # Ensure all resources are properly cleaned up
+    safely_close_response_stream(response)
+    safely_cleanup_exporter(exporter)
+    trigger_garbage_collection_for_large_exports(record_count)
+  end
+
+  def safely_close_response_stream(response)
+    response.stream.close
+  rescue StandardError
+    nil
+  end
+
+  def safely_cleanup_exporter(exporter)
+    return unless exporter.respond_to?(:cleanup)
+
+    exporter.cleanup
+  rescue StandardError
+    nil
+  end
+
+  def trigger_garbage_collection_for_large_exports(record_count)
+    # Force garbage collection for large exports to free memory immediately
+    return unless record_count && record_count > 10_000
+
+    GC.start
   end
 
   def stream_export_download(format, fields, filters)
@@ -352,6 +370,29 @@ class Api::V1::ExportsController < Api::BaseController
     query = query.where('measurements.co2ppm > ?', filters[:above_ppm]) if filters[:above_ppm].present?
     query = query.where(measurements: { co2ppm: ...(filters[:below_ppm]) }) if filters[:below_ppm].present?
     query
+  end
+
+  def stream_jsonl_format(exporter, filters, fields, record_count)
+    # Use streaming for JSONL
+    exporter.stream_measurements(filters, fields:).each do |line|
+      # Check if client is still connected
+      begin
+        response.stream.write(line)
+        record_count += 1
+      rescue IOError, Errno::EPIPE, Errno::ECONNRESET => e
+        Rails.logger.warn "Export stream interrupted after #{record_count} records: #{e.class.name}"
+        raise IOError, 'Client disconnected during export'
+      end
+
+      next unless record_count >= @export_token.max_records
+
+      response.stream.write("#{({
+        warning: "Export limited to #{@export_token.max_records} records"
+      }.to_json)}\n")
+      break
+    end
+
+    return record_count
   end
 
   def content_type_for(format)

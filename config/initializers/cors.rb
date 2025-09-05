@@ -25,7 +25,9 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
   # Production configuration - STRICT
   if Rails.env.production?
     # Get allowed origins from environment variable
-    allowed_origins = ENV.fetch('ALLOWED_ORIGINS', '').split(',').map(&:strip).reject(&:empty?)
+    allowed_origins = ENV.fetch('ALLOWED_ORIGINS', '').split(',')
+    allowed_origins.map!(&:strip)
+    allowed_origins.reject!(&:empty?)
 
     if allowed_origins.any?
       allow do
@@ -55,7 +57,10 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
   if Rails.env.test?
     # In test, allow configuration via ENV for testing different scenarios
     test_origins = if ENV['ALLOWED_ORIGINS'].present?
-                     ENV['ALLOWED_ORIGINS'].split(',').map(&:strip).reject(&:empty?)
+                     origins = ENV['ALLOWED_ORIGINS'].split(',')
+                     origins.map!(&:strip)
+                     origins.reject!(&:empty?)
+                     origins
                    else
                      # Default test origins
                      ['https://trusted-test-origin.com', 'http://localhost:3000']

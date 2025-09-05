@@ -115,50 +115,60 @@ module Export
 
     def validate_filters!
       # Ensure date ranges are reasonable
-      if @filters[:from] && @filters[:to]
-        from_date = parse_date(@filters[:from])
-        to_date = parse_date(@filters[:to])
-
-        # Date range validation - removed day limit per TODO
-        if from_date > to_date
-          raise ExportError, "Invalid date range: 'from' date must be before 'to' date"
-        end
-      end
+      validate_date_range(@filters[:from], @filters[:to])
 
       # Validate CO2 thresholds with explicit nil and conversion checks
+      validate_above_ppm_threshold(@filters)
+      validate_below_ppm_threshold(@filters)
+      validate_co2_range(@filters)
+    end
 
-      # Check above_ppm threshold
-      if @filters.key?(:above_ppm)
-        if @filters[:above_ppm].nil?
-          raise ExportError, "Invalid CO2 threshold: 'above_ppm' parameter is present but nil"
-        end
+    def validate_date_range(from_filter, to_filter)
+      return unless from_filter && to_filter
 
-        above_ppm = @filters[:above_ppm].to_i
-        if above_ppm.negative?
-          raise ExportError, "Invalid CO2 threshold: 'above_ppm' must be non-negative (got #{@filters[:above_ppm]})"
-        end
+      from_date = parse_date(from_filter)
+      to_date = parse_date(to_filter)
+
+      # Date range validation - removed day limit per TODO
+      if from_date > to_date
+        raise ExportError, "Invalid date range: 'from' date must be before 'to' date"
+      end
+    end
+
+    def validate_above_ppm_threshold(filters)
+      return unless filters.key?(:above_ppm)
+
+      if filters[:above_ppm].nil?
+        raise ExportError, "Invalid CO2 threshold: 'above_ppm' parameter is present but nil"
       end
 
-      # Check below_ppm threshold
-      if @filters.key?(:below_ppm)
-        if @filters[:below_ppm].nil?
-          raise ExportError, "Invalid CO2 threshold: 'below_ppm' parameter is present but nil"
-        end
+      above_ppm = filters[:above_ppm].to_i
+      if above_ppm.negative?
+        raise ExportError, "Invalid CO2 threshold: 'above_ppm' must be non-negative (got #{filters[:above_ppm]})"
+      end
+    end
 
-        below_ppm = @filters[:below_ppm].to_i
-        if below_ppm.negative?
-          raise ExportError, "Invalid CO2 threshold: 'below_ppm' must be non-negative (got #{@filters[:below_ppm]})"
-        end
+    def validate_below_ppm_threshold(filters)
+      return unless filters.key?(:below_ppm)
+
+      if filters[:below_ppm].nil?
+        raise ExportError, "Invalid CO2 threshold: 'below_ppm' parameter is present but nil"
       end
 
-      # Check that range is valid if both thresholds are provided
-      if @filters[:above_ppm] && @filters[:below_ppm]
-        above_ppm = @filters[:above_ppm].to_i
-        below_ppm = @filters[:below_ppm].to_i
+      below_ppm = filters[:below_ppm].to_i
+      if below_ppm.negative?
+        raise ExportError, "Invalid CO2 threshold: 'below_ppm' must be non-negative (got #{filters[:below_ppm]})"
+      end
+    end
 
-        if above_ppm >= below_ppm
-          raise ExportError, "Invalid CO2 range: 'above_ppm' (#{above_ppm}) must be less than 'below_ppm' (#{below_ppm})"
-        end
+    def validate_co2_range(filters)
+      return unless filters[:above_ppm] && filters[:below_ppm]
+
+      above_ppm = filters[:above_ppm].to_i
+      below_ppm = filters[:below_ppm].to_i
+
+      if above_ppm >= below_ppm
+        raise ExportError, "Invalid CO2 range: 'above_ppm' (#{above_ppm}) must be less than 'below_ppm' (#{below_ppm})"
       end
     end
 

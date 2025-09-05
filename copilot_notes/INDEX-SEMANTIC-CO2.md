@@ -65,6 +65,7 @@ This index maps task patterns → relevant files with ACTUAL word counts for pre
 | `FEATURE-PRIORITY-MATRIX.md` | 1,074 | Impact vs effort analysis | priorities, quick wins |
 | `IMPLEMENTATION-QUICKSTART.md` | 958 | Quick start guide | setup, getting started |
 | `QUICK-REFERENCE-CARD.md` | 773 | Essential commands | commands, shortcuts, tips |
+| `rubocop-complexity-reduction-pattern.md` | 674 | Proven patterns for reducing complexity | refactoring, ABC, rubocop, orchestration |
 | `PROBLEM_SOLUTION_MAP_CO2.md` | 299 | Problem → solution mapping | troubleshooting, fixes |
 
 ### ⚠️ CRITICAL: Known Issues & Anti-Patterns (2,885 words)

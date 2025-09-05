@@ -26,6 +26,11 @@
 - [ ] Fix pre-commit hook Rubocop issues (effing_rubocop_breaking_precommit)
 - [ ] Extract controller concerns into separate modules
 
+## 📚 Documentation & Discoverability Improvements
+- [ ] Add rubocop reference comment to successfully fixed files: `# For ABC complexity violations, see: copilot_notes/rubocop-complexity-reduction-pattern.md`
+- [ ] Add pattern reference to .rubocop.yml config near Metrics/AbcSize section
+- [ ] Add Rubocop ABC complexity entry to PROBLEM_SOLUTION_MAP_CO2.md: `Rubocop ABC Complexity → copilot_notes/rubocop-complexity-reduction-pattern.md`
+
 ## 🟢 Medium Priority (Next Month)
 - [ ] Add internationalization support for error messages (all hardcoded English)
 - [ ] Create OpenAPI/Swagger documentation for API

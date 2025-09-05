@@ -66,37 +66,81 @@ module Export
       data = {}
 
       fields.each do |field|
-        data[field] = case field
-                      when 'measurement_id'
-                        measurement.id
-                      when 'co2_ppm'
-                        measurement.co2ppm
-                      when 'timestamp'
-                        format_timestamp(measurement.measurementtime)
-                      when 'crowding'
-                        measurement.crowding
-                      when 'lat'
-                        measurement.sub_location&.place&.place_lat&.to_f
-                      when 'lng'
-                        measurement.sub_location&.place&.place_lng&.to_f
-                      when 'place_name'
-                        sanitize_for_export(measurement.sub_location&.description)
-                      when 'place_google_id'
-                        sanitize_for_export(measurement.sub_location&.place&.google_place_id)
-                      when 'device_serial'
-                        sanitize_for_export(measurement.device&.serial)
-                      when 'device_model'
-                        sanitize_for_export(measurement.device&.model&.name)
-                      when 'manufacturer'
-                        sanitize_for_export(measurement.device&.model&.manufacturer&.name)
-                      when 'is_realtime'
-                        measurement.realtime? || false
-                      when 'user_name'
-                        sanitize_for_export(measurement.device&.user&.name)
-                      end
+        data[field] = extract_field_value_for_json(measurement, field)
       end
 
-      data
+      return data
+    end
+
+    def extract_field_value_for_json(measurement, field)
+      case field
+      when 'measurement_id'
+        return measurement.id
+      when 'co2_ppm'
+        return measurement.co2ppm
+      when 'timestamp'
+        return format_timestamp(measurement.measurementtime)
+      when 'crowding'
+        return measurement.crowding
+      when 'lat'
+        return extract_measurement_latitude_as_float(measurement)
+      when 'lng'
+        return extract_measurement_longitude_as_float(measurement)
+      when 'place_name'
+        return sanitize_measurement_place_name_for_export(measurement)
+      when 'place_google_id'
+        return sanitize_measurement_google_place_id_for_export(measurement)
+      when 'device_serial'
+        return sanitize_measurement_device_serial_for_export(measurement)
+      when 'device_model'
+        return sanitize_measurement_device_model_name_for_export(measurement)
+      when 'manufacturer'
+        return sanitize_measurement_manufacturer_name_for_export(measurement)
+      when 'is_realtime'
+        return measurement.realtime? || false
+      when 'user_name'
+        return sanitize_measurement_user_name_for_export(measurement)
+      end
+    end
+
+    def extract_measurement_latitude_as_float(measurement)
+      # Preserve nil instead of converting to 0.0 (which would be invalid coordinates)
+      place = measurement.sub_location&.place
+      lat = place&.place_lat
+      return lat&.to_f
+    end
+
+    def extract_measurement_longitude_as_float(measurement)
+      # Preserve nil instead of converting to 0.0 (which would be invalid coordinates)
+      place = measurement.sub_location&.place
+      lng = place&.place_lng
+      return lng&.to_f
+    end
+
+    def sanitize_measurement_place_name_for_export(measurement)
+      return sanitize_for_export(measurement.sub_location&.description)
+    end
+
+    def sanitize_measurement_google_place_id_for_export(measurement)
+      return sanitize_for_export(measurement.sub_location&.place&.google_place_id)
+    end
+
+    def sanitize_measurement_device_serial_for_export(measurement)
+      return sanitize_for_export(measurement.device&.serial)
+    end
+
+    def sanitize_measurement_device_model_name_for_export(measurement)
+      return sanitize_for_export(measurement.device&.model&.name)
+    end
+
+    def sanitize_measurement_manufacturer_name_for_export(measurement)
+      device_model = measurement.device&.model
+      manufacturer_name = device_model&.manufacturer&.name
+      return sanitize_for_export(manufacturer_name)
+    end
+
+    def sanitize_measurement_user_name_for_export(measurement)
+      return sanitize_for_export(measurement.device&.user&.name)
     end
 
     def parse_fields(fields)

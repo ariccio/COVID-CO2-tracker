@@ -746,7 +746,7 @@ Style/SymbolProc:
   Enabled: false  # Often less readable than explicit blocks
 
 Style/TopLevelMethodDefinition:
-  Enabled: true
+  Enabled: false
   Severity: info
   # Warns about top-level method definitions
 
