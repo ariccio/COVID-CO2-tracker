@@ -107,6 +107,13 @@ If you're working on complex tasks and context limits:
 4. Why was it written the "wrong" way originally?
 5. Has this "fix" been attempted before? Check: `git log --grep="fix.*[pattern]"`
 
+### Refactoring Safety Protocol  
+**When fixing complexity issues** (Rubocop ABC metrics, long methods, etc.):
+- Your pattern-matching should trigger awareness of `copilot_notes/REFACTOR_RISK_PATTERNS.md`
+- For substantial refactoring (50+ lines or 5+ new methods), launch a verification subagent with fresh context
+- Particularly critical for: controllers, authentication, authorization, exception handling
+- The subagent should review ONLY the diff + requirements, avoiding your implementation assumptions
+
 ### Cross-Session Learning Protocol
 **Before starting work:**
 ```bash

@@ -71,6 +71,14 @@ module Export
       pid = Process.pid
 
       # Try ps command first (works on most Unix-like systems including Heroku)
+      memory_mb = memory_usage_from_ps(pid)
+      return memory_mb if memory_mb
+
+      # Fallback: try /proc filesystem (Linux)
+      return memory_usage_from_proc_filesystem(pid)
+    end
+
+    def memory_usage_from_ps(pid)
       stdout, stderr, status = Open3.capture3('ps', '-o', 'rss=', '-p', pid.to_s)
 
       if status.success?
@@ -84,7 +92,10 @@ module Export
         Rails.logger.warn("Memory check: ps command failed with status #{status.exitstatus}: #{stderr} for pid #{pid}")
       end
 
-      # Fallback: try /proc filesystem (Linux)
+      return nil
+    end
+
+    def memory_usage_from_proc_filesystem(pid)
       proc_status_path = "/proc/#{pid}/status"
 
       unless File.exist?(proc_status_path)
@@ -94,15 +105,8 @@ module Export
       end
 
       begin
-        File.readlines(proc_status_path).each do |line|
-          next unless line.start_with?('VmRSS:')
-
-          memory_kb = line.split[1].to_i
-          if memory_kb.positive?
-            Rails.logger.info("Memory check: Using /proc/status fallback for pid #{pid}, found #{memory_kb / 1024}MB")
-            return memory_kb / 1024
-          end
-        end
+        memory_mb = extract_memory_from_proc_status(proc_status_path, pid)
+        return memory_mb if memory_mb
 
         # Got through the file but didn't find VmRSS
         Rails.logger.error("Memory check failed for pid #{pid}: ps command failed, then VmRSS not found in /proc/#{pid}/status")
@@ -111,6 +115,20 @@ module Export
         Rails.logger.error("Memory check failed for pid #{pid}: ps command failed, then reading /proc/#{pid}/status failed: #{e.message}")
         raise ExportError, "Unable to determine memory usage for safety check (pid #{pid}): ps failed, then reading /proc/#{pid}/status failed: #{e.message}"
       end
+    end
+
+    def extract_memory_from_proc_status(proc_status_path, pid)
+      File.readlines(proc_status_path).each do |line|
+        next unless line.start_with?('VmRSS:')
+
+        memory_kb = line.split[1].to_i
+        if memory_kb.positive?
+          Rails.logger.info("Memory check: Using /proc/status fallback for pid #{pid}, found #{memory_kb / 1024}MB")
+          return memory_kb / 1024
+        end
+      end
+
+      return nil
     end
 
     def validate_filters!
@@ -195,24 +213,56 @@ module Export
     end
 
     def build_measurement_data(measurement)
-      device_model = measurement.device&.model
-      manufacturer_name = device_model&.manufacturer&.name
-
       return {
         measurement_id: measurement.id,
         co2_ppm: measurement.co2ppm,
         timestamp: format_timestamp(measurement.measurementtime),
         crowding: measurement.crowding,
-        lat: measurement.sub_location&.place&.place_lat,
-        lng: measurement.sub_location&.place&.place_lng,
-        place_name: sanitize_for_export(measurement.sub_location&.description),
-        place_google_id: sanitize_for_export(measurement.sub_location&.place&.google_place_id),
-        device_serial: sanitize_for_export(measurement.device&.serial),
-        device_model: sanitize_for_export(device_model&.name),
-        manufacturer: sanitize_for_export(manufacturer_name),
+        lat: extract_measurement_latitude(measurement),
+        lng: extract_measurement_longitude(measurement),
+        place_name: extract_measurement_place_name(measurement),
+        place_google_id: extract_measurement_place_google_id(measurement),
+        device_serial: extract_measurement_device_serial(measurement),
+        device_model: extract_measurement_device_model_name(measurement),
+        manufacturer: extract_measurement_manufacturer_name(measurement),
         is_realtime: measurement.realtime?,
-        user_name: sanitize_for_export(measurement.device&.user&.name)
+        user_name: extract_measurement_user_name(measurement)
       }
+    end
+
+    def extract_measurement_latitude(measurement)
+      return measurement.sub_location&.place&.place_lat
+    end
+
+    def extract_measurement_longitude(measurement)
+      return measurement.sub_location&.place&.place_lng
+    end
+
+    def extract_measurement_place_name(measurement)
+      return sanitize_for_export(measurement.sub_location&.description)
+    end
+
+    def extract_measurement_place_google_id(measurement)
+      return sanitize_for_export(measurement.sub_location&.place&.google_place_id)
+    end
+
+    def extract_measurement_device_serial(measurement)
+      return sanitize_for_export(measurement.device&.serial)
+    end
+
+    def extract_measurement_device_model_name(measurement)
+      device_model = measurement.device&.model
+      return sanitize_for_export(device_model&.name)
+    end
+
+    def extract_measurement_manufacturer_name(measurement)
+      device_model = measurement.device&.model
+      manufacturer_name = device_model&.manufacturer&.name
+      return sanitize_for_export(manufacturer_name)
+    end
+
+    def extract_measurement_user_name(measurement)
+      return sanitize_for_export(measurement.device&.user&.name)
     end
 
     def log_export_start(format)

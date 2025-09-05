@@ -159,24 +159,10 @@ module Api
 
       # Note to self: https://philna.sh/blog/2020/01/15/test-signed-cookies-in-rails/
       def create
-
-        # TODO: wtf is the triple equals here? Wrong.
-        if (Rails.env.test?) && (::ENV['IsEndToEndBackendServerSoSTFUWithTheLogs'] != 'yes')
-          ::Rails.logger.warn('test auth path')
-          Sentry.capture_message('WRONG auth path!') if Rails.env.production?
-          # No encryption for test env
-          # byebug
-          @decoded_token = params['user']
-        else
-          ::Rails.logger.debug('OTHER auth path') unless Rails.env.production?
-          @decoded_token = token_from_google
-        end
+        @decoded_token = decoded_token
         # byebug
         @user = ::User.find_by!(sub_google_uid: @decoded_token['sub'])
-        if @user.email != @decoded_token['email']
-          ::Sentry.capture_message("stored email #{@user.email} differs from #{@decoded_token['email']}")
-          ::Rails.logger.warn("stored email #{@user.email} differs from #{@decoded_token['email']}, TODO: write code to update.")
-        end
+        handle_email_mismatch if @user.email != @decoded_token['email']
         # byebug
         ::Rails.logger.debug('rendering successsful authentication') unless Rails.env.production?
         render_successful_authentication
@@ -185,11 +171,46 @@ module Api
 
       # See: C:\Ruby30-x64\lib\ruby\gems\3.0.0\gems\googleauth-0.16.0\lib\googleauth\id_tokens\errors.rb
       rescue ::Google::Auth::IDTokens::SignatureError => e # (Token not verified as issued by Google):
-        ::Rails.logger.warn("user_login_google_params[:id_token]: #{user_login_google_params[:id_token]} invalid! This shouldn't happen.")
-        render_signature_verification_failed(e)
+        handle_signature_error(e)
       rescue ::ActiveRecord::RecordNotFound => e
         ::Rails.logger.debug('need to create user') unless Rails.env.production?
         create_user_with_google(e)
+      end
+
+      def decoded_token
+        # TODO: wtf is the triple equals here? Wrong.
+        if test_environment_auth?
+          handle_test_environment_auth
+        else
+          handle_production_auth
+        end
+      end
+
+      def test_environment_auth?
+        return (Rails.env.test?) && (::ENV['IsEndToEndBackendServerSoSTFUWithTheLogs'] != 'yes')
+      end
+
+      def handle_test_environment_auth
+        ::Rails.logger.warn('test auth path')
+        Sentry.capture_message('WRONG auth path!') if Rails.env.production?
+        # No encryption for test env
+        # byebug
+        return params['user']
+      end
+
+      def handle_production_auth
+        ::Rails.logger.debug('OTHER auth path') unless Rails.env.production?
+        return token_from_google
+      end
+
+      def handle_email_mismatch
+        ::Sentry.capture_message("stored email #{@user.email} differs from #{@decoded_token['email']}")
+        ::Rails.logger.warn("stored email #{@user.email} differs from #{@decoded_token['email']}, TODO: write code to update.")
+      end
+
+      def handle_signature_error(exception)
+        ::Rails.logger.warn("user_login_google_params[:id_token]: #{user_login_google_params[:id_token]} invalid! This shouldn't happen.")
+        render_signature_verification_failed(exception)
       end
 
       def email

@@ -46,46 +46,78 @@ module Api
         # "If one or more records cannot be found for the requested ids, then ActiveRecord::RecordNotFound will be raised"
         @model = ::Model.find(device_params.fetch(:model_id))
 
-        if @user.devices.where(model_id: device_params.fetch(:model_id)).where(serial: device_params.fetch(:serial)).size.positive?
-          Sentry.capture_message("User already uploaded a #{@model.name} to your account with the serial # '#{device_params.fetch(:serial)}'!")
-          return render(
-            json: {
-              errors: [single_error("You already uploaded a #{@model.name} to your account with the serial # '#{device_params.fetch(:serial)}'! Use that to add measurements.", nil)]
-            }, status: :bad_request
-          )
-        end
-        # this should be in a validator class:
-        # TODO: check if @model.device is nil and then return error.
-        if @model.device.where(serial: device_params.fetch(:serial)).any?
-          Sentry.capture_message("#{@model.name} with serial # '#{device_params.fetch(:serial)}' already exists.")
-          return render(
-            json: {
-              errors: [single_error("#{@model.name} with serial # '#{device_params.fetch(:serial)}' already exists in global database.", nil)]
-            }, status: :bad_request
-          )
-        end
+        return if check_for_duplicate_user_device?
+        return if check_for_global_duplicate_device?
+        return if check_user_logged_in?
 
-        if (@user.nil?)
-          render_not_logged_in
-          return
-        end
         @new_device_instance = ::Device.create!(serial: device_params.fetch(:serial), model_id: device_params.fetch(:model_id), user: @user)
         render(
           json: device_create_response_as_json(@new_device_instance),
           status: :created
         )
       rescue ::ActiveRecord::RecordNotFound => e
-        ::Sentry.capture_exception(e)
+        handle_model_not_found_error(e)
+      rescue ::ActiveRecord::RecordInvalid => e
+        handle_device_creation_error(e)
+      end
+
+      private
+
+      def check_for_duplicate_user_device?
+        serial = device_params.fetch(:serial)
+        model_id = device_params.fetch(:model_id)
+        if @user.devices.where(model_id: model_id).where(serial: serial).size.positive?
+          error_message = "You already uploaded a #{@model.name} to your account with the serial # '#{serial}'! Use that to add measurements."
+          Sentry.capture_message("User already uploaded a #{@model.name} to your account with the serial # '#{serial}'!")
+          render(
+            json: {
+              errors: [single_error(error_message, nil)]
+            }, status: :bad_request
+          )
+          return true
+        end
+        return false
+      end
+
+      def check_for_global_duplicate_device?
+        serial = device_params.fetch(:serial)
+        # this should be in a validator class:
+        # TODO: check if @model.device is nil and then return error.
+        if @model.device.where(serial: serial).any?
+          error_message = "#{@model.name} with serial # '#{serial}' already exists in global database."
+          Sentry.capture_message("#{@model.name} with serial # '#{serial}' already exists.")
+          render(
+            json: {
+              errors: [single_error(error_message, nil)]
+            }, status: :bad_request
+          )
+          return true
+        end
+        return false
+      end
+
+      def check_user_logged_in?
+        if (@user.nil?)
+          render_not_logged_in
+          return true
+        end
+        return false
+      end
+
+      def handle_model_not_found_error(exception)
+        ::Sentry.capture_exception(exception)
         render(
           json: {
-            errors: [create_activerecord_notfound_error('Invalid model_id.', e)]
+            errors: [create_activerecord_notfound_error('Invalid model_id.', exception)]
           },
           status: :bad_request
         )
-      rescue ::ActiveRecord::RecordInvalid => e
+      end
+
+      def handle_device_creation_error(exception)
         render(
           json: {
-            errors: [create_activerecord_error('device creation failed!', e)]
+            errors: [create_activerecord_error('device creation failed!', exception)]
           },
           status: :bad_request
         )

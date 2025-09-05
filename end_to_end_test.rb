@@ -75,51 +75,7 @@ module EndToEndTest
     _rails_stdin, rails_stdout, rails_stderr, rails_wait_thr = spawn_rails()
     _react_stdin, react_stdout, react_stderr, react_wait_thr = spawn_react_frontend()
 
-
-    # Next, look for "compiled sucessfully", or "You can now view co2_client in the browser"
-    50.times do
-      sleep(1)
-        begin
-          puts "RAILS: #{rails_stdout.read_nonblock(10_000)}"
-          puts 'waiting'
-        rescue IO::EAGAINWaitReadable => e
-          puts "not ready yet, (#{e})"
-          sleep(5)
-        end
-        # byebug
-
-        begin
-            # if rails_stdout.ready?
-          puts "RAILS ERR: #{rails_stderr.read_nonblock(10_000)}"
-          # end
-          puts "REACT: #{react_stdout.read_nonblock(10_000)}"
-          puts "REACT ERR: #{react_stderr.read_nonblock(10_000)}"
-          # if react_stdout.ready?
-          # end
-        rescue IO::EAGAINWaitReadable => e
-          puts "not ready yet (#{e})"
-          sleep(5)
-        end
-        begin
-          puts "REACT: #{react_stdout.read_nonblock(10_000)}"
-          puts "REACT ERR: #{react_stderr.read_nonblock(10_000)}"
-          # if react_stdout.ready?
-          # end
-        rescue IO::EAGAINWaitReadable => e
-          puts "not ready yet (#{e})"
-          sleep(5)
-        end
-        begin
-          puts "REACT ERR: #{react_stderr.read_nonblock(10_000)}"
-          # if react_stdout.ready?
-          # end
-        rescue IO::EAGAINWaitReadable => e
-          puts "not ready yet (#{e})"
-          sleep(5)
-        end
-
-    end
-    # byebug
+    process_outputs(rails_stdout, rails_stderr, react_stdout, react_stderr)
 
     puts 'done'
     # pp rails_stderr.read
@@ -136,6 +92,31 @@ module EndToEndTest
 
 
   end
+
+  def self.process_outputs(rails_stdout, rails_stderr, react_stdout, react_stderr)
+    # Next, look for "compiled sucessfully", or "You can now view co2_client in the browser"
+    50.times do
+      sleep(1)
+      read_process_output('RAILS', rails_stdout, rails_stderr)
+      read_process_output('REACT', react_stdout, react_stderr)
+    end
+  end
+
+  def self.read_process_output(prefix, stdout, stderr)
+    read_stream(prefix.to_s, stdout)
+    read_stream("#{prefix} ERR", stderr)
+  end
+
+  def self.read_stream(label, stream)
+    output = stream.read_nonblock(10_000)
+    puts "#{label}: #{output}"
+    puts 'waiting' if label == 'RAILS'
+  rescue IO::EAGAINWaitReadable => e
+    puts "not ready yet (#{e})"
+    sleep(5)
+  end
+
+  private_class_method :process_outputs, :read_process_output, :read_stream
 end
 
 # Run the test if executed directly

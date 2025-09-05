@@ -109,6 +109,20 @@ AI Session Issues:
   Total: ~1,300 words
 ```
 
+#### Refactor Code / Fix Complexity Issues
+```yaml
+Rubocop/Complexity Violations:
+  1. REFACTOR_RISK_PATTERNS.md (675 words) # Safety checks & patterns
+  2. rubocop-complexity-reduction-pattern.md (547 words) # Proven patterns
+  3. REFACTOR_SAFETY_IMPLEMENTATION_GUIDE.md (678 words) # For other repos
+  Total: ~1,900 words
+  
+Quick Refactoring:
+  1. REFACTOR_RISK_PATTERNS.md#quick-mental-checklist (200 words)
+  2. Launch verification subagent for changes >50 lines
+  Total: ~200 words + subagent
+```
+
 #### Fix Production Issues
 ```yaml
 EMERGENCY (Memory/Crash/Outage):

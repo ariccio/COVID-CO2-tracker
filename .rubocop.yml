@@ -254,6 +254,7 @@ Style/InverseMethods:
 Metrics/AbcSize:
   Enabled: true
   Max: 35
+  # When fixing: see copilot_notes/REFACTOR_RISK_PATTERNS.md for safety checks
 
 Metrics/CyclomaticComplexity:
   Enabled: true
@@ -760,3 +761,4 @@ Style/YAMLFileRead:
   Enabled: true
   # Prefers YAML.load_file over File.read + YAML.load
 
+# When fixing ABC complexity, see: copilot_notes/RUBOCOP_FIRST_RESPONSE.md
