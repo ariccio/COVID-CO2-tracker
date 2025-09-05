@@ -210,6 +210,9 @@ module Export
       manifest[:record_counts][:devices] = count
     end
 
+    # Public methods for streaming directly to ZIP (used by ExportsController)
+    public
+
     def write_measurements_to_stream(stream, filters)
       # Write headers
       stream.write("measurement_id,co2_ppm,timestamp,crowding,device_id,sub_location_id,is_realtime\n")
@@ -296,6 +299,8 @@ module Export
         stream.write(CSV.generate_line(row))
       end
     end
+
+    private
 
     def create_zip_file(source_dir, zip_path)
       Zip::File.open(zip_path, Zip::File::CREATE) do |zipfile|

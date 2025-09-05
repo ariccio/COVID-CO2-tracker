@@ -4,9 +4,11 @@ require 'zip'
 
 class Api::V1::ExportsController < Api::BaseController
   include ActionController::Live
+  include ExportAuthentication
+  include ExportRateLimiting
 
-  before_action :authenticate_export_token, except: [:options]
-  before_action :check_rate_limit, except: [:options]
+  skip_before_action :authenticate_export_token, only: [:options]
+  skip_before_action :check_export_rate_limit, only: [:options]
   before_action :validate_export_params, except: [:options]
   before_action :validate_date_range, only: [:index, :download]
 
@@ -68,59 +70,7 @@ class Api::V1::ExportsController < Api::BaseController
     render json: { error: 'Export failed' }, status: :internal_server_error
   end
 
-  def authenticate_export_token
-    token_string = request.headers['Authorization']&.split&.last
-
-    @export_token = ExportToken.authenticate(token_string)
-
-    return if @export_token # Token is valid, continue
-
-    render json: { error: 'Invalid or expired token' }, status: :unauthorized and return
-  end
-
-  def check_rate_limit
-    return unless @export_token
-
-    # Use secure rate limiting key that uses token hash instead of predictable ID
-    rate_key = @export_token.rate_limit_key
-    return unless rate_key # Safety check
-
-    count = Rails.cache.increment(rate_key, 1, expires_in: 1.hour) || 1
-    limit = @export_token.rate_limit_per_hour
-    remaining = [limit - count, 0].max
-
-    # Calculate reset time
-    reset_time = begin
-      ttl = begin
-        Rails.cache.ttl(rate_key)
-      rescue StandardError
-        3600
-      end
-      Time.current.to_i + ttl
-    rescue NoMethodError
-      Time.current.to_i + 3600
-    end
-
-    # Set rate limit headers for all requests
-    response.headers['X-RateLimit-Limit'] = limit.to_s
-    response.headers['X-RateLimit-Remaining'] = remaining.to_s
-    response.headers['X-RateLimit-Reset'] = reset_time.to_s
-
-    if count > limit
-      # Calculate TTL safely - not all cache stores support ttl method
-      reset_in = begin
-        Rails.cache.ttl(rate_key)
-      rescue NoMethodError
-        3600 # Default to 1 hour
-      end
-
-      render json: {
-        error: 'Rate limit exceeded',
-        limit:,
-        reset_in:
-      }, status: :too_many_requests
-    end
-  end
+  # Authentication and rate limiting moved to concerns
 
   def validate_export_params
     format = params[:format_type] || 'csv'
@@ -207,7 +157,6 @@ class Api::V1::ExportsController < Api::BaseController
     @export_token.record_usage!
 
     # Track resources for cleanup
-    zip_data = nil
     exporter = nil
 
     begin
@@ -224,9 +173,13 @@ class Api::V1::ExportsController < Api::BaseController
         # Use streaming for JSONL
         exporter.stream_measurements(filters, fields:).each do |line|
           # Check if client is still connected
-          raise IOError, 'Client disconnected' unless response.stream.write line
-
-          record_count += 1
+          begin
+            response.stream.write(line)
+            record_count += 1
+          rescue IOError, Errno::EPIPE, Errno::ECONNRESET => e
+            Rails.logger.warn "Export stream interrupted after #{record_count} records: #{e.class.name}"
+            raise IOError, "Client disconnected during export"
+          end
 
           next unless record_count >= @export_token.max_records
 
@@ -239,23 +192,11 @@ class Api::V1::ExportsController < Api::BaseController
         # Stream ZIP file for multi-CSV
         response.headers['Content-Type'] = 'application/zip'
         response.headers['Content-Disposition'] = 'attachment; filename="co2_export_multi.zip"'
+        response.headers['Transfer-Encoding'] = 'chunked'
 
-        # Create ZIP in memory and stream it
-        zip_data = StringIO.new
-        zip_data.binmode
-
-        Zip::OutputStream.write_buffer(zip_data) do |zip|
-          # Add each CSV file to the ZIP (without export_id subdirectory for test compatibility)
-          add_measurements_to_zip(zip, nil, filters)
-          add_places_to_zip(zip, nil, filters)
-          add_sub_locations_to_zip(zip, nil, filters)
-          add_devices_to_zip(zip, nil, filters)
-          add_users_to_zip(zip, filters)
-          add_metadata_to_zip(zip, filters)
-        end
-
-        zip_data.rewind
-        response.stream.write(zip_data.read)
+        # Use ZipGenerator service to create and stream ZIP
+        zip_generator = Export::ZipGenerator.new(@export_token, filters)
+        zip_generator.generate_to_stream(response.stream)
       else
         # Use standard export for CSV
         exporter.export_measurements(response.stream, filters, fields:)
@@ -278,16 +219,6 @@ class Api::V1::ExportsController < Api::BaseController
       begin
         response.stream.close
       rescue StandardError
-        nil
-      end
-
-      # Clean up ZIP data if it was created
-      if zip_data
-        begin
-          zip_data.close
-        rescue StandardError
-          nil
-        end
         nil
       end
 
@@ -411,63 +342,7 @@ class Api::V1::ExportsController < Api::BaseController
   end
 
   # Helper methods for multi-CSV ZIP export
-  def add_measurements_to_zip(zip, export_id, filters)
-    entry_name = export_id ? "#{export_id}/measurements.csv" : 'measurements.csv'
-    zip.put_next_entry(entry_name)
-    service = Export::MultiCsvService.new(filters)
-    service.send(:write_measurements_to_stream, zip, filters)
-  end
-
-  def add_places_to_zip(zip, export_id, filters)
-    entry_name = export_id ? "#{export_id}/places.csv" : 'places.csv'
-    zip.put_next_entry(entry_name)
-    service = Export::MultiCsvService.new(filters)
-    service.send(:write_places_to_stream, zip, filters)
-  end
-
-  def add_sub_locations_to_zip(zip, export_id, filters)
-    entry_name = export_id ? "#{export_id}/sub_locations.csv" : 'sub_locations.csv'
-    zip.put_next_entry(entry_name)
-    service = Export::MultiCsvService.new(filters)
-    service.send(:write_sub_locations_to_stream, zip, filters)
-  end
-
-  def add_devices_to_zip(zip, export_id, filters)
-    entry_name = export_id ? "#{export_id}/devices.csv" : 'devices.csv'
-    zip.put_next_entry(entry_name)
-    service = Export::MultiCsvService.new(filters)
-    service.send(:write_devices_to_stream, zip, filters)
-  end
-
-  def add_users_to_zip(zip, filters)
-    zip.put_next_entry('users.csv')
-
-    # Get users from measurements based on filters
-    query = Measurement.joins(device: :user)
-    query = apply_filters_to_query(query, filters)
-    users_data = query.select('users.id as user_id, users.name as user_name, COUNT(measurements.id) as measurements_count')
-                      .group('users.id, users.name')
-
-    # Write CSV header
-    zip.write("user_id,name,measurements_count\n")
-
-    # Write user data
-    users_data.each do |user|
-      zip.write("#{user.user_id},#{user.user_name},#{user.measurements_count}\n")
-    end
-  end
-
-  def add_metadata_to_zip(zip, filters)
-    zip.put_next_entry('metadata.json')
-
-    metadata = {
-      export_time: Time.current.iso8601,
-      filters:,
-      version: '1.0'
-    }
-
-    zip.write(JSON.pretty_generate(metadata))
-  end
+  # ZIP generation methods moved to Export::ZipGenerator service
 
   def apply_filters_to_query(query, filters)
     query = query.where(measurements: { measurementtime: (filters[:from]).. }) if filters[:from].present?

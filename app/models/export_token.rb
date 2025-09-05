@@ -7,6 +7,7 @@ class ExportToken < ApplicationRecord
 
   validates :description, presence: true
   validates :expires_at, presence: true
+  validates :token_hash, presence: true, uniqueness: true
 
   scope :active, -> { where('expires_at > ?', Time.current) }
   scope :expired, -> { where(expires_at: ..Time.current) }
@@ -37,8 +38,8 @@ class ExportToken < ApplicationRecord
   end
 
   def record_usage!
-    increment!(:usage_count)
-    update!(last_used_at: Time.current)
+    # Single database operation for efficiency
+    update!(usage_count: (usage_count || 0) + 1, last_used_at: Time.current)
   end
 
   def can_export_format?(format)
@@ -57,8 +58,8 @@ class ExportToken < ApplicationRecord
 
   # Method to get a unique identifier for rate limiting (uses hash, not token)
   def rate_limit_key
-    # Use the token hash for rate limiting keys (secure against prediction)
-    "export_rate:#{Digest::SHA256.hexdigest(token_hash)}" if token_hash.present?
+    # Use the token hash directly for rate limiting keys (already hashed, no need to re-hash)
+    "export_rate:#{token_hash}" if token_hash.present?
   end
 
   private
