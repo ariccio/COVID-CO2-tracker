@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require 'optparse'
 require 'colorize' if defined?(Colorize)
+require 'optparse'
 
 class SecurityTestRunner
   SECURITY_CATEGORIES = {
@@ -115,7 +115,6 @@ class SecurityTestRunner
 
   def footer(success, elapsed)
     status = success ? '✓ PASSED' : '✗ FAILED'
-    success ? :green : :red
 
     <<~FOOTER
 

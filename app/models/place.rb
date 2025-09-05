@@ -24,7 +24,7 @@ class Place < ApplicationRecord
   def place_measurementtime_desc
     # TODO: This SUCKS
     sub_location.includes(:measurement).find_each.map do |loc|
-      temp = ::MeasurementSerializer.new(loc.measurement.order('measurementtime DESC')).serializable_hash
+      temp = ::MeasurementSerializer.new(loc.measurement.order(measurementtime: :desc)).serializable_hash
       {
         sub_location_id: loc.id,
         description: loc.description,

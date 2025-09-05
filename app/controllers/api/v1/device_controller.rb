@@ -56,7 +56,7 @@ module Api
         end
         # this should be in a validator class:
         # TODO: check if @model.device is nil and then return error.
-        if @model.device.where(serial: device_params.fetch(:serial)).count.positive?
+        if @model.device.where(serial: device_params.fetch(:serial)).any?
           Sentry.capture_message("#{@model.name} with serial # '#{device_params.fetch(:serial)}' already exists.")
           return render(
             json: {

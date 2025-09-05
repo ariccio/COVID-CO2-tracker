@@ -1,6 +1,9 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+require 'date'
+require 'digest'
+require 'json'
 # Script to manage export tokens for the COVID CO2 Tracker
 # Usage:
 #   ruby scripts/manage_export_tokens.rb generate
@@ -8,9 +11,6 @@
 #   ruby scripts/manage_export_tokens.rb hash TOKEN
 
 require 'securerandom'
-require 'digest'
-require 'json'
-require 'date'
 
 class ExportTokenManager
   TOKENS_FILE = 'config/export_tokens.json'

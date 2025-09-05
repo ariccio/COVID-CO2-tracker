@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'open3'
 require 'byebug'
+require 'open3'
 
 OVERRIDE_PORT_FOR_RAILS = {}.freeze
 

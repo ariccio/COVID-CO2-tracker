@@ -2,8 +2,8 @@
 
 FactoryBot.define do
   factory :measurement do
-    association :device
-    association :sub_location
+    device
+    sub_location
     co2ppm { rand(400..2000) }
     measurementtime { Time.current }
     crowding { rand(1..5) }
@@ -24,8 +24,8 @@ FactoryBot.define do
   end
 
   factory :device do
-    association :user
-    association :model
+    user
+    model
     serial { "DEVICE_#{SecureRandom.hex(4).upcase}" }
 
     trait :with_measurements do
@@ -61,7 +61,7 @@ FactoryBot.define do
   end
 
   factory :sub_location do
-    association :place
+    place
     description { ['Conference Room', 'Lobby', 'Cafeteria', 'Office', 'Meeting Room'].sample }
 
     trait :with_measurements do
@@ -72,7 +72,7 @@ FactoryBot.define do
   end
 
   factory :model do
-    association :manufacturer
+    manufacturer
     sequence(:name) { |n| "Model_#{n}" }
   end
 

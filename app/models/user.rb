@@ -49,7 +49,7 @@ class User < ApplicationRecord
     Rails.logger.warn('I really need to redo the extra measurement info/realtime info serialization... I will have to serialize separately, or do as a relationship instead of an attribute!')
 
 
-    ordered = measurement.order('measurementtime DESC')
+    ordered = measurement.order(measurementtime: :desc)
 
     # measurements = ordered.each.map do |measurement|
     #   ::Measurement.measurement_with_device_as_json(measurement)
@@ -63,6 +63,6 @@ class User < ApplicationRecord
   def last_measurement
     return nil if (measurement.blank?)
 
-    measurement.order('measurementtime DESC').first
+    measurement.order(measurementtime: :desc).first
   end
 end

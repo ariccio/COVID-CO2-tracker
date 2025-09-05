@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'zip'
 require 'csv'
 require 'tempfile'
+require 'zip'
 
 module Export
   # Service for generating ZIP files with multiple CSV exports
@@ -63,7 +63,7 @@ module Export
       multi_csv_service.write_devices_to_stream(zip, @filters)
     end
 
-    def add_users_to_zip(zip, include_names: true)
+    def add_users_to_zip(zip, _include_names: true)
       zip.put_next_entry('users.csv')
 
       # Build users query - get distinct user IDs first

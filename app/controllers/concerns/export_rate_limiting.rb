@@ -7,7 +7,10 @@ module ExportRateLimiting
 
   included do
     before_action :check_export_rate_limit
+    # rubocop:disable Rails/LexicallyScopedActionFilter
+    # This concern is included in controllers that define their own index action
     after_action :increment_rate_limit_counter, only: :index
+    # rubocop:enable Rails/LexicallyScopedActionFilter
   end
 
   private

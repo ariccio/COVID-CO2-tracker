@@ -60,7 +60,7 @@ Shoulda::Matchers.configure do |config|
 end
 
 
-Dir[Rails.root.join('spec/support/**/*.rb')].each do |f|
+Rails.root.glob('spec/support/**/*.rb').each do |f|
   puts("Including #{f}...")
   require f
 end

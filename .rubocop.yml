@@ -747,6 +747,7 @@ Style/SymbolProc:
 
 Style/TopLevelMethodDefinition:
   Enabled: true
+  Severity: info
   # Warns about top-level method definitions
 
 Style/UnlessLogicalOperators:

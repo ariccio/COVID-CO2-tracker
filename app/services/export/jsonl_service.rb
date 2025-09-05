@@ -72,7 +72,7 @@ module Export
       # If specific fields requested, filter the output
       if fields.present?
         field_symbols = fields.map(&:to_sym)
-        full_data.select { |key, _| field_symbols.include?(key) }
+        full_data.slice(*field_symbols)
       else
         full_data
       end
