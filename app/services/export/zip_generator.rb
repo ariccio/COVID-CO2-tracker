@@ -72,11 +72,12 @@ module Export
       user_ids = query.joins(:device).reorder(nil).distinct.pluck('devices.user_id')
 
       # Then query users with their measurement counts
+      # Note: Device model uses singular :measurement association
       users = User.where(id: user_ids)
-                  .left_joins(devices: :measurements)
+                  .left_joins(devices: :measurement)
                   .group('users.id')
-                  .select('users.id as user_id',
-                          'users.name as user_name',
+                  .select('users.id',
+                          'users.name',
                           'COUNT(measurements.id) as measurements_count')
 
       # Write header
@@ -85,7 +86,7 @@ module Export
       # Write user data with CSV escaping
       users.find_each do |user|
         csv_line = CSV.generate_line(
-          [user.user_id, user.user_name, user.measurements_count],
+          [user.id, user.name, user.measurements_count],
           force_quotes: true
         )
         zip.write(csv_line)

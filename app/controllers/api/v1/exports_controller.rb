@@ -276,7 +276,8 @@ class Api::V1::ExportsController < Api::BaseController
   def render_cached_export(cache_key)
     cached_data = Rails.cache.read(cache_key)
 
-    if cached_data
+    # Check if cached_data contains actual content or just metadata
+    if cached_data && cached_data[:content]
       response.headers['X-Cache'] = 'HIT'
       response.headers['Content-Type'] = cached_data[:content_type]
 
@@ -285,7 +286,7 @@ class Api::V1::ExportsController < Api::BaseController
                 type: cached_data[:content_type],
                 disposition: 'inline'
     else
-      # Cache miss, generate fresh
+      # Cache miss or metadata-only cache, generate fresh
       response.headers['X-Cache'] = 'MISS'
       format = params[:format_type] || 'csv'
       fields = parse_fields(params[:fields])

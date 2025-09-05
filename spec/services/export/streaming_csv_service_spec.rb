@@ -204,8 +204,9 @@ RSpec.describe(Export::StreamingCsvService) do
     it('checks memory usage before processing') do
       allow(ENV).to receive(:[]).with('DYNO').and_return('web.1')
       service = described_class.new(filters)
-      # Mock the backtick method on the specific instance
-      allow(service).to receive(:`).with(/ps -o rss/).and_return('461824') # 451MB
+      # Mock Open3.capture3 to simulate high memory usage (451MB)
+      allow(Open3).to receive(:capture3).with('ps', '-o', 'rss=', '-p', Process.pid.to_s)
+                                         .and_return(['461824', '', double(success?: true)])
 
       expect { service.stream { |_| nil } }.to(raise_error(
                                                  Export::BaseService::ExportError,

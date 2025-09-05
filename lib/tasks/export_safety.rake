@@ -89,7 +89,7 @@ namespace :export do
     # 6. Check cache configuration
     print "\nChecking Rails cache... "
     begin
-      test_key = "export_safety_test_#{Time.current.to_i}"
+      test_key = "export_safety_test_#{Time.zone.now.to_i}"
       Rails.cache.write(test_key, 'test', expires_in: 1.second)
       value = Rails.cache.read(test_key)
       Rails.cache.delete(test_key)
@@ -129,7 +129,7 @@ namespace :export do
   desc 'Generate test export token for development'
   task generate_token: :environment do
     token = ExportToken.create!(
-      description: "Development Test Token - #{Time.current}",
+      description: "Development Test Token - #{Time.zone.now}",
       expires_at: 1.month.from_now,
       permissions: {
         formats: ['csv', 'jsonl', 'json'],

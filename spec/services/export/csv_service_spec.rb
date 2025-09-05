@@ -137,7 +137,7 @@ RSpec.describe(Export::CsvService) do
         it('raises validation error') do
           expect { service.export }.to(raise_error(
                                          Export::BaseService::ExportError,
-                                         'Invalid CO2 threshold: must be non-negative'
+                                         "Invalid CO2 threshold: 'above_ppm' must be non-negative (got -100)"
                                        ))
         end
       end

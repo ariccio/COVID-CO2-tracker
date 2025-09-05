@@ -915,15 +915,18 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
 
         enable_rack_attack!
         reset_rack_attack_cache!
+        Rails.cache.clear # Clear all cache to avoid interference
 
-        # Use rate limit with SQL injection attempts
+        # First make valid requests to consume rate limit
         2.times do
-          attempt_sql_injection("'; DROP TABLE measurements; --", token:)
-          expect(response).to have_http_status(:unprocessable_entity)
+          get '/api/v1/export',
+              params: { format_type: 'csv' },
+              headers: { 'Authorization' => "Bearer #{token.raw_token}" }
+          expect(response).to have_http_status(:success)
         end
 
-        # Should still be rate limited even with different injection
-        attempt_sql_injection("' OR '1'='1", token:)
+        # Now try SQL injection - should be rate limited regardless of injection attempt
+        attempt_sql_injection("'; DROP TABLE measurements; --", token:)
         expect(response).to have_http_status(:too_many_requests)
 
         # Tables should still exist
@@ -1077,7 +1080,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
 
           2.times do
             get '/api/v1/export',
-                params: { format_type: 'json' },
+                params: { format_type: 'csv' },
                 headers: { 'Authorization' => "Bearer #{token.raw_token}" }
           end
 

@@ -97,7 +97,7 @@ module Export
       when 'manufacturer'
         return sanitize_measurement_manufacturer_name_for_export(measurement)
       when 'is_realtime'
-        return measurement.realtime? || false
+        return measurement.realtime?
       when 'user_name'
         return sanitize_measurement_user_name_for_export(measurement)
       end

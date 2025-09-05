@@ -29,9 +29,9 @@ class SecurityTestRunner
     command = build_command
     puts "Running: #{command}\n\n"
 
-    start_time = Time.zone.now
+    start_time = Time.now
     success = system(command)
-    elapsed = Time.zone.now - start_time
+    elapsed = Time.now - start_time
 
     puts footer(success, elapsed)
     exit(success ? 0 : 1)

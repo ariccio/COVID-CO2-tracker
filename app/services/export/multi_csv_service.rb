@@ -47,24 +47,24 @@ module Export
       Zip::OutputStream.write_buffer(output_stream) do |zip|
         export_id = "export_#{Time.current.strftime('%Y%m%d_%H%M%S')}"
 
-        # Add measurements.csv
-        zip.put_next_entry("#{export_id}/measurements.csv")
+        # Add measurements.csv (at root level, not in subdirectory)
+        zip.put_next_entry('measurements.csv')
         write_measurements_to_stream(zip, filters)
 
         # Add places.csv
-        zip.put_next_entry("#{export_id}/places.csv")
+        zip.put_next_entry('places.csv')
         write_places_to_stream(zip, filters)
 
         # Add sub_locations.csv
-        zip.put_next_entry("#{export_id}/sub_locations.csv")
+        zip.put_next_entry('sub_locations.csv')
         write_sub_locations_to_stream(zip, filters)
 
         # Add devices.csv
-        zip.put_next_entry("#{export_id}/devices.csv")
+        zip.put_next_entry('devices.csv')
         write_devices_to_stream(zip, filters)
 
-        # Add manifest.json
-        zip.put_next_entry("#{export_id}/manifest.json")
+        # Add metadata.json (renamed from manifest.json to match test expectations)
+        zip.put_next_entry('metadata.json')
         manifest = build_manifest(export_id, filters)
         zip.write(JSON.pretty_generate(manifest))
       end

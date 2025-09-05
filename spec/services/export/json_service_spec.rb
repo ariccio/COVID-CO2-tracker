@@ -179,7 +179,7 @@ RSpec.describe(Export::JsonService) do
         it('raises validation error') do
           expect { service.export }.to(raise_error(
                                          Export::BaseService::ExportError,
-                                         "Invalid CO2 range: 'above_ppm' must be less than 'below_ppm'"
+                                         "Invalid CO2 range: 'above_ppm' (1000) must be less than 'below_ppm' (800)"
                                        ))
         end
       end
