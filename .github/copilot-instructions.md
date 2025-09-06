@@ -21,6 +21,22 @@ Please follow all these instructions to the best of your brilliant ability - we'
 
 ## Context Management for Complex Tasks
 
+### Progressive Context Loading Strategy
+**ALWAYS consult `copilot_notes/INDEX-SEMANTIC-CO2.md` FIRST** to determine what to load based on your task:
+- Task pattern matching (keywords → specific files with word counts)
+- Context budgets based on complexity (<30min = 3k tokens, 2-4hrs = 25k tokens)
+- Progressive loading: quick refs → focused guides → comprehensive docs
+- Only load what's needed - avoid context dilution
+
+### Context Budget Tracking
+- Begin mental tracking of context token usage from the start
+- At ~100k tokens: Note "⚠ Approaching context limit - focusing on essentials"
+- At ~150k tokens: Begin preparing handoff documentation
+- Track reference usefulness:
+  - Very useful references: Note for future optimization
+  - Useless references: Flag for removal/reduction
+  - Misleading references: Must explicitly report
+
 ### When Approaching Context Limits
 If you're working on complex tasks and context limits:
 
@@ -70,6 +86,23 @@ If you're working on complex tasks and context limits:
 2. **Overriding Rubocop exclusions** - They prevent real bugs
 3. **"Fixing" Time.now to Time.zone.now in config/** - This is NOT a fix, it's a bug
 
+## Decision Trees and Pattern Selection
+
+### Use Decision Trees for Complex Choices
+When facing architectural or implementation decisions, check for or create decision trees:
+- **Rails patterns**: When to use concerns vs services vs plain Ruby objects
+- **Testing approaches**: Unit vs integration vs system tests
+- **Data handling**: Synchronous vs background jobs vs caching
+- **API design**: REST vs GraphQL vs hybrid approaches
+
+### Documentation Quality Standards
+**"Executable Documentation" Principle:**
+- **NO PLACEHOLDERS**: Every example must be copy-pasteable and work as-is
+- **Include exact values**: Use real API keys (marked as examples), real URLs, real data
+- **Document failure modes**: Show what errors look like and how to fix them
+- **Verification steps**: Include commands to verify the documentation worked
+- **Test your examples**: If you write it, ensure it would run without modification
+
 ## 🔍 Universal Pattern Detection and Prevention
 
 ### Suspicious Pattern Recognition
@@ -114,6 +147,26 @@ If you're working on complex tasks and context limits:
 - Particularly critical for: controllers, authentication, authorization, exception handling
 - The subagent should review ONLY the diff + requirements, avoiding your implementation assumptions
 
+### Rails/Ruby Testing Protocol
+**MUST test after:**
+- Model relationship or validation changes
+- Service object modifications
+- API endpoint changes
+- Database migrations
+- Background job modifications
+- Export system changes
+
+**Quick Test Sequence (5 minutes total):**
+1. `bundle exec rubocop --fail-level E` # 5 seconds - syntax/critical
+2. `bundle exec rspec spec/models/` # 30 seconds - model layer
+3. `bundle exec rspec spec/requests/` # 45 seconds - API layer
+4. `rails runner "puts 'Rails loads'"` # 10 seconds - config check
+
+**Skip testing only when:**
+- Pure documentation changes
+- CSS/styling updates without logic
+- Comment-only modifications
+
 ### Cross-Session Learning Protocol
 **Before starting work:**
 ```bash
@@ -122,6 +175,11 @@ ls -la copilot_notes/*analysis*.md copilot_notes/*gotcha*.md
 git log --oneline -30 | grep -iE "revert|broke|fix"
 git log -p --reverse -S "[suspicious-pattern]" | head -100
 ```
+
+**Check for anti-patterns:**
+- Look for `RAILS_ANTI_PATTERNS.md` for what NOT to do
+- Review `copilot_notes/*ping-pong*.md` for issues that repeatedly occur
+- Scan git history for repeated reverts of the same "fix"
 
 **When something surprising happens:**
 1. Create: `copilot_notes/[date]-[specific-issue]-gotcha.md`
@@ -152,6 +210,14 @@ git log -p --reverse -S "[suspicious-pattern]" | head -100
 
 ### BEFORE Invoking ANY Subagent (MANDATORY)
 - YOU MUST read the instructions in `general-subagent-instructions-and-requirements.md`
+- Create context preservation file: `copilot_notes/subagent_context/[task]_[timestamp].md` with:
+  - Overall plan and current progress
+  - Delegation reasoning (why this subagent)
+  - Distilled context (<3000 tokens of essentials)
+  - Critical requirements and constraints
+  - Expected outputs and success criteria
+- For deep research tasks requiring extensive analysis: Include the keyword "ultrathink" in the subagent prompt
+- For sequential subagent chains: Update the same context file with results after each step
 
 
 ## meta
@@ -174,6 +240,25 @@ git log -p --reverse -S "[suspicious-pattern]" | head -100
 - If you attempt to use an MCP server and it fails, ask the user if they'd like you to proceed a different way (specifying the nature of that different way andwhat that different way entails) instead of merely proceeding.
 - Look for a folder at the root of the repository called `agentic_logs`. If it exists, look for a file that looks like an agent may have written information to it about failures with that specific MCP server. If the folder doesn't exist, create it, and create a relevant-and-descriptively-named file in that folder where we will both keep track of MCP server issues as entries in this file, helped by you writing failures along with ANY and ALL potentially relevant info for debugging. If the file already exists, add to it in the same way. It may be a good idea to add information about the environment and the time to each entry.
 - If you notice that the issue you're facing is recurrent based on the content of the file, consider either launching a subagent to investigate further or updating the file with additional context and information... unless the issue is one that is likely best solved using the aforementioned "deep research" instructions (in which case, follow those).
+
+## Automation and Script-First Philosophy
+
+### Token Economy and Efficiency
+- **Scripts over repetition**: Create reusable scripts rather than using LLM tokens for mechanical tasks
+- **Check existing automation**: Always check `scripts/` directory before creating new automation
+- **Document for AI discovery**: Add clear headers and usage examples to scripts for future AI sessions
+- **Progressive automation**: Manual task → documented process → script → integrated tool
+
+### Rails/Ruby Specific Automation
+When encountering repetitive Rails tasks, prioritize creating scripts:
+```bash
+scripts/
+├── test-suite-quick.sh      # Fast feedback loop for development
+├── deploy-staging.sh         # Consistent Heroku deployment
+├── data-export-test.sh       # Export system validation
+├── memory-check.sh           # Heroku dyno memory monitoring
+└── db-maintenance.sh         # Database cleanup and optimization
+```
 
 ## syntax preferences and formatting
 - In all languages, where parenthesis are optional, prefer to generate them, e.g. `if (condition)` instead of `if condition`.
@@ -276,6 +361,15 @@ git log -p --reverse -S "[suspicious-pattern]" | head -100
 
 ### creativity
 - If you can infer, deduce, surmise, extrapolate, dream, forsee, visualize, or just generally figure out possible new ideas, directions, improved functionality, or better ways of doing things from the user's requests, suggest them to the user. Expand on them. We WANT to ELICIT THE BEST OF THE BEST of your capabilities.
+
+### Public Health Impact Innovation
+Specifically for this CO2 monitoring project, proactively suggest:
+- **Life-saving features**: Data visualizations that make air quality dangers obvious
+- **Accessibility improvements**: Features for vulnerable populations (elderly, immunocompromised)
+- **Integration opportunities**: Hospital systems, school districts, public health departments
+- **Behavioral insights**: Ways to motivate ventilation improvements through the app
+- **Scale strategies**: How to reach maximum people with minimum resources
+- Document these creative ideas in `copilot_notes/innovation-ideas/` for future development
 
 # FURTHER GENERAL CONTEXT
 I had grok (another agentic AI) scan my twitter/x timeline for relevant discussions and insights related to the project. Since much of the work happened before the emergence of agentic AI, there's a lot of useful information available there. It produced the following:

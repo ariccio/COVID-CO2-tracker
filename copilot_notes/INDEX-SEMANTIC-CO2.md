@@ -68,10 +68,12 @@ This index maps task patterns → relevant files with ACTUAL word counts for pre
 | `rubocop-complexity-reduction-pattern.md` | 674 | Proven patterns for reducing complexity | refactoring, ABC, rubocop, orchestration |
 | `PROBLEM_SOLUTION_MAP_CO2.md` | 299 | Problem → solution mapping | troubleshooting, fixes |
 
-### ⚠️ CRITICAL: Known Issues & Anti-Patterns (2,885 words)
+### ⚠️ CRITICAL: Known Issues & Anti-Patterns (5,885 words)
 | File | Words | Description | Keywords |
 |------|-------|-------------|----------|
+| `RAILS_ANTI_PATTERNS.md` | 1,800 | Common Rails mistakes to avoid | N+1, queries, services, testing |
 | `time-zone-ping-pong-analysis.md` | 1,576 | Time.zone startup failure pattern | CRITICAL, Rails init, Time.now |
+| `RAILS_DECISION_TREES.md` | 1,200 | Architecture decision guides | patterns, choices, service vs model |
 | `ai-session-pattern-analysis.md` | 1,084 | AI session behavior patterns | sessions, memory, patterns |
 | `GOTCHA-TEMPLATE.md` | 225 | Template for documenting gotchas | template, documentation |
 
