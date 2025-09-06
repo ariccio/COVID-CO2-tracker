@@ -98,6 +98,39 @@
 - [ ] **Simplify date parsing**: Use Rails date parsing helpers instead of manual regex/strptime
 - [ ] **Consider filter builder pattern**: For complex multi-parameter filter construction
 
+## 🗄️ Database Schema Issues (From active_record_doctor analysis - 2025-09-05)
+
+### Missing Foreign Key Constraints
+- [ ] Add foreign key constraint on `places.google_place_id` - looks like an association without proper constraint
+
+### Redundant Indexes (Can Be Removed)
+- [ ] Remove `index_measurements_on_measurementtime` - redundant with `index_measurements_on_time_and_co2`
+
+### Missing Unique Indexes (Prevent Duplicates)
+- [ ] Add unique index on `measurements(extra_measurement_info_id)` - has_one without unique index can lead to duplicates
+- [ ] Add unique index on `user_settings(user_id)` - has_one without unique index can lead to duplicates
+
+### Missing NOT NULL Constraints
+- [ ] Add NOT NULL to `active_admin_comments.namespace` - model validates presence but not enforced in DB
+- [ ] Add NOT NULL to `active_admin_comments.body` - model validates presence but not enforced in DB
+- [ ] Add NOT NULL to `active_admin_comments.resource_type` - model validates presence but not enforced in DB
+- [ ] Add NOT NULL to `active_admin_comments.resource_id` - model validates presence but not enforced in DB
+- [ ] Add NOT NULL to `export_tokens.description` - model validates presence but not enforced in DB
+- [ ] Add NOT NULL to `export_tokens.expires_at` - model validates presence but not enforced in DB
+- [ ] Add NOT NULL to `users.email` - model validates presence but not enforced in DB
+- [ ] Add NOT NULL to `users.sub_google_uid` - model validates presence but not enforced in DB
+
+### Missing Presence Validators
+- [ ] Add presence validator to `ExportToken.usage_count` - it's NOT NULL but lacks validator
+- [ ] Add presence validator to `ExportToken.permissions` - it's NOT NULL but lacks validator
+- [ ] Add presence validator to `ExportToken.token_hash` - it's NOT NULL but lacks validator
+- [ ] Add presence validator to `Place.google_place_id` - it's NOT NULL but lacks validator
+- [ ] Add presence validator to `Place.last_fetched` - it's NOT NULL but lacks validator
+- [ ] Add presence validator to `AdminUser.encrypted_password` - it's NOT NULL but lacks validator
+
+### Association Optimization
+- [ ] Change `User.user_setting` to use `dependent: :delete` instead of `:destroy` - UserSetting has no callbacks
+
 ## 🧪 Test Suite Improvements (From Comprehensive Test Review)
 
 ### Critical Test Architecture Issues
