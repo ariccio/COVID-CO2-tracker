@@ -1625,8 +1625,7 @@
 
   The pattern of extracting complex logic into small, focused methods with descriptive names consistently reduces ABC complexity while improving readability.
 
-> Fantastic work. Please again, but for this more complex problem and task, think very hard about the best way to incorporate that into our repository level instructions. Do so in a way that flexibly describes the problem, is likely to be followed by agentic LLMs without 
-  unintentionally or counterproductively constraining their abilities, and without diluting the model's attention. Perhaps incorporate it into the knowledgebase or one of the problem/solution maps?
+> Fantastic work. Please again, but for this more complex problem and task, think very hard about the best way to incorporate that into our repository level instructions. Do so in a way that flexibly describes the problem, is likely to be followed by agentic LLMs without unintentionally or counterproductively constraining their abilities, and without diluting the model's attention. Perhaps incorporate it into the knowledgebase or one of the problem/solution maps?
 
 ✻ Thinking…
 

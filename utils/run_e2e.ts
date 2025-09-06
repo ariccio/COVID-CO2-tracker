@@ -9,6 +9,7 @@ import {exec, SubProcess, SubProcessOptions} from 'teen_process';
 // var colors = require('colors');
 
 import picocolors from 'picocolors';
+import * as util from 'node:util';
 
 console.log(`run_e2e.ts`);
 
@@ -346,7 +347,17 @@ function setupFollowerHooks(proc: procHandle, name: string): void {
     });
 
     proc.on("exit", (code, signal) => {
-        console.log(`${name}:${proc.pid} exit: ${code}, ${signal}`)
+        if (code === null) {
+            console.log(`${name}:${proc.pid} exited with signal ${signal}`)
+        }
+        else {
+            if (signal === null) {
+                console.log(`${name}:${proc.pid} exited with code ${code}`)
+            }
+            else {
+                console.log(`${name}:${proc.pid} exited: ${code}, ${signal}`)
+            }
+        }
     });
     proc.on("stop", (code, signal) => {
         console.log(`${name}:${proc.pid} stop: ${code}, ${signal}`)
@@ -355,7 +366,21 @@ function setupFollowerHooks(proc: procHandle, name: string): void {
         console.log(`${name}:${proc.pid} end: ${code}, ${signal}`)
     });
     proc.on("die", (code, signal) => {
-        console.log(`${name}:${proc.pid} die: ${code}, ${signal}`)
+        if (signal === null) {
+            console.error(picocolors.red(`ERROR: Process ${name}:${proc.pid} died with code ${code}`));
+        }
+        else {
+            if (code === null) {
+                console.error(picocolors.red(`ERROR: Process ${name}:${proc.pid} died with signal ${signal}`));
+            }
+            else {
+                console.error(picocolors.red(`ERROR: Process ${name}:${proc.pid} died: ${code}, ${signal}`))
+            }
+        }
+        console.warn(picocolors.yellow(`Probably no way to reasonably handle this? Will just also die.`))
+        tryAndExitAll().then(() => {
+            throw new Error(`Process ${name}:${proc?.pid} died, so unwinding with an exception...`)
+        });
     });
 
 }
@@ -369,13 +394,13 @@ function sleep(ms: number) {
 
 async function politeCtrlC(proc: SubProcess): Promise<undefined | boolean> {
     if (!(proc.isRunning)) {
-        console.log(`no ${proc.cmd} to send ctrl+c to!`);
+        console.log(picocolors.yellow(`no ${proc.cmd} to send ctrl+c to!`));
         return;
     }
     console.log(`sending ctrl-c to ${proc.cmd} (${proc.pid})...`);
     try {
         await proc.stop('SIGINT', 1000);
-        console.log(`process quit!`);
+        console.log(`process ${proc.cmd} quit!`);
         return true;
     }
     catch (e) {
@@ -385,7 +410,7 @@ async function politeCtrlC(proc: SubProcess): Promise<undefined | boolean> {
                 return;
             }
             if (e.message.startsWith(`Process didn't end after `)) {
-                console.log(picocolors.yellow(`process did not stop!`));
+                console.log(picocolors.yellow(`process '${proc.cmd}' did not stop!`));
                 proc.expectingExit
                 return false;
             }
@@ -399,8 +424,8 @@ async function politeTerminate(proc: SubProcess) {
     // if (!(proc.isRunning)) {
     //     return;
     // }
-    // console.log(`sending terminate to ${proc.cmd}...`);
-    // console.group(`${proc.cmd} termination output:`)
+    console.warn(picocolors.yellow(`sending terminate to ${proc.cmd}...`));
+    console.group(picocolors.yellow(`${proc.cmd} termination output:`))
     await proc.stop('SIGTERM', 10_000);
     // console.groupEnd();
     // console.log(`process quit!`);
@@ -427,7 +452,7 @@ async function ensureClosed(proc?: SubProcess) {
     try {
         const result = await politeCtrlC(proc);
         if (result) {
-            console.log(`Seems to have politely terminated.`);
+            console.log(`${proc.cmd}:${proc.pid} seems to have politely terminated.`);
             return;
         }
     }
@@ -447,17 +472,21 @@ async function ensureClosed(proc?: SubProcess) {
     }
 
     try {
-        console.log("Ok, now trying to politely terminate too...");
+        console.log(picocolors.yellow("Ok, now trying to politely terminate too..."));
         await politeTerminate(proc);
     }
     catch (e) {
-        console.log(picocolors.yellow(`Caught: ${String(e)}`));
+        
         if (e) {
             if ((e as any).message) {
                 if (/Can't stop process; it's not currently running/.test((e as Error).message)) {
                     return;
                 }
             }
+            console.log(picocolors.yellow(`Caught: ${String(e)}`));
+        }
+        else {
+            console.log(picocolors.yellow(`Caught unknown exception!`));
         }
         console.log(picocolors.yellow(`proc ${proc?.cmd} did NOT politely stop with term.`));
         await killProc(proc);
@@ -469,13 +498,14 @@ async function ensureClosed(proc?: SubProcess) {
 
 function forceCloseByKilling(pid: number | undefined) {
     if (pid === undefined) {
-        console.log(`pid is undefined! Nothing to close.`);
+        console.log(picocolors.yellow(`pid is undefined! Nothing to close.`));
         return;
     }
     // https://nodejs.org/api/process.html#processkillpid-signal:~:text=in%20Worker%20threads.-,process.kill(pid%5B%2C%20signal%5D),-%23
-    console.log(`force closing pid ${pid}`);
+    console.log(picocolors.yellow(`force closing pid ${pid}`));
     try {
         // https://github.com/nodejs/node/blob/4df34cf6dd497c4b7487c98fa5581c85b05063dc/lib/internal/process/per_thread.js#L200
+        // https://github.com/nodejs/node/blob/b6cfba7cfb4f6e128290a28968c09bfc3b507566/src/node_process_methods.cc#L176
         const err = process.kill(pid);
     }
     // https://github.com/nodejs/node/blob/4df34cf6dd497c4b7487c98fa5581c85b05063dc/lib/internal/process/per_thread.js#L223
@@ -492,22 +522,27 @@ function forceCloseByKilling(pid: number | undefined) {
             console.warn(picocolors.yellow("Caught non ErrnoException error! (missing errno)"));
             throw e;
         }
+        const errorName = util.getSystemErrorName(e.errno);
+        console.error(picocolors.red(`Tried killing pid: ${pid}, underlying syscall returned errno ${e.errno}, a.k.a. error name: ${errorName}`));
+        if (e.code === 'ESRCH') {
+            console.warn(picocolors.yellow(`pid ${pid} not found! Couldn't kill.`));
+            return;
+        }        
         if (e.code === undefined) {
             console.warn(picocolors.yellow("Caught non ErrnoException error! (missing code)"));
             throw e;
         }
+        console.warn(picocolors.yellow(`process.kill(${pid}) threw an exception with code: ${e.code}`));
         if (e.syscall === undefined) {
             console.warn(picocolors.yellow("Caught non ErrnoException error! (missing syscall)"));
             throw e;
         }
+        console.warn(picocolors.yellow(`process.kill(${pid}) threw an exception with syscall: ${e.syscall}`));
         if (e.message === undefined) {
             console.warn(picocolors.yellow("Caught non ErrnoException error! (missing message)"));
             throw e;
         }
-        if (e.code === 'ESRCH') {
-            console.log(picocolors.yellow(`pid ${pid} not found! Couldn't kill.`));
-            return;
-        }
+        console.warn(picocolors.yellow(`process.kill(${pid}) threw an exception with message: ${e.message}`));
         throw e;
     }
 
@@ -617,7 +652,7 @@ async function main() {
     }
 
     // rake --trace=stdout --verbose --backtrace=stdout cypress:run 
-    cypress_rails = new SubProcess('rake cypress:run', undefined, rails_opts);
+    cypress_rails = new SubProcess('bundle exec rake cypress:run', undefined, rails_opts);
     setupFollowerHooks(cypress_rails, "cypress_rails");
     
     // let frontendEnv = JSON.parse(JSON.stringify(process.env));
