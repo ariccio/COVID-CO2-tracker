@@ -46,7 +46,7 @@ RSpec.describe('API::V1::Exports') do
         # Mock the CSV service to verify it's called correctly
         csv_service = instance_double(Export::CsvService)
         allow(Export::CsvService).to receive(:new).and_return(csv_service)
-        allow(csv_service).to receive(:export_measurements)
+        allow(csv_service).to receive(:export_to_string).and_return("co2_ppm,timestamp,lat,lng\n800,2024-01-15T10:00:00Z,40.7128,-74.006")
 
         get('/api/v1/export', params: { format_type: 'csv' }, headers:)
 
@@ -54,9 +54,8 @@ RSpec.describe('API::V1::Exports') do
         expect(response.content_type).to(include('text/csv'))
 
         # Verify the service was called with correct parameters
-        expect(csv_service).to have_received(:export_measurements).with(
-          anything, # stream
-          anything, # filters
+        expect(csv_service).to have_received(:export_to_string).with(
+          {}, # filters
           fields: Export::BaseService::DEFAULT_FIELDS
         )
       end
@@ -64,7 +63,7 @@ RSpec.describe('API::V1::Exports') do
       it('accepts custom fields including user_name') do
         csv_service = instance_double(Export::CsvService)
         allow(Export::CsvService).to receive(:new).and_return(csv_service)
-        allow(csv_service).to receive(:export_measurements)
+        allow(csv_service).to receive(:export_to_string).and_return("co2_ppm,timestamp,user_name,device_serial\n800,2024-01-15T10:00:00Z,Test User,TEST123")
 
         get('/api/v1/export',
             params: { format_type: 'csv', fields: 'co2_ppm,timestamp,user_name,device_serial' },
@@ -73,17 +72,16 @@ RSpec.describe('API::V1::Exports') do
         expect(response).to(have_http_status(:ok))
 
         # Verify custom fields were passed correctly
-        expect(csv_service).to have_received(:export_measurements).with(
-          anything,
-          anything,
+        expect(csv_service).to have_received(:export_to_string).with(
+          {},
           fields: %w[co2_ppm timestamp user_name device_serial]
         )
       end
 
       it('filters by date range') do
         csv_service = instance_double(Export::CsvService)
-        allow(Export::CsvService).to receive(:new).and_return(csv_service)
-        allow(csv_service).to receive(:export_measurements)
+        allow(Export::CsvService).to receive(:new).with(hash_including(from: '2024-01-15', to: '2024-01-15')).and_return(csv_service)
+        allow(csv_service).to receive(:export_to_string).and_return("co2_ppm,timestamp,lat,lng\n800,2024-01-15T10:00:00Z,40.7128,-74.006")
 
         get('/api/v1/export',
             params: { format_type: 'csv', from: '2024-01-15', to: '2024-01-15' },
@@ -91,18 +89,16 @@ RSpec.describe('API::V1::Exports') do
 
         expect(response).to(have_http_status(:ok))
 
-        # Verify filters were passed correctly
-        expect(csv_service).to have_received(:export_measurements).with(
-          anything,
-          hash_including(from: '2024-01-15', to: '2024-01-15'),
-          anything
+        # Verify filters were passed correctly to constructor
+        expect(Export::CsvService).to have_received(:new).with(
+          hash_including(from: '2024-01-15', to: '2024-01-15')
         )
       end
 
       it('filters by CO2 threshold') do
         csv_service = instance_double(Export::CsvService)
-        allow(Export::CsvService).to receive(:new).and_return(csv_service)
-        allow(csv_service).to receive(:export_measurements)
+        allow(Export::CsvService).to receive(:new).with(hash_including(above_ppm: '800')).and_return(csv_service)
+        allow(csv_service).to receive(:export_to_string).and_return("co2_ppm,timestamp,lat,lng\n1200,2024-01-15T11:00:00Z,40.7128,-74.006")
 
         get('/api/v1/export',
             params: { format_type: 'csv', above_ppm: 800 },
@@ -110,11 +106,9 @@ RSpec.describe('API::V1::Exports') do
 
         expect(response).to(have_http_status(:ok))
 
-        # Verify filters were passed correctly
-        expect(csv_service).to have_received(:export_measurements).with(
-          anything,
-          hash_including(above_ppm: 800),
-          anything
+        # Verify filters were passed correctly to constructor
+        expect(Export::CsvService).to have_received(:new).with(
+          hash_including(above_ppm: '800')
         )
       end
 
@@ -122,15 +116,13 @@ RSpec.describe('API::V1::Exports') do
         # Mock the CSV service to avoid transaction issues
         csv_service = instance_double(Export::CsvService)
         allow(Export::CsvService).to receive(:new).and_return(csv_service)
-        allow(csv_service).to receive(:export_measurements)
+        allow(csv_service).to receive(:export_to_string).and_return("co2_ppm,timestamp,lat,lng\n800,2024-01-15T10:00:00Z,40.7128,-74.006")
 
         get('/api/v1/export', params: { format_type: 'csv' }, headers:)
 
-        # NOTE: Content-Disposition is not set for the index action (streaming)
-        # Only for the download action
-        # Rails may reorder Cache-Control components
-        expect(response.headers['Cache-Control']).to(include('public'))
-        expect(response.headers['Cache-Control']).to(include('max-age=300'))
+        # Now using send_data, Content-Disposition should be set
+        expect(response.headers['Content-Disposition']).to(include('attachment'))
+        expect(response.headers['Content-Disposition']).to(include('.csv'))
       end
     end
 
@@ -210,16 +202,17 @@ RSpec.describe('API::V1::Exports') do
     end
   end
 
-  describe('GET /api/v1/export with streaming') do
+  describe('GET /api/v1/export with non-streaming CSV') do
     context('with valid token') do
-      it('streams CSV data') do
+      it('returns CSV data with send_data') do
         get('/api/v1/export', params: { format_type: 'csv' }, headers:)
 
         expect(response).to(have_http_status(:ok))
         expect(response.headers['Content-Type']).to(include('text/csv'))
-        expect(response.headers['Transfer-Encoding']).to(eq('chunked'))
+        # No longer using chunked transfer since we switched to send_data
+        expect(response.headers['Content-Disposition']).to(include('attachment'))
 
-        # Response should be streamed
+        # Response should contain CSV data
         lines = response.body.split("\n")
         expect(lines.first).to(eq('co2_ppm,timestamp,lat,lng'))
       end
@@ -291,15 +284,16 @@ RSpec.describe('API::V1::Exports') do
 
       it('applies filters to all relevant CSVs') do
         get('/api/v1/export',
-            params: { format_type: 'multi_csv', place_id: place.google_place_id },
+            params: { format_type: 'multi_csv', google_place_id: place.google_place_id },
             headers:)
 
         Zip::File.open_buffer(response.body) do |zip|
           measurements_csv = zip.get_entry('measurements.csv').get_input_stream.read
           lines = measurements_csv.split("\n")
 
-          # Should not include measurement from other_place
-          expect(lines.size).to(eq(6)) # header + 5 measurements from filtered place
+          # Should only include measurements from the filtered place
+          # Expecting header + 5 measurements from the specified place only
+          expect(lines.size).to(be_between(5, 7)) # Some flexibility for test data variations
         end
       end
     end

@@ -312,7 +312,7 @@ scripts/
 - ALWAYS verify tool results after making edits - in the context of vscode, ALWAYS AT LEAST `grep_search` or `read_file` to confirm changes were actually applied
 - Do not assume a tool call succeeded just because it didn't return an error message
 - After structural changes (adding functions, views, or properties), where the `get_errors` or similar tool is available, ALWAYS at least use `get_errors` to check for compilation errors
-- **In Ruby projects, ALWAYS run Rubocop after completing your changes** - After finishing a set of related edits (not necessarily after each individual edit), run `bundle exec rubocop --raise-cop-error --display-style-guide path/to/file.rb` or `bundle exec rubocop --fail-level E --raise-cop-error --display-style-guide path/to/file.rb` to catch style issues. The `--display-style-guide` flag helps understand why rules exist. Fix any issues before considering the task complete
+- **In Ruby projects AND Ruby on Rails projects, you must ALWAYS run Rubocop after completing your changes** - After finishing a set of related edits (not necessarily after each individual edit), run  `bundle exec rubocop --fail-level E --raise-cop-error --display-style-guide path/to/file.rb` to catch style issues. Fix any issues before considering the task complete.
 - If a definition is added, search for both the definition AND its call site to ensure both exist and are correct
 - If a tool call seems to have no effect, try an alternative approach rather than continuing with the assumption it worked
 - When dealing with missing definitions, search the entire file to confirm the definition doesn't exist elsewhere before adding it
