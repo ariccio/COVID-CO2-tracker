@@ -130,7 +130,7 @@ RSpec.describe(Export::JsonService) do
     context('with place filter') do
       let(:other_place) { create(:place, google_place_id: 'different_id') }
       let(:other_sub_location) { create(:sub_location, place: other_place) }
-      let(:filters) { { place_id: place.google_place_id } }
+      let(:filters) { { google_place_id: place.google_place_id } }
 
       before do
         create(:measurement,

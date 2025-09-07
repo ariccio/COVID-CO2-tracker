@@ -253,7 +253,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
 
         # Try to trigger injection through place filter
         query_builder = Export::QueryBuilder.new
-        query = query_builder.build(filters: { place_id: malicious_place.id })
+        query = query_builder.build(filters: { place_database_id: malicious_place.id })
 
         # Should safely handle the malicious place name
         expect { query.count }.not_to raise_error
@@ -280,12 +280,12 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         false_condition = "1' AND '1'='2"
 
         get '/api/v1/export',
-            params: { format_type: 'csv', place_id: true_condition },
+            params: { format_type: 'csv', place_database_id: true_condition },
             headers: { 'Authorization' => "Bearer #{token.raw_token}" }
         true_response = response.body
 
         get '/api/v1/export',
-            params: { format_type: 'csv', place_id: false_condition },
+            params: { format_type: 'csv', place_database_id: false_condition },
             headers: { 'Authorization' => "Bearer #{token.raw_token}" }
         false_response = response.body
 
@@ -298,7 +298,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
           format_type: 'csv',
           from: "2024-01-01'; --",
           to: "2024-12-31' OR '1'='1",
-          place_id: '1 OR 1=1',
+          place_database_id: '1 OR 1=1',
           device_id: '1; DROP TABLE devices; --',
           above_ppm: "500' UNION SELECT * FROM export_tokens --",
           below_ppm: '1000); DELETE FROM measurements; --',

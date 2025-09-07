@@ -82,24 +82,43 @@ RSpec.describe 'Export Security', type: :request do
       query_builder = Export::QueryBuilder.new
       filters = { above_ppm: malicious_ppm }
 
-      # Should convert to integer, preventing injection
-      query = query_builder.build(filters:)
-      expect(query.to_sql).to include('co2ppm > 1000')
-      expect(query.to_sql).not_to include('1=1')
+      # Should raise an error for invalid numeric input, preventing injection
+      expect {
+        query_builder.build(filters:)
+      }.to raise_error(Export::BaseService::ExportError, /Invalid above_ppm/)
     end
 
-    it 'sanitizes place_id against SQL injection' do
-      # Attempt SQL injection in place_id
+    it 'sanitizes place_database_id against SQL injection' do
+      # Attempt SQL injection in place_database_id
       malicious_id = '1 OR 1=1; DELETE FROM places'
 
       query_builder = Export::QueryBuilder.new
-      filters = { place_id: malicious_id }
+      filters = { place_database_id: malicious_id }
 
-      # Should convert to integer, preventing injection
+      # Should raise an error for invalid numeric input, preventing injection
+      expect {
+        query_builder.build(filters:)
+      }.to raise_error(Export::BaseService::ExportError, /Invalid place_database_id/)
+    end
+
+    it 'sanitizes google_place_id against SQL injection' do
+      # Attempt SQL injection in google_place_id
+      malicious_id = "'; DELETE FROM places WHERE '1'='1"
+
+      query_builder = Export::QueryBuilder.new
+      filters = { google_place_id: malicious_id }
+
+      # Should properly escape the string - Rails will parameterize it safely
       query = query_builder.build(filters:)
-      # ActiveRecord properly quotes table and column names
-      expect(query.to_sql).to include('"places"."id" = 1')
-      expect(query.to_sql).not_to include('DELETE')
+      sql = query.to_sql
+      
+      # The malicious string should be escaped/parameterized, not executed
+      # Rails escapes single quotes in the string, preventing SQL injection
+      expect(sql).to include('google_place_id')
+      # Verify it's treating it as a string value, not executing SQL
+      expect(sql).to include("'; DELETE FROM places WHERE ''1''=''1")
+      # Ensure the Measurement table still exists (injection didn't execute)
+      expect(Measurement.table_exists?).to be true
     end
   end
 
@@ -168,24 +187,19 @@ RSpec.describe 'Export Security', type: :request do
     end
 
     it 'handles client disconnects gracefully' do
-      # Mock Rails.logger to track logging
-      allow(Rails.logger).to receive(:warn)
-
-      # Mock a client disconnect scenario
-      # Since we can't easily avoid allow_any_instance_of for framework classes,
-      # we'll use rubocop:disable for this specific case
-      # rubocop:disable RSpec/AnyInstance
-      allow_any_instance_of(ActionDispatch::Response::Buffer).to receive(:write).and_raise(IOError)
-      # rubocop:enable RSpec/AnyInstance
-
-      expect do
-        get '/api/v1/export',
-            params: { format_type: 'csv' },
-            headers: { 'Authorization' => "Bearer #{token.raw_token}" }
-      end.not_to raise_error
-
-      # Should log the disconnect
-      expect(Rails.logger).to have_received(:warn).with(/Client disconnected/)
+      # With the non-streaming approach using send_data, client disconnections
+      # are handled at a lower level by Rails/Rack and don't bubble up as exceptions
+      # to our application code. The data is buffered and sent, and if the client
+      # disconnects, the framework handles it gracefully.
+      
+      # This test now verifies that the CSV export completes successfully
+      # without streaming-related issues
+      get '/api/v1/export',
+          params: { format_type: 'csv' },
+          headers: { 'Authorization' => "Bearer #{token.raw_token}" }
+      
+      expect(response).to have_http_status(:ok)
+      expect(response.headers['Content-Type']).to include('text/csv')
     end
 
     it 'cleans up resources in ensure block' do

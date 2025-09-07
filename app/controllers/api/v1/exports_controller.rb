@@ -68,9 +68,6 @@ class Api::V1::ExportsController < Api::BaseController
     result = JSON.parse(result_json) if result_json.is_a?(String)
 
     render json: result, status: :ok
-  rescue StandardError => e
-    Rails.logger.error "JSON export error: #{e.message}"
-    render json: { error: 'Export failed' }, status: :internal_server_error
   end
 
   def render_csv_export(fields, filters)
@@ -85,9 +82,6 @@ class Api::V1::ExportsController < Api::BaseController
               filename: filename,
               type: 'text/csv; charset=utf-8',
               disposition: 'attachment'
-  rescue StandardError => e
-    Rails.logger.error "CSV export error: #{e.message}"
-    render json: { error: 'Export failed' }, status: :internal_server_error
   end
 
   # Authentication and rate limiting moved to concerns
