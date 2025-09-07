@@ -23,6 +23,9 @@ class Api::V1::ExportsController < Api::BaseController
     # For JSON format (not JSONL), return structured response
     if format == 'json'
       render_json_export(fields, filters)
+    elsif format == 'csv'
+      # Use non-streaming approach for CSV to avoid ActionController::Live issues
+      render_csv_export(fields, filters)
     else
       # Check cache first for other formats
       cache_key = build_cache_key(format, fields, filters)
@@ -67,6 +70,23 @@ class Api::V1::ExportsController < Api::BaseController
     render json: result, status: :ok
   rescue StandardError => e
     Rails.logger.error "JSON export error: #{e.message}"
+    render json: { error: 'Export failed' }, status: :internal_server_error
+  end
+
+  def render_csv_export(fields, filters)
+    @export_token.record_usage!
+
+    service = Export::CsvService.new(filters)
+    csv_content = service.export_to_string(filters, fields:)
+    
+    filename = "co2_export_#{Time.current.strftime('%Y%m%d_%H%M%S')}.csv"
+    
+    send_data csv_content,
+              filename: filename,
+              type: 'text/csv; charset=utf-8',
+              disposition: 'attachment'
+  rescue StandardError => e
+    Rails.logger.error "CSV export error: #{e.message}"
     render json: { error: 'Export failed' }, status: :internal_server_error
   end
 
@@ -218,9 +238,18 @@ class Api::V1::ExportsController < Api::BaseController
   end
 
   def stream_csv_format(exporter, filters, fields)
-    # Use standard export for CSV
-    exporter.export_measurements(response.stream, filters, fields:)
-    return 0 # CSV export doesn't return count in this implementation
+    # Use non-streaming approach for CSV to avoid ActionController::Live issues
+    # Buffer entire CSV in memory then send it
+    csv_content = exporter.export_to_string(filters, fields:)
+    
+    # Send the complete CSV data without streaming
+    response.headers['Content-Type'] = 'text/csv; charset=utf-8'
+    response.headers['Content-Disposition'] = 'attachment; filename="export.csv"'
+    response.stream.write(csv_content)
+    
+    # Return approximate record count
+    csv_lines = csv_content.lines.count
+    return [csv_lines - 1, 0].max  # Subtract header row
   end
 
   def handle_client_disconnect_during_export(error)
@@ -307,10 +336,11 @@ class Api::V1::ExportsController < Api::BaseController
     {
       from: params[:from],
       to: params[:to],
-      place_id: params[:place_id],
+      place_database_id: params[:place_database_id],
+      google_place_id: params[:google_place_id],
       device_id: params[:device_id],
-      above_ppm: params[:above_ppm]&.to_i,
-      below_ppm: params[:below_ppm]&.to_i
+      above_ppm: params[:above_ppm],
+      below_ppm: params[:below_ppm]
     }.compact
   end
 

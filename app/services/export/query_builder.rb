@@ -20,6 +20,22 @@ module Export
 
     private
 
+    def validate_numeric_filter(value, param_name)
+      return nil if value.nil? || value == ''
+
+      # Check if it's already numeric
+      return value if value.is_a?(Numeric)
+
+      # For strings, validate format
+      string_value = value.to_s.strip
+      unless string_value.match?(/\A-?\d+\z/)
+        raise Export::BaseService::ExportError,
+              "Invalid #{param_name}: expected numeric value, got '#{string_value}'"
+      end
+
+      string_value.to_i
+    end
+
     def apply_date_filters(query, filters)
       if filters[:from]
         from_date = parse_date(filters[:from])
@@ -38,46 +54,45 @@ module Export
 
     def apply_co2_filters(query, filters)
       if filters[:above_ppm]
-        # Sanitize and use parameterized query with named placeholder
-        ppm_value = filters[:above_ppm].to_i
-        query = query.where('co2ppm > :ppm', ppm: ppm_value)
+        # Validate and use parameterized query with named placeholder
+        ppm_value = validate_numeric_filter(filters[:above_ppm], 'above_ppm')
+        query = query.where('co2ppm > :ppm', ppm: ppm_value) if ppm_value
       end
 
       if filters[:below_ppm]
-        # Sanitize and use parameterized query with named placeholder
-        ppm_value = filters[:below_ppm].to_i
-        query = query.where('co2ppm < :ppm', ppm: ppm_value)
+        # Validate and use parameterized query with named placeholder
+        ppm_value = validate_numeric_filter(filters[:below_ppm], 'below_ppm')
+        query = query.where('co2ppm < :ppm', ppm: ppm_value) if ppm_value
       end
 
       query
     end
 
     def apply_location_filters(query, filters)
-      if filters[:place_id]
-        # SECURITY: Extract leading numeric portion and convert to integer
-        # This prevents SQL injection by ensuring we only use integer IDs
-        # Examples: '1 OR 1=1' -> 1, 'abc123' -> 0, '42' -> 42
-        place_id_string = filters[:place_id].to_s.strip
-
-        # Try to extract a numeric ID from the beginning of the string
-        if /^\d+/.match?(place_id_string)
-          # Extract just the numeric portion and convert to integer
-          # This prevents any SQL injection as we're only using the numeric part
-          place_id = place_id_string.to_i
+      # Handle place_database_id parameter for internal database IDs
+      if filters[:place_database_id]
+        # Validate that it's a numeric ID
+        place_id = validate_numeric_filter(filters[:place_database_id], 'place_database_id')
+        if place_id
           query = query.joins(sub_location: :place)
                        .where(places: { id: place_id })
-        else
-          # Non-numeric place_id, treat as google_place_id
+        end
+      end
+
+      # Handle google_place_id parameter for Google Place IDs
+      if filters[:google_place_id]
+        google_place_id = filters[:google_place_id].to_s.strip
+        unless google_place_id.empty?
           # Rails will properly parameterize this to prevent SQL injection
           query = query.joins(sub_location: :place)
-                       .where(places: { google_place_id: place_id_string })
+                       .where(places: { google_place_id: google_place_id })
         end
       end
 
       if filters[:device_id]
-        # Sanitize device_id before using in query
-        device_id = filters[:device_id].to_i
-        query = query.where(device_id:)
+        # Validate device_id before using in query
+        device_id = validate_numeric_filter(filters[:device_id], 'device_id')
+        query = query.where(device_id:) if device_id
       end
 
       if filters[:device_serial]

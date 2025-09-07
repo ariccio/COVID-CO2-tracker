@@ -67,6 +67,8 @@ module Export
     def write_line(stream, content)
       if stream.respond_to?(:write)
         stream.write(content)
+        # Flush the stream if it supports it (for ActionController::Live streaming)
+        stream.flush if stream.respond_to?(:flush)
       else
         stream.puts(content.chomp)
       end

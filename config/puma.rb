@@ -6,7 +6,9 @@
 # the maximum value specified for Puma. Default is set to 5 threads for minimum
 # and maximum; this matches the default thread size of Active Record.
 #
-max_threads_count = ::ENV.fetch('RAILS_MAX_THREADS', 50)
+# For Heroku deployment on 512MB dynos, we must use conservative thread counts
+# Default to 3 threads (Heroku documentation strongly recommends this for memory-constrained dynos)
+max_threads_count = ::ENV.fetch('RAILS_MAX_THREADS', 3)
 min_threads_count = ::ENV.fetch('RAILS_MIN_THREADS') { max_threads_count }
 threads min_threads_count, max_threads_count
 
@@ -32,14 +34,24 @@ pidfile ::ENV.fetch('PIDFILE', 'tmp/pids/server.pid')
 # Workers do not work on JRuby or Windows (both of which do not support
 # processes).
 #
-# workers ENV.fetch("WEB_CONCURRENCY") { 2 }
+# CRITICAL for Heroku: Must be exactly 1 worker for 512MB dyno
+workers ::ENV.fetch('WEB_CONCURRENCY', 1)
 
 # Use the `preload_app!` method when specifying a `workers` number.
 # This directive tells Puma to first boot the application and load code
 # before forking the application. This takes advantage of Copy On Write
 # process behavior so workers use less memory.
 #
-# preload_app!
+preload_app!
+
+# Essential for proper database connection handling on Heroku
+before_fork do
+  ActiveRecord::Base.connection_pool.disconnect! if defined?(ActiveRecord)
+end
+
+on_worker_boot do
+  ActiveRecord::Base.establish_connection if defined?(ActiveRecord)
+end
 
 # Allow puma to be restarted by `rails restart` command.
 plugin :tmp_restart
