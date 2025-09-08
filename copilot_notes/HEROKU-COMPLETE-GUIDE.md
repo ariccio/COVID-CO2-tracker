@@ -1,6 +1,21 @@
 # Heroku Complete Operations Guide
 *The definitive reference for COVID CO2 Tracker production operations on Heroku*
 
+## ⚠️ Current Deployment Status
+
+> **Last Deployment**: Commit `f8283b3d` on July 20, 2024 (v220)  
+> **Commits Pending**: 62 commits in `main` not deployed  
+> **Check Status**: `heroku releases --app covid-co2-tracker --num 5`  
+> **Deploy Now**: `git push heroku main` (see section 2 for details)
+
+### Deployment Lag Monitoring
+```bash
+# Check deployment lag
+LAST_DEPLOYED=$(heroku releases --app covid-co2-tracker --json | jq -r '.[0].description' | grep -o '[a-f0-9]\{7,\}')
+COMMITS_BEHIND=$(git log $LAST_DEPLOYED..HEAD --oneline | wc -l)
+echo "Production is $COMMITS_BEHIND commits behind main"
+```
+
 ## Table of Contents
 
 1. **[Quick Reference](#quick-reference)** - Most used commands and critical configurations

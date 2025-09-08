@@ -1,6 +1,13 @@
 # Claude Code Instructions
 This file is intended to route claude to the main ai-agent-agnostic instruction files that we share between claude and copilot and other agents. Those files are detailed below.
 
+## ⚠️ Deployment Status - CHECK BEFORE ASSUMING FEATURES EXIST
+
+> **Production is running commit `f8283b3d` (July 20, 2024)**  
+> There are **62 commits** in `main` not yet deployed.  
+> Major features NOT in production: Export system, Rubocop fixes, AI infrastructure  
+> Always verify with: `heroku releases --app covid-co2-tracker`
+
 ## Primary Instructions (YOU MUST include/read/reference these)
 @.github/ai-instructions.md
 

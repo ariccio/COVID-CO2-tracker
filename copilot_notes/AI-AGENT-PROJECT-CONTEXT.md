@@ -1,5 +1,16 @@
 # AI Agent Context for COVID CO2 Tracker
 
+## ⚠️ Production vs Development Status
+
+> **CRITICAL**: Production is running commit `f8283b3d` (July 20, 2024).  
+> There are **62 commits** in `main` that have not been deployed.  
+> 
+> **What this means for AI agents:**
+> - The export system described in this file is NOT in production
+> - Security fixes mentioned are NOT live
+> - Always verify deployment status before assuming features exist
+> - Use `heroku releases --app covid-co2-tracker` to check
+
 ## 🎯 Project Mission & Values
 This is NOT just another app. This is a public health tool that could literally save lives by making indoor air quality transparent. Every feature should be evaluated through the lens of: "Will this help someone avoid getting COVID or other airborne diseases?"
 

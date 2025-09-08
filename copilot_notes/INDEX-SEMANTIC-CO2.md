@@ -34,13 +34,14 @@ This index maps task patterns → relevant files with ACTUAL word counts for pre
 
 *Note: 6 export planning files archived to `archive/superseded/` - consolidated into current implementation docs*
 
-### 🚄 Rails Architecture & MCP Tools (8,219 words)
+### 🚄 Rails Architecture & MCP Tools (8,957 words)
 | File | Words | Description | Keywords |
 |------|-------|-------------|----------|
 | `rails-architecture-deep-dive.md` | 1,262 | Complete architecture analysis | models, controllers, services |
 | `rails-mcp-server-usage-guide.md` | 1,204 | How to use Rails MCP server | navigate, analyze, inspect |
 | `rails-quick-reference-card.md` | 824 | Rails commands & patterns | console, migrations, tests |
 | `AI-AGENT-PROJECT-CONTEXT.md` | 1,203 | Project context for AI agents | background, goals, structure |
+| `rails-console-runtime-insights-2025-09-08.md` | 738 | Runtime type info & SQL patterns | console, types, queries, performance |
 
 *Note: 4 exploration files archived to `archive/exploratory/` - insights integrated into main guides*
 *Note: Project architecture overview archived to `archive/completed/` - superseded by detailed guide*
@@ -189,6 +190,11 @@ Understanding Architecture:
   2. project-architecture-overview.md (123 words)
   3. AI-AGENT-PROJECT-CONTEXT.md (1,203 words)
   Total: ~2,600 words
+
+Database & Runtime Inspection:
+  1. rails-console-runtime-insights-2025-09-08.md (738 words)
+  2. rails-quick-reference-card.md (824 words)
+  Total: ~1,600 words
 ```
 
 ## 📊 CONTEXT BUDGET RECOMMENDATIONS

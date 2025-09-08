@@ -1,5 +1,8 @@
 # COVID CO2 Tracker Export System - Technical Documentation
 
+> ⚠️ **Deployment Status**: This system was implemented AFTER July 20, 2024.  
+> It is NOT deployed to production yet (62 commits pending deployment).
+
 ## Executive Summary
 
 The COVID CO2 Tracker export system provides a secure, scalable API for bulk data export of CO2 measurements, places, devices, and related metadata. Implemented between commits `96de597` and `5385191`, this system introduces:

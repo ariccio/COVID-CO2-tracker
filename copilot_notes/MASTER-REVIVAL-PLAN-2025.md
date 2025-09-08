@@ -1,6 +1,10 @@
 # COVID CO2 Tracker Revival Master Plan 2025
 *A comprehensive strategy for modernizing and scaling the CO2 monitoring platform*
 
+> ⚠️ **Deployment Status**: Production is on commit `f8283b3d` (July 20, 2024).  
+> 62 commits including export system and fixes are pending deployment.  
+> Deploy with: `git push heroku main` (see line 229+ for deployment instructions)
+
 ## Executive Summary
 This plan outlines a systematic approach to revive, modernize, and scale the COVID CO2 Tracker from a dormant prototype to an active public health tool. The strategy emphasizes quick wins, technical debt reduction, and strategic feature development aligned with the original vision of "bringing indoor air transparency to the masses."
 

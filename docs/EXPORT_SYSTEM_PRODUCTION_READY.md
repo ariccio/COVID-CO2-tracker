@@ -1,6 +1,12 @@
 # Export System Production Ready Summary
 
-## ✅ Completed Tasks
+> ⚠️ **CRITICAL DEPLOYMENT WARNING**  
+> **This system has NOT been deployed to production yet!**  
+> Production is running commit `f8283b3d` (July 20, 2024).  
+> The export system was developed AFTER this date and is only available in development.  
+> **Do not assume these features are live in production.**
+
+## ✅ Completed Tasks (IN DEVELOPMENT ONLY)
 
 ### 1. Production Monitoring Gems
 - **Added**: `barnes` (memory monitoring)
