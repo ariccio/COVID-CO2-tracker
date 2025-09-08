@@ -46,12 +46,30 @@ The Claude stop hook automatically runs tests after Claude Code completes work o
 - `CLAUDE_TEST_LEVEL` - Force test level: "quick", "smart", "full", or "none"
 
 ### Test Level Selection (Automatic)
-The system automatically selects the appropriate test level:
-- **No changes**: Quick tests
-- **Documentation only**: Skip tests
-- **Ruby files changed**: Smart tests (targeted)
-- **Config/migrations changed**: Full tests
-- **Manual override**: Set `CLAUDE_TEST_LEVEL`
+The system automatically selects the appropriate test level based on file types:
+
+#### Quick Tests
+- No changes detected
+- Only documentation files (`.md`, `.txt`)
+- Only asset files (`.css`, `.scss`, images)
+
+#### Smart Tests (Targeted)
+- **Ruby files only** (`.rb`) - Runs specific specs for modified files
+- **Test files only** (`spec/*.rb`) - Runs those specific tests
+
+#### Full Tests (E2E)
+- **Cross-stack changes** - Both Ruby (`.rb`) AND frontend (`.js`, `.ts`, `.tsx`) files
+- **Frontend changes** - Any TypeScript (`.ts`, `.tsx`) or JavaScript (`.js`, `.jsx`) files
+- **Config changes** - Files in `config/` directory
+- **Database migrations** - Files in `db/migrate/`
+- **Infrastructure changes** - Any system configuration
+
+#### Manual Override
+Set `CLAUDE_TEST_LEVEL` to force a specific level:
+- `export CLAUDE_TEST_LEVEL=quick` - Always quick tests
+- `export CLAUDE_TEST_LEVEL=smart` - Always smart tests  
+- `export CLAUDE_TEST_LEVEL=full` - Always full E2E tests
+- `export CLAUDE_TEST_LEVEL=none` - Skip all tests
 
 ## Usage
 

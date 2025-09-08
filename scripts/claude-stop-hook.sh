@@ -101,6 +101,9 @@ determine_test_level() {
     local has_config=false
     local has_migration=false
     local has_spec=false
+    local has_typescript=false
+    local has_javascript=false
+    local has_frontend=false
     
     while IFS= read -r file; do
         [ -z "$file" ] && continue
@@ -118,16 +121,32 @@ determine_test_level() {
             spec/*.rb)
                 has_spec=true
                 ;;
+            *.ts|*.tsx)
+                has_typescript=true
+                has_frontend=true
+                ;;
+            *.js|*.jsx)
+                has_javascript=true
+                has_frontend=true
+                ;;
+            *.vue|*.svelte)
+                has_frontend=true
+                ;;
         esac
     done <<< "$files"
     
     # Determine test level based on file types
-    if [ "$has_config" = true ] || [ "$has_migration" = true ]; then
-        echo "full"
+    # Backend + Frontend changes = likely need E2E
+    if [ "$has_ruby" = true ] && [ "$has_frontend" = true ]; then
+        echo "full"  # Cross-stack changes need E2E
+    elif [ "$has_config" = true ] || [ "$has_migration" = true ]; then
+        echo "full"  # Infrastructure changes need full validation
+    elif [ "$has_typescript" = true ] || [ "$has_javascript" = true ]; then
+        echo "full"  # Frontend changes often need E2E browser tests
     elif [ "$has_ruby" = true ] || [ "$has_spec" = true ]; then
-        echo "smart"
+        echo "smart"  # Backend-only changes can use targeted tests
     else
-        echo "quick"
+        echo "quick"  # Documentation, configs, etc.
     fi
 }
 

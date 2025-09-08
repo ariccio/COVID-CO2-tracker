@@ -316,16 +316,40 @@ scripts/
 - If a definition is added, search for both the definition AND its call site to ensure both exist and are correct
 - If a tool call seems to have no effect, try an alternative approach rather than continuing with the assumption it worked
 - When dealing with missing definitions, search the entire file to confirm the definition doesn't exist elsewhere before adding it
-- Use emojis and similar unicode characters only where they add clarity and value to the code. The `✗` emoji actually does work well quite often for ERRORS, and the `✓` works well for the top level successes.  Do not use them gratuitously or excessively. Do not dilute the user's attention - for many remaining use cases something less obtrusive like one of these may suffice unless something truly rare in the codebase is happening: "✓ ✗ → ← ↑ ↓ ⚠ ℹ ★ ☆ ◆ ◇ ● ○". Unicode has many other "textual representations" that are preferable to emojis.
+- Use emojis and similar unicode characters only where they add clarity and value to the code. The `✗` emoji actually does work well quite often for ERRORS, and the `✓` works well for the top level successes.  Do not use them gratuitously or excessively. Do not dilute the user's attention - for many remaining use cases something less obtrusive like one of these may suffice unless something truly rare in the codebase is happening: "✓ ✗ → ← ↑ ↓ ⚠ ℹ ★ ☆ ◆ ◇ ● ○ ※ • ▪ ▫ ■ □ ▶ ▷ ◀ ◁ ⟳ ⟲ ✔ ✖ ➔ ➜ ➞ ➟". Unicode has many other "textual representations" that are preferable to emojis.
 - **Specific emoji replacement guidelines**: When replacing prominent emojis with less intrusive Unicode characters, use these proven replacements:
-  - `📝` → `※` (note/documentation creation)
-  - `📊` → `◆` (statistics, data summaries, analytics)
-  - `🤖` → `→` (process indicators, automation, AI actions)
-  - `✅` → `✓` (success states, confirmations)
-  - `❌` → `✗` (error states, failures)
+  - `✅` → `✓` (success states, confirmations, checkmarks)
+  - `❌` → `✗` (error states, failures, cross marks)
+  - `➡️` → `→` (forward direction, next steps, process flow)
+  - `⬅️` → `←` (backward direction, previous steps, return)
+  - `⬆️` → `↑` (upward direction, increase, higher)
+  - `⬇️` → `↓` (downward direction, decrease, lower)
   - `⚠️` → `⚠` (warnings - remove emoji variation selector)
-  - `🔧` → `◇` (tools, fixing, maintenance operations)
-  - `🧠` → `●` (main headers, important concepts)
+  - `ℹ️` → `ℹ` (information - remove emoji variation selector)
+  - `⭐` → `★` (filled star, important, featured)
+  - `☆` → `☆` (empty star, rating placeholder)
+  - `💎` → `◆` (diamond filled, statistics, data summaries)
+  - `◇` → `◇` (diamond empty, tools, maintenance operations)
+  - `🔵` → `●` (filled circle, bullet points, main headers)
+  - `⭕` → `○` (empty circle, unchecked items, placeholders)
+  - `📝` → `※` (note/documentation creation, reference mark)
+  - `•` → `•` (bullet point, list item)
+  - `▪️` → `▪` (small filled square, sub-items)
+  - `▫️` → `▫` (small empty square, sub-placeholders)
+  - `⬛` → `■` (filled square, selected/active)
+  - `⬜` → `□` (empty square, unselected/inactive)
+  - `▶️` → `▶` (play, start, right-pointing triangle filled)
+  - `▷` → `▷` (right-pointing triangle empty, expand)
+  - `◀️` → `◀` (left-pointing triangle filled, back)
+  - `◁` → `◁` (left-pointing triangle empty, collapse)
+  - `🔄` → `⟳` (clockwise rotation, refresh, reload)
+  - `🔃` → `⟲` (counterclockwise rotation, undo)
+  - `✔️` → `✔` (check mark variant)
+  - `✖️` → `✖` (multiplication/close mark variant)
+  - `➔` → `➔` (thick rightward arrow)
+  - `➜` → `➜` (triangle-headed rightward arrow)
+  - `➞` → `➞` (double-headed rightward arrow)
+  - `➟` → `➟` (dashed rightward arrow)
   These replacements maintain semantic meaning while reducing visual noise and improving professional appearance in development tooling.
 
 
