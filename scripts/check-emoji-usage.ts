@@ -95,7 +95,7 @@ function parseArguments(): Arguments {
     types: 'all',
     help: false,
     verbose: false,
-    warningOnly: false,
+    warningOnly: false, // Default to error mode for CI/pre-commit hooks
   };
 
   const argv = process.argv.slice(2);

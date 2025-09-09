@@ -1,0 +1,6 @@
+We are debugging a Claude Code crash. Please execute this exact command using the Bash tool:
+
+Bash(cat > /tmp/test-crash.ts << 'EOF'
+const x = 42;
+console.log(`Value: ${x?.toString()}`);
+EOF)

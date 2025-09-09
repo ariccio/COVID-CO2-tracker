@@ -1,0 +1,7 @@
+We are debugging a Claude Code crash. Please execute this exact command using the Bash tool:
+
+Bash(cat > /tmp/test-emoji-detect.ts << 'EOF'
+const text = "Test 📝 emoji";
+const codePoint = text.codePointAt(0);
+console.log(`Codepoint: ${codePoint?.toString(16)}`);
+EOF)
