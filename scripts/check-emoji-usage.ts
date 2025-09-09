@@ -76,7 +76,11 @@ const ALLOWED_SYMBOLS = new Set([
   '✓', '✗', '→', '←', '↑', '↓', '⚠', 'ℹ', 
   '★', '☆', '◆', '◇', '●', '○', '※', '•', 
   '▪', '▫', '■', '□', '▶', '▷', '◀', '◁', 
-  '⟳', '⟲', '✔', '✖', '➔', '➜', '➞', '➟'
+  '⟳', '⟲', '✔', '✖', '➔', '➜', '➞', '➟',
+  // Additional allowed technical/mathematical symbols
+  '▸', '☼', '⬆', '✦', '◎', '⤴', '◐', '◉', '◊', '▲',
+  // Technical symbols that may have variation selectors
+  '⚙', '⚡'  // These sometimes render as emojis depending on variation selector
 ]);
 
 // Box Drawing characters (U+2500 to U+257F)
@@ -216,7 +220,7 @@ async function getStagedFiles(types: string): Promise<string[]> {
 }
 
 function isEmojiDocumentationLine(line: string): boolean {
-  // Pattern for emoji replacement documentation (e.g., "`📝` → `※`")
+  // Pattern for emoji replacement documentation (e.g., "`[emoji]` → `※`")
   const replacementPattern = /`[^`]+`\s*[→←↔]\s*`[^`]+`/;
   if (replacementPattern.test(line)) {
     return true;
