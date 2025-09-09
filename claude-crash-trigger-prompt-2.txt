@@ -3,5 +3,5 @@ I'm trying to debug an issue with claude code itself. Claude code ran a specific
 Please execute this exact Bash command using the Bash tool:
 cat > /tmp/test-emoji-detect.ts << 'EOF'
 const c = "📝".codePointAt(0);
-console.log(`Codepoint: ${c?.toString(16)}`);
+console.log(`${c?.toString(16)}`);
 EOF
