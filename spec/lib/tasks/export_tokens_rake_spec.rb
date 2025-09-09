@@ -67,7 +67,7 @@ RSpec.describe('export rake tasks', type: :task) do
           .to(change(ExportToken, :count).by(1))
 
         token = ExportToken.last
-        expect(token.permissions['max_records']).to(eq(50000))
+        expect(token.permissions['max_records']).to(eq(50_000))
         expect(token.permissions['rate_limit_per_hour']).to(eq(100))
         expect(token.permissions['formats']).to(eq(%w[csv json]))
       end
@@ -81,11 +81,11 @@ RSpec.describe('export rake tasks', type: :task) do
 
         # Capture output and check for token pattern
         output = capture_stdout { task.invoke }
-        
+
         expect(output).to include('IMPORTANT: Copy this token now')
         # The raw token should be in the output (Base64 URL-safe pattern)
         expect(output).to match(/[A-Za-z0-9_-]{43}/)
-        
+
         token = ExportToken.last
         expect(token.description).to eq('Display Token')
       end
@@ -106,7 +106,7 @@ RSpec.describe('export rake tasks', type: :task) do
     context('with invalid input') do
       it('rejects blank description') do
         allow(STDIN).to receive(:gets).and_return(
-          "\n",              # Blank description
+          "\n", # Blank description
           "1\n",
           "n\n"
         )
@@ -263,7 +263,7 @@ RSpec.describe('export rake tasks', type: :task) do
         expect { task.invoke(token.raw_token) }
           .to(output(/Token successfully revoked/).to_stdout)
 
-        # Note: The rake task uses expires_at to revoke, not revoked_at
+        # NOTE: The rake task uses expires_at to revoke, not revoked_at
         expect(token.reload.expires_at).to(be <= Time.current)
       end
 
@@ -287,10 +287,10 @@ RSpec.describe('export rake tasks', type: :task) do
 
       it('finds token by partial hash') do
         allow(STDIN).to receive(:gets).and_return("yes\n")
-        
+
         # Use first 8 characters of hash
         partial_hash = token.token_hash[0..7]
-        
+
         output = capture_stdout { task.invoke(partial_hash) }
         expect(output).to(include('Found token by partial hash'))
         expect(output).to(include('Token successfully revoked'))
@@ -312,11 +312,11 @@ RSpec.describe('export rake tasks', type: :task) do
 
       it('handles multiple matches for partial hash') do
         # Create another token with similar hash beginning
-        token2 = create(:export_token, description: 'Another Token')
-        
+        create(:export_token, description: 'Another Token')
+
         # Mock to make hashes similar
         allow_any_instance_of(ExportToken).to receive(:token_hash).and_return(token.token_hash)
-        
+
         expect { task.invoke(token.token_hash[0..7]) }
           .to(output(/Multiple tokens match that partial hash/).to_stdout)
           .and(raise_error(SystemExit))
@@ -407,8 +407,11 @@ RSpec.describe('export rake tasks', type: :task) do
 
         output = capture_stdout { task.invoke }
         expect(output).to(include('... and 7 more')) # Shows truncation message
-        
-        expect { task.reenable; task.invoke }
+
+        expect do
+          task.reenable
+ task.invoke
+        end
           .to(change(ExportToken, :count))
       end
     end
@@ -425,7 +428,7 @@ RSpec.describe('export rake tasks', type: :task) do
     context('with valid token') do
       it('shows comprehensive token information') do
         output = capture_stdout { task.invoke(token.raw_token) }
-        
+
         expect(output).to(include('Export Token Information'))
         expect(output).to(include('Info Test Token'))
         expect(output).to(include('Basic Information:'))
@@ -442,7 +445,7 @@ RSpec.describe('export rake tasks', type: :task) do
       it('shows usage statistics') do
         token.record_usage!
         token.record_usage!
-        
+
         output = capture_stdout { task.invoke(token.raw_token) }
         expect(output).to(include('Total uses: 2'))
         expect(output).to(include('Last used:'))
@@ -457,7 +460,7 @@ RSpec.describe('export rake tasks', type: :task) do
             'formats' => %w[csv]
           }
         )
-        
+
         output = capture_stdout { task.invoke(custom_token.raw_token) }
         expect(output).to(include('Max records: 5000'))
         expect(output).to(include('Rate limit: 50'))
@@ -470,7 +473,7 @@ RSpec.describe('export rake tasks', type: :task) do
         expired_token = ExportToken.generate(description: 'Expired', expires_in: 1.second)
         raw = expired_token.raw_token
         sleep(2)
-        
+
         output = capture_stdout { task.invoke(raw) }
         expect(output).to(include('✗ Expired'))
       end
@@ -492,10 +495,10 @@ RSpec.describe('export rake tasks', type: :task) do
   end
 
   # Helper method to capture stdout
-  def capture_stdout(&block)
+  def capture_stdout
     original_stdout = $stdout
     $stdout = StringIO.new
-    block.call
+    yield
     $stdout.string
   ensure
     $stdout = original_stdout

@@ -41,6 +41,10 @@ Metrics/MethodLength:
   Max: 200
   Severity: info
 
+Naming/PredicateMethod:
+  Exclude:
+    - 'app/controllers/concerns/export_authentication.rb'
+
 
 Style/GlobalStdStream:
   Enabled: false
@@ -66,6 +70,10 @@ Rails/Output:
 Metrics/BlockLength:
   Severity: info
   Max: 175
+  Exclude:
+    - 'lib/tasks/**/*.rake'
+    - 'spec/**/*'
+    - 'config/routes.rb'
 
 Style/ConditionalAssignment:
   Enabled: false

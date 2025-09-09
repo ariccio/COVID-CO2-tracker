@@ -42,7 +42,7 @@ namespace :export do
     print "\nSet custom permissions? (y/N): "
     custom_response = STDIN.gets.strip.downcase
     permissions = {}
-    
+
     if custom_response == 'y'
       print 'Max records (default 100000): '
       max_records_input = STDIN.gets.strip
@@ -143,12 +143,12 @@ namespace :export do
                  "✓ #{days_left}d"
                end
 
-      puts format('%-30s %-20s %-10s %-10s %-8s',
-                  token.description.truncate(30),
-                  created,
-                  token.usage_count.to_s,
-                  last_used,
-                  status)
+      puts format('%-30<description>s %-20<created>s %-10<usage>s %-10<last_used>s %-8<status>s',
+                  description: token.description.truncate(30),
+                  created: created,
+                  usage: token.usage_count.to_s,
+                  last_used: last_used,
+                  status: status)
 
       # Show additional details if verbose
       next unless ENV['VERBOSE'] == 'true'
@@ -272,10 +272,10 @@ namespace :export do
 
     expired_tokens.order(expires_at: :desc).limit(20).each do |token|
       expired_days = ((Time.current - token.expires_at) / 1.day).ceil
-      puts format('  • %-30s (expired %d days ago, used %d times)',
-                  token.description.truncate(30),
-                  expired_days,
-                  token.usage_count)
+      puts format('  • %-30<desc>s (expired %<days>d days ago, used %<count>d times)',
+                  desc: token.description.truncate(30),
+                  days: expired_days,
+                  count: token.usage_count)
     end
 
     if count > 20

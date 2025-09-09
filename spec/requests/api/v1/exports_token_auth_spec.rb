@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe('API::V1::Exports Token Authentication', type: :request) do
+RSpec.describe('API::V1::Exports Token Authentication') do
   # Disable transactional fixtures for export tests
   self.use_transactional_tests = false
 
@@ -50,7 +50,7 @@ RSpec.describe('API::V1::Exports Token Authentication', type: :request) do
           expires_in: 15.years
         )
         headers = { 'Authorization' => "Bearer #{long_token.raw_token}" }
-        
+
         get('/api/v1/export', params: { format_type: 'json' }, headers:)
         expect(response).to(have_http_status(:ok))
       end
@@ -86,7 +86,7 @@ RSpec.describe('API::V1::Exports Token Authentication', type: :request) do
 
       it('returns unauthorized after revocation') do
         get('/api/v1/export', params: { format_type: 'json' }, headers:)
-        
+
         # The authenticate method finds the token but it should be rejected as revoked
         # This depends on controller implementation checking revoked? status
         expect(response).to(have_http_status(:unauthorized))
@@ -95,7 +95,7 @@ RSpec.describe('API::V1::Exports Token Authentication', type: :request) do
       it('does not allow access even if not expired') do
         expect(token.expires_at).to(be > Time.current) # Still valid expiration
         expect(token.revoked?).to(be(true)) # But revoked
-        
+
         get('/api/v1/export', params: { format_type: 'json' }, headers:)
         expect(response).to(have_http_status(:unauthorized))
       end
@@ -113,28 +113,28 @@ RSpec.describe('API::V1::Exports Token Authentication', type: :request) do
       it('handles missing Bearer prefix') do
         token = ExportToken.generate(description: 'Test')
         headers = { 'Authorization' => token.raw_token }
-        
+
         get('/api/v1/export', params: { format_type: 'json' }, headers:)
         expect(response).to(have_http_status(:ok)) # Should still work
       end
 
       it('rejects invalid tokens') do
         headers = { 'Authorization' => 'Bearer invalid_token_123' }
-        
+
         get('/api/v1/export', params: { format_type: 'json' }, headers:)
         expect(response).to(have_http_status(:unauthorized))
       end
 
       it('rejects tokens with null bytes') do
         headers = { 'Authorization' => "Bearer valid_start\u0000malicious" }
-        
+
         get('/api/v1/export', params: { format_type: 'json' }, headers:)
         expect(response).to(have_http_status(:unauthorized))
       end
 
       it('rejects excessively long tokens') do
         headers = { 'Authorization' => "Bearer #{'a' * 1001}" }
-        
+
         get('/api/v1/export', params: { format_type: 'json' }, headers:)
         expect(response).to(have_http_status(:unauthorized))
       end
@@ -174,7 +174,7 @@ RSpec.describe('API::V1::Exports Token Authentication', type: :request) do
 
       it('respects max_records limit in JSON') do
         get('/api/v1/export', params: { format_type: 'json' }, headers:)
-        
+
         data = response.parsed_body
         # Should return only 2 records despite having 5 in database
         expect(data['measurements'].size).to(be <= 2)
@@ -208,7 +208,7 @@ RSpec.describe('API::V1::Exports Token Authentication', type: :request) do
       3.times do
         get('/api/v1/export', params: { format_type: 'json' }, headers:)
       end
-      
+
       # 4th request should be blocked
       get('/api/v1/export', params: { format_type: 'json' }, headers:)
       expect(response).to(have_http_status(:too_many_requests))
@@ -217,7 +217,7 @@ RSpec.describe('API::V1::Exports Token Authentication', type: :request) do
 
     it('includes rate limit headers') do
       get('/api/v1/export', params: { format_type: 'json' }, headers:)
-      
+
       expect(response.headers['X-RateLimit-Limit']).to(eq('3'))
       expect(response.headers['X-RateLimit-Remaining']).to(eq('2'))
       expect(response.headers['X-RateLimit-Reset']).to(be_present)
@@ -228,11 +228,11 @@ RSpec.describe('API::V1::Exports Token Authentication', type: :request) do
       3.times do
         get('/api/v1/export', params: { format_type: 'json' }, headers:)
       end
-      
+
       # Should be blocked
       get('/api/v1/export', params: { format_type: 'json' }, headers:)
       expect(response).to(have_http_status(:too_many_requests))
-      
+
       # Travel forward in time
       Timecop.travel(2.hours.from_now) do
         get('/api/v1/export', params: { format_type: 'json' }, headers:)
@@ -247,16 +247,16 @@ RSpec.describe('API::V1::Exports Token Authentication', type: :request) do
         permissions: { 'rate_limit_per_hour' => 5 }
       )
       other_headers = { 'Authorization' => "Bearer #{other_token.raw_token}" }
-      
+
       # Use up first token's limit
       3.times do
         get('/api/v1/export', params: { format_type: 'json' }, headers:)
       end
-      
+
       # First token should be blocked
       get('/api/v1/export', params: { format_type: 'json' }, headers:)
       expect(response).to(have_http_status(:too_many_requests))
-      
+
       # Other token should still work
       get('/api/v1/export', params: { format_type: 'json' }, headers: other_headers)
       expect(response).to(have_http_status(:ok))
@@ -275,14 +275,14 @@ RSpec.describe('API::V1::Exports Token Authentication', type: :request) do
 
       it('does not include email addresses in CSV export') do
         get('/api/v1/export', params: { format_type: 'csv', fields: 'all' }, headers:)
-        
+
         expect(response.body).not_to(include('private@example.com'))
         expect(response.body).not_to(include(user.email))
       end
 
       it('does not include email addresses in JSON export') do
         get('/api/v1/export', params: { format_type: 'json', fields: 'all' }, headers:)
-        
+
         data = response.parsed_body
         measurements_json = data['measurements'].to_json
         expect(measurements_json).not_to(include('private@example.com'))
@@ -291,7 +291,7 @@ RSpec.describe('API::V1::Exports Token Authentication', type: :request) do
 
       it('includes user names when requested') do
         get('/api/v1/export', params: { format_type: 'json', fields: 'user_name' }, headers:)
-        
+
         data = response.parsed_body
         expect(data['measurements'].first).to(have_key('user_name'))
         expect(data['measurements'].first['user_name']).to(eq('Test User'))
@@ -299,9 +299,9 @@ RSpec.describe('API::V1::Exports Token Authentication', type: :request) do
 
       it('does not expose email in multi-CSV export') do
         get('/api/v1/export', params: { format_type: 'multi_csv' }, headers:)
-        
+
         expect(response).to(have_http_status(:ok))
-        
+
         # Check ZIP contents
         Zip::File.open_buffer(response.body) do |zip|
           zip.entries.each do |entry|
@@ -320,20 +320,20 @@ RSpec.describe('API::V1::Exports Token Authentication', type: :request) do
         description: 'Full lifecycle test',
         expires_in: 1.day
       )
-      
+
       expect(token.raw_token).to(be_present)
       expect(token.usage_count).to(eq(0))
-      
+
       # Use the token
       headers = { 'Authorization' => "Bearer #{token.raw_token}" }
       get('/api/v1/export', params: { format_type: 'json' }, headers:)
-      
+
       expect(response).to(have_http_status(:ok))
       expect(token.reload.usage_count).to(eq(1))
-      
+
       # Revoke the token
       token.revoke!(reason: 'Test complete')
-      
+
       # Should no longer work
       get('/api/v1/export', params: { format_type: 'json' }, headers:)
       expect(response).to(have_http_status(:unauthorized))
@@ -344,16 +344,16 @@ RSpec.describe('API::V1::Exports Token Authentication', type: :request) do
         description: 'Expiration test',
         expires_in: 2.seconds
       )
-      
+
       headers = { 'Authorization' => "Bearer #{token.raw_token}" }
-      
+
       # Should work initially
       get('/api/v1/export', params: { format_type: 'json' }, headers:)
       expect(response).to(have_http_status(:ok))
-      
+
       # Wait for expiration
       sleep(3)
-      
+
       # Should no longer work
       get('/api/v1/export', params: { format_type: 'json' }, headers:)
       expect(response).to(have_http_status(:unauthorized))
@@ -382,18 +382,18 @@ RSpec.describe('API::V1::Exports Token Authentication', type: :request) do
 
     it('handles database errors gracefully') do
       allow(Measurement).to receive(:includes).and_raise(ActiveRecord::StatementInvalid, 'DB Error')
-      
+
       get('/api/v1/export', params: { format_type: 'json' }, headers:)
-      
+
       expect(response).to(have_http_status(:internal_server_error))
       expect(response.parsed_body['error']).to(be_present)
     end
 
     it('handles invalid date formats') do
-      get('/api/v1/export', 
-          params: { format_type: 'json', from: 'invalid-date' }, 
+      get('/api/v1/export',
+          params: { format_type: 'json', from: 'invalid-date' },
           headers:)
-      
+
       expect(response).to(have_http_status(:bad_request))
       expect(response.parsed_body['error']).to(include('Invalid date'))
     end
@@ -402,7 +402,7 @@ RSpec.describe('API::V1::Exports Token Authentication', type: :request) do
       get('/api/v1/export',
           params: { format_type: 'json', from: '2024-01-15', to: '2024-01-14' },
           headers:)
-      
+
       expect(response).to(have_http_status(:bad_request))
       expect(response.parsed_body['error']).to(include('Invalid date range'))
     end

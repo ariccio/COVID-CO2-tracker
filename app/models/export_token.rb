@@ -69,7 +69,7 @@ class ExportToken < ApplicationRecord
   # Revoke the token, preventing further use
   # @param reason [String, nil] Optional reason for revocation (currently not stored)
   # @return [Boolean] True if successfully revoked
-  def revoke!(reason: nil)
+  def revoke!(_reason: nil)
     # NOTE: reason parameter kept for API compatibility but not stored
     # Could add revocation_reason column in future if audit trail needed
     update!(revoked_at: Time.current)
