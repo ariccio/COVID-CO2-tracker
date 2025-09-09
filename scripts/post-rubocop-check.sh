@@ -145,6 +145,16 @@ elif (( TRAILING_COUNT > 0 )); then
     echo "" >&2
     echo "To fix: bundle exec rubocop -a '$FILE_PATH'" >&2
     echo "Or set AUTO_FIX_WHITESPACE=1 environment variable to auto-fix" >&2
+
+    # Only show BSD sed warning on macOS
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        echo "" >&2
+        echo "⚠ macOS detected: The BSD version of sed has different behavior than GNU sed." >&2
+        echo "  Specifically, it treats '\\t' in bracket expressions as literal characters '\\\\' and 't'," >&2
+        echo "  which can corrupt files by removing trailing 't' characters." >&2
+        echo "  Use POSIX character classes like [[:blank:]] instead of [ \\\\t] for safety." >&2
+        echo "" >&2
+    fi
     # Exit 1 shows warning but doesn't block
     exit 1
 elif (( BASELINE_COUNT > 0 && OFFENSE_COUNT > BASELINE_COUNT )); then

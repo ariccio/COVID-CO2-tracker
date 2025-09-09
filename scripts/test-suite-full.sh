@@ -54,7 +54,7 @@ run_test() {
     local test_command="$2"
     local allow_failure="${3:-false}"
     
-    echo -n "  ◆ $test_name... "
+    TOTAL_TESTS=$((TOTAL_TESTS + 1))
     
     local start_time=$(date +%s)
     local output_file=$(mktemp)
@@ -63,13 +63,17 @@ run_test() {
     if eval "$test_command" > "$output_file" 2>&1; then
         local end_time=$(date +%s)
         local duration=$((end_time - start_time))
-        print_color "$GREEN" "✓ ($(format_duration $duration))"
+        # Success case - commented out to reduce noise
+        # echo -n "  ◆ $test_name... "
+        # print_color "$GREEN" "✓ ($(format_duration $duration))"
         rm -f "$output_file"
         return 0
     else
         local end_time=$(date +%s)
         local duration=$((end_time - start_time))
         
+        # Only show failures and warnings
+        echo -n "  ◆ $test_name... "
         if [ "$allow_failure" = "true" ]; then
             print_color "$YELLOW" "⚠ ($(format_duration $duration))"
         else
@@ -98,20 +102,21 @@ run_test() {
 # Function to run a test section
 run_section() {
     local section_name="$1"
-    print_color "$CYAN" ""
-    print_color "$CYAN" "━━━ $section_name ━━━"
+    # print_color "$CYAN" ""
+    # print_color "$CYAN" "━━━ $section_name ━━━"
 }
 
 # Navigate to project directory
 cd "$PROJECT_DIR"
 
-print_color "$BLUE" "╔═══════════════════════════════════════════╗"
-print_color "$BLUE" "║         Full Test Suite Execution         ║"
-print_color "$BLUE" "╚═══════════════════════════════════════════╝"
-echo ""
+# print_color "$BLUE" "╔═══════════════════════════════════════════╗"
+# print_color "$BLUE" "║         Full Test Suite Execution         ║"
+# print_color "$BLUE" "╚═══════════════════════════════════════════╝"
+# echo ""
 
 FAILED_TESTS=0
 WARNINGS=0
+TOTAL_TESTS=0
 
 # Section 1: Environment Verification
 run_section "Environment Verification"
@@ -301,8 +306,11 @@ print_color "$BLUE" "║            Test Suite Summary             ║"
 print_color "$BLUE" "╚═══════════════════════════════════════════╝"
 echo ""
 
+PASSED_TESTS=$((TOTAL_TESTS - FAILED_TESTS - WARNINGS))
+
 print_color "$BLUE" "Duration: $(format_duration $TOTAL_DURATION)"
 print_color "$BLUE" "Environment: $(rails runner 'puts Rails.env' 2>/dev/null || echo 'unknown')"
+print_color "$BLUE" "Tests: $TOTAL_TESTS total, $PASSED_TESTS passed"
 
 if [ $FAILED_TESTS -eq 0 ] && [ $WARNINGS -eq 0 ]; then
     print_color "$GREEN" "✓ All tests passed successfully!"

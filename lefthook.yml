@@ -44,6 +44,9 @@ pre-commit:
       tags: security
       run: |
         bundle exec brakeman -w3 --no-progress --no-pager --skip-files node_modules/,/co2_client/,/co2_native_client/
+    check-emojis:
+      tags: style
+      run: npx ts-node scripts/check-emoji-usage.ts --staged --threshold 3
     # lint:
     #   tags: frontend
     #   run: npx eslint ./co2_client

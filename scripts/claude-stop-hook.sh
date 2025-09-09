@@ -153,10 +153,10 @@ determine_test_level() {
 # Get test level
 TEST_LEVEL=$(determine_test_level "$MODIFIED_FILES")
 
-print_color "$BLUE" "═══════════════════════════════════════════════════════════════"
-print_color "$BLUE" "◆ Claude Stop Hook - Test Runner"
-print_color "$BLUE" "═══════════════════════════════════════════════════════════════"
-echo ""
+# print_color "$BLUE" "═══════════════════════════════════════════════════════════════"
+# print_color "$BLUE" "◆ Claude Stop Hook - Test Runner"
+# print_color "$BLUE" "═══════════════════════════════════════════════════════════════"
+# echo ""
 print_color "$BLUE" "● Session ID: $SESSION_ID"
 print_color "$BLUE" "● Test Level: $TEST_LEVEL"
 print_color "$BLUE" "● Project: COVID-CO2-tracker"
@@ -203,7 +203,8 @@ case "$TEST_LEVEL" in
     quick)
         print_color "$BLUE" "→ Running quick test suite..."
         if run_tests_with_timeout "$SCRIPT_DIR/test-suite-quick.sh" 60; then
-            print_color "$GREEN" "✓ Quick tests passed"
+            # print_color "$GREEN" "✓ Quick tests passed"
+            echo ""
         else
             print_color "$RED" "✗ Quick tests failed"
             TEST_RESULT=1
@@ -218,7 +219,8 @@ case "$TEST_LEVEL" in
             if [ -x "$SCRIPT_DIR/test-suite-smart.sh" ]; then
                 echo "$MODIFIED_FILES" | run_tests_with_timeout "$SCRIPT_DIR/test-suite-smart.sh" 300
                 if [ $? -eq 0 ]; then
-                    print_color "$GREEN" "✓ Smart tests passed"
+                    # print_color "$GREEN" "✓ Smart tests passed"
+                    echo ""
                 else
                     print_color "$RED" "✗ Smart tests failed"
                     TEST_RESULT=1
@@ -232,7 +234,8 @@ case "$TEST_LEVEL" in
     full)
         print_color "$BLUE" "→ Running full test suite..."
         if run_tests_with_timeout "$SCRIPT_DIR/test-suite-full.sh" 600; then
-            print_color "$GREEN" "✓ Full test suite passed"
+            # print_color "$GREEN" "✓ Full test suite passed"
+            :  # No-op command to make the then clause non-empty
         else
             print_color "$RED" "✗ Full test suite failed"
             TEST_RESULT=1

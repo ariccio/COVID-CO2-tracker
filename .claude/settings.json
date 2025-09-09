@@ -28,6 +28,10 @@
           {
             "type": "command",
             "command": "scripts/post-rubocop-check.sh"
+          },
+          {
+            "type": "command",
+            "command": "scripts/claude-emoji-check.sh"
           }
         ]
       }

@@ -28,7 +28,14 @@ if [ -z "$SESSION_ID" ]; then
     else
         # Generate deterministic ID from available info
         # Use combination of PID, TTY, and timestamp
-        TTY_ID=$(tty 2>/dev/null | md5sum | cut -c1-8 || echo "notty")
+        if command -v md5sum >/dev/null 2>&1; then
+            TTY_ID=$(tty 2>/dev/null | md5sum | cut -c1-8 || echo "notty")
+        elif command -v md5 >/dev/null 2>&1; then
+            TTY_ID=$(tty 2>/dev/null | md5 | cut -c1-8 || echo "notty")
+        else
+            # Fallback without hash - just use a simple identifier
+            TTY_ID=$(tty 2>/dev/null | tr '/' '_' | cut -c1-8 || echo "notty")
+        fi
         TIMESTAMP=$(date +%s)
         SESSION_ID="${TTY_ID}-${PPID}-${TIMESTAMP}"
     fi
