@@ -79,4 +79,82 @@ FactoryBot.define do
   factory :manufacturer do
     sequence(:name) { |n| "Manufacturer_#{n}" }
   end
+
+  factory :export_token do
+    sequence(:description) { |n| "Export Token #{n}" }
+    expires_at { 10.years.from_now }
+    created_by { 'test@example.com' }
+    
+    # Transient attributes for testing
+    transient do
+      generate_raw_token { false }
+    end
+
+    trait :with_raw_token do
+      generate_raw_token { true }
+    end
+
+    trait :expired do
+      expires_at { 1.day.ago }
+      skip_expiration_validation { true }
+    end
+
+    trait :expiring_soon do
+      expires_at { 1.hour.from_now }
+    end
+
+    trait :revoked do
+      revoked_at { Time.current }
+      revocation_reason { 'Test revocation' }
+    end
+
+    trait :with_custom_permissions do
+      permissions do
+        {
+          'max_records' => 50_000,
+          'rate_limit_per_hour' => 100,
+          'formats' => %w[csv json]
+        }
+      end
+    end
+
+    trait :limited_formats do
+      permissions do
+        {
+          'formats' => ['csv']
+        }
+      end
+    end
+
+    trait :high_rate_limit do
+      permissions do
+        {
+          'rate_limit_per_hour' => 1000
+        }
+      end
+    end
+
+    trait :used do
+      usage_count { rand(1..100) }
+      last_used_at { rand(1..30).days.ago }
+    end
+
+    after(:build) do |token, evaluator|
+      if evaluator.generate_raw_token
+        # Simulate token generation for testing
+        raw_token = SecureRandom.urlsafe_base64(32)
+        token.raw_token = raw_token
+        token.token_hash = Digest::SHA256.hexdigest(raw_token)
+      end
+    end
+
+    after(:create) do |token, evaluator|
+      if evaluator.generate_raw_token && token.token_hash.blank?
+        # Ensure token hash is set
+        raw_token = SecureRandom.urlsafe_base64(32)
+        token.raw_token = raw_token
+        token.update_column(:token_hash, Digest::SHA256.hexdigest(raw_token))
+      end
+    end
+  end
 end

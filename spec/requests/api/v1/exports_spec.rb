@@ -11,15 +11,32 @@ RSpec.describe('API::V1::Exports') do
     DatabaseCleaner.clean_with(:truncation)
   end
 
-  let(:user) { create(:user, name: 'Test User') }
-  let(:device) { create(:device, user:, serial: 'TEST123') }
-  let(:place) { create(:place, google_place_id: 'test_place_id') }
-  let(:sub_location) { create(:sub_location, place:) }
+  # Set up database cleaner
+  before(:all) do
+    DatabaseCleaner.clean_with(:truncation)
+  end
 
-  let(:valid_token) { 'test_export_token_123' }
-  let(:headers) { { 'Authorization' => "Bearer #{valid_token}" } }
+  # Instance variables for shared data
+  attr_reader :export_token, :valid_token, :headers
 
-  before do
+  before(:each) do
+    # Create user and related data
+    user = create(:user, name: 'Test User')
+    device = create(:device, user:, serial: 'TEST123')
+    place = create(:place, google_place_id: 'test_place_id')
+    sub_location = create(:sub_location, place:)
+
+    # Use ExportToken.generate to create token properly
+    @export_token = ExportToken.generate(
+      description: 'Test token for specs',
+      expires_in: 1.year,
+      permissions: {}  # Empty permissions hash (uses defaults)
+    )
+    
+    # The raw_token is available after generation
+    @valid_token = @export_token.raw_token
+    @headers = { 'Authorization' => "Bearer #{@valid_token}" }
+
     # Create test measurements for export tests
     5.times do |i|
       create(:measurement,
@@ -28,16 +45,6 @@ RSpec.describe('API::V1::Exports') do
              co2ppm: 400 + (i * 200),
              measurementtime: Time.parse('2024-01-15 10:00:00 UTC') + i.hours)
     end
-    # Mock token authentication and set the instance variable
-    mock_token = instance_double(ExportToken,
-                                 rate_limit_key: 'test_rate_key',
-                                 rate_limit_per_hour: 100,
-                                 max_records: 10_000,
-                                 can_export_format?: true,
-                                 record_usage!: true)
-
-    # Stub authentication for all controller instances in these tests
-    allow(ExportToken).to receive(:authenticate).and_return(mock_token)
   end
 
   describe('GET /api/v1/export with CSV format') do
@@ -48,7 +55,7 @@ RSpec.describe('API::V1::Exports') do
         allow(Export::CsvService).to receive(:new).and_return(csv_service)
         allow(csv_service).to receive(:export_to_string).and_return("co2_ppm,timestamp,lat,lng\n800,2024-01-15T10:00:00Z,40.7128,-74.006")
 
-        get('/api/v1/export', params: { format_type: 'csv' }, headers:)
+        get('/api/v1/export', params: { format_type: 'csv' }, headers: @headers)
 
         expect(response).to(have_http_status(:ok))
         expect(response.content_type).to(include('text/csv'))
@@ -128,24 +135,77 @@ RSpec.describe('API::V1::Exports') do
 
     context('without authentication') do
       it('returns unauthorized') do
-        # Don't set up the mock authentication for this test
-        allow(ExportToken).to receive(:authenticate).and_return(nil)
-
+        # No Authorization header provided
         get '/api/v1/export', params: { format_type: 'csv' }
 
         expect(response).to(have_http_status(:unauthorized))
-        expect(response.parsed_body['error']).to(eq('Invalid or expired token'))
+        expect(response.parsed_body['error']).to(eq('Authentication required'))
       end
     end
 
     context('with invalid token') do
       it('returns unauthorized') do
-        # Override the mock to simulate invalid token
-        allow(ExportToken).to receive(:authenticate).and_return(nil)
-
-        get '/api/v1/export', params: { format_type: 'csv' }, headers: { 'Authorization' => 'Bearer invalid' }
+        # Use a token that doesn't exist in the database
+        get '/api/v1/export', params: { format_type: 'csv' }, headers: { 'Authorization' => 'Bearer invalid_token_that_does_not_exist' }
 
         expect(response).to(have_http_status(:unauthorized))
+        expect(response.parsed_body['error']).to(eq('Invalid authentication token'))
+      end
+    end
+
+    context('with expired token') do
+      it('returns unauthorized with specific error') do
+        # Use a fixed token value to ensure consistency
+        test_raw_token = 'expired_test_token_' + SecureRandom.hex(16)
+        test_token_hash = Digest::SHA256.hexdigest(test_raw_token)
+        
+        # Create token with ExportToken.generate then update to be expired
+        expired_token = ExportToken.generate(
+          description: 'Expired test token',
+          expires_in: 1.year,  # Create as valid first
+          permissions: {}
+        )
+        # Update token_hash and expires_at directly in database to bypass validations
+        expired_token.update_columns(
+          token_hash: test_token_hash,
+          expires_at: 1.day.ago  # Make it expired
+        )
+
+        # Verify token was created properly
+        expect(expired_token.reload).to be_persisted
+        expect(expired_token).to be_expired
+
+        get '/api/v1/export', params: { format_type: 'csv' }, headers: { 'Authorization' => "Bearer #{test_raw_token}" }
+
+        expect(response).to(have_http_status(:unauthorized))
+        expect(response.parsed_body['error']).to(eq('Token has expired'))
+      end
+    end
+
+    context('with revoked token') do
+      it('returns unauthorized with specific error') do
+        # Use a fixed token value to ensure consistency
+        test_raw_token = 'revoked_test_token_' + SecureRandom.hex(16)
+        test_token_hash = Digest::SHA256.hexdigest(test_raw_token)
+        
+        # Create token with ExportToken.generate then update the hash
+        revoked_token = ExportToken.generate(
+          description: 'Revoked test token',
+          expires_in: 1.year,
+          permissions: {}
+        )
+        # Update token_hash directly in database
+        revoked_token.update_columns(token_hash: test_token_hash)
+        revoked_token.revoke!(reason: 'Test revocation')
+
+        # Verify token was created and revoked properly
+        expect(revoked_token.reload).to be_persisted
+        expect(revoked_token).to be_revoked
+
+        get '/api/v1/export', params: { format_type: 'csv' }, headers: { 'Authorization' => "Bearer #{test_raw_token}" }
+
+        expect(response).to(have_http_status(:unauthorized))
+        expect(response.parsed_body['error']).to(eq('Token has been revoked'))
       end
     end
 
@@ -305,18 +365,20 @@ RSpec.describe('API::V1::Exports') do
       memory_store = ActiveSupport::Cache::MemoryStore.new
       allow(Rails).to receive(:cache).and_return(memory_store)
 
+      # Create a token with low rate limit
+      rate_limited_token = ExportToken.new(
+        description: 'Rate limited test token',
+        expires_at: 1.year.from_now,
+        permissions: { 'rate_limit_per_hour' => 2 }
+      )
+      raw_token = SecureRandom.urlsafe_base64(32)
+      rate_limited_token.token_hash = Digest::SHA256.hexdigest(raw_token)
+      rate_limited_token.save!
+
       # Set up the cache with a high count to trigger rate limit
-      memory_store.write('test_rate_key', 1000, expires_in: 1.hour)
+      memory_store.write(rate_limited_token.rate_limit_key, 10, expires_in: 1.hour)
 
-      # Create a mock export token with a low rate limit
-      mock_token = instance_double(ExportToken,
-                                   rate_limit_key: 'test_rate_key',
-                                   rate_limit_per_hour: 10)
-
-      # Stub authentication to return our mock token with low rate limit
-      allow(ExportToken).to receive(:authenticate).and_return(mock_token)
-
-      get('/api/v1/export', params: { format_type: 'csv' }, headers:)
+      get('/api/v1/export', params: { format_type: 'csv' }, headers: { 'Authorization' => "Bearer #{raw_token}" })
 
       expect(response).to(have_http_status(:too_many_requests))
       expect(response.parsed_body['error']).to(include('Rate limit exceeded'))

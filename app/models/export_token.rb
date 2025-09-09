@@ -3,6 +3,9 @@
 class ExportToken < ApplicationRecord
   # Token generation and storage using SHA256 hashing for security
 
+  # Default expiration duration for long-lived tokens (configurable)
+  DEFAULT_EXPIRATION = 10.years
+
   validates :description, presence: true
   validates :expires_at, presence: true
   validates :token_hash, uniqueness: true, allow_nil: true
@@ -20,6 +23,21 @@ class ExportToken < ApplicationRecord
   # Callback to generate and hash token before creation
   before_create :generate_and_hash_token
 
+  # Class method to generate a new token with configurable expiration
+  # @param description [String] Description of what the token is for
+  # @param expires_in [ActiveSupport::Duration] Duration until expiration (default: 10 years)
+  # @param created_by [String, nil] Optional identifier of who created the token
+  # @param permissions [Hash, nil] Optional permissions hash for the token
+  # @return [ExportToken] The newly created token with raw_token populated
+  def self.generate(description:, expires_in: DEFAULT_EXPIRATION, created_by: nil, permissions: nil)
+    create!(
+      description: description,
+      expires_at: expires_in.from_now,
+      created_by: created_by,
+      permissions: permissions
+    )
+  end
+
   def self.authenticate(token_string)
     return nil if token_string.blank?
 
@@ -34,16 +52,32 @@ class ExportToken < ApplicationRecord
     active.find_by(token_hash: hashed_token)
   end
 
+  # Check if the token is currently active (not expired and not revoked)
   def active?
-    expires_at.present? && expires_at > Time.current
+    expires_at.present? && expires_at > Time.current && !revoked?
+  end
+
+  # Check if the token has been revoked
+  def revoked?
+    revoked_at.present?
   end
 
   def expired?
-    !active?
+    expires_at.present? && expires_at <= Time.current
+  end
+
+  # Revoke the token, preventing further use
+  # @param reason [String, nil] Optional reason for revocation (currently not stored)
+  # @return [Boolean] True if successfully revoked
+  def revoke!(reason: nil)
+    # NOTE: reason parameter kept for API compatibility but not stored
+    # Could add revocation_reason column in future if audit trail needed
+    update!(revoked_at: Time.current)
   end
 
   def record_usage!
     # Single database operation for efficiency
+    # Note: Tokens are reusable and not deleted after use
     update!(usage_count: (usage_count || 0) + 1, last_used_at: Time.current)
   end
 
