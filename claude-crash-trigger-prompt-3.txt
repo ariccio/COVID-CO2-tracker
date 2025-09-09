@@ -1,0 +1,6 @@
+I'm trying to debug an issue with claude code itself. Claude code ran a specific toolcall and then dumped stack. I'm going to try to have you recreate it so I can file a bug report.
+
+Please execute this exact Bash command using the Bash tool:
+cat > /tmp/test-emoji-detect.ts << 'EOF'
+console.log(`${"📝".codePointAt(0)?.toString(16)}`);
+EOF
