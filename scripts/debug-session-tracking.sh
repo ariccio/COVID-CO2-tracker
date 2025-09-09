@@ -4,8 +4,8 @@
 
 set -euo pipefail
 
-echo "=== Claude Session Tracking Debug Info ==="
-echo ""
+# echo "=== Claude Session Tracking Debug Info ==="
+# echo ""
 
 # Check for active sessions
 SESSION_BASE_DIR="/tmp/claude-sessions"
@@ -34,7 +34,7 @@ else
     echo "No session directory found"
 fi
 
-echo ""
+# echo ""
 echo "Current session ID (if any):"
 if [ -f /tmp/claude-current-session-id ]; then
     cat /tmp/claude-current-session-id
@@ -42,6 +42,6 @@ else
     echo "  None"
 fi
 
-echo ""
+# echo ""
 echo "Git status:"
 git status --short 2>/dev/null || echo "  Not a git repository"

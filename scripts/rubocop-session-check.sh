@@ -109,8 +109,8 @@ if [ -z "$MODIFIED_FILES" ]; then
     exit 0
 fi
 
-echo "Checking recently modified Ruby files..."
-echo ""
+# echo "Checking recently modified Ruby files..."
+# echo ""
 
 # Track overall status
 TOTAL_OFFENSES=0
@@ -133,22 +133,22 @@ while IFS= read -r FILE; do
     fi
 done <<< "$MODIFIED_FILES"
 
-echo ""
-echo "═══════════════════════════════════════════════════════════════"
+# echo ""
+# echo "═══════════════════════════════════════════════════════════════"
 
 if [[ "$TOTAL_OFFENSES" -gt 0 ]]; then
-    echo "Session Summary: $TOTAL_OFFENSES total offenses found"
-    echo ""
+    # echo "Session Summary: $TOTAL_OFFENSES total offenses found"
+    # echo ""
     echo "Files with issues:"
     echo -e "$FILES_WITH_ISSUES"
-    echo ""
-    echo "To see all issues, run:"
-    echo "  bundle exec rubocop --fail-level F"
-    echo ""
+    # echo ""
+    # echo "To see all issues, run:"
+    echo "To see all issues, run: bundle exec rubocop --fail-level F"
+    # echo ""
     echo "To auto-fix safe issues, run:"
     echo "  bundle exec rubocop -a"
-else
-    echo "✓ Session Summary: All modified Ruby files are clean!"
+# else
+#     echo "✓ Session Summary: All modified Ruby files are clean!"
 fi
 
 # Clear the session tracking if we have a session ID

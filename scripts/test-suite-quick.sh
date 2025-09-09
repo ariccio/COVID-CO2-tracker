@@ -34,17 +34,17 @@ run_test() {
     local test_name="$1"
     local test_command="$2"
     
-    echo -n "  ◇ $test_name... "
-    
     # Create temp file for output
     local output_file=$(mktemp)
     
     # Run the test command with timeout protection
     if timeout 10 bash -c "$test_command" > "$output_file" 2>&1; then
-        print_color "$GREEN" "✓"
+        # Success: no output, just clean up and return
         rm -f "$output_file"
         return 0
     else
+        # Failure: show test name and error details
+        echo -n "  ◇ $test_name... "
         print_color "$RED" "✗"
         # Show error output
         if [ -s "$output_file" ]; then
@@ -144,7 +144,7 @@ print_color "$BLUE" "────────────────"
 
 # Summary
 if [ $FAILED_TESTS -eq 0 ]; then
-    print_color "$GREEN" "✓ All quick tests passed"
+    # print_color "$GREEN" "✓ All quick tests passed"
     exit 0
 else
     print_color "$RED" "✗ $FAILED_TESTS test(s) failed"

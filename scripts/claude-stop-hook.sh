@@ -157,20 +157,20 @@ TEST_LEVEL=$(determine_test_level "$MODIFIED_FILES")
 # print_color "$BLUE" "◆ Claude Stop Hook - Test Runner"
 # print_color "$BLUE" "═══════════════════════════════════════════════════════════════"
 # echo ""
-print_color "$BLUE" "● Session ID: $SESSION_ID"
+# print_color "$BLUE" "● Session ID: $SESSION_ID"
 print_color "$BLUE" "● Test Level: $TEST_LEVEL"
-print_color "$BLUE" "● Project: COVID-CO2-tracker"
-echo ""
+# print_color "$BLUE" "● Project: COVID-CO2-tracker"
+# echo ""
 
 # Show modified files if any
-if [ -n "$MODIFIED_FILES" ]; then
-    print_color "$BLUE" "● Modified files during session:"
-    echo "$MODIFIED_FILES" | while IFS= read -r file; do
-        [ -z "$file" ] && continue
-        echo "  - $file"
-    done
-    echo ""
-fi
+# if [ -n "$MODIFIED_FILES" ]; then
+#     print_color "$BLUE" "● Modified files during session:"
+#     echo "$MODIFIED_FILES" | while IFS= read -r file; do
+#         [ -z "$file" ] && continue
+#         echo "  - $file"
+#     done
+#     echo ""
+# fi
 
 # Run appropriate test suite with timeout
 run_tests_with_timeout() {
@@ -214,7 +214,7 @@ case "$TEST_LEVEL" in
         print_color "$BLUE" "→ Running smart test selection..."
         # First run quick tests
         if run_tests_with_timeout "$SCRIPT_DIR/test-suite-quick.sh" 60; then
-            print_color "$GREEN" "✓ Quick tests passed"
+            # print_color "$GREEN" "✓ Quick tests passed"
             # Then run targeted tests based on modified files
             if [ -x "$SCRIPT_DIR/test-suite-smart.sh" ]; then
                 echo "$MODIFIED_FILES" | run_tests_with_timeout "$SCRIPT_DIR/test-suite-smart.sh" 300
@@ -232,7 +232,7 @@ case "$TEST_LEVEL" in
         fi
         ;;
     full)
-        print_color "$BLUE" "→ Running full test suite..."
+        # print_color "$BLUE" "→ Running full test suite..."
         if run_tests_with_timeout "$SCRIPT_DIR/test-suite-full.sh" 600; then
             # print_color "$GREEN" "✓ Full test suite passed"
             :  # No-op command to make the then clause non-empty
@@ -248,19 +248,19 @@ case "$TEST_LEVEL" in
         ;;
 esac
 
-echo ""
-print_color "$BLUE" "═══════════════════════════════════════════════════════════════"
+# echo ""
+# print_color "$BLUE" "═══════════════════════════════════════════════════════════════"
 
 # Generate summary report
 SUMMARY_FILE="/tmp/claude-session-${SESSION_ID}-summary.txt"
 {
-    echo "Claude Session Summary"
-    echo "====================="
-    echo "Session ID: $SESSION_ID"
-    echo "Timestamp: $(date '+%Y-%m-%d %H:%M:%S')"
-    echo "Test Level: $TEST_LEVEL"
+    # echo "Claude Session Summary"
+    # echo "====================="
+    # echo "Session ID: $SESSION_ID"
+    # echo "Timestamp: $(date '+%Y-%m-%d %H:%M:%S')"
+    # echo "Test Level: $TEST_LEVEL"
     echo "Test Result: $([ $TEST_RESULT -eq 0 ] && echo "PASSED" || echo "FAILED")"
-    echo ""
+    # echo ""
     if [ -n "$MODIFIED_FILES" ]; then
         echo "Modified Files:"
         echo "$MODIFIED_FILES" | while IFS= read -r file; do
@@ -270,7 +270,7 @@ SUMMARY_FILE="/tmp/claude-session-${SESSION_ID}-summary.txt"
     fi
 } > "$SUMMARY_FILE"
 
-print_color "$BLUE" "● Summary saved to: $SUMMARY_FILE"
+# print_color "$BLUE" "● Summary saved to: $SUMMARY_FILE"
 
 # Clean up session data
 if [ -x "$SCRIPT_DIR/track-session-files.sh" ]; then

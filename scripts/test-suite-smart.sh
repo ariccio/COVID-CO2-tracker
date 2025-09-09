@@ -70,10 +70,10 @@ fi
 # Navigate to project directory
 cd "$PROJECT_DIR"
 
-print_color "$CYAN" "Smart Test Selection"
-print_color "$CYAN" "────────────────────"
-echo ""
-print_color "$BLUE" "Analyzing modified files..."
+# print_color "$CYAN" "Smart Test Selection"
+# print_color "$CYAN" "────────────────────"
+# echo ""
+# print_color "$BLUE" "Analyzing modified files..."
 
 # Initialize test sets
 SPECS_TO_RUN=""
@@ -161,7 +161,7 @@ if [ -n "$SPECS_TO_RUN" ]; then
     SPECS_TO_RUN=$(echo "$SPECS_TO_RUN" | tr ' ' '\n' | sort -u | tr '\n' ' ')
 fi
 
-echo ""
+# echo ""
 FAILED_TESTS=0
 
 # Run migration checks if needed
@@ -178,7 +178,7 @@ if [ "$RUN_MIGRATIONS" = true ]; then
     else
         FAILED_TESTS=$((FAILED_TESTS + 1))
     fi
-    echo ""
+    # echo ""
 fi
 
 # Run broad test categories if needed
@@ -191,7 +191,7 @@ if [ "$RUN_ALL_MODELS" = true ]; then
             FAILED_TESTS=$((FAILED_TESTS + 1))
         fi
     fi
-    echo ""
+    # echo ""
 elif [ -n "$MODIFIED_MODELS" ]; then
     print_color "$CYAN" "Modified models:$MODIFIED_MODELS"
 fi
@@ -205,7 +205,7 @@ if [ "$RUN_ALL_REQUESTS" = true ]; then
             FAILED_TESTS=$((FAILED_TESTS + 1))
         fi
     fi
-    echo ""
+    # echo ""
 elif [ -n "$MODIFIED_CONTROLLERS" ]; then
     print_color "$CYAN" "Modified controllers:$MODIFIED_CONTROLLERS"
 fi
@@ -219,7 +219,7 @@ if [ "$RUN_ALL_SERVICES" = true ]; then
             FAILED_TESTS=$((FAILED_TESTS + 1))
         fi
     fi
-    echo ""
+    # echo ""
 elif [ -n "$MODIFIED_SERVICES" ]; then
     print_color "$CYAN" "Modified services:$MODIFIED_SERVICES"
 fi
@@ -234,7 +234,7 @@ if [ "$RUN_SECURITY" = true ]; then
             FAILED_TESTS=$((FAILED_TESTS + 1))
         fi
     fi
-    echo ""
+    # echo ""
 fi
 
 # Run specific specs for modified files
@@ -250,7 +250,7 @@ if [ -n "$SPECS_TO_RUN" ]; then
             fi
         fi
     done
-    echo ""
+    # echo ""
 fi
 
 # If no specific tests were identified, run minimal smoke tests
@@ -270,7 +270,7 @@ if [ -z "$SPECS_TO_RUN" ] && [ "$RUN_ALL_MODELS" = false ] && [ "$RUN_ALL_REQUES
 fi
 
 # Summary
-echo ""
+# echo ""
 print_color "$CYAN" "────────────────────"
 
 if [ $FAILED_TESTS -eq 0 ]; then

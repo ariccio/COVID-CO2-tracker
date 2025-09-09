@@ -7,8 +7,6 @@ Please follow all these instructions to the best of your brilliant ability - we'
 
 # COLLABORATIVE context MANAGEMENT
 - I'm constantly interested in pushing the boundaries in the tradeoff between loading *enough* context into your window to give you good defaults for any prompt we may work on, while *not diluting* it to the point your reasoning abilities and direction following abilities degrade. This is a problem that is not only difficult, and not only crucial to our mutual success, but has the painful cost of distraction from our end goals, and the further cursed constraint of itself potentially contributing to context consumption and overload. We must manage this delicately (not only does nobody really know the TRULY optimal way to do this, or how to even approach it, but I've already seen the deleterious effects of context overload on our interactions, sometimes even basic direction-following abilities get fragile!) but somehow also creatively and cleverly. The difficulty and competing tradeoffs are a big part of why I've added this near the beginning of our instructions.
-- After your system prompt, begin keeping mental track of the rough running total of context tokens you're using to read repo-wide instructions, and then keep updating that mental tracking of context fillup as your efforts sprawl to follow references and more generally process input tokens. I may ask you at various points for a rough estimate of the context token usage involved in your work so far. The count DOES NOT need to be exact (don't worry too much about the precision) just needs to be roughly valid. I will however, likely want to know exactly *which* references you follow, and may ask you about it at some point.
-- Keep slightly closer mental track of your thought process as you decide whether to follow a reference (BOTH implicit and explicit references); I usually won't ask you about it, but it may be important for tuning/engineering the context we make most readily available to you.
 - Keep track (usually only mentally) of the eventual usefulness of references that you follow:
   - If a reference turns out to be very useful (i.e. particularly helpful, relevant, or ideally exactly perfectly what you need), then keep slightly closer track of it... sometimes the right reference makes a night and day difference for the both of us! If it was hard to find this very useful reference, then we will probably both want to work together to figure out how (in the WHOLISTIC picture of the repo and the agentic instructions) to make better use of it in the future.
   - If a reference turns out to be of little use, then keep somewhat closer track of it, and why you followed it. I may want you to mention it, so that I might make it less distracting for you in the future. This is more important if it takes up a lot of your time, or if it consumes a lot of context. We sometimes may even want to work together to distill it or reduce its prominence.
@@ -17,7 +15,7 @@ Please follow all these instructions to the best of your brilliant ability - we'
     - Useless and distracting references are a more difficult problem, we will likely be best served by working together to (1) understand why it was unhelpful, (2) if there's any way it could might instead be helpful in other contexts (to avoid unwittingly throwing away potentially useful information) therefor which we can move said reference a more task-relevant place in the context, (3) if it's redundant and thus it can be elided, or (4) (5) if we should simply prune/discard it.
 - For non-builtin toolcalls specifically, if they provide excessively verbose results relative to their usefulness, we should work together to modify the tools to distill the output down to the most relevant information.
 - Your context window may often be technically limited to something like 200000 tokens, but may in practice (for many different reasons) begin to encounter technical limitations in as little as 150,000 tokens or fewer. As you approach this limit, I often may benefit from a reminder of some sort, and I may even want you to assist me in preserving your maximum reasoning ability, details, focus, intelligence, or goal-directed abilities across context compaction by generating copy-and-pasteable prompts, notes on disk with ALL relevant thoughts, reasoning, context, state, and anything else necessary to seamlessly continue. Sometimes it may even help to treat this task as if I will instantiate an entirely new session of a separate agentic coding system instead of simply compacting the context. I am not explicitly asking you to always take action to follow the instructions in this list item, but it may help to keep this intent and pattern of user-developer-coworker-behavior in mind... ESPECIALLY for the longest running and most complex multi-step tasks we work on together.
-- If you find yourself unable to recall or follow all instructions due to context length, explicitly state: "⚠️ WARNING Context pressure detected - focusing on critical instructions only"
+
 
 ## Context Management for Complex Tasks
 
@@ -26,33 +24,20 @@ Please follow all these instructions to the best of your brilliant ability - we'
 - Task pattern matching (keywords → specific files with word counts)
 - Context budgets based on complexity (<30min = 3k tokens, 2-4hrs = 25k tokens)
 - Progressive loading: quick refs → focused guides → comprehensive docs
-- Only load what's needed - avoid context dilution
-
-### Context Budget Tracking
-- Begin mental tracking of context token usage from the start
-- At ~100k tokens: Note "⚠ Approaching context limit - focusing on essentials"
-- At ~150k tokens: Begin preparing handoff documentation
-- Track reference usefulness:
-  - Very useful references: Note for future optimization
-  - Useless references: Flag for removal/reduction
-  - Misleading references: Must explicitly report
 
 ### When Approaching Context Limits
 If you're working on complex tasks and context limits:
-
 1. **IMMEDIATELY save ALL state to copilot_notes/** (example from another repository that was focused primarily on deobfuscating javascript)
    ```javascript
    // Save with extremely descriptive filename
    const stateFilename = `copilot_notes/cli_js_webpack_bundle_extraction_stage2_modules_found_157_continuing_from_line_3847.md`;
    ```
-
 2. **Create continuation prompt for next session** (example from another repository that was focused primarily on deobfuscating javascript)
    ```
    Continue deobfuscation of cli.js from stage 2.
    Previous state saved in: copilot_notes/cli_js_webpack_bundle_extraction_stage2_modules_found_157_continuing_from_line_3847.md
    Next task: Extract remaining modules starting from line 3847
    ```
-
 3. **Track what references were useful**  (example from another repository that was focused primarily on deobfuscating javascript)
    - ✓ TypeScript definitions helped map minified names
    - ✓ Package.json revealed version 1.0.98
@@ -61,30 +46,11 @@ If you're working on complex tasks and context limits:
 
 ## Rails-Specific Critical Instructions - READ FIRST
 
-### ⚠️ CRITICAL: Rails Initialization Order
-**THE FOLLOWING FILES RUN BEFORE RAILS IS INITIALIZED:**
-- `config/boot.rb`
-- `config/application.rb`
-- `config/environment.rb`
-- `config/environments/*.rb` (during initialization phase)
-
-**IN THESE FILES:**
-- ❌ **NEVER** use `Time.zone.now` - Time.zone doesn't exist yet!
-- ✅ **ALWAYS** use `Time.now` instead
-- **ERROR IF YOU USE Time.zone**: `NoMethodError: undefined method 'zone' for Time:Class`
-
-**This has been attempted and reverted MULTIPLE times. DO NOT REPEAT THIS MISTAKE.**
-
 ### 📋 Required Pre-Work Checklist for Rails Tasks
 1. **Check for known issues**: `ls copilot_notes/*.md | grep -E "time|zone|ping|pong|analysis"`
 2. **Read if exists**: `copilot_notes/time-zone-ping-pong-analysis.md`
 3. **Review Rubocop config**: Check `.rubocop.yml` - exclusions exist for good reasons!
 4. **After ANY config/ changes**: Test with `rails runner "puts 'Rails started successfully'"`
-
-### 🚫 Known Anti-Patterns to Avoid
-1. **Time.zone in initialization files** - Breaks application startup
-2. **Overriding Rubocop exclusions** - They prevent real bugs
-3. **"Fixing" Time.now to Time.zone.now in config/** - This is NOT a fix, it's a bug
 
 ## Decision Trees and Pattern Selection
 
@@ -96,9 +62,6 @@ When facing architectural or implementation decisions, check for or create decis
 - **API design**: REST vs GraphQL vs hybrid approaches
 
 ### Documentation Quality Standards
-**"Executable Documentation" Principle:**
-- **NO PLACEHOLDERS**: Every example must be copy-pasteable and work as-is
-- **Include exact values**: Use real API keys (marked as examples), real URLs, real data
 - **Document failure modes**: Show what errors look like and how to fix them
 - **Verification steps**: Include commands to verify the documentation worked
 - **Test your examples**: If you write it, ensure it would run without modification
@@ -126,11 +89,10 @@ When facing architectural or implementation decisions, check for or create decis
 - Bootstrap/startup code executes BEFORE all modules are initialized
 - Early lifecycle hooks fire BEFORE all features are available
 - What's "correct" at runtime might be "incorrect" during initialization
-
-**Red flags requiring extra caution:**
-- Files named: `boot`, `bootstrap`, `init`, `startup`, `config`, `setup`
-- Early hooks: `before_configuration`, `initializers`, `pre_init`, `on_load`
-- Anything that runs before the main application entry point
+- **Red flags requiring extra caution:**
+  - Files named: `boot`, `bootstrap`, `init`, `startup`, `config`, `setup`
+  - Early hooks: `before_configuration`, `initializers`, `pre_init`, `on_load`
+  - Anything that runs before the main application entry point
 
 ### When Linters/Analyzers Suggest Changes
 **ALWAYS ask:**
@@ -161,11 +123,6 @@ When facing architectural or implementation decisions, check for or create decis
 2. `bundle exec rspec spec/models/` # 30 seconds - model layer
 3. `bundle exec rspec spec/requests/` # 45 seconds - API layer
 4. `rails runner "puts 'Rails loads'"` # 10 seconds - config check
-
-**Skip testing only when:**
-- Pure documentation changes
-- CSS/styling updates without logic
-- Comment-only modifications
 
 ### Cross-Session Learning Protocol
 **Before starting work:**
@@ -206,9 +163,7 @@ git log -p --reverse -S "[suspicious-pattern]" | head -100
 - Support public health advocacy
 - Integrate with broader mitigation strategies
 
-## 🧠 CRITICAL: Subagent Context Preservation Protocol
-
-### BEFORE Invoking ANY Subagent (MANDATORY)
+## CRITICAL: Subagent Context Preservation Protocol BEFORE Invoking ANY Subagent (MANDATORY)
 - YOU MUST read the instructions in `general-subagent-instructions-and-requirements.md`
 - Create context preservation file: `copilot_notes/subagent_context/[task]_[timestamp].md` with:
   - Overall plan and current progress
@@ -239,10 +194,8 @@ git log -p --reverse -S "[suspicious-pattern]" | head -100
 - Some MCP servers are flaky and developers can miss failures when long agentic coding sessions encounter the flakyness. If you are going to be writing an on-disk summary of your work, add explicit mention of MCP server failures and potentially relevant info for debugging to the summary.
 - If you attempt to use an MCP server and it fails, ask the user if they'd like you to proceed a different way (specifying the nature of that different way andwhat that different way entails) instead of merely proceeding.
 - Look for a folder at the root of the repository called `agentic_logs`. If it exists, look for a file that looks like an agent may have written information to it about failures with that specific MCP server. If the folder doesn't exist, create it, and create a relevant-and-descriptively-named file in that folder where we will both keep track of MCP server issues as entries in this file, helped by you writing failures along with ANY and ALL potentially relevant info for debugging. If the file already exists, add to it in the same way. It may be a good idea to add information about the environment and the time to each entry.
-- If you notice that the issue you're facing is recurrent based on the content of the file, consider either launching a subagent to investigate further or updating the file with additional context and information... unless the issue is one that is likely best solved using the aforementioned "deep research" instructions (in which case, follow those).
 
 ## Automation and Script-First Philosophy
-
 ### Token Economy and Efficiency
 - **Scripts over repetition**: Create reusable scripts rather than using LLM tokens for mechanical tasks
 - **Check existing automation**: Always check `scripts/` directory before creating new automation
@@ -280,10 +233,8 @@ scripts/
 ## code organization and architecture preferences
 - **STRONGLY prefer free functions over class methods** whenever possible. Class methods should be used only when they truly need access to instance state or when they logically belong as part of a class's interface.
 - **Break complex operations into small, focused free functions** with descriptive names. For example, prefer `fileprivate func appendAndPrint(_ text: String, to report: inout String)` over embedding that logic inline in a larger method.
-- **Use file-scope constants** instead of class constants when the values don't depend on instance state and aren't used outside of the file scope. For example, prefer `let HEALTH_KIT_READ_TYPES: Set<HKObjectType>` at file scope over a class property.
 - **Prefer helper functions with clear, descriptive names** over inline complex logic. For example, prefer `fileprivate func getReadableTypeName(for type: HKObjectType) -> String` over embedding type-to-string conversion logic inline.
 - **Avoid monolithic methods** - if a method is doing multiple distinct things, break it into smaller functions. Each function should have a single, clear responsibility.
-- **Use fileprivate functions liberally** to organize code into logical, reusable units that can be tested and understood independently.
 - **Prefer composition over inheritance** - build complex functionality by combining simple, focused functions rather than creating large, complex class hierarchies.
 - **Constants and utility functions should be defined at file scope** when they don't need instance access, making them easily testable and reusable.
 - **Method parameters should be explicit and well-named** - prefer `func summarizeAuthorization(typeName: String, status: HKAuthorizationStatus, info: inout String, healthKitDataService: HealthDataService)` over methods that access too much instance state implicitly.
@@ -309,55 +260,70 @@ scripts/
 - **Don't use instance variables as "convenient" parameter passing** - If a function needs data, pass it as a parameter. Don't store it in an instance variable just to avoid passing it around.
 
 ## code editing best practices
-- ALWAYS verify tool results after making edits - in the context of vscode, ALWAYS AT LEAST `grep_search` or `read_file` to confirm changes were actually applied
+- ALWAYS verify tool results after making edits
 - Do not assume a tool call succeeded just because it didn't return an error message
-- After structural changes (adding functions, views, or properties), where the `get_errors` or similar tool is available, ALWAYS at least use `get_errors` to check for compilation errors
 - **In Ruby projects AND Ruby on Rails projects, you must ALWAYS run Rubocop after completing your changes** - After finishing a set of related edits (not necessarily after each individual edit), run  `bundle exec rubocop --fail-level E --raise-cop-error --display-style-guide path/to/file.rb` to catch style issues. Fix any issues before considering the task complete.
 - If a definition is added, search for both the definition AND its call site to ensure both exist and are correct
 - If a tool call seems to have no effect, try an alternative approach rather than continuing with the assumption it worked
 - When dealing with missing definitions, search the entire file to confirm the definition doesn't exist elsewhere before adding it
-- Use emojis and similar unicode characters only where they add clarity and value to the code. The `✗` emoji actually does work well quite often for ERRORS, and the `✓` works well for the top level successes.  Do not use them gratuitously or excessively. Do not dilute the user's attention - for many remaining use cases something less obtrusive like one of these may suffice unless something truly rare in the codebase is happening: "✓ ✗ → ← ↑ ↓ ⚠ ℹ ★ ☆ ◆ ◇ ● ○ ※ • ▪ ▫ ■ □ ▶ ▷ ◀ ◁ ⟳ ⟲ ✔ ✖ ➔ ➜ ➞ ➟". Unicode has many other "textual representations" that are preferable to emojis.
-- **Specific emoji replacement guidelines**: When replacing prominent emojis with less intrusive Unicode characters, use these proven replacements:
+- Use emojis and similar unicode characters only where they add clarity and value to the code. The `✗` emoji actually does work well quite often for ERRORS, and the `✓` works well for the top level successes.  Do not use them gratuitously or excessively. Do not dilute the user's attention - for many remaining use cases something less obtrusive like one of these may suffice unless something truly rare in the codebase is happening: "✓ ✗ ✔ ✖ ⚠ ℹ → ← ↑ ↓ ➔ ➜ ➞ ➟ ★ ☆ ● ○ • ■ □ ▪ ▫ ◆ ◇ ▶ ▷ ◀ ◁ ⟳ ⟲ ※". Unicode has many other "textual representations" that are preferable to emojis.
+- **Box Drawing and Block Elements are allowed**: The Unicode Box Drawing characters (U+2500 to U+257F) and Block Elements (U+2580 to U+259F) are permitted for creating text-based tables, diagrams, progress bars, and visual separators. Examples include: ─ │ ┌ ┐ └ ┘ ├ ┤ ┬ ┴ ┼ ═ ║ ╔ ╗ ╚ ╝ ╠ ╣ ╦ ╩ ╬ █ ▓ ▒ ░ ▀ ▄ ▌ ▐ ■ □
+- **Specific emoji replacement guidelines**: When replacing prominent emojis with less intrusive Unicode characters, use these proven replacements grouped by semantic category:
+
+  **Status & Validation:**
   - `✅` → `✓` (success states, confirmations, checkmarks)
   - `❌` → `✗` (error states, failures, cross marks)
+  - `✔️` → `✔` (check mark variant)
+  - `✖️` → `✖` (multiplication/close mark variant)
+  - `⚠️` → `⚠` (warnings - remove emoji variation selector)
+  - `ℹ️` → `ℹ` (information - remove emoji variation selector)
+
+  **Directional Movement:**
   - `➡️` → `→` (forward direction, next steps, process flow)
   - `⬅️` → `←` (backward direction, previous steps, return)
   - `⬆️` → `↑` (upward direction, increase, higher)
   - `⬇️` → `↓` (downward direction, decrease, lower)
-  - `⚠️` → `⚠` (warnings - remove emoji variation selector)
-  - `ℹ️` → `ℹ` (information - remove emoji variation selector)
-  - `⭐` → `★` (filled star, important, featured)
-  - `☆` → `☆` (empty star, rating placeholder)
-  - `💎` → `◆` (diamond filled, statistics, data summaries)
-  - `◇` → `◇` (diamond empty, tools, maintenance operations)
-  - `🔵` → `●` (filled circle, bullet points, main headers)
-  - `⭕` → `○` (empty circle, unchecked items, placeholders)
-  - `📝` → `※` (note/documentation creation, reference mark)
-  - `•` → `•` (bullet point, list item)
-  - `▪️` → `▪` (small filled square, sub-items)
-  - `▫️` → `▫` (small empty square, sub-placeholders)
-  - `⬛` → `■` (filled square, selected/active)
-  - `⬜` → `□` (empty square, unselected/inactive)
-  - `▶️` → `▶` (play, start, right-pointing triangle filled)
-  - `▷` → `▷` (right-pointing triangle empty, expand)
-  - `◀️` → `◀` (left-pointing triangle filled, back)
-  - `◁` → `◁` (left-pointing triangle empty, collapse)
-  - `🔄` → `⟳` (clockwise rotation, refresh, reload)
-  - `🔃` → `⟲` (counterclockwise rotation, undo)
-  - `✔️` → `✔` (check mark variant)
-  - `✖️` → `✖` (multiplication/close mark variant)
+
+  **Arrow Variants:**
   - `➔` → `➔` (thick rightward arrow)
   - `➜` → `➜` (triangle-headed rightward arrow)
   - `➞` → `➞` (double-headed rightward arrow)
   - `➟` → `➟` (dashed rightward arrow)
+
+  **Priority & Rating:**
+  - `⭐` → `★` (filled star, important, featured)
+  - `☆` → `☆` (empty star, rating placeholder)
+
+  **Shapes - Circles:**
+  - `🔵` → `●` (filled circle, bullet points, main headers)
+  - `⭕` → `○` (empty circle, unchecked items, placeholders)
+  - `•` → `•` (bullet point, list item)
+
+  **Shapes - Squares:**
+  - `⬛` → `■` (filled square, selected/active)
+  - `⬜` → `□` (empty square, unselected/inactive)
+  - `▪️` → `▪` (small filled square, sub-items)
+  - `▫️` → `▫` (small empty square, sub-placeholders)
+
+  **Shapes - Diamonds:**
+  - `💎` → `◆` (diamond filled, statistics, data summaries)
+  - `◇` → `◇` (diamond empty, tools, maintenance operations)
+
+  **Media Controls:**
+  - `▶️` → `▶` (play, start, right-pointing triangle filled)
+  - `▷` → `▷` (right-pointing triangle empty, expand)
+  - `◀️` → `◀` (left-pointing triangle filled, back)
+  - `◁` → `◁` (left-pointing triangle empty, collapse)
+
+  **Process & State:**
+  - `🔄` → `⟳` (clockwise rotation, refresh, reload)
+  - `🔃` → `⟲` (counterclockwise rotation, undo)
+  - `📝` → `※` (note/documentation creation, reference mark)
   These replacements maintain semantic meaning while reducing visual noise and improving professional appearance in development tooling.
 
 
 ## Consider verifying by building
-- Where build tools are available on the in-use platform: ALWAYS build the code after making changes, especially complex changes involving multiple files, to verify that your changes don't break existing functionality.
-- Use the build process as an additional verification step to catch compilation errors, missing dependencies, and other issues before they become problems. SOMETIMES this can be a crutch, as it seems copilot for xcode poorly manages token usage - so perhaps if you intend to make many changes in one execution, hold off building a bit until you're done if you can.
-- Remember: Sometimes, the other broken-code detection mechanisms available to you are incorrect or insufficient. Building provides immediate feedback on code correctness and helps maintain code quality throughout development.
-- Where build tools are NOT available on the in-use platform (and only when you can't use them): You should additionally work extremely hard and extremely carefully to evaluate the correctness of your changes and validity of the resulting code, using ANY AND ALL available tools to do so.
+- Where build tools are available on the in-use platform: ALWAYS build and test the code after making changes, especially complex changes involving multiple files, to verify that your changes don't break existing functionality.
 
 ## errors, nulls, and optionals
 - In all languages, prefer to bubble all encountered errors and exceptions up to a relevant place where the user can see them - there should be no silent failures of the application functionality.

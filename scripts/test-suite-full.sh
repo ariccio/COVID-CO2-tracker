@@ -112,7 +112,7 @@ cd "$PROJECT_DIR"
 # print_color "$BLUE" "╔═══════════════════════════════════════════╗"
 # print_color "$BLUE" "║         Full Test Suite Execution         ║"
 # print_color "$BLUE" "╚═══════════════════════════════════════════╝"
-# echo ""
+echo ""
 
 FAILED_TESTS=0
 WARNINGS=0
@@ -300,11 +300,11 @@ SUITE_END_TIME=$(date +%s)
 TOTAL_DURATION=$((SUITE_END_TIME - SUITE_START_TIME))
 
 # Final Summary
-echo ""
-print_color "$BLUE" "╔═══════════════════════════════════════════╗"
-print_color "$BLUE" "║            Test Suite Summary             ║"
-print_color "$BLUE" "╚═══════════════════════════════════════════╝"
-echo ""
+# echo ""
+# print_color "$BLUE" "╔═══════════════════════════════════════════╗"
+# print_color "$BLUE" "║            Test Suite Summary             ║"
+# print_color "$BLUE" "╚═══════════════════════════════════════════╝"
+# echo ""
 
 PASSED_TESTS=$((TOTAL_TESTS - FAILED_TESTS - WARNINGS))
 

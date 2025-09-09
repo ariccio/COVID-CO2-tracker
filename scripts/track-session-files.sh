@@ -142,7 +142,7 @@ EOF
         SESSION_DIR=$(get_session_dir "$SESSION_ID")
         if [ -d "$SESSION_DIR" ]; then
             rm -rf "$SESSION_DIR"
-            echo "Session cleared: $SESSION_ID"
+            # echo "Session cleared: $SESSION_ID"
         fi
         ;;
         

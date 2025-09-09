@@ -142,7 +142,7 @@ elif (( TRAILING_COUNT > 0 )); then
     echo "Dear Claude, this is an automated message from the Rubocop validation hook." >&2
     echo "Trailing whitespace was detected. Please review the repository instructions" >&2
     echo "(check copilot-instructions.md or copilot_notes/) to understand our code standards." >&2
-    echo "" >&2
+    # echo "" >&2
     echo "To fix: bundle exec rubocop -a '$FILE_PATH'" >&2
     echo "Or set AUTO_FIX_WHITESPACE=1 environment variable to auto-fix" >&2
 
@@ -161,11 +161,11 @@ elif (( BASELINE_COUNT > 0 && OFFENSE_COUNT > BASELINE_COUNT )); then
     # Offenses increased from baseline - warn but don't block
     INCREASE=$((OFFENSE_COUNT - BASELINE_COUNT))
     echo "⚠ Rubocop offenses increased by $INCREASE in $FILE_PATH (was: $BASELINE_COUNT, now: $OFFENSE_COUNT)" >&2
-    echo "" >&2
+    # echo "" >&2
     echo "Dear Claude, this is an automated message from the Rubocop validation hook." >&2
     echo "New style violations were introduced. Please review the repository instructions" >&2
     echo "(check copilot-instructions.md or copilot_notes/) for our coding standards." >&2
-    echo "" >&2
+    # echo "" >&2
     echo "To see offenses: bundle exec rubocop --fail-level F '$FILE_PATH'" >&2
     # Exit 1 shows error but doesn't block
     exit 1

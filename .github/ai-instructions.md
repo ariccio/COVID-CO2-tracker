@@ -103,6 +103,11 @@ When referencing code locations, use:
 - Format: `path/to/file.ext:line_number`
 - Example: `src/services/process.ts:712`
 
+### Unicode Character Guidelines
+- Prefer simple Unicode symbols over emojis (see `.github/copilot-instructions.md` for full list)
+- Box Drawing (U+2500-257F) and Block Elements (U+2580-259F) are allowed for tables and diagrams
+- Examples: ├── └── ═══ ▓▓▓ ░░░
+
 
 ## 🔧 Agent-Specific Configuration
 

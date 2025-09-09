@@ -79,6 +79,14 @@ const ALLOWED_SYMBOLS = new Set([
   '⟳', '⟲', '✔', '✖', '➔', '➜', '➞', '➟'
 ]);
 
+// Box Drawing characters (U+2500 to U+257F)
+// Used for creating text-based tables and diagrams
+const BOX_DRAWING_RANGE: [number, number] = [0x2500, 0x257F];
+
+// Block Elements (U+2580 to U+259F)  
+// Used for creating text-based graphics and progress bars
+const BLOCK_ELEMENT_RANGE: [number, number] = [0x2580, 0x259F];
+
 // Instruction files that document emoji usage
 const INSTRUCTION_FILES = [
   'copilot-instructions.md',
@@ -343,6 +351,18 @@ function detectEmojis(text: string): Array<{emoji: string, index: number}> {
 
     const codePoint = char.codePointAt(0);
     if (codePoint) {
+      // Skip Box Drawing characters (U+2500 to U+257F)
+      if (codePoint >= BOX_DRAWING_RANGE[0] && codePoint <= BOX_DRAWING_RANGE[1]) {
+        index++;
+        continue;
+      }
+      
+      // Skip Block Elements (U+2580 to U+259F)
+      if (codePoint >= BLOCK_ELEMENT_RANGE[0] && codePoint <= BLOCK_ELEMENT_RANGE[1]) {
+        index++;
+        continue;
+      }
+
       // Check if it's in emoji ranges
       const isEmoji = EMOJI_RANGES.some(([start, end]) => 
         codePoint >= start && codePoint <= end
