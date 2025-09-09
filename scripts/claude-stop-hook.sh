@@ -201,7 +201,7 @@ case "$TEST_LEVEL" in
         print_color "$YELLOW" "※ Test level set to 'none', skipping all tests"
         ;;
     quick)
-        print_color "$BLUE" "→ Running quick test suite..."
+        # print_color "$BLUE" "→ Running quick test suite..."
         if run_tests_with_timeout "$SCRIPT_DIR/test-suite-quick.sh" 60; then
             # print_color "$GREEN" "✓ Quick tests passed"
             echo ""

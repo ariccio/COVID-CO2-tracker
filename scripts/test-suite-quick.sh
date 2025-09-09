@@ -63,8 +63,8 @@ run_test() {
 # Navigate to project directory
 cd "$PROJECT_DIR"
 
-print_color "$BLUE" "Quick Test Suite"
-print_color "$BLUE" "────────────────"
+# print_color "$BLUE" "Quick Test Suite"
+# print_color "$BLUE" "────────────────"
 echo ""
 
 FAILED_TESTS=0
