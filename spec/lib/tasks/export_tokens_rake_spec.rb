@@ -29,9 +29,9 @@ RSpec.describe('export rake tasks', type: :task) do
           "n\n"               # No custom permissions
         )
 
-        expect { task.invoke }
-          .to(change(ExportToken, :count).by(1))
-          .and(output(/Export token successfully created/).to_stdout)
+        expect do
+          expect { task.invoke }.to output(/Export token successfully created/).to_stdout
+        end.to change(ExportToken, :count).by(1)
 
         token = ExportToken.last
         expect(token.description).to(eq('Test Token'))
@@ -79,14 +79,15 @@ RSpec.describe('export rake tasks', type: :task) do
           "n\n"
         )
 
-        expect { task.invoke }
-          .to(output(/IMPORTANT: Copy this token now/).to_stdout)
-
-        # Check that raw token is displayed
+        # Capture output and check for token pattern
         output = capture_stdout { task.invoke }
+        
+        expect(output).to include('IMPORTANT: Copy this token now')
+        # The raw token should be in the output (Base64 URL-safe pattern)
+        expect(output).to match(/[A-Za-z0-9_-]{43}/)
+        
         token = ExportToken.last
-        # The raw token should be in the output (we can't check exact value as it's random)
-        expect(output).to(match(/[A-Za-z0-9_-]{43}/))
+        expect(token.description).to eq('Display Token')
       end
 
       it('shows usage example') do
