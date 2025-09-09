@@ -16,7 +16,7 @@
 
 Please execute this exact Bash command using the Bash tool:
 cat > /tmp/test-emoji-detect.ts << 'EOF'
-const text = "Test 📝 emoji";
+const text = "📝";
 const codePoint = text.codePointAt(0);
 console.log(`Codepoint: ${codePoint?.toString(16)}`);
 EOF
