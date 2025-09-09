@@ -739,10 +739,10 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         # we need to mock at a different level
         csv_service = instance_double(Export::CsvService)
         allow(Export::CsvService).to receive(:new).and_return(csv_service)
-        
+
         # Return a limited CSV string to prevent infinite loops
-        limited_csv = "co2_ppm,timestamp,lat,lng\n" + 
-                     (1..100).map { |i| "#{400+i},2024-01-15T10:00:00Z,40.7128,-74.006" }.join("\n")
+        rows = (1..100).map { |i| "#{400 + i},2024-01-15T10:00:00Z,40.7128,-74.006" }.join("\n")
+        limited_csv = "co2_ppm,timestamp,lat,lng\n#{rows}"
         allow(csv_service).to receive(:export_to_string).and_return(limited_csv)
 
         # Should complete quickly without timeout

@@ -19,20 +19,20 @@ RSpec.describe('API::V1::Exports') do
   # Instance variables for shared data
   attr_reader :export_token, :valid_token, :headers
 
-  before(:each) do
+  before do
     # Create user and related data
     user = create(:user, name: 'Test User')
-    device = create(:device, user:, serial: 'TEST123')
-    place = create(:place, google_place_id: 'test_place_id')
-    sub_location = create(:sub_location, place:)
+    @device = create(:device, user:, serial: 'TEST123')
+    @place = create(:place, google_place_id: 'test_place_id')
+    @sub_location = create(:sub_location, place: @place)
 
     # Use ExportToken.generate to create token properly
     @export_token = ExportToken.generate(
       description: 'Test token for specs',
       expires_in: 1.year,
-      permissions: {}  # Empty permissions hash (uses defaults)
+      permissions: {} # Empty permissions hash (uses defaults)
     )
-    
+
     # The raw_token is available after generation
     @valid_token = @export_token.raw_token
     @headers = { 'Authorization' => "Bearer #{@valid_token}" }
@@ -40,8 +40,8 @@ RSpec.describe('API::V1::Exports') do
     # Create test measurements for export tests
     5.times do |i|
       create(:measurement,
-             device:,
-             sub_location:,
+             device: @device,
+             sub_location: @sub_location,
              co2ppm: 400 + (i * 200),
              measurementtime: Time.parse('2024-01-15 10:00:00 UTC') + i.hours)
     end
@@ -156,19 +156,19 @@ RSpec.describe('API::V1::Exports') do
     context('with expired token') do
       it('returns unauthorized with specific error') do
         # Use a fixed token value to ensure consistency
-        test_raw_token = 'expired_test_token_' + SecureRandom.hex(16)
+        test_raw_token = "expired_test_token_#{SecureRandom.hex(16)}"
         test_token_hash = Digest::SHA256.hexdigest(test_raw_token)
-        
+
         # Create token with ExportToken.generate then update to be expired
         expired_token = ExportToken.generate(
           description: 'Expired test token',
-          expires_in: 1.year,  # Create as valid first
+          expires_in: 1.year, # Create as valid first
           permissions: {}
         )
         # Update token_hash and expires_at directly in database to bypass validations
         expired_token.update_columns(
           token_hash: test_token_hash,
-          expires_at: 1.day.ago  # Make it expired
+          expires_at: 1.day.ago # Make it expired
         )
 
         # Verify token was created properly
@@ -185,9 +185,9 @@ RSpec.describe('API::V1::Exports') do
     context('with revoked token') do
       it('returns unauthorized with specific error') do
         # Use a fixed token value to ensure consistency
-        test_raw_token = 'revoked_test_token_' + SecureRandom.hex(16)
+        test_raw_token = "revoked_test_token_#{SecureRandom.hex(16)}"
         test_token_hash = Digest::SHA256.hexdigest(test_raw_token)
-        
+
         # Create token with ExportToken.generate then update the hash
         revoked_token = ExportToken.generate(
           description: 'Revoked test token',
@@ -196,7 +196,7 @@ RSpec.describe('API::V1::Exports') do
         )
         # Update token_hash directly in database
         revoked_token.update_columns(token_hash: test_token_hash)
-        revoked_token.revoke!(reason: 'Test revocation')
+        revoked_token.revoke!(_reason: 'Test revocation')
 
         # Verify token was created and revoked properly
         expect(revoked_token.reload).to be_persisted
@@ -281,8 +281,8 @@ RSpec.describe('API::V1::Exports') do
         # Create more measurements
         50.times do |i|
           create(:measurement,
-                 device:,
-                 sub_location:,
+                 device: @device,
+                 sub_location: @sub_location,
                  co2ppm: 400 + i,
                  measurementtime: Time.current - i.hours)
         end
@@ -302,7 +302,7 @@ RSpec.describe('API::V1::Exports') do
 
     before do
       create(:measurement,
-             device:,
+             device: @device,
              sub_location: other_sub_location,
              co2ppm: 900,
              measurementtime: Time.current)
@@ -344,7 +344,7 @@ RSpec.describe('API::V1::Exports') do
 
       it('applies filters to all relevant CSVs') do
         get('/api/v1/export',
-            params: { format_type: 'multi_csv', google_place_id: place.google_place_id },
+            params: { format_type: 'multi_csv', google_place_id: @place.google_place_id },
             headers:)
 
         Zip::File.open_buffer(response.body) do |zip|
@@ -365,15 +365,13 @@ RSpec.describe('API::V1::Exports') do
       memory_store = ActiveSupport::Cache::MemoryStore.new
       allow(Rails).to receive(:cache).and_return(memory_store)
 
-      # Create a token with low rate limit
-      rate_limited_token = ExportToken.new(
+      # Create a token with low rate limit using proper generation method
+      rate_limited_token = ExportToken.generate(
         description: 'Rate limited test token',
-        expires_at: 1.year.from_now,
+        expires_in: 1.year,
         permissions: { 'rate_limit_per_hour' => 2 }
       )
-      raw_token = SecureRandom.urlsafe_base64(32)
-      rate_limited_token.token_hash = Digest::SHA256.hexdigest(raw_token)
-      rate_limited_token.save!
+      raw_token = rate_limited_token.raw_token
 
       # Set up the cache with a high count to trigger rate limit
       memory_store.write(rate_limited_token.rate_limit_key, 10, expires_in: 1.hour)

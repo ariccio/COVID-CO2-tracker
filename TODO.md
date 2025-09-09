@@ -20,6 +20,7 @@
 - [ ] Create proper README for human developers (current is only 7 lines)
 
 ## 🟡 Architecture & Technical Debt (Next Sprint)
+- [ ] **Switch to pure query parameter authentication**: Change export token system from Bearer auth to `?token=XXX` for easier integration with external services
 - [ ] Refactor ExportsController - 498 lines with 11+ responsibilities, violates SRP
 - [ ] Unify authentication systems - JWT for legacy vs Bearer tokens for exports
 - [ ] Refactor export service hierarchy from inheritance to composition

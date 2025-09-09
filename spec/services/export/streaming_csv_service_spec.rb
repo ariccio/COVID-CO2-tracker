@@ -206,7 +206,7 @@ RSpec.describe(Export::StreamingCsvService) do
       service = described_class.new(filters)
       # Mock Open3.capture3 to simulate high memory usage (451MB)
       allow(Open3).to receive(:capture3).with('ps', '-o', 'rss=', '-p', Process.pid.to_s)
-                                         .and_return(['461824', '', double(success?: true)])
+                                        .and_return(['461824', '', instance_double(Process::Status, success?: true)])
 
       expect { service.stream { |_| nil } }.to(raise_error(
                                                  Export::BaseService::ExportError,

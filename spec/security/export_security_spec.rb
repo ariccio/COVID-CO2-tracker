@@ -83,9 +83,9 @@ RSpec.describe 'Export Security', type: :request do
       filters = { above_ppm: malicious_ppm }
 
       # Should raise an error for invalid numeric input, preventing injection
-      expect {
+      expect do
         query_builder.build(filters:)
-      }.to raise_error(Export::BaseService::ExportError, /Invalid above_ppm/)
+      end.to raise_error(Export::BaseService::ExportError, /Invalid above_ppm/)
     end
 
     it 'sanitizes place_database_id against SQL injection' do
@@ -96,9 +96,9 @@ RSpec.describe 'Export Security', type: :request do
       filters = { place_database_id: malicious_id }
 
       # Should raise an error for invalid numeric input, preventing injection
-      expect {
+      expect do
         query_builder.build(filters:)
-      }.to raise_error(Export::BaseService::ExportError, /Invalid place_database_id/)
+      end.to raise_error(Export::BaseService::ExportError, /Invalid place_database_id/)
     end
 
     it 'sanitizes google_place_id against SQL injection' do
@@ -111,7 +111,7 @@ RSpec.describe 'Export Security', type: :request do
       # Should properly escape the string - Rails will parameterize it safely
       query = query_builder.build(filters:)
       sql = query.to_sql
-      
+
       # The malicious string should be escaped/parameterized, not executed
       # Rails escapes single quotes in the string, preventing SQL injection
       expect(sql).to include('google_place_id')
@@ -191,13 +191,13 @@ RSpec.describe 'Export Security', type: :request do
       # are handled at a lower level by Rails/Rack and don't bubble up as exceptions
       # to our application code. The data is buffered and sent, and if the client
       # disconnects, the framework handles it gracefully.
-      
+
       # This test now verifies that the CSV export completes successfully
       # without streaming-related issues
       get '/api/v1/export',
           params: { format_type: 'csv' },
           headers: { 'Authorization' => "Bearer #{token.raw_token}" }
-      
+
       expect(response).to have_http_status(:ok)
       expect(response.headers['Content-Type']).to include('text/csv')
     end

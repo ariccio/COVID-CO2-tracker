@@ -84,7 +84,7 @@ FactoryBot.define do
     sequence(:description) { |n| "Export Token #{n}" }
     expires_at { 10.years.from_now }
     created_by { 'test@example.com' }
-    
+
     # Transient attributes for testing
     transient do
       generate_raw_token { false }
