@@ -1,7 +1,7 @@
-# 🚨 EMERGENCY PLAYBOOK - COVID CO2 TRACKER
+# ⚠ EMERGENCY PLAYBOOK - COVID CO2 TRACKER
 *Last Updated: 2025-09-02 | KEEP THIS OPEN DURING EMERGENCIES*
 
-## 🔴 QUICK DIAGNOSIS - START HERE
+## ■ QUICK DIAGNOSIS - START HERE
 
 ### What's Happening? (Match Your Symptoms)
 - **Site completely down** → Go to [Section 1: App Not Responding](#1-app-not-responding-h10h12-errors)
@@ -25,7 +25,7 @@ Error H12 (Request timeout) -> Request took longer than 30 seconds
 Application Error page showing to users
 ```
 
-### 🚀 IMMEDIATE ACTIONS (DO THESE FIRST):
+### ▶ IMMEDIATE ACTIONS (DO THESE FIRST):
 ```bash
 # 1. Restart the app (fixes 80% of issues)
 heroku restart --app covid-co2-tracker
@@ -95,7 +95,7 @@ FATAL: remaining connection slots are reserved
 ActiveRecord::StatementInvalid: PG::TRFatal
 ```
 
-### 🚀 IMMEDIATE ACTIONS:
+### ▶ IMMEDIATE ACTIONS:
 ```bash
 # 1. Kill all connections
 heroku pg:killall --app covid-co2-tracker
@@ -164,7 +164,7 @@ Swap used: 1024M of 512M
 Worker terminated due to memory usage
 ```
 
-### 🚀 IMMEDIATE ACTIONS:
+### ▶ IMMEDIATE ACTIONS:
 ```bash
 # 1. Restart immediately (clears memory)
 heroku restart --app covid-co2-tracker
@@ -226,7 +226,7 @@ The Ruby version you are trying to install does not exist
 Push rejected, failed to compile Ruby app
 ```
 
-### 🚀 IMMEDIATE ACTIONS:
+### ▶ IMMEDIATE ACTIONS:
 ```bash
 # 1. Check deploy status
 heroku releases --app covid-co2-tracker
@@ -302,7 +302,7 @@ Modified environment variables
 Suspicious entries in rails console history
 ```
 
-### 🚀 IMMEDIATE ACTIONS:
+### ▶ IMMEDIATE ACTIONS:
 ```bash
 # 1. LOCK DOWN IMMEDIATELY
 heroku maintenance:on --app covid-co2-tracker
@@ -382,7 +382,7 @@ Database rollback messages
 Accidentally dropped tables/columns
 ```
 
-### 🚀 IMMEDIATE ACTIONS:
+### ▶ IMMEDIATE ACTIONS:
 ```bash
 # 1. STOP all writes
 heroku maintenance:on --app covid-co2-tracker
@@ -459,7 +459,7 @@ Memory spikes during exports
 Export queue backing up
 ```
 
-### 🚀 IMMEDIATE ACTIONS:
+### ▶ IMMEDIATE ACTIONS:
 ```bash
 # 1. Check export queue size
 heroku run rails console --app covid-co2-tracker
@@ -515,7 +515,7 @@ heroku pg:ps --app covid-co2-tracker
 
 ---
 
-## 🛠️ CRITICAL COMMANDS REFERENCE
+## ⚡ CRITICAL COMMANDS REFERENCE
 
 ### Memory Emergency Kit
 ```bash
@@ -579,7 +579,7 @@ heroku config --app covid-co2-tracker
 
 ---
 
-## 📞 CONTACT INFORMATION & ESCALATION
+## ℹ CONTACT INFORMATION & ESCALATION
 
 ### Internal Contacts
 1. **Primary Developer**: Alexander Riccio
@@ -625,7 +625,7 @@ heroku config --app covid-co2-tracker
 
 ---
 
-## 🎯 QUICK DECISION TREE
+## ◆ QUICK DECISION TREE
 
 ```
 Is the site completely down?
@@ -647,7 +647,7 @@ Is it 3am and you're panicking?
 
 ---
 
-## 📝 POST-INCIDENT CHECKLIST
+## ※ POST-INCIDENT CHECKLIST
 
 After resolving any emergency:
 
@@ -664,7 +664,7 @@ After resolving any emergency:
 
 ---
 
-## 🔧 COMMON ERROR CODES REFERENCE
+## ▪ COMMON ERROR CODES REFERENCE
 
 | Code | Meaning | Quick Fix |
 |------|---------|-----------|
@@ -679,7 +679,7 @@ After resolving any emergency:
 
 ---
 
-## 💡 FINAL TIPS
+## ★ FINAL TIPS
 
 1. **Don't Panic**: Most issues are fixable
 2. **Restart First**: Seriously, it fixes 80% of problems

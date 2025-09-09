@@ -1,6 +1,6 @@
 # AI Agent Context for COVID CO2 Tracker
 
-## ⚠️ Production vs Development Status
+## ⚠ Production vs Development Status
 
 > **CRITICAL**: Production is running commit `f8283b3d` (July 20, 2024).  
 > There are **62 commits** in `main` that have not been deployed.  
@@ -11,7 +11,7 @@
 > - Always verify deployment status before assuming features exist
 > - Use `heroku releases --app covid-co2-tracker` to check
 
-## 🎯 Project Mission & Values
+## ◆ Project Mission & Values
 This is NOT just another app. This is a public health tool that could literally save lives by making indoor air quality transparent. Every feature should be evaluated through the lens of: "Will this help someone avoid getting COVID or other airborne diseases?"
 
 ### Core Values to Maintain
@@ -21,7 +21,7 @@ This is NOT just another app. This is a public health tool that could literally 
 4. **Scientifically Accurate**: 800ppm is good, 1000ppm+ is risky
 5. **Urgency**: People are getting infected TODAY while we code
 
-## 🧠 Domain Knowledge for AI Agents
+## ★ Domain Knowledge for AI Agents
 
 ### CO2 Levels & Health Risk
 ```ruby
@@ -54,7 +54,7 @@ The creator (Alexander Riccio) has strong opinions based on years of advocacy:
 4. **The Activist**: Wants data to shame venues into action
 5. **The Venue Owner**: Wants to show they care (B2B opportunity)
 
-## 💻 Codebase Patterns & Conventions
+## ▪ Codebase Patterns & Conventions
 
 ### Rails Patterns in This Project
 ```ruby
@@ -89,7 +89,7 @@ const MeasurementView = () => {
 - Test user journeys, not implementation details
 - Critical paths: measurement submission, alerts, data export
 
-## 🚀 When Working on Features
+## ▶ When Working on Features
 
 ### Before Starting Any Feature
 1. Check `FEATURE-PRIORITY-MATRIX.md` for impact assessment
@@ -121,7 +121,7 @@ const MeasurementView = () => {
 - Trust user input without validation
 ```
 
-## 🎨 UI/UX Principles
+## ● UI/UX Principles
 
 ### Visual Language
 - **Green**: Safe (CO2 < 800ppm)
@@ -144,7 +144,7 @@ const MeasurementView = () => {
 "Air quality could be better"
 ```
 
-## 🔧 Common Tasks for AI Agents
+## ⚡ Common Tasks for AI Agents
 
 ### Adding a New Measurement Type
 ```bash
@@ -195,7 +195,7 @@ class HighCo2Strategy < BaseStrategy
 end
 ```
 
-## 🐛 Known Issues & Gotchas
+## ✗ Known Issues & Gotchas
 
 ### Database Gotchas
 - Place.google_place_id can be null (manual entries)
@@ -212,7 +212,7 @@ end
 - Background location tracking drains battery
 - Expo Go doesn't support all native features
 
-## 📈 Success Metrics to Optimize For
+## ▲ Success Metrics to Optimize For
 
 When adding features, optimize for:
 1. **Time to First Measurement** (currently ~3 mins, target: <1 min)
@@ -220,7 +220,7 @@ When adding features, optimize for:
 3. **Viral Coefficient** (shares per user, currently ~0.1, target: >1)
 4. **Venue Response Rate** (% that improve after alerts, track this!)
 
-## 🔮 Future Architecture Decisions
+## ◇ Future Architecture Decisions
 
 ### Pending Decisions (Need Creator Input)
 1. **Monolith vs Microservices**: Stay monolith until 10k DAU
@@ -234,7 +234,7 @@ When adding features, optimize for:
 3. Add caching layer (Redis) for hot data
 4. Create separate read/write database connections
 
-## 🚨 Emergency Procedures
+## ⚠ Emergency Procedures
 
 ### If Production is Down
 ```bash
@@ -260,7 +260,7 @@ Measurement.where('co2_ppm > 10000').update_all(flagged: true)
 # Then investigate in admin panel
 ```
 
-## 💡 AI Agent Pro Tips
+## ★ AI Agent Pro Tips
 
 ### When the Creator (Alexander) is Cranky
 - He's probably frustrated about institutional failure, not your code

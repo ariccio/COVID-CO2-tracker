@@ -1,6 +1,6 @@
-# 🎯 COVID CO2 Tracker - Quick Reference Card
+# ◆ COVID CO2 Tracker - Quick Reference Card
 
-## 🚀 Start Here Commands
+## ▶ Start Here Commands
 ```bash
 # Setup everything (10 mins)
 chmod +x copilot_notes/QUICK-START-SCRIPT.sh
@@ -12,7 +12,7 @@ cd co2_native_client && npm start # Mobile
 cd co2_client && npm start        # Web on :3001
 ```
 
-## 📍 Key Files & Locations
+## ※ Key Files & Locations
 ```
 app/models/measurement.rb        # Core data model
 app/controllers/api/             # API endpoints
@@ -23,27 +23,27 @@ config/routes.rb                 # URL mappings
 db/schema.rb                     # Database structure
 ```
 
-## ⚡ One-Hour Quick Wins
+## → One-Hour Quick Wins
 | Task | Command/Location | Impact |
 |------|-----------------|--------|
-| Add SMS alerts | `app/services/alert_service.rb` + Twilio | 🔥🔥🔥 |
-| Public leaderboard | `app/controllers/venues_controller.rb` | 🔥🔥🔥 |
-| CSV export | `respond_to :csv` in controllers | 🔥🔥 |
-| Social sharing | Add meta tags to `app/views/layouts` | 🔥🔥🔥 |
+| Add SMS alerts | `app/services/alert_service.rb` + Twilio | ★★★ |
+| Public leaderboard | `app/controllers/venues_controller.rb` | ★★★ |
+| CSV export | `respond_to :csv` in controllers | ★★ |
+| Social sharing | Add meta tags to `app/views/layouts` | ★★★ |
 
-## 🎨 CO2 Thresholds
+## ■ CO2 Thresholds
 ```ruby
 case co2_ppm
-when 0..600    then "🟢 Excellent"
-when 601..800  then "🟢 Good"  
-when 801..1000 then "🟡 Moderate"
-when 1001..1500 then "🔴 Poor"
-when 1501..2500 then "🟣 Dangerous"
-else "☠️ Evacuate"
+when 0..600    then "● Excellent"
+when 601..800  then "● Good"  
+when 801..1000 then "◐ Moderate"
+when 1001..1500 then "○ Poor"
+when 1501..2500 then "◇ Dangerous"
+else "✗ Evacuate"
 end
 ```
 
-## 🔥 Hot Database Queries
+## ▪ Hot Database Queries
 ```ruby
 # Current CO2 at venue
 Measurement.where(place_id: X).order(:created_at).last
@@ -61,7 +61,7 @@ Place.joins(:measurements)
   .limit(10)
 ```
 
-## 🛠️ Common Rails Commands
+## ◇ Common Rails Commands
 ```bash
 rails c                    # Console
 rails db:migrate          # Run migrations
@@ -71,7 +71,7 @@ rails g controller Things # Generate controller
 bundle                    # Install gems
 ```
 
-## 📱 React Native Common Tasks
+## □ React Native Common Tasks
 ```bash
 cd co2_native_client
 expo start --ios         # Run on iOS simulator
@@ -81,7 +81,7 @@ expo build:android      # Build APK
 npm test                # Run tests
 ```
 
-## 🚨 Emergency Fixes
+## ⚠ Emergency Fixes
 ```bash
 # Everything is broken
 spring stop
@@ -103,7 +103,7 @@ git reset --hard HEAD~1  # Undo last commit
 git clean -fd            # Remove untracked files
 ```
 
-## 📊 Key Metrics Queries
+## ▫ Key Metrics Queries
 ```sql
 -- Daily active users
 SELECT COUNT(DISTINCT user_id) 
@@ -123,7 +123,7 @@ FROM alerts
 WHERE created_at > NOW() - INTERVAL '1 day';
 ```
 
-## 🎯 Business Logic Locations
+## • Business Logic Locations
 | Feature | File | Method/Function |
 |---------|------|----------------|
 | CO2 Alerts | `app/services/alert_service.rb` | `check_thresholds` |
@@ -132,7 +132,7 @@ WHERE created_at > NOW() - INTERVAL '1 day';
 | Measurements | `app/models/measurement.rb` | `validations` block |
 | Admin Panel | `app/admin/*.rb` | ActiveAdmin DSL |
 
-## 💰 Revenue Code Sections
+## ★ Revenue Code Sections
 ```ruby
 # app/models/user.rb
 enum subscription_tier: {
@@ -146,7 +146,7 @@ belongs_to :owner, class_name: 'User', optional: true
 # Venues can be "claimed" by business users
 ```
 
-## 🔗 External Services
+## ○ External Services
 | Service | Purpose | Credentials Location |
 |---------|---------|---------------------|
 | Google Places | Venue data | `GOOGLE_PLACES_API_KEY` |
@@ -155,7 +155,7 @@ belongs_to :owner, class_name: 'User', optional: true
 | Sentry | Errors | `SENTRY_DSN` |
 | S3 | File storage | `AWS_*` vars |
 
-## 🧪 Test Commands
+## ▶ Test Commands
 ```bash
 # Run all tests
 bundle exec rspec
@@ -171,7 +171,7 @@ cd co2_native_client && npm test
 cd co2_client && npm test
 ```
 
-## 📝 Git Workflow
+## ※ Git Workflow
 ```bash
 git checkout -b feature/issue-number/description
 # Make changes
@@ -181,7 +181,7 @@ git push -u origin feature/issue-number/description
 # Open PR on GitHub
 ```
 
-## ⚠️ Before Deploying
+## ⚠ Before Deploying
 - [ ] Run tests: `bundle exec rspec`
 - [ ] Check security: `bundle audit`  
 - [ ] Check code quality: `rubocop`
@@ -190,13 +190,13 @@ git push -u origin feature/issue-number/description
 - [ ] Update changelog
 - [ ] Tag version: `git tag -a v1.0.0 -m "Release 1.0.0"`
 
-## 🎓 Learning Resources
+## ℹ Learning Resources
 - [Rails Guides](https://guides.rubyonrails.org)
 - [React Native Docs](https://reactnative.dev/docs/getting-started)
 - [Expo Docs](https://docs.expo.dev)
 - CO2 & Ventilation: 800ppm = good, 1000ppm+ = mask up
 
-## 💭 Remember
+## ■ Remember
 **"COVID is airborne. CO2 correlates with infection risk. Simple engineering could have saved 80k lives. We're building the tool that makes air quality impossible to ignore."** - The Mission
 
-Ship fast. Save lives. 🚀
+Ship fast. Save lives. →

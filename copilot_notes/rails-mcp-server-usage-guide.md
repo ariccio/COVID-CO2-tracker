@@ -1,6 +1,6 @@
 # Rails MCP Server Usage Guide
 
-## Configuration Complete ✅
+## Configuration Complete ✓
 The rails-mcp-server is now configured for your COVID CO2 Tracker and DeeDee Prototype projects.
 
 ## Configuration Files
@@ -82,9 +82,9 @@ rails-mcp-server --mode stdio
 - Navigate complex controller logic
 - Understand service objects structure
 
-## ⚠️ CRITICAL: Activation Requirements
+## ⚠ CRITICAL: Activation Requirements
 **The MCP server will NOT be available until you:**
-1. Complete configuration (✅ Already done)
+1. Complete configuration (✓ Already done)
 2. **RESTART Claude Desktop** (Required after configuration)
 3. The server runs automatically in STDIO mode when Claude starts
 

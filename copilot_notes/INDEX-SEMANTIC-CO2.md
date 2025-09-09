@@ -1,14 +1,14 @@
-# 🧠 COVID CO2 Tracker Semantic Knowledge Index
+# ◆ COVID CO2 Tracker Semantic Knowledge Index
 *AI-optimized task pattern matching for rapid context loading*
 *Last Updated: 2025-09-03 | Total Files: 44 (25 archived) | Total Words: ~42,000*
 
-## 🚨 ALWAYS START HERE
+## ⚠ ALWAYS START HERE
 This index maps task patterns → relevant files with ACTUAL word counts for precise context budget management.
 **Goal**: Load <20k tokens for 80% of tasks, maintain laser focus on public health mission.
 
-## 📊 FILE CATALOG BY CATEGORY
+## ■ FILE CATALOG BY CATEGORY
 
-### 🚨 Emergency & Production Operations (5,507 words)
+### ⚠ Emergency & Production Operations (5,507 words)
 | File | Words | Description | Keywords |
 |------|-------|-------------|----------|
 | `EMERGENCY-PLAYBOOK-CO2.md` | 2,476 | Production emergency procedures | crash, outage, H10, R14, memory |
@@ -17,7 +17,7 @@ This index maps task patterns → relevant files with ACTUAL word counts for pre
 *Note: 8 Heroku files archived to `archived/heroku/` - content consolidated into HEROKU-COMPLETE-GUIDE.md*
 *Note: Production environment snapshot archived to `archive/completed/` - historical reference*
 
-### 📦 Export System Documentation (21,206 words)
+### ▪ Export System Documentation (21,206 words)
 | File | Words | Description | Keywords |
 |------|-------|-------------|----------|
 | `docs/export-system-implementation.md` | 3,667 | Complete technical documentation | implementation, API, streaming |
@@ -34,7 +34,7 @@ This index maps task patterns → relevant files with ACTUAL word counts for pre
 
 *Note: 6 export planning files archived to `archive/superseded/` - consolidated into current implementation docs*
 
-### 🚄 Rails Architecture & MCP Tools (8,957 words)
+### ▫ Rails Architecture & MCP Tools (8,957 words)
 | File | Words | Description | Keywords |
 |------|-------|-------------|----------|
 | `rails-architecture-deep-dive.md` | 1,262 | Complete architecture analysis | models, controllers, services |
@@ -46,7 +46,7 @@ This index maps task patterns → relevant files with ACTUAL word counts for pre
 *Note: 4 exploration files archived to `archive/exploratory/` - insights integrated into main guides*
 *Note: Project architecture overview archived to `archive/completed/` - superseded by detailed guide*
 
-### 🧠 Knowledge Infrastructure (14,432 words)
+### ◆ Knowledge Infrastructure (14,432 words)
 | File | Words | Description | Keywords |
 |------|-------|-------------|----------|
 | `2025-09-02-AUTOMATION-OPPORTUNITIES.md` | 3,125 | Automation analysis | scripts, tools, efficiency |
@@ -58,7 +58,7 @@ This index maps task patterns → relevant files with ACTUAL word counts for pre
 *Note: 3 advanced concept files archived to `archive/advanced-concepts/` - future vision documents*
 *Note: Memory setup summary archived to `archive/completed/` - setup complete*
 
-### 🎯 Quick References & Guides (5,554 words)
+### → Quick References & Guides (5,554 words)
 | File | Words | Description | Keywords |
 |------|-------|-------------|----------|
 | `MASTER-REVIVAL-PLAN-2025.md` | 1,414 | Complete revival strategy | roadmap, priorities, timeline |
@@ -69,7 +69,7 @@ This index maps task patterns → relevant files with ACTUAL word counts for pre
 | `rubocop-complexity-reduction-pattern.md` | 674 | Proven patterns for reducing complexity | refactoring, ABC, rubocop, orchestration |
 | `PROBLEM_SOLUTION_MAP_CO2.md` | 299 | Problem → solution mapping | troubleshooting, fixes |
 
-### ⚠️ CRITICAL: Known Issues & Anti-Patterns (5,885 words)
+### ⚠ CRITICAL: Known Issues & Anti-Patterns (5,885 words)
 | File | Words | Description | Keywords |
 |------|-------|-------------|----------|
 | `RAILS_ANTI_PATTERNS.md` | 1,800 | Common Rails mistakes to avoid | N+1, queries, services, testing |
@@ -78,7 +78,7 @@ This index maps task patterns → relevant files with ACTUAL word counts for pre
 | `ai-session-pattern-analysis.md` | 1,084 | AI session behavior patterns | sessions, memory, patterns |
 | `GOTCHA-TEMPLATE.md` | 225 | Template for documenting gotchas | template, documentation |
 
-### 📝 Session & Continuation Files (2,410 words)
+### ※ Session & Continuation Files (2,410 words)
 | File | Words | Description | Keywords |
 |------|-------|-------------|----------|
 | `2025-09-02-session-context-complete.md` | 975 | Complete session context | export system, production |
@@ -87,7 +87,7 @@ This index maps task patterns → relevant files with ACTUAL word counts for pre
 
 *Note: 15+ session files archived to `archive/sessions/` and `archive/continuation/` - historical contexts preserved*
 
-### 📚 Documentation Standards (1,764 words)
+### □ Documentation Standards (1,764 words)
 | File | Words | Description | Keywords |
 |------|-------|-------------|----------|
 | `EXAMPLE-IMPROVED-DOCUMENTATION.md` | 968 | Documentation example | format, standards |
@@ -95,7 +95,7 @@ This index maps task patterns → relevant files with ACTUAL word counts for pre
 | `AI-DOCUMENTATION-INSTRUCTIONS.md` | 288 | Documentation standards | quality, format |
 | `DOCUMENTATION-TEMPLATE.md` | 219 | Documentation template | template, structure |
 
-## 🎯 TASK PATTERN MATCHER V2
+## → TASK PATTERN MATCHER V2
 
 ### When You Need To...
 
@@ -197,7 +197,7 @@ Database & Runtime Inspection:
   Total: ~1,600 words
 ```
 
-## 📊 CONTEXT BUDGET RECOMMENDATIONS
+## ■ CONTEXT BUDGET RECOMMENDATIONS
 
 ### By Task Duration
 | Duration | Token Budget | Files to Load | Strategy |
@@ -218,7 +218,7 @@ Database & Runtime Inspection:
 | Research/Analysis | 15,000 tokens | Multiple deep dives |
 | Architecture Change | 25,000 tokens | All architecture docs |
 
-## 🚀 QUICK COMMANDS REFERENCE
+## ▶ QUICK COMMANDS REFERENCE
 
 ### Heroku Emergency Commands
 ```bash
@@ -253,7 +253,7 @@ bundle exec rspec spec/services/export/
 bundle exec rspec spec/requests/api/v1/export_spec.rb
 ```
 
-## 🔗 FILE DEPENDENCIES MAP
+## ◇ FILE DEPENDENCIES MAP
 
 ### Critical Dependencies
 ```yaml
@@ -282,7 +282,7 @@ Feature Implementation:
     - Public controller patterns
 ```
 
-## 🎯 HIGH-PRIORITY ACTIONS
+## → HIGH-PRIORITY ACTIONS
 
 ### Immediate (Tonight)
 1. **Security Fixes**: Load `2025-09-02-IMMEDIATE-ACTION-PLAN.md` (1,302 words)
@@ -296,7 +296,7 @@ From FEATURE-PRIORITY-MATRIX.md:
 3. CSV Export - 1 hour
 4. Traffic Light UI - 1 hour
 
-## 💡 NAVIGATION TIPS
+## ★ NAVIGATION TIPS
 
 ### Finding Information Fast
 1. **Use Ctrl+F on this index first** - Keywords are comprehensive
@@ -310,7 +310,7 @@ From FEATURE-PRIORITY-MATRIX.md:
 - Files with "enhanced" have Rails-specific patterns added
 - Files with "ultrathink" are comprehensive analyses
 
-## 📈 EFFICIENCY METRICS
+## ↑ EFFICIENCY METRICS
 
 Current State (Post-Archive):
 - **Active Files**: 41 markdown files
@@ -321,12 +321,12 @@ Current State (Post-Archive):
 - **Quick Wins Available**: 5 features under 2 hours each
 
 Completed Optimizations:
-- ✅ Archive 25 session/context files → reduced to 41 active files
-- ✅ Consolidate 8 Heroku files → 1 comprehensive guide
-- ✅ Archive old templates → 1 current template
-- ✅ Archive superseded plans → current implementation docs only
+- ✓ Archive 25 session/context files → reduced to 41 active files
+- ✓ Consolidate 8 Heroku files → 1 comprehensive guide
+- ✓ Archive old templates → 1 current template
+- ✓ Archive superseded plans → current implementation docs only
 
-## 📁 ARCHIVED FILES
+## ▪ ARCHIVED FILES
 
 Files moved to `archive/` on 2025-09-02:
 - **25 files archived** (~35,000 words)
@@ -339,7 +339,7 @@ Files moved to `archive/` on 2025-09-02:
 
 All archived files remain accessible if needed.
 
-## 🔄 WHEN CONTEXT FILLS
+## ⟳ WHEN CONTEXT FILLS
 
 At 80% capacity:
 1. Save state to: `copilot_notes/2025-09-02-session-[task]-preservation.md`
@@ -349,4 +349,4 @@ At 80% capacity:
 
 ---
 *Index Version: 3.0.0 | Last Updated: 2025-09-02 | Active Files: 41 | Archived: 25 | Words: ~40,000*
-*✅ CLEANUP COMPLETE: Session files archived, knowledgebase optimized*
+*✓ CLEANUP COMPLETE: Session files archived, knowledgebase optimized*

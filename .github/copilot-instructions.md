@@ -320,6 +320,33 @@ scripts/
   - `🔃` → `⟲` (counterclockwise rotation, undo)
   - `📝` → `※` (note/documentation creation, reference mark)
   These replacements maintain semantic meaning while reducing visual noise and improving professional appearance in development tooling.
+  **Alternative symbols for nuanced use:**
+- **Cool unicode**: The following Unicode blocks contain lots of cool characters ("codepoints") that you're highly encouraged to use where appropriate:
+
+  **Most Useful for Development/Technical Context:**
+- Geometric Shapes (U+25A0–25FF) - ■ □ ● ○ ◆ ◇ ▲ △ etc.
+- Miscellaneous Technical (U+2300-U+23FF) - ⌘ ⌥ ⎋ ⏎ ⚙ ⚡ etc.
+- Control Pictures (U+2400-U+243F) - ␣ ␤ ␍ ␊ etc.
+- Letterlike Symbols (U+2100-U+214F) - ℹ ™ ℃ ℉ ⅰ ⅱ etc.
+- Enclosed Alphanumerics (U+2460-U+24FF) - ① ② ③ Ⓐ Ⓑ Ⓒ etc.
+
+  **Mathematical & Logical Symbols:**
+- Mathematical Operators (U+2200–U+22FF) - ∀ ∃ ∈ ∉ ∑ ∏ ∫ etc.
+- Supplemental Mathematical Operators (U+2A00-U+2AFF) - ⨀ ⨁ ⨂ etc.
+- Miscellaneous Mathematical Symbols-A (U+27C0-U+27EF) - ⟨ ⟩ ⟪ ⟫ etc.
+- Miscellaneous Mathematical Symbols-B (U+2980-U+29FF) - ⦀ ⦁ ⦂ etc.
+- Mathematical Alphanumeric Symbols (U+1D400-U+1D7FF) - 𝒜 𝒞 𝒟 etc.
+
+  **Arrows & Flow Indicators:**
+- Miscellaneous Symbols and Arrows (U+2B00-U+2BFF) - ⬀ ⬁ ⬂ ⬃ etc.
+- Supplemental Arrows-A (U+27F0-U+27FF) - ⟰ ⟱ ⟲ ⟳ etc.
+- Supplemental Arrows-B (U+2900-U+297F) - ⤀ ⤁ ⤂ ⤃ etc.
+
+  **Specialized/Historical (use sparingly):**
+- Geometric Shapes Extended (U+1F780-U+1F7FF) - (only some render)
+- Linear B Ideograms (U+10080-U+100FF) - 𐀀 𐀁 𐀂 etc.
+- Linear A (U+10600-U+1077F) - 𐘀 𐘁 𐘂 etc.
+- Egyptian Hieroglyphs (U+13000-U+1342F) - 𓀀 𓀁 𓀂 etc.
 
 
 ## Consider verifying by building

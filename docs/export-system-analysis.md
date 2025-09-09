@@ -107,7 +107,7 @@ response.stream.write(data)
 
 ### Code-Level Gaps
 
-**❌ Missing Tests**
+**⊗ Missing Tests**
 - No test files found in `spec/` directory for export system
 - Critical missing test coverage:
   - Token authentication edge cases
@@ -118,7 +118,7 @@ response.stream.write(data)
   - Cache invalidation logic
   - Error conditions and recovery
 
-**❌ Error Scenarios Not Handled**
+**⊗ Error Scenarios Not Handled**
 - Database connection failures during streaming
 - Partial ZIP file corruption
 - Network interruptions during long exports
@@ -127,14 +127,14 @@ response.stream.write(data)
 - Time zone handling inconsistencies
 - Large result set timeout handling
 
-**❌ Performance Optimizations Not Implemented**
+**⊗ Performance Optimizations Not Implemented**
 - No database connection pooling configuration for exports
 - Missing query plan analysis for large datasets
 - No compression for CSV/JSONL formats
 - No query result pagination for very large exports
 - Missing index recommendations for export-specific queries
 
-**❌ Code Quality Issues**
+**⊗ Code Quality Issues**
 - Magic numbers (450MB memory threshold, 5000 record check interval)
 - Hard-coded batch sizes without configurability
 - Direct shell command execution for memory checks
@@ -142,7 +142,7 @@ response.stream.write(data)
 
 ### Configuration Gaps
 
-**❌ Missing Environment Variables**
+**⊗ Missing Environment Variables**
 ```bash
 # Required but not documented
 EXPORT_MEMORY_THRESHOLD_MB=450
@@ -152,7 +152,7 @@ EXPORT_DEFAULT_CACHE_DURATION=15.minutes
 EXPORT_MAX_DATE_RANGE_DAYS=365
 ```
 
-**❌ Gems Not Added to Gemfile**
+**⊗ Gems Not Added to Gemfile**
 ```ruby
 # Present in Gemfile ✓
 gem 'rubyzip', '~> 2.3'
@@ -162,7 +162,7 @@ gem 'rubyzip', '~> 2.3'
 # gem 'dalli' # If using Memcached instead of Redis
 ```
 
-**❌ Database Indexes Potentially Needed**
+**⊗ Database Indexes Potentially Needed**
 ```sql
 -- Export-optimized indexes not created
 CREATE INDEX idx_measurements_export_time ON measurements(measurementtime DESC, id DESC);
@@ -171,7 +171,7 @@ CREATE INDEX idx_measurements_device_time ON measurements(device_id, measurement
 CREATE INDEX idx_measurements_location_time ON measurements(sub_location_id, measurementtime);
 ```
 
-**❌ Monitoring Not Configured**
+**⊗ Monitoring Not Configured**
 - No application performance monitoring for export endpoints
 - Missing memory usage metrics collection
 - No export duration tracking
@@ -180,7 +180,7 @@ CREATE INDEX idx_measurements_location_time ON measurements(sub_location_id, mea
 
 ### Documentation Gaps
 
-**❌ API Documentation for External Consumers**
+**⊗ API Documentation for External Consumers**
 - No OpenAPI/Swagger specification
 - Missing authentication flow examples
 - No rate limiting documentation
@@ -188,13 +188,13 @@ CREATE INDEX idx_measurements_location_time ON measurements(sub_location_id, mea
 - No field selection guide
 - Missing filter parameter documentation
 
-**❌ Operational Runbooks**
+**⊗ Operational Runbooks**
 - No token management procedures
 - Missing cache maintenance procedures
 - No performance monitoring playbook
 - Missing scaling procedures for high export volume
 
-**❌ Troubleshooting Guides**
+**⊗ Troubleshooting Guides**
 - No memory pressure debugging guide
 - Missing streaming failure recovery procedures
 - No cache invalidation troubleshooting
@@ -206,66 +206,66 @@ CREATE INDEX idx_measurements_location_time ON measurements(sub_location_id, mea
 
 ### Data Protection
 
-**✅ Read-Only Enforcement**
+**⊞ Read-Only Enforcement**
 - **Mechanism**: Transaction detection prevents exports during write operations
 - **Guarantee**: Zero possibility of data modification through export system
 - **Implementation**: `ActiveRecord::Base.connection.transaction_open?` check
 
-**✅ No Data Modification Possible**
+**⊞ No Data Modification Possible**
 - **Guarantee**: Export services only use SELECT queries via ActiveRecord
 - **Implementation**: Service objects have no create/update/destroy methods
 - **Verification**: Code review confirms no write operations in export path
 
-**✅ No PII Leakage Guarantees**
+**⊞ No PII Leakage Guarantees**
 - **Field Allowlist**: Only predefined fields can be exported (`ALLOWED_FIELDS` constant)
 - **Sanitization**: All string fields processed through `sanitize_for_export`
 - **Location Privacy**: Coordinates rounded to 6 decimal places (±0.11m precision)
 
-**✅ Audit Trail Capabilities**
+**⊞ Audit Trail Capabilities**
 - **Token Usage Tracking**: Every export increments `usage_count` and updates `last_used_at`
 - **Structured Logging**: JSON-formatted logs with timestamps, filters, and record counts
 - **Export Metadata**: Complete filter parameters logged for each export
 
 ### Access Control
 
-**✅ Token Authentication Strength**
+**⊞ Token Authentication Strength**
 - **Mechanism**: Rails `has_secure_token` with cryptographically secure random generation
 - **Storage**: Indexed, unique tokens in database with expiration timestamps
 - **Validation**: Active scope filtering ensures expired tokens are rejected
 
-**✅ Permission Scoping**
+**⊞ Permission Scoping**
 - **Format Restrictions**: Tokens can be limited to specific export formats
 - **Record Limits**: Configurable maximum records per export (default 100,000)
 - **Field Filtering**: Permission system can restrict available fields
 
-**✅ Rate Limiting Effectiveness**
+**⊞ Rate Limiting Effectiveness**
 - **Implementation**: Redis/Rails cache-based with per-token hourly limits
 - **Default**: 10 requests per hour per token (configurable)
 - **Response**: HTTP 429 with reset timing information
 
-**✅ Expiration Handling**
+**⊞ Expiration Handling**
 - **Database-Level**: `expires_at` timestamp with indexed queries
 - **Application-Level**: Active scope filtering in authentication
 - **Cleanup**: Expired token scope for maintenance operations
 
 ### System Protection
 
-**✅ Memory Exhaustion Prevention**
+**⊞ Memory Exhaustion Prevention**
 - **Heroku Protection**: 450MB memory threshold with process monitoring
 - **Batch Processing**: 1000-record batches prevent memory accumulation
 - **Early Termination**: Export stops before hitting memory limits
 
-**✅ Database Connection Protection**
+**⊞ Database Connection Protection**
 - **Read-Only Operations**: No write transactions during exports
 - **Connection Efficiency**: Includes optimization reduces N+1 queries
 - **Query Parameterization**: All user input properly escaped
 
-**✅ Transaction Safety**
+**⊞ Transaction Safety**
 - **No Modifications**: Export system cannot alter database state
 - **Connection Management**: Proper resource cleanup in ensure blocks
 - **Error Recovery**: Failed exports don't leave system in inconsistent state
 
-**✅ Rollback Capabilities**
+**⊞ Rollback Capabilities**
 - **System State**: Export failures don't affect application state
 - **File Cleanup**: Temporary files removed on export failure
 - **Resource Release**: Database connections and streams properly closed
@@ -276,25 +276,25 @@ CREATE INDEX idx_measurements_location_time ON measurements(sub_location_id, mea
 
 ### Authentication Weaknesses
 
-**🚨 Token Transmission Risks**
+**⚡ Token Transmission Risks**
 - **Issue**: Tokens transmitted in HTTP headers without additional encryption
 - **Risk**: Token interception over insecure connections
 - **Mitigation Required**: Enforce HTTPS-only in production
 - **Recommendation**: Consider token encryption at rest
 
-**🚨 No Token Rotation Mechanism**
+**⚡ No Token Rotation Mechanism**
 - **Issue**: Tokens remain valid until manual expiration
 - **Risk**: Compromised tokens have extended window of abuse
 - **Impact**: Long-lived tokens increase attack surface
 - **Recommendation**: Implement automatic token rotation
 
-**🚨 No IP Allowlisting**
+**⚡ No IP Allowlisting**
 - **Issue**: Tokens valid from any IP address
 - **Risk**: Stolen tokens usable from anywhere
 - **Impact**: No geographic or network-based access control
 - **Recommendation**: Add optional IP restriction to token permissions
 
-**🚨 No Two-Factor Authentication**
+**⚡ No Two-Factor Authentication**
 - **Issue**: Single-factor authentication (token only)
 - **Risk**: Compromised tokens provide full access
 - **Impact**: No additional verification layer
@@ -302,25 +302,25 @@ CREATE INDEX idx_measurements_location_time ON measurements(sub_location_id, mea
 
 ### Data Exposure Risks
 
-**🚨 Bulk Data Export Concerns**
+**⚡ Bulk Data Export Concerns**
 - **Issue**: Entire database can be exported with broad filters
 - **Risk**: Complete data exfiltration possible
 - **Impact**: All historical CO2 measurements accessible
 - **Recommendation**: Implement export quotas and monitoring
 
-**🚨 No Row-Level Security**
+**⚡ No Row-Level Security**
 - **Issue**: All records accessible if token has permissions
 - **Risk**: Cannot restrict access to specific users' data
 - **Impact**: No data isolation between organizations/users
 - **Recommendation**: Add user/organization scoping to tokens
 
-**🚨 No Field-Level Encryption**
+**⚡ No Field-Level Encryption**
 - **Issue**: Sensitive fields exported in plain text
 - **Risk**: Location data and device serials exposed
 - **Impact**: Potential privacy violations
 - **Recommendation**: Consider encryption for sensitive fields
 
-**🚨 Potential for Data Scraping**
+**⚡ Potential for Data Scraping**
 - **Issue**: Rate limiting may be insufficient for determined attackers
 - **Risk**: Systematic data harvesting through multiple tokens
 - **Impact**: Large-scale data extraction possible
@@ -328,25 +328,25 @@ CREATE INDEX idx_measurements_location_time ON measurements(sub_location_id, mea
 
 ### Operational Risks
 
-**🚨 Denial of Service Potential**
+**⚡ Denial of Service Potential**
 - **Issue**: Large exports can consume significant resources
 - **Risk**: System resource exhaustion from legitimate or malicious usage
 - **Impact**: Application slowdown or failure
 - **Recommendation**: Implement queue-based export processing
 
-**🚨 Memory Exhaustion Attacks**
+**⚡ Memory Exhaustion Attacks**
 - **Issue**: Multiple concurrent exports could exceed memory limits
 - **Risk**: Application crash from memory pressure
 - **Impact**: Service disruption
 - **Recommendation**: Global memory monitoring and export queuing
 
-**🚨 Database Connection Exhaustion**
+**⚡ Database Connection Exhaustion**
 - **Issue**: Long-running exports hold database connections
 - **Risk**: Connection pool exhaustion
 - **Impact**: Application database connectivity issues
 - **Recommendation**: Connection pooling configuration and monitoring
 
-**🚨 Log Injection Possibilities**
+**⚡ Log Injection Possibilities**
 - **Issue**: User-supplied filter parameters logged directly
 - **Risk**: Log injection attacks possible
 - **Impact**: Log file corruption or information disclosure
@@ -354,25 +354,25 @@ CREATE INDEX idx_measurements_location_time ON measurements(sub_location_id, mea
 
 ### Compliance Concerns
 
-**🚨 GDPR Considerations**
+**⚡ GDPR Considerations**
 - **Issue**: No data subject consent tracking for exports
 - **Risk**: Violation of data protection regulations
 - **Impact**: Legal liability and fines
 - **Recommendation**: Add consent tracking and right-to-be-forgotten support
 
-**🚨 Data Retention Policies**
+**⚡ Data Retention Policies**
 - **Issue**: No automatic data aging or purging
 - **Risk**: Indefinite data retention
 - **Impact**: Compliance violations
 - **Recommendation**: Implement data lifecycle management
 
-**🚨 Audit Log Requirements**
+**⚡ Audit Log Requirements**
 - **Issue**: Limited audit trail for compliance requirements
 - **Risk**: Cannot prove data access compliance
 - **Impact**: Audit failures
 - **Recommendation**: Enhanced logging and audit trail system
 
-**🚨 Export Tracking Needs**
+**⚡ Export Tracking Needs**
 - **Issue**: No tracking of data export destinations
 - **Risk**: Cannot trace data distribution
 - **Impact**: Data governance failures
@@ -539,16 +539,16 @@ end
 
 ## Final Deployment Recommendation
 
-**🟡 PROCEED WITH EXTREME CAUTION**
+**⚠ PROCEED WITH EXTREME CAUTION**
 
 The export system is architecturally sound and implements many important security and performance features. However, the lack of comprehensive testing, missing operational procedures, and several security vulnerabilities require careful attention before production deployment.
 
 **Minimum Requirements Before Going Live:**
-1. ✅ Complete test suite covering all export functionality
-2. ✅ Security review addressing authentication weaknesses
-3. ✅ Operational runbooks for maintenance and troubleshooting
-4. ✅ Performance testing with production-scale data
-5. ✅ Monitoring and alerting configuration
+1. ⊞ Complete test suite covering all export functionality
+2. ⊞ Security review addressing authentication weaknesses
+3. ⊞ Operational runbooks for maintenance and troubleshooting
+4. ⊞ Performance testing with production-scale data
+5. ⊞ Monitoring and alerting configuration
 
 **Recommended Deployment Timeline:**
 - **Week 1**: Complete testing and security hardening

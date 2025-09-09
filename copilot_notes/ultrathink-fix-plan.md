@@ -222,10 +222,10 @@ lefthook run pre-commit --force
 
 ### 7.2 Success Criteria
 
-- ✅ All syntax errors resolved
-- ✅ Rubocop offenses < 100 (from 1,473)
-- ✅ All tests passing
-- ✅ Brakeman security scan passing
+- ✓ All syntax errors resolved
+- ✓ Rubocop offenses < 100 (from 1,473)
+- ✓ All tests passing
+- ✓ Brakeman security scan passing
 
 ## Parallelization Strategy
 

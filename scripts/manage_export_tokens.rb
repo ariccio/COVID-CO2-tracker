@@ -53,7 +53,7 @@ class ExportTokenManager
     tokens << token_entry
     save_tokens(tokens)
 
-    puts "\n✅ Token generated successfully!"
+    puts "\n✓ Token generated successfully!"
     puts '=' * 60
     puts "TOKEN: #{token}"
     puts '=' * 60
@@ -68,7 +68,7 @@ class ExportTokenManager
 
   def self.validate_token(token)
     unless token
-      puts '❌ Error: Please provide a token to validate'
+      puts '✗ Error: Please provide a token to validate'
       puts 'Usage: ruby scripts/manage_export_tokens.rb validate TOKEN'
       return
     end
@@ -79,17 +79,17 @@ class ExportTokenManager
     matching_token = tokens.find { |t| t['hash'] == token_hash && t['active'] }
 
     if matching_token
-      puts '✅ Token is VALID'
+      puts '✓ Token is VALID'
       puts "Created: #{matching_token['created_at']}"
       puts "Description: #{matching_token['description']}"
     else
-      puts '❌ Token is INVALID or REVOKED'
+      puts '✗ Token is INVALID or REVOKED'
     end
   end
 
   def self.hash_token(token)
     unless token
-      puts '❌ Error: Please provide a token to hash'
+      puts '✗ Error: Please provide a token to hash'
       puts 'Usage: ruby scripts/manage_export_tokens.rb hash TOKEN'
       return
     end
@@ -110,7 +110,7 @@ class ExportTokenManager
     puts '-' * 60
 
     tokens.each_with_index do |token, index|
-      status = token['active'] ? '✅ Active' : '❌ Revoked'
+      status = token['active'] ? '✓ Active' : '✗ Revoked'
       puts "#{index + 1}. #{status}"
       puts "   Description: #{token['description']}"
       puts "   Created: #{token['created_at']}"
@@ -121,7 +121,7 @@ class ExportTokenManager
 
   def self.revoke_token(token)
     unless token
-      puts '❌ Error: Please provide a token to revoke'
+      puts '✗ Error: Please provide a token to revoke'
       puts 'Usage: ruby scripts/manage_export_tokens.rb revoke TOKEN'
       return
     end
@@ -135,10 +135,10 @@ class ExportTokenManager
       matching_token['active'] = false
       matching_token['revoked_at'] = DateTime.now.iso8601
       save_tokens(tokens)
-      puts '✅ Token revoked successfully'
+      puts '✓ Token revoked successfully'
       puts 'Remember to remove it from Heroku config!'
     else
-      puts '❌ Token not found'
+      puts '✗ Token not found'
     end
   end
 
@@ -177,7 +177,7 @@ class ExportTokenManager
 
     JSON.parse(File.read(TOKENS_FILE))
   rescue JSON::ParserError
-    puts '⚠️  Warning: Corrupted tokens file, starting fresh'
+    puts '⚠  Warning: Corrupted tokens file, starting fresh'
     []
   end
 

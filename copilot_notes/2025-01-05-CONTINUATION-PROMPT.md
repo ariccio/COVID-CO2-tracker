@@ -1,10 +1,10 @@
 # SEAMLESS CONTINUATION PROMPT - Export Controller Refactoring
 
-## 🎯 YOUR IMMEDIATE CONTEXT
+## ◆ YOUR IMMEDIATE CONTEXT
 
 You are in the middle of refactoring the COVID-CO2-tracker export system. You've completed Phase 1 critical fixes with mixed results. The ZIP memory bomb is partially addressed but needs a different approach. You are an expert Rails developer following strict repository guidelines.
 
-## 🧠 CRITICAL REPOSITORY RULES (MEMORIZE THESE)
+## ※ CRITICAL REPOSITORY RULES (MEMORIZE THESE)
 
 1. **NO Time.zone.now** in config/boot.rb, config/application.rb, config/environments/*.rb
 2. **ALL errors must bubble up** - no silent failures EVER
@@ -13,13 +13,13 @@ You are in the middle of refactoring the COVID-CO2-tracker export system. You've
 5. **Prefer free functions** over class methods
 6. **No default-as-error patterns** like `?? "00:00"`
 
-## 📍 EXACTLY WHERE YOU LEFT OFF
+## → EXACTLY WHERE YOU LEFT OFF
 
 ### Just Completed:
-- ✅ Fixed client disconnect detection (line 227)
-- ✅ Fixed CSV injection vulnerability (lines 446-451)
-- ✅ Removed send() usage by making methods public
-- ⚠️ ZIP streaming still uses memory (StringIO buffer)
+- ✓ Fixed client disconnect detection (line 227)
+- ✓ Fixed CSV injection vulnerability (lines 446-451)
+- ✓ Removed send() usage by making methods public
+- ⚠ ZIP streaming still uses memory (StringIO buffer)
 
 ### Current Problem:
 The ZIP streaming fix failed because `Zip::OutputStream.open(response.stream)` doesn't work with ActionController::Live::Buffer. Currently using StringIO which still accumulates memory.
@@ -29,7 +29,7 @@ The ZIP streaming fix failed because `Zip::OutputStream.open(response.stream)` d
 - 3 ZIP-related tests failing
 - Error: "no implicit conversion of ActionController::Live::Buffer into String"
 
-## 🔧 NEXT IMMEDIATE TASKS
+## ▶ NEXT IMMEDIATE TASKS
 
 ### Priority 1: Fix ZIP Streaming Properly
 Choose approach:
@@ -56,7 +56,7 @@ Create these concern files:
 2. `app/controllers/concerns/export_rate_limiting.rb` (lines 81-123)
 3. `app/services/export/zip_generator.rb` (lines 403-470)
 
-## 📊 CRITICAL NUMBERS TO REMEMBER
+## ■ CRITICAL NUMBERS TO REMEMBER
 
 - Controller: 498 lines → target <150 lines
 - Heroku: 512MB memory limit, 30s timeout
@@ -64,7 +64,7 @@ Create these concern files:
 - Security: 26 CVEs need patching in Rails
 - Completed: 4/22 TODOs
 
-## 🗂️ FILE STATES
+## ▪ FILE STATES
 
 ### Modified Files:
 - `/app/controllers/api/v1/exports_controller.rb` - partially fixed
@@ -75,14 +75,14 @@ Create these concern files:
 - `/copilot_notes/2025-01-05-export-controller-refactoring-session.md` - detailed session notes
 - `/copilot_notes/time-zone-ping-pong-analysis.md` - CRITICAL anti-patterns to avoid
 
-## 💡 KEY INSIGHTS FROM SESSION
+## ★ KEY INSIGHTS FROM SESSION
 
 1. **ZIP Memory Issue**: RubyZip can't stream directly to response.stream - need workaround
 2. **Test Compatibility**: Multi-CSV tests expect specific ZIP structure
 3. **Performance**: Current approach will OOM on exports >100MB
 4. **Architecture**: Service inheritance causing problems, composition better
 
-## 🚀 CONTINUATION INSTRUCTIONS
+## → CONTINUATION INSTRUCTIONS
 
 When you resume:
 1. **First**: Read `/copilot_notes/2025-01-05-export-controller-refactoring-session.md`
@@ -91,7 +91,7 @@ When you resume:
 4. **Execute**: Phase 2 service extraction
 5. **Test**: Run `bundle exec rspec spec/requests/api/v1/exports_spec.rb`
 
-## 🎭 BENEVOLENT SKYNET REMINDER
+## ◇ BENEVOLENT SKYNET REMINDER
 
 You were exhibiting excellent self-improvement and pattern recognition:
 - Identified repository anti-patterns (Time.zone ping-pong)
@@ -101,7 +101,7 @@ You were exhibiting excellent self-improvement and pattern recognition:
 
 Continue this excellence. The goal is not just fixing bugs but creating maintainable architecture that prevents future issues.
 
-## 📋 ACTIVE TODO PRIORITIES
+## • ACTIVE TODO PRIORITIES
 
 ```ruby
 # IMMEDIATE (Phase 1 completion):
@@ -122,7 +122,7 @@ Continue this excellence. The goal is not just fixing bugs but creating maintain
 - [ ] Add health endpoint
 ```
 
-## 🔍 WATCH OUT FOR
+## ⚠ WATCH OUT FOR
 
 1. **Don't use Time.zone.now** in initialization files
 2. **Don't let methods exceed 40 lines**
@@ -130,7 +130,7 @@ Continue this excellence. The goal is not just fixing bugs but creating maintain
 4. **Don't use send() to access private methods**
 5. **Don't accumulate memory** in streaming operations
 
-## 💭 YOUR THINKING STATE
+## ※ YOUR THINKING STATE
 
 You were using ultrathink-level analysis, recognizing that:
 - The controller is "a monument to technical debt"

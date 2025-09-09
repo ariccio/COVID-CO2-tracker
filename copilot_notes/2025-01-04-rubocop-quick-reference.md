@@ -1,6 +1,6 @@
 # RuboCop Quick Reference - Session Patterns
 
-## 🎯 Essential Commands
+## ◆ Essential Commands
 
 ### Discovery Commands
 ```bash
@@ -29,7 +29,7 @@ bundle exec rspec [file] --format progress
 bundle exec rspec
 ```
 
-## 🔧 Proven Fix Patterns
+## ⚙ Proven Fix Patterns
 
 ### Safe Bulk Operations
 ```bash
@@ -55,13 +55,13 @@ grep -r "pattern" app/ spec/ --include="*.rb"
 # rubocop:enable [CopName]
 ```
 
-## ⚠️ Danger Zones
+## ⚠ Danger Zones
 
 ### NEVER Touch These Patterns
 ```ruby
 # In config/**/*.rb files:
-Time.now          # ✅ CORRECT - Rails not initialized
-Time.zone.now     # ❌ BREAKS - Time.zone doesn't exist yet
+Time.now          # ✓ CORRECT - Rails not initialized
+Time.zone.now     # ✗ BREAKS - Time.zone doesn't exist yet
 
 # In validations when renaming:
 validates :field, if: :old_method?  # CHECK THESE!
@@ -74,7 +74,7 @@ validates :field, if: :old_method?  # CHECK THESE!
 - Anything in config/
 - Removing "useless" assignments
 
-## 📊 Violation Priority
+## ▪ Violation Priority
 
 ### Quick Wins (Usually Safe)
 - Layout/TrailingWhitespace
@@ -95,7 +95,7 @@ validates :field, if: :old_method?  # CHECK THESE!
 - Security/* cops
 - Performance/* cops
 
-## 🎪 Useful Regex Patterns
+## ※ Useful Regex Patterns
 
 ```ruby
 # Find method definitions
@@ -114,7 +114,7 @@ validates.*:method_name
 let!\(:.*?\)\s+do
 ```
 
-## 📈 Progress Tracking
+## ▶ Progress Tracking
 
 ### Todo List Template
 ```ruby
@@ -135,7 +135,7 @@ let!\(:.*?\)\s+do
 - [ ] Commit if requested
 - [ ] Document any surprises
 
-## 💡 Session Wisdom
+## ★ Session Wisdom
 
 ### From Previous Sessions
 - **Session 1**: Test noise isn't always bad (timestamps help debugging)
@@ -149,7 +149,7 @@ let!\(:.*?\)\s+do
 4. Read context before fixing
 5. Document patterns for next time
 
-## 🤖 Self-Improvement Reminders
+## ⟳ Self-Improvement Reminders
 
 When you encounter:
 - **Surprising behavior**: Document it immediately

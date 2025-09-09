@@ -1,11 +1,11 @@
-# 🎯 PostgreSQL Upgrade Action Plan - READY TO EXECUTE
+# ◆ PostgreSQL Upgrade Action Plan - READY TO EXECUTE
 
-## 📅 Upgrade Timeline
+## ※ Upgrade Timeline
 **Deadline**: End of January 2025 (This month!)
 **Recommended Window**: Weekend or low-traffic period
 **Estimated Downtime**: 5-10 minutes (worst case: 30 minutes)
 
-## 📚 Documentation Created
+## ▪ Documentation Created
 1. **Comprehensive Guide**: `2025-01-05-HEROKU-POSTGRES-UPGRADE-COMPREHENSIVE-GUIDE.md`
    - Full step-by-step process
    - All methods (pg:upgrade, follower, pg:copy)
@@ -27,11 +27,11 @@
    - Rollback capability
    - Made executable and ready to use
 
-## ✅ Pre-Upgrade Readiness Assessment
+## ✓ Pre-Upgrade Readiness Assessment
 
 ### Application Compatibility
-- **Rails 7.1.3.4**: ✅ Compatible (Rails 5.0+ required)
-- **Ruby 3.2.2**: ✅ Compatible
+- **Rails 7.1.3.4**: ✓ Compatible (Rails 5.0+ required)
+- **Ruby 3.2.2**: ✓ Compatible
 - **No legacy issues expected**
 
 ### Critical Features to Test
@@ -41,7 +41,7 @@
 4. **Measurement queries** (time-series data)
 5. **Background jobs** (if any)
 
-## 🚀 Recommended Upgrade Path
+## ▶ Recommended Upgrade Path
 
 ### Option A: pg:upgrade Method (RECOMMENDED)
 **Why**: Fastest (5-10 min), built-in rollback, minimal complexity
@@ -53,7 +53,7 @@
 **When**: If pg:upgrade fails or for zero-downtime needs
 **Downtime**: ~30 minutes
 
-## 📋 Step-by-Step Execution Plan
+## ※ Step-by-Step Execution Plan
 
 ### 1. Pre-Upgrade (Day Before)
 ```bash
@@ -80,7 +80,7 @@
 - Monitor for 24 hours
 - Document actual downtime
 
-## ⚠️ Risk Assessment
+## ⚠ Risk Assessment
 
 ### Low Risk Factors:
 - Small-medium database size
@@ -99,7 +99,7 @@
 - Helper script for automation
 - Comprehensive troubleshooting guide
 
-## 🔴 Go/No-Go Criteria
+## ■ Go/No-Go Criteria
 
 ### GO if:
 - [x] Heroku CLI v10.8.0+ installed
@@ -114,7 +114,7 @@
 - [ ] Upgrade feasibility test fails
 - [ ] Team unavailable for validation
 
-## 💡 Key Insights from Documentation Review
+## ★ Key Insights from Documentation Review
 
 1. **Timing**: 5-10 minutes typical, but allow 2-hour window
 2. **Rails Compatibility**: We're safe with Rails 7.1.3.4
@@ -122,7 +122,7 @@
 4. **Connection Issues**: Common post-upgrade, easily fixed with restart
 5. **Performance**: May need VACUUM ANALYZE post-upgrade
 
-## 📞 Execution Commands Summary
+## ▪ Execution Commands Summary
 
 ```bash
 # Quick upgrade (if all pre-checks pass)
@@ -137,7 +137,7 @@ heroku pg:backups:restore [BACKUP_ID] DATABASE_URL --app [APP]
 heroku ps:restart --app [APP]
 ```
 
-## 📝 Next Actions
+## ※ Next Actions
 
 1. **Schedule maintenance window** (recommend weekend)
 2. **Run pre-upgrade checks** using helper script
@@ -145,7 +145,7 @@ heroku ps:restart --app [APP]
 4. **Execute upgrade** following documentation
 5. **Update TODO.md** when complete
 
-## 🎉 We're Ready!
+## ★ We're Ready!
 
 All documentation, scripts, and guides are prepared. The upgrade process is well-understood with clear rollback procedures. The COVID CO2 Tracker should upgrade smoothly given our modern stack and standard schema.
 

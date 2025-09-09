@@ -1,4 +1,4 @@
-# 🚨 Rubocop Violation Quick Reference
+# ⚠ Rubocop Violation Quick Reference
 
 ## You Got: "ABC Complexity too high"
 **STOP!** Before extracting methods, know these break often:

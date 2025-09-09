@@ -4,11 +4,8 @@ require 'rails_helper'
 require 'rake'
 
 RSpec.describe('export rake tasks', type: :task) do
-  before(:all) do
-    Rails.application.load_tasks if Rake::Task.tasks.empty?
-  end
-
   before do
+    Rails.application.load_tasks if Rake::Task.tasks.empty?
     # Clear any existing tokens
     ExportToken.destroy_all
   end
@@ -196,8 +193,11 @@ RSpec.describe('export rake tasks', type: :task) do
     end
 
     context('with active tokens') do
-      let!(:token1) { create(:export_token, description: 'API Token 1', usage_count: 5) }
-      let!(:token2) { create(:export_token, :expiring_soon, description: 'API Token 2') }
+      # rubocop:disable RSpec/LetSetup
+      # These tokens are needed to populate the database for the list task
+      let!(:active_token) { create(:export_token, description: 'API Token 1', usage_count: 5) }
+      let!(:expiring_token) { create(:export_token, :expiring_soon, description: 'API Token 2') }
+      # rubocop:enable RSpec/LetSetup
       let!(:expired_token) { create(:export_token, :expired) }
 
       it('lists active tokens') do
@@ -210,7 +210,7 @@ RSpec.describe('export rake tasks', type: :task) do
 
       it('shows usage count') do
         output = capture_stdout { task.invoke }
-        expect(output).to(include('5')) # Usage count for token1
+        expect(output).to(include('5')) # Usage count for active_token
       end
 
       it('warns about expiring soon tokens') do
@@ -235,7 +235,7 @@ RSpec.describe('export rake tasks', type: :task) do
     end
 
     context('with used tokens') do
-      let!(:used_token) do
+      let(:used_token) do
         create(:export_token, :used, description: 'Frequently Used')
       end
 
@@ -315,7 +315,9 @@ RSpec.describe('export rake tasks', type: :task) do
         create(:export_token, description: 'Another Token')
 
         # Mock to make hashes similar
-        allow_any_instance_of(ExportToken).to receive(:token_hash).and_return(token.token_hash)
+        another_token = ExportToken.new
+        allow(another_token).to receive(:token_hash).and_return(token.token_hash)
+        allow(ExportToken).to receive(:active).and_return([token, another_token])
 
         expect { task.invoke(token.token_hash[0..7]) }
           .to(output(/Multiple tokens match that partial hash/).to_stdout)
@@ -324,7 +326,7 @@ RSpec.describe('export rake tasks', type: :task) do
     end
 
     context('with already expired token') do
-      let!(:expired_token) { create(:export_token, :expired) }
+      let(:expired_token) { create(:export_token, :expired) }
 
       it('cannot find expired token') do
         # Generate a token and let it expire
@@ -347,7 +349,7 @@ RSpec.describe('export rake tasks', type: :task) do
     end
 
     context('with no expired tokens') do
-      let!(:active_token) { create(:export_token) }
+      let(:active_token) { create(:export_token) }
 
       it('shows no tokens to clean') do
         output = capture_stdout { task.invoke }
@@ -356,9 +358,12 @@ RSpec.describe('export rake tasks', type: :task) do
     end
 
     context('with expired tokens') do
-      let!(:expired1) { create(:export_token, :expired, description: 'Old Token 1') }
-      let!(:expired2) { create(:export_token, :expired, description: 'Old Token 2') }
+      # rubocop:disable RSpec/LetSetup
+      # These tokens are needed to test the cleanup task
+      let!(:first_expired_token) { create(:export_token, :expired, description: 'Old Token 1') }
+      let!(:second_expired_token) { create(:export_token, :expired, description: 'Old Token 2') }
       let!(:active_token) { create(:export_token, description: 'Active Token') }
+      # rubocop:enable RSpec/LetSetup
 
       it('lists expired tokens') do
         allow(STDIN).to receive(:gets).and_return("no\n")

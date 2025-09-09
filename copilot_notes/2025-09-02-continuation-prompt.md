@@ -12,19 +12,19 @@ I've built a complete export system for the COVID CO2 Tracker that needs product
 2. Read `/copilot_notes/2025-09-02-export-system-production-readiness-plan.md` for the plan
 3. Check `/copilot_notes/heroku-export-deployment-commands.md` for exact deployment steps
 
-## ⚠️ CRITICAL WARNINGS
+## ⚠ CRITICAL WARNINGS
 **MUST SET `WEB_CONCURRENCY=1` or Rails 7.1 will crash immediately on Heroku's 512MB dyno!**
 
 ## Current State
-- ✅ Export system built and working locally
-- ✅ Three formats: CSV, JSONL, Multi-CSV (ZIP)
-- ✅ Token authentication with rate limiting
-- ✅ Memory-safe streaming with 450MB limit
-- ❌ ZERO test coverage
-- ❌ Missing production gems (barnes, rack-timeout, strong_migrations)
-- ❌ No API documentation
-- ❌ Database indexes not optimized
-- ❌ WEB_CONCURRENCY not configured
+- ✓ Export system built and working locally
+- ✓ Three formats: CSV, JSONL, Multi-CSV (ZIP)
+- ✓ Token authentication with rate limiting
+- ✓ Memory-safe streaming with 450MB limit
+- ✗ ZERO test coverage
+- ✗ Missing production gems (barnes, rack-timeout, strong_migrations)
+- ✗ No API documentation
+- ✗ Database indexes not optimized
+- ✗ WEB_CONCURRENCY not configured
 
 ## The 7-Step Plan to Production
 
@@ -72,10 +72,10 @@ heroku run rails console --app covid-co2-tracker
 ```
 
 ## Key Decisions Made
-- ✅ Export user names for data integrity (but NOT emails)
-- ✅ Long-lived tokens acceptable (no sensitive data exported)
-- ✅ Focus on public health benefit over extreme security
-- ✅ Streaming over background jobs for simplicity
+- ✓ Export user names for data integrity (but NOT emails)
+- ✓ Long-lived tokens acceptable (no sensitive data exported)
+- ✓ Focus on public health benefit over extreme security
+- ✓ Streaming over background jobs for simplicity
 
 ## If You Get Stuck
 - Memory issues? Check WEB_CONCURRENCY=1 is set

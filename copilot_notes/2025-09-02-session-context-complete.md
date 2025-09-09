@@ -2,10 +2,10 @@
 *Generated: 2025-09-02*
 *Purpose: Full context preservation for seamless continuation*
 
-## 🎯 Current Mission
+## ◆ Current Mission
 Deploy the COVID CO2 Tracker's export system to production with proper testing, monitoring, and documentation. The system is built but needs production hardening.
 
-## 🏗️ What We've Built (Complete & Working Locally)
+## ▪ What We've Built (Complete & Working Locally)
 
 ### Export System Architecture
 ```
@@ -35,7 +35,7 @@ Client → Token Auth → Rate Limiting → Format Router → Service → Stream
 - `/db/migrate/20250828091545_create_export_tokens.rb` - Token table migration
 - `/Gemfile` - Added rubyzip gem
 
-## ⚠️ CRITICAL WARNINGS
+## ⚠ CRITICAL WARNINGS
 
 ### Must Do or App Crashes
 1. **SET WEB_CONCURRENCY=1** - Rails 7.1+ defaults to 4+ workers on Heroku = instant R14 crash on 512MB dyno
@@ -49,59 +49,59 @@ Client → Token Auth → Rate Limiting → Format Router → Service → Stream
 - **Current Size**: 445KB database, stable for 20+ hours
 - **Rails Version**: 7.1.3.4 in production
 
-## 📋 Production Readiness Plan (7 Steps)
+## ※ Production Readiness Plan (7 Steps)
 
-### 1. Add Monitoring Gems ⏰ 30min
+### 1. Add Monitoring Gems • 30min
 ```ruby
 gem 'barnes'           # Memory metrics
 gem 'rack-timeout'     # Request timeout protection
 gem 'strong_migrations' # Safe migrations
 ```
 
-### 2. Set Heroku Config ⏰ 5min
+### 2. Set Heroku Config • 5min
 ```bash
 heroku config:set WEB_CONCURRENCY=1 RAILS_MAX_THREADS=3 --app covid-co2-tracker
 heroku config:set RACK_TIMEOUT_SERVICE_TIMEOUT=25 --app covid-co2-tracker
 ```
 
-### 3. Add User Name Export ⏰ 15min
+### 3. Add User Name Export • 15min
 Update ALLOWED_FIELDS to include `user_name` for data integrity (NOT email)
 
-### 4. Write RSpec Tests ⏰ 3hrs
+### 4. Write RSpec Tests • 3hrs
 Test: authentication, rate limiting, memory limits, streaming, all formats
 
-### 5. Add Database Indexes ⏰ 30min
+### 5. Add Database Indexes • 30min
 ```ruby
 add_index :measurements, [:measurementtime, :sub_location_id]
 add_index :measurements, [:co2ppm, :measurementtime]
 ```
 
-### 6. Create API Documentation ⏰ 1hr
+### 6. Create API Documentation • 1hr
 Write to `/docs/api/export-system.md` with examples
 
-### 7. Deploy to Production ⏰ 30min
+### 7. Deploy to Production • 30min
 Deploy code → Run migrations → Create token → Test endpoints
 
-## 🔒 Security Decisions
+## ■ Security Decisions
 
 ### What We Export (Safe)
-- ✅ CO2 measurements (co2ppm, timestamp)
-- ✅ Location data (lat, lng, place names)
-- ✅ Device info (serial, model)
-- ✅ User names (for data integrity)
-- ✅ Crowding levels
+- ✓ CO2 measurements (co2ppm, timestamp)
+- ✓ Location data (lat, lng, place names)
+- ✓ Device info (serial, model)
+- ✓ User names (for data integrity)
+- ✓ Crowding levels
 
 ### What We Never Export (Protected)
-- ❌ Email addresses
-- ❌ OAuth tokens (sub_google_uid)
-- ❌ User IDs
-- ❌ Passwords
-- ❌ Admin data
+- ✗ Email addresses
+- ✗ OAuth tokens (sub_google_uid)
+- ✗ User IDs
+- ✗ Passwords
+- ✗ Admin data
 
 ### Token Strategy
 Create long-lived token (100 years) since we're only exporting public science data
 
-## 📚 Knowledge Base Created
+## ▪ Knowledge Base Created
 
 ### Heroku Operations Guides
 1. `/copilot_notes/heroku-quick-reference.md` - Essential commands
@@ -122,7 +122,7 @@ Create long-lived token (100 years) since we're only exporting public science da
 1. `/docs/export-system-implementation.md` - 1196-line comprehensive guide
 2. `/docs/export-system-analysis.md` - Security and readiness assessment
 
-## 🐛 Known Issues to Fix
+## ✗ Known Issues to Fix
 
 ### Code Issues
 1. No test coverage (0 tests written)
@@ -136,7 +136,7 @@ Create long-lived token (100 years) since we're only exporting public science da
 3. Missing database indexes for performance
 4. No token rotation mechanism
 
-## 💡 Key Technical Insights
+## ★ Key Technical Insights
 
 ### Memory Management
 - Single Puma worker mandatory (WEB_CONCURRENCY=1)
@@ -160,7 +160,7 @@ else
 end
 ```
 
-## 🚀 Next Immediate Actions
+## ▶ Next Immediate Actions
 
 ### When You Resume:
 1. **Check current branch**: `git status` - should show export system changes
@@ -180,7 +180,7 @@ curl -H 'Authorization: Bearer [PRODUCTION_TOKEN]' \
   'https://covid-co2-tracker.herokuapp.com/api/v1/export?format_type=csv&fields=co2_ppm,timestamp'
 ```
 
-## 🎓 Learned Patterns
+## ★ Learned Patterns
 
 ### Rails on Heroku
 - Rails 7.1+ changes defaults dangerously for small dynos
@@ -194,7 +194,7 @@ curl -H 'Authorization: Bearer [PRODUCTION_TOKEN]' \
 - Token auth simpler than OAuth for API access
 - Batch processing essential for memory control
 
-## 🔄 Context Management Success
+## ⟳ Context Management Success
 This session demonstrated excellent context management:
 - Created 15+ knowledge documents
 - Preserved critical warnings in multiple places

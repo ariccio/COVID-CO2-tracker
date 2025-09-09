@@ -1,16 +1,16 @@
 # Feature Priority Matrix - Maximum Impact per Hour of Dev Time
 
-## 🔥 Critical Path to Viral Growth (Do These First!)
+## ▶ Critical Path to Viral Growth (Do These First!)
 
 ### Tier 1: Quick Wins (< 2 hours each, massive impact)
 
 | Feature | Effort | Impact | Why It Matters | Implementation Notes |
 |---------|--------|--------|----------------|---------------------|
-| **SMS Alerts for CO2 > 1000ppm** | 1 hour | 🌟🌟🌟🌟🌟 | Immediate user value, shareability | Twilio API, 20 lines of code |
-| **Public Venue Leaderboard** | 2 hours | 🌟🌟🌟🌟🌟 | Names & shames, drives change | Simple view, cached queries |
-| **One-Click Social Sharing** | 30 mins | 🌟🌟🌟🌟🌟 | Viral growth mechanism | "This venue is at 3000ppm!" tweets |
-| **CSV/JSON Data Export** | 1 hour | 🌟🌟🌟🌟 | Enables advocacy, research | ActiveAdmin + respond_to |
-| **"Is It Safe?" Traffic Light UI** | 1 hour | 🌟🌟🌟🌟🌟 | Grandma-friendly interface | Simple color coding |
+| **SMS Alerts for CO2 > 1000ppm** | 1 hour | ★★★★★ | Immediate user value, shareability | Twilio API, 20 lines of code |
+| **Public Venue Leaderboard** | 2 hours | ★★★★★ | Names & shames, drives change | Simple view, cached queries |
+| **One-Click Social Sharing** | 30 mins | ★★★★★ | Viral growth mechanism | "This venue is at 3000ppm!" tweets |
+| **CSV/JSON Data Export** | 1 hour | ★★★★ | Enables advocacy, research | ActiveAdmin + respond_to |
+| **"Is It Safe?" Traffic Light UI** | 1 hour | ★★★★★ | Grandma-friendly interface | Simple color coding |
 
 ```ruby
 # Example: SMS Alert Implementation (1 hour)
@@ -22,7 +22,7 @@ class AlertService
     TwilioClient.messages.create(
       from: ENV['TWILIO_PHONE'],
       to: measurement.user.phone,
-      body: "⚠️ HIGH CO2 ALERT: #{measurement.place.name} is at #{measurement.co2_ppm}ppm! Consider leaving or opening windows."
+      body: "⚠ HIGH CO2 ALERT: #{measurement.place.name} is at #{measurement.co2_ppm}ppm! Consider leaving or opening windows."
     )
   end
 end
@@ -32,35 +32,35 @@ end
 
 | Feature | Effort | Impact | Why It Matters | Implementation Notes |
 |---------|--------|--------|----------------|---------------------|
-| **Bluetooth Sensor Auto-Connect** | 3 hours | 🌟🌟🌟🌟 | Removes friction | React Native BLE library |
-| **Weekly Email Reports** | 2 hours | 🌟🌟🌟🌟 | Retention, advocacy | ActionMailer + charts |
-| **Anonymous Reporting Mode** | 2 hours | 🌟🌟🌟🌟 | Whistleblower protection | UUID-based sessions |
-| **Venue Claiming by Owners** | 4 hours | 🌟🌟🌟🌟 | B2B revenue stream | Devise + role system |
-| **Real-time WebSocket Updates** | 3 hours | 🌟🌟🌟 | Engagement, "wow" factor | ActionCable setup |
+| **Bluetooth Sensor Auto-Connect** | 3 hours | ★★★★ | Removes friction | React Native BLE library |
+| **Weekly Email Reports** | 2 hours | ★★★★ | Retention, advocacy | ActionMailer + charts |
+| **Anonymous Reporting Mode** | 2 hours | ★★★★ | Whistleblower protection | UUID-based sessions |
+| **Venue Claiming by Owners** | 4 hours | ★★★★ | B2B revenue stream | Devise + role system |
+| **Real-time WebSocket Updates** | 3 hours | ★★★ | Engagement, "wow" factor | ActionCable setup |
 
 ### Tier 3: Growth Drivers (4-8 hours, worth the investment)
 
 | Feature | Effort | Impact | Why It Matters | Implementation Notes |
 |---------|--------|--------|----------------|---------------------|
-| **Apple/Google Sign-In** | 4 hours | 🌟🌟🌟 | Reduces signup friction | Omniauth providers |
-| **Heatmap Visualization** | 6 hours | 🌟🌟🌟🌟 | Media-friendly, shareable | Mapbox + D3.js |
-| **Predictive "Avoid Times"** | 8 hours | 🌟🌟🌟 | Unique value prop | Time-series analysis |
-| **Multi-language Support** | 6 hours | 🌟🌟🌟 | 10x market size | I18n setup |
-| **Offline-First Mobile** | 8 hours | 🌟🌟🌟 | Reliability | Redux Persist + sync |
+| **Apple/Google Sign-In** | 4 hours | ★★★ | Reduces signup friction | Omniauth providers |
+| **Heatmap Visualization** | 6 hours | ★★★★ | Media-friendly, shareable | Mapbox + D3.js |
+| **Predictive "Avoid Times"** | 8 hours | ★★★ | Unique value prop | Time-series analysis |
+| **Multi-language Support** | 6 hours | ★★★ | 10x market size | I18n setup |
+| **Offline-First Mobile** | 8 hours | ★★★ | Reliability | Redux Persist + sync |
 
-## 📊 Effort vs Impact Quadrant Analysis
+## ╬ Effort vs Impact Quadrant Analysis
 
 ```
 HIGH IMPACT
      ^
-     |  🎯 DO FIRST           |  💰 DO SECOND
+     |  ⊕ DO FIRST           |  ◆ DO SECOND
      |  • SMS Alerts          |  • Heatmaps  
      |  • Social Sharing      |  • Predictive Analytics
      |  • Venue Leaderboard   |  • B2B Dashboard
      |                        |
 -----+------------------------+----------------------->
      |                        |  
-     |  ⏰ DO LATER          |  ❌ DON'T DO
+     |  ◐ DO LATER          |  ✗ DON'T DO
      |  • API Docs           |  • Complex Gamification
      |  • Unit Tests         |  • Native Apple Watch
      |  • Admin Polish       |  • Blockchain anything
@@ -70,7 +70,7 @@ HIGH IMPACT
 LOW IMPACT
 ```
 
-## 🏃 Sprint Plans by Time Available
+## ▸ Sprint Plans by Time Available
 
 ### If You Have 2 Hours:
 1. SMS Alerts (1 hour)
@@ -87,7 +87,7 @@ LOW IMPACT
 3. Heatmap + Predictive (14 hours)
 4. Testing & deployment (7 hours)
 
-## 💡 Feature Development Shortcuts
+## ☼ Feature Development Shortcuts
 
 ### Instant Implementation Recipes
 
@@ -135,27 +135,27 @@ end
 // Add to HTML: <link rel="manifest" href="/manifest.json">
 ```
 
-## 🚫 Anti-Features (Don't Build These!)
+## ⊗ Anti-Features (Don't Build These!)
 
 Based on your tweets about focusing on what matters:
 
 ### Avoid These Time Sinks:
-- ❌ Custom authentication system (use Devise)
-- ❌ Building your own charts (use Chart.js)
-- ❌ Complex permissions system (start simple)
-- ❌ Native desktop apps (PWA is enough)
-- ❌ Video upload features (bandwidth expensive)
-- ❌ Real-time collaborative editing (YAGNI)
-- ❌ AI chat support (FAQ page is better)
+- ✗ Custom authentication system (use Devise)
+- ✗ Building your own charts (use Chart.js)
+- ✗ Complex permissions system (start simple)
+- ✗ Native desktop apps (PWA is enough)
+- ✗ Video upload features (bandwidth expensive)
+- ✗ Real-time collaborative editing (YAGNI)
+- ✗ AI chat support (FAQ page is better)
 
 ### Premature Optimizations to Avoid:
-- ❌ Microservices architecture
-- ❌ GraphQL (REST is fine)
-- ❌ Kubernetes (Heroku/Render works)
-- ❌ Custom CDN setup (use Cloudflare)
-- ❌ Database sharding (you're not Facebook)
+- ✗ Microservices architecture
+- ✗ GraphQL (REST is fine)
+- ✗ Kubernetes (Heroku/Render works)
+- ✗ Custom CDN setup (use Cloudflare)
+- ✗ Database sharding (you're not Facebook)
 
-## 📈 Metrics-Driven Development
+## ⬆ Metrics-Driven Development
 
 ### Track These From Day One:
 ```ruby
@@ -186,7 +186,7 @@ end
 4. **Alert Response Rate**: % who act on high CO2 alerts
 5. **Data Quality Score**: % of valid measurements
 
-## 🎯 The One Feature That Changes Everything
+## ⊕ The One Feature That Changes Everything
 
 If you build ONLY ONE THING, make it this:
 
@@ -212,7 +212,7 @@ This single feature:
 Implementation: 2 hours
 Impact: Potentially massive
 
-## 🔮 Future Vision Features (Dream Big)
+## ✦ Future Vision Features (Dream Big)
 
 When you have funding/team:
 

@@ -1,7 +1,7 @@
-# 🚄 Rails Quick Reference Card - COVID CO2 Tracker
+# ▪ Rails Quick Reference Card - COVID CO2 Tracker
 *Instant lookup for common Rails tasks*
 
-## 🔧 Essential Commands
+## ⚡ Essential Commands
 
 ### Server & Console
 ```bash
@@ -35,7 +35,7 @@ bundle exec rspec spec/models  # Run model tests
 rails test                     # Run minitest suite
 ```
 
-## 📊 Key Models & Locations
+## ▪ Key Models & Locations
 
 ### Core Models
 | Model | File | Key Fields | Purpose |
@@ -54,21 +54,21 @@ rails test                     # Run minitest suite
 | AuthController | app/controllers/api/v1/ | JWT auth |
 | UsersController | app/controllers/api/v1/ | User management |
 
-## 🎯 CO2 Thresholds (Built into Validations)
+## ◆ CO2 Thresholds (Built into Validations)
 
 ```ruby
 # From app/models/measurement.rb
-400-799    # ✅ Good ventilation
-800-999    # 🟡 Acceptable
-1000-1499  # 🟠 Mask recommended  
-1500-1999  # 🔴 Poor - leave if possible
-2000+      # ☠️ Dangerous - leave immediately!
-30,000     # ⚠️ Industrial threshold warning
-40,000     # 🚨 Immediately dangerous
-50,000+    # 💀 Check your meter!
+400-799    # ✓ Good ventilation
+800-999    # • Acceptable
+1000-1499  # ○ Mask recommended  
+1500-1999  # ■ Poor - leave if possible
+2000+      # ✗ Dangerous - leave immediately!
+30,000     # ⚠ Industrial threshold warning
+40,000     # ⚠ Immediately dangerous
+50,000+    # ✗ Check your meter!
 ```
 
-## 🔐 Authentication Pattern
+## ■ Authentication Pattern
 
 ```ruby
 # In controllers
@@ -84,7 +84,7 @@ end
 skip_before_action :authorized, only: [:show]
 ```
 
-## 📡 API Response Formats
+## ◆ API Response Formats
 
 ### Success
 ```ruby
@@ -104,7 +104,7 @@ render json: {
 }, status: :bad_request
 ```
 
-## 🗄️ Database Queries
+## ▪ Database Queries
 
 ### Common ActiveRecord Patterns
 ```ruby
@@ -121,7 +121,7 @@ user.measurement.order(measurementtime: :desc).limit(10)
 Place.includes(:sub_location, :measurement)
 ```
 
-## 🚀 Quick Deployment
+## ▶ Quick Deployment
 
 ```bash
 # Development
@@ -137,7 +137,7 @@ heroku run rails db:migrate
 heroku logs --tail
 ```
 
-## 🔍 Debugging Tools
+## ◆ Debugging Tools
 
 ### Rails Console Helpers
 ```ruby
@@ -178,7 +178,7 @@ user.devices.count
 place.measurement.average(:co2ppm)
 ```
 
-## 🛠️ Service Object Pattern
+## ⚡ Service Object Pattern
 
 ```ruby
 # app/services/alert_service.rb pattern
@@ -200,7 +200,7 @@ end
 AlertService.call(measurement)
 ```
 
-## 📦 Gem Helpers
+## ▪ Gem Helpers
 
 ### Key Gems in Use
 ```ruby
@@ -227,7 +227,7 @@ gem 'geokit-rails'
 gem 'validates_timeliness'
 ```
 
-## 🎨 ActiveAdmin Customization
+## ● ActiveAdmin Customization
 
 ```ruby
 # app/admin/measurements.rb
@@ -267,7 +267,7 @@ add_index :measurements, :measurementtime
 add_index :places, [:place_lat, :place_lng]
 ```
 
-## 🔥 Emergency Fixes
+## ⚠ Emergency Fixes
 
 ### Server Won't Start
 ```bash
@@ -294,7 +294,7 @@ Rails.cache.clear
 EDITOR="nano" rails credentials:edit
 ```
 
-## 📝 File Creation Templates
+## ※ File Creation Templates
 
 ### New Service
 ```ruby

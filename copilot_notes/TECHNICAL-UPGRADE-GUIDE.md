@@ -1,6 +1,6 @@
 # Technical Upgrade Guide - Solving the Hard Problems
 
-## 🔧 Rails 7.x Upgrade Path (From Rails 6.x)
+## ⚡ Rails 7.x Upgrade Path (From Rails 6.x)
 
 ### Pre-Flight Checklist
 ```bash
@@ -54,7 +54,7 @@ config.active_record.encryption.key_derivation_salt = ENV['ACTIVE_RECORD_ENCRYPT
 # WrongFileName.rb -> wrong_file_name.rb
 ```
 
-## 📱 React Native / Expo Upgrade Strategy
+## ▪ React Native / Expo Upgrade Strategy
 
 ### Current State Analysis
 ```bash
@@ -108,7 +108,7 @@ const replacements = [
 ];
 ```
 
-## 🗄️ Database Performance Optimization
+## ▪ Database Performance Optimization
 
 ### Critical Indexes for Scale
 ```ruby
@@ -168,7 +168,7 @@ class Measurement < ApplicationRecord
 end
 ```
 
-## 🚀 Zero-Downtime Deployment Setup
+## ▶ Zero-Downtime Deployment Setup
 
 ### Heroku to Modern Platform Migration
 ```yaml
@@ -266,7 +266,7 @@ jobs:
             -d '{"clearCache": false}'
 ```
 
-## 🔒 Security Hardening Checklist
+## ■ Security Hardening Checklist
 
 ### Immediate Security Fixes
 ```ruby
@@ -322,7 +322,7 @@ class Api::BaseController < ApplicationController
 end
 ```
 
-## 📊 Monitoring & Observability Setup
+## ▪ Monitoring & Observability Setup
 
 ### Essential Monitoring Stack
 ```ruby
@@ -358,7 +358,7 @@ class ApplicationController < ActionController::Base
 end
 ```
 
-## 🏎️ Performance Optimization Recipes
+## ⚡ Performance Optimization Recipes
 
 ### Frontend Bundle Size Reduction
 ```javascript
@@ -409,7 +409,7 @@ class Api::MeasurementsController < Api::BaseController
 end
 ```
 
-## 🆘 Troubleshooting Common Issues
+## ⚠ Troubleshooting Common Issues
 
 ### Issue: "Can't find generator 'X'"
 ```bash
