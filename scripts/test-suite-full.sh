@@ -169,8 +169,7 @@ fi
 run_section "Code Quality Analysis"
 
 if command -v rubocop >/dev/null 2>&1; then
-    # Run full Rubocop but allow warnings
-    if run_test "Rubocop full analysis" "bundle exec rubocop --parallel"; then
+    if run_test "Rubocop full analysis" "bundle exec rubocop  --raise-cop-error --display-style-guide --parallel"; then
         :
     else
         # Check if it's just warnings or actual errors

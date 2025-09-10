@@ -66,6 +66,9 @@ Rails.root.glob('spec/support/**/*.rb').each do |f|
 end
 
 RSpec.configure do |config|
+  # Include ActiveSupport time helpers for time manipulation in tests
+  config.include ActiveSupport::Testing::TimeHelpers
+  
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
   config.fixture_paths = [Rails.root.join('spec/fixtures').to_s]
 

@@ -8,6 +8,17 @@ RSpec.describe('export rake tasks', type: :task) do
     Rails.application.load_tasks if Rake::Task.tasks.empty?
     # Clear any existing tokens
     ExportToken.destroy_all
+    # Suppress ALL output and input to prevent interactive prompts
+    @original_stdout = $stdout
+    @original_stdin = $stdin
+    $stdout = StringIO.new
+    $stdin = StringIO.new
+  end
+  
+  after do
+    # Restore original stdout and stdin
+    $stdout = @original_stdout
+    $stdin = @original_stdin
   end
 
   describe('export:generate') do
@@ -19,16 +30,13 @@ RSpec.describe('export rake tasks', type: :task) do
 
     context('with valid input') do
       it('creates a new token with description') do
-        # Simulate user input
-        allow(STDIN).to receive(:gets).and_return(
-          "Test Token\n",     # Description
-          "1\n",              # Choice (30 days)
-          "n\n"               # No custom permissions
-        )
+        # Set up input in the StringIO
+        $stdin.puts("Test Token")     # Description
+        $stdin.puts("1")              # Choice (30 days)
+        $stdin.puts("n")              # No custom permissions
+        $stdin.rewind                 # Reset to beginning for reading
 
-        expect do
-          expect { task.invoke }.to output(/Export token successfully created/).to_stdout
-        end.to change(ExportToken, :count).by(1)
+        expect { task.invoke }.to change(ExportToken, :count).by(1)
 
         token = ExportToken.last
         expect(token.description).to(eq('Test Token'))

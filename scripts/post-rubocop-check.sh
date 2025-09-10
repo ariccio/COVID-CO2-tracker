@@ -76,7 +76,7 @@ if [[ "${AUTO_FIX_WHITESPACE:-0}" == "1" ]]; then
 fi
 
 # Run Rubocop and capture results
-OFFENSES=$(bundle exec rubocop --fail-level F --format simple "$FILE_PATH" 2>&1 || true)
+OFFENSES=$(bundle exec rubocop --fail-level F --raise-cop-error --display-style-guide --format simple "$FILE_PATH" 2>&1 || true)
 
 # Count offenses with explicit stage-by-stage error handling
 if [ -n "$OFFENSES" ]; then
@@ -133,7 +133,7 @@ fi
 if (( SYNTAX_COUNT > 0 )); then
     # Syntax errors are critical - block execution
     echo "✗ Syntax errors detected in $FILE_PATH! Fix before continuing." >&2
-    echo "Run: bundle exec rubocop --fail-level F '$FILE_PATH' to see errors" >&2
+    echo "Run: bundle exec rubocop --fail-level F --raise-cop-error --display-style-guide '$FILE_PATH' to see errors" >&2
     exit 2
 elif (( TRAILING_COUNT > 0 )); then
     # Trailing whitespace detected - provide helpful message
@@ -166,7 +166,7 @@ elif (( BASELINE_COUNT > 0 && OFFENSE_COUNT > BASELINE_COUNT )); then
     echo "New style violations were introduced. Please review the repository instructions" >&2
     echo "(check copilot-instructions.md or copilot_notes/) for our coding standards." >&2
     # echo "" >&2
-    echo "To see offenses: bundle exec rubocop --fail-level F '$FILE_PATH'" >&2
+    echo "To see offenses: bundle exec rubocop --fail-level F --raise-cop-error --display-style-guide '$FILE_PATH'" >&2
     # Exit 1 shows error but doesn't block
     exit 1
 else

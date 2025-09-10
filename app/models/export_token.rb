@@ -34,7 +34,7 @@ class ExportToken < ApplicationRecord
       description: description,
       expires_at: expires_in.from_now,
       created_by: created_by,
-      permissions: permissions
+      permissions: permissions || {} # Use empty hash if permissions is nil
     )
   end
 
@@ -67,12 +67,10 @@ class ExportToken < ApplicationRecord
   end
 
   # Revoke the token, preventing further use
-  # @param reason [String, nil] Optional reason for revocation (currently not stored)
+  # @param reason [String, nil] Optional reason for revocation
   # @return [Boolean] True if successfully revoked
-  def revoke!(_reason: nil)
-    # NOTE: reason parameter kept for API compatibility but not stored
-    # Could add revocation_reason column in future if audit trail needed
-    update!(revoked_at: Time.current)
+  def revoke!(reason: nil)
+    update!(revoked_at: Time.current, revocation_reason: reason)
   end
 
   def record_usage!

@@ -28,6 +28,9 @@ test:
   host: localhost
   username: postgres
   password: <%= Rails.application.credentials.dig(:test, :postgres_password) %>
+  # Increased pool size to handle concurrent tests (especially ExportToken concurrent generation)
+  # The default of 5 connections causes timeouts when 5 threads try to get connections
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 10 } %>
 
 production:
   <<: *default

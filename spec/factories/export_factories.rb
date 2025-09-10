@@ -84,6 +84,7 @@ FactoryBot.define do
     sequence(:description) { |n| "Export Token #{n}" }
     expires_at { 10.years.from_now }
     created_by { 'test@example.com' }
+    permissions { {} } # Default empty permissions hash to satisfy NOT NULL constraint
 
     # Transient attributes for testing
     transient do
@@ -140,6 +141,9 @@ FactoryBot.define do
     end
 
     after(:build) do |token, evaluator|
+      # Ensure permissions is never nil (database constraint)
+      token.permissions ||= {}
+      
       if evaluator.generate_raw_token
         # Simulate token generation for testing
         raw_token = SecureRandom.urlsafe_base64(32)

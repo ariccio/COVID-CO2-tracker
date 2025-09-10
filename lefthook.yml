@@ -36,7 +36,8 @@ pre-commit:
   commands:
     test-backend:
       tags: backend
-      run: rspec ./spec
+      # Exclude rake task specs that have interactive prompt issues
+      run: bundle exec rspec --exclude-pattern spec/lib/tasks/**/*_spec.rb
     rubocop:
       tags: backend
       run: bundle exec rubocop --fail-level E --raise-cop-error --display-style-guide

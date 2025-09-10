@@ -74,7 +74,7 @@ FAILED_TESTS=0
 
 # 1. Check Ruby syntax with Rubocop (errors only)
 if command -v rubocop >/dev/null 2>&1; then
-    if run_test "Rubocop syntax check" "bundle exec rubocop --fail-level E --format quiet"; then
+    if run_test "Rubocop syntax check" "bundle exec rubocop --fail-level E --raise-cop-error --display-style-guide --format quiet"; then
         :
     else
         FAILED_TESTS=$((FAILED_TESTS + 1))

@@ -10,6 +10,9 @@
 - [ ] **CRITICAL**: Patch 26 security vulnerabilities - Update Rails to 7.1.5.2+, Nokogiri to 1.18.9+, rails-html-sanitizer to 1.6.1+
 - [ ] **CRITICAL**: Fix ZIP streaming memory bomb - Stream directly to response instead of StringIO buffer
 - [ ] **CRITICAL**: Add missing /health endpoint for deployment verification
+  
+## Critical issues before PUSH to production
+- [ ] Squash merge?
 
 ## High Priority Issues (This Week)
 - [ ] Add UTF-8 BOM to CSV exports for Excel international compatibility

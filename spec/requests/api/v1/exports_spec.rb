@@ -11,11 +11,6 @@ RSpec.describe('API::V1::Exports') do
     DatabaseCleaner.clean_with(:truncation)
   end
 
-  # Set up database cleaner
-  before(:all) do
-    DatabaseCleaner.clean_with(:truncation)
-  end
-
   # Instance variables for shared data
   attr_reader :export_token, :valid_token, :headers
 

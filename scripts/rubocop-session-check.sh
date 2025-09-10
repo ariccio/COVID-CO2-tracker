@@ -120,7 +120,7 @@ FILES_WITH_ISSUES=""
 while IFS= read -r FILE; do
     if [[ -f "$FILE" ]]; then
         # Run Rubocop on the file
-        OUTPUT=$(bundle exec rubocop --fail-level F --format simple "$FILE" 2>&1 || true)
+        OUTPUT=$(bundle exec rubocop --fail-level F --raise-cop-error --display-style-guide --format simple "$FILE" 2>&1 || true)
         OFFENSE_COUNT=$(echo "$OUTPUT" | grep -E "^[CWE]:" | wc -l | tr -d '[:space:]')
         
         if [[ "$OFFENSE_COUNT" -gt 0 ]]; then
@@ -143,7 +143,7 @@ if [[ "$TOTAL_OFFENSES" -gt 0 ]]; then
     echo -e "$FILES_WITH_ISSUES" >&2
     # echo ""
     # echo "To see all issues, run:"
-    echo "To see all issues, run: bundle exec rubocop --fail-level F" >&2
+    echo "To see all issues, run: bundle exec rubocop --fail-level F --raise-cop-error --display-style-guide" >&2
     # echo ""
     echo "To auto-fix safe issues, run:" >&2
     echo "  bundle exec rubocop -a" >&2
