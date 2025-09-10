@@ -139,6 +139,7 @@ module Api
         )
       end
 
+      # rubocop:disable Metrics/PerceivedComplexity
       def create_user_with_google(e_not_created_yet)
         # byebug
         return render_invalid_google_login_params(e_not_created_yet, :sub) if @decoded_token['sub'].nil?
@@ -156,6 +157,7 @@ module Api
         ::Rails.logger.debug('oops - some issue') unless Rails.env.production?
         render_creation_activerecord_error(e)
       end
+      # rubocop:enable Metrics/PerceivedComplexity
 
       # Note to self: https://philna.sh/blog/2020/01/15/test-signed-cookies-in-rails/
       def create

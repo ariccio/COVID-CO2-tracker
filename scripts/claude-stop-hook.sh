@@ -63,7 +63,10 @@ fi
 # If still no session ID, generate one
 if [ -z "$SESSION_ID" ]; then
     SESSION_ID="stop-hook-$(date +%s)"
-    print_color "$YELLOW" "※ No session ID found, using: $SESSION_ID"
+    # Only show this in verbose mode
+    if [ "${VERBOSE:-false}" = "true" ]; then
+        print_color "$YELLOW" "※ No session ID found, using: $SESSION_ID"
+    fi
 fi
 
 # Get list of modified files from session tracker
@@ -74,10 +77,13 @@ fi
 
 # If no tracked files, try git to find recently modified files
 if [ -z "$MODIFIED_FILES" ]; then
-    print_color "$BLUE" "※ No session-tracked files found, checking git for recent changes..."
+    # Only show this message if we actually find changes
     cd "$PROJECT_DIR"
     # Get files modified in the last 5 minutes
     MODIFIED_FILES=$(git status --porcelain 2>/dev/null | awk '{print $2}' || echo "")
+    if [ -n "$MODIFIED_FILES" ] && [ "${VERBOSE:-false}" = "true" ]; then
+        print_color "$BLUE" "※ Found changes via git status"
+    fi
 fi
 
 # Determine test level based on modified files
@@ -153,14 +159,10 @@ determine_test_level() {
 # Get test level
 TEST_LEVEL=$(determine_test_level "$MODIFIED_FILES")
 
-# print_color "$BLUE" "═══════════════════════════════════════════════════════════════"
-# print_color "$BLUE" "◆ Claude Stop Hook - Test Runner"
-# print_color "$BLUE" "═══════════════════════════════════════════════════════════════"
-# echo ""
-# print_color "$BLUE" "● Session ID: $SESSION_ID"
-print_color "$BLUE" "● Test Level: $TEST_LEVEL"
-# print_color "$BLUE" "● Project: COVID-CO2-tracker"
-# echo ""
+# Only show test level if not quick (the default)
+if [ "$TEST_LEVEL" != "quick" ] || [ "${VERBOSE:-false}" = "true" ]; then
+    print_color "$BLUE" "● Test Level: $TEST_LEVEL"
+fi
 
 # Show modified files if any
 # if [ -n "$MODIFIED_FILES" ]; then
@@ -211,7 +213,9 @@ case "$TEST_LEVEL" in
         fi
         ;;
     smart)
-        print_color "$BLUE" "→ Running smart test selection..."
+        if [ "${VERBOSE:-false}" = "true" ]; then
+            print_color "$BLUE" "→ Running smart test selection..."
+        fi
         # First run quick tests
         if run_tests_with_timeout "$SCRIPT_DIR/test-suite-quick.sh" 60; then
             # print_color "$GREEN" "✓ Quick tests passed"

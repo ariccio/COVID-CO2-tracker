@@ -63,9 +63,12 @@ run_test() {
 # Navigate to project directory
 cd "$PROJECT_DIR"
 
-# print_color "$BLUE" "Quick Test Suite"
-# print_color "$BLUE" "────────────────"
-echo ""
+# Only show header in verbose mode
+if [ "${VERBOSE:-false}" = "true" ]; then
+    print_color "$BLUE" "Quick Test Suite"
+    print_color "$BLUE" "────────────────"
+    echo ""
+fi
 
 FAILED_TESTS=0
 
@@ -139,12 +142,18 @@ if [ $FAILED_TESTS -eq 0 ]; then
     fi
 fi
 
-echo ""
-print_color "$BLUE" "────────────────"
+# Only show separator and summary when there are failures or in verbose mode
+if [ $FAILED_TESTS -gt 0 ] || [ "${VERBOSE:-false}" = "true" ]; then
+    echo ""
+    print_color "$BLUE" "────────────────"
+fi
 
 # Summary
 if [ $FAILED_TESTS -eq 0 ]; then
-    # print_color "$GREEN" "✓ All quick tests passed"
+    # Success - silent unless verbose
+    if [ "${VERBOSE:-false}" = "true" ]; then
+        print_color "$GREEN" "✓ All quick tests passed"
+    fi
     exit 0
 else
     print_color "$RED" "✗ $FAILED_TESTS test(s) failed"

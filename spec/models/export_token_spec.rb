@@ -522,7 +522,7 @@ RSpec.describe(ExportToken) do
       threads.each(&:join)
 
       expect(tokens.size).to(eq(5))
-      expect(tokens.map(&:token_hash).uniq.size).to(eq(5))
+      expect(tokens.map(&:token_hash).uniq!.size).to(eq(5))
     end
 
     it('prevents timing attacks on authentication') do

@@ -15,7 +15,7 @@ module Export
       query = apply_location_filters(query, filters)
 
       # Order by measurement time for consistent exports
-      query.order(measurementtime: :asc, id: :asc)
+      return query.order(measurementtime: :asc, id: :asc)
     end
 
     private
@@ -33,7 +33,7 @@ module Export
               "Invalid #{param_name}: expected numeric value, got '#{string_value}'"
       end
 
-      string_value.to_i
+      return string_value.to_i
     end
 
     def apply_date_filters(query, filters)
@@ -49,7 +49,7 @@ module Export
         query = query.where('measurementtime <= :to_date', to_date: to_date.end_of_day)
       end
 
-      query
+      return query
     end
 
     def apply_co2_filters(query, filters)
@@ -65,43 +65,54 @@ module Export
         query = query.where('co2ppm < :ppm', ppm: ppm_value) if ppm_value
       end
 
-      query
+      return query
     end
 
     def apply_location_filters(query, filters)
-      # Handle place_database_id parameter for internal database IDs
-      if filters[:place_database_id]
-        # Validate that it's a numeric ID
-        place_id = validate_numeric_filter(filters[:place_database_id], 'place_database_id')
-        if place_id
-          query = query.joins(sub_location: :place)
-                       .where(places: { id: place_id })
-        end
-      end
+      query = filter_by_place_database_id(query, filters[:place_database_id])
+      query = filter_by_google_place_id(query, filters[:google_place_id])
+      query = filter_by_device_id(query, filters[:device_id])
+      return filter_by_device_serial(query, filters[:device_serial])
+    end
 
-      # Handle google_place_id parameter for Google Place IDs
-      if filters[:google_place_id]
-        google_place_id = filters[:google_place_id].to_s.strip
-        unless google_place_id.empty?
-          # Rails will properly parameterize this to prevent SQL injection
-          query = query.joins(sub_location: :place)
-                       .where(places: { google_place_id: google_place_id })
-        end
-      end
+    def filter_by_place_database_id(query, place_database_id)
+      return query unless place_database_id
 
-      if filters[:device_id]
-        # Validate device_id before using in query
-        device_id = validate_numeric_filter(filters[:device_id], 'device_id')
-        query = query.where(device_id:) if device_id
-      end
+      # Validate that it's a numeric ID
+      place_id = validate_numeric_filter(place_database_id, 'place_database_id')
+      return query unless place_id
 
-      if filters[:device_serial]
-        # Filter by device serial number
-        query = query.joins(:device)
-                     .where(devices: { serial: filters[:device_serial] })
-      end
+      return query.joins(sub_location: :place)
+                  .where(places: { id: place_id })
+    end
 
-      query
+    def filter_by_google_place_id(query, google_place_id)
+      return query unless google_place_id
+
+      google_place_id_clean = google_place_id.to_s.strip
+      return query if google_place_id_clean.empty?
+
+      # Rails will properly parameterize this to prevent SQL injection
+      return query.joins(sub_location: :place)
+                  .where(places: { google_place_id: google_place_id_clean })
+    end
+
+    def filter_by_device_id(query, device_id)
+      return query unless device_id
+
+      # Validate device_id before using in query
+      validated_device_id = validate_numeric_filter(device_id, 'device_id')
+      return query unless validated_device_id
+
+      return query.where(device_id: validated_device_id)
+    end
+
+    def filter_by_device_serial(query, device_serial)
+      return query unless device_serial
+
+      # Filter by device serial number
+      return query.joins(:device)
+                  .where(devices: { serial: device_serial })
     end
 
     def necessary_includes(fields)
@@ -112,25 +123,25 @@ module Export
       includes << { sub_location: :place } if needs_location_includes?(fields)
       includes << :extra_measurement_info if needs_realtime_includes?(fields)
 
-      includes
+      return includes
     end
 
     def needs_device_includes?(fields)
       return true if fields.nil?
 
-      fields.any? { |f| f.to_s.match?(/device|serial|model|manufacturer/) }
+      return fields.any? { |f| f.to_s.match?(/device|serial|model|manufacturer/) }
     end
 
     def needs_location_includes?(fields)
       return true if fields.nil?
 
-      fields.any? { |f| f.to_s.match?(/place|lat|lng|google/) }
+      return fields.any? { |f| f.to_s.match?(/place|lat|lng|google/) }
     end
 
     def needs_realtime_includes?(fields)
       return true if fields.nil?
 
-      fields.any? { |f| f.to_s == 'is_realtime' }
+      return fields.any? { |f| f.to_s == 'is_realtime' }
     end
 
     def parse_date(date_param)
@@ -145,10 +156,10 @@ module Export
       begin
         # Try ISO 8601 format first (YYYY-MM-DD)
         if /\A\d{4}-\d{2}-\d{2}\z/.match?(date_string)
-          Date.strptime(date_string, '%Y-%m-%d')
+          return Date.strptime(date_string, '%Y-%m-%d')
         # Also accept MM/DD/YYYY format
         elsif %r{\A\d{1,2}/\d{1,2}/\d{4}\z}.match?(date_string)
-          Date.strptime(date_string, '%m/%d/%Y')
+          return Date.strptime(date_string, '%m/%d/%Y')
         else
           # If it doesn't match our strict formats, reject it
           raise ArgumentError, 'Unrecognized date format'

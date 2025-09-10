@@ -6,12 +6,12 @@
 - DONE: Export day limit removed - users can now export any period length (limited only by memory/record count)
 - VERIFIED: DatabaseCleaner transaction conflict properly handled - export tests use truncation strategy, BaseService skips check in test env
 
-## 🚨 Critical Security Issues (Immediate)
+## Critical Security Issues (Immediate)
 - [ ] **CRITICAL**: Patch 26 security vulnerabilities - Update Rails to 7.1.5.2+, Nokogiri to 1.18.9+, rails-html-sanitizer to 1.6.1+
 - [ ] **CRITICAL**: Fix ZIP streaming memory bomb - Stream directly to response instead of StringIO buffer
 - [ ] **CRITICAL**: Add missing /health endpoint for deployment verification
 
-## 🔴 High Priority Issues (This Week)
+## High Priority Issues (This Week)
 - [ ] Add UTF-8 BOM to CSV exports for Excel international compatibility
 - [ ] Fix streaming client disconnect detection bug (incorrect boolean check)
 - [ ] Fix memory calculation silent failure in Export::BaseService
@@ -19,7 +19,7 @@
 - [ ] Implement APM and error tracking (Sentry or NewRelic)
 - [ ] Create proper README for human developers (current is only 7 lines)
 
-## 🟡 Architecture & Technical Debt (Next Sprint)
+## Architecture & Technical Debt (Next Sprint)
 - [ ] **Switch to pure query parameter authentication**: Change export token system from Bearer auth to `?token=XXX` for easier integration with external services
 - [ ] Refactor ExportsController - 498 lines with 11+ responsibilities, violates SRP
 - [ ] Unify authentication systems - JWT for legacy vs Bearer tokens for exports
@@ -29,12 +29,12 @@
 - [ ] Extract controller concerns into separate modules
 - [ ] **Performance**: Implement async job processing (Sidekiq recommended) for exports >50k records - see copilot_notes/async-export-implementation-plan.md
 
-## 📚 Documentation & Discoverability Improvements
+## Documentation & Discoverability Improvements
 - [ ] Add rubocop reference comment to successfully fixed files: `# For ABC complexity violations, see: copilot_notes/rubocop-complexity-reduction-pattern.md`
 - [ ] Add pattern reference to .rubocop.yml config near Metrics/AbcSize section
 - [ ] Add Rubocop ABC complexity entry to PROBLEM_SOLUTION_MAP_CO2.md: `Rubocop ABC Complexity → copilot_notes/rubocop-complexity-reduction-pattern.md`
 
-## 🟢 Medium Priority (Next Month)
+## Medium Priority (Next Month)
 - [ ] Add internationalization support for error messages (all hardcoded English)
 - [ ] Create OpenAPI/Swagger documentation for API
 - [ ] Implement secret rotation automation for export tokens
@@ -58,7 +58,7 @@
 
 - Replace code examples in instructions with flexible prose descriptions (generally get better results from agentic LLMs with concise prose rather than verbose examples)
 
-## 🔧 Export::MultiCsvService Issues (Found in Code Review)
+## Export::MultiCsvService Issues (Found in Code Review)
 
 ### Missing Method Dependencies on BaseService
 - [ ] Verify/implement `measurements_query(filters)` method in BaseService
@@ -75,7 +75,7 @@
 - [ ] **Consider forcing UTF-8 encoding** on stream writes to prevent encoding failures
 - [ ] **Document BaseService interface** - MultiCsvService depends heavily on inherited methods that aren't visible in the file
 
-## 🔧 Export::QueryBuilder Issues (Found in Code Review)
+## Export::QueryBuilder Issues (Found in Code Review)
 
 ### Code Quality & Consistency Issues
 - [ ] **Inconsistent query syntax**: Mixed use of Rails range syntax and SQL strings (lines 27 vs 33) - standardize to Rails query interface
@@ -99,7 +99,7 @@
 - [ ] **Simplify date parsing**: Use Rails date parsing helpers instead of manual regex/strptime
 - [ ] **Consider filter builder pattern**: For complex multi-parameter filter construction
 
-## 🗄️ Database Schema Issues (From active_record_doctor analysis - 2025-09-05)
+## Database Schema Issues (From active_record_doctor analysis - 2025-09-05)
 
 ### Missing Foreign Key Constraints
 - [ ] Add foreign key constraint on `places.google_place_id` - looks like an association without proper constraint
@@ -132,7 +132,7 @@
 ### Association Optimization
 - [ ] Change `User.user_setting` to use `dependent: :delete` instead of `:destroy` - UserSetting has no callbacks
 
-## 🧪 Test Suite Improvements (From Comprehensive Test Review)
+## Test Suite Improvements (From Comprehensive Test Review)
 
 ### Critical Test Architecture Issues
 - [ ] **Split mega-specs**: Break 1,306-line export_system_security_spec.rb into focused files by concern
@@ -169,3 +169,9 @@
 - [ ] **Add test coverage reports**: Track coverage metrics over time
 - [ ] **Create test writing guidelines**: Ensure consistency across contributors
 - [ ] **Document performance test thresholds**: What constitutes acceptable performance
+
+
+
+
+
+- [ ] **refactor `to_i` and friends.

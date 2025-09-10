@@ -7,12 +7,11 @@ module ExportRateLimiting
 
   included do
     before_action :check_export_rate_limit
-    # rubocop:disable Rails/LexicallyScopedActionFilter
     # This concern is included in controllers that define their own index action
     # Note: after_action callbacks run in REVERSE order, so set_rate_limit_headers runs first
     after_action :set_rate_limit_headers, only: :index
     after_action :increment_rate_limit_counter, only: :index
-    # rubocop:enable Rails/LexicallyScopedActionFilter
+
   end
 
   private
@@ -36,7 +35,7 @@ module ExportRateLimiting
     return unless @export_token
 
     rate_limit_key = @export_token.rate_limit_key
-    
+
     # Read current value, increment, and write back
     # This works consistently across different cache stores
     current = Rails.cache.read(rate_limit_key) || 0
