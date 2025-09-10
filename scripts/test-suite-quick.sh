@@ -26,7 +26,7 @@ NC='\033[0m' # No Color
 print_color() {
     local color="$1"
     shift
-    echo -e "${color}$*${NC}"
+    echo -e "${color}$*${NC}" >&2
 }
 
 # Function to run a test with nice output
@@ -44,15 +44,15 @@ run_test() {
         return 0
     else
         # Failure: show test name and error details
-        echo -n "  ◇ $test_name... "
+        echo -n "  ◇ $test_name... " >&2
         print_color "$RED" "✗"
         # Show error output
         if [ -s "$output_file" ]; then
-            echo "    Error output:"
-            cat "$output_file" | head -20 | sed 's/^/    /'
+            echo "    Error output:" >&2
+            cat "$output_file" | head -20 | sed 's/^/    /' >&2
             local line_count=$(wc -l < "$output_file")
             if [ "$line_count" -gt 20 ]; then
-                echo "    ... ($(($line_count - 20)) more lines)"
+                echo "    ... ($(($line_count - 20)) more lines)" >&2
             fi
         fi
         rm -f "$output_file"
@@ -67,7 +67,7 @@ cd "$PROJECT_DIR"
 if [ "${VERBOSE:-false}" = "true" ]; then
     print_color "$BLUE" "Quick Test Suite"
     print_color "$BLUE" "────────────────"
-    echo ""
+    echo "" >&2
 fi
 
 FAILED_TESTS=0
@@ -144,7 +144,7 @@ fi
 
 # Only show separator and summary when there are failures or in verbose mode
 if [ $FAILED_TESTS -gt 0 ] || [ "${VERBOSE:-false}" = "true" ]; then
-    echo ""
+    echo "" >&2
     print_color "$BLUE" "────────────────"
 fi
 

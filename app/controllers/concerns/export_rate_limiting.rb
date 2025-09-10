@@ -5,13 +5,15 @@
 module ExportRateLimiting
   extend ActiveSupport::Concern
 
-  included do
-    before_action :check_export_rate_limit
-    # This concern is included in controllers that define their own index action
-    # Note: after_action callbacks run in REVERSE order, so set_rate_limit_headers runs first
-    after_action :set_rate_limit_headers, only: :index
-    after_action :increment_rate_limit_counter, only: :index
+  # Define which actions should be rate limited
+  # Both index (listing/streaming) and download actions consume rate limit
+  RATE_LIMITED_ACTIONS = [:index, :download].freeze
 
+  included do
+    before_action :check_export_rate_limit, only: RATE_LIMITED_ACTIONS
+    # NOTE: after_action callbacks run in REVERSE order, so set_rate_limit_headers runs first
+    after_action :set_rate_limit_headers, only: RATE_LIMITED_ACTIONS
+    after_action :increment_rate_limit_counter, only: RATE_LIMITED_ACTIONS
   end
 
   private
@@ -75,10 +77,10 @@ module ExportRateLimiting
     if Rails.cache.respond_to?(:redis)
       ttl = Rails.cache.redis.ttl(rate_limit_key)
       if ttl.positive?
-        return (Time.current + ttl.seconds).to_i
+        return ttl.seconds.from_now.to_i
       end
     end
     # Default to 1 hour from now if we can't determine TTL
-    return (Time.current + 1.hour).to_i
+    return 1.hour.from_now.to_i
   end
 end

@@ -28,7 +28,7 @@ NC='\033[0m' # No Color
 print_color() {
     local color="$1"
     shift
-    echo -e "${color}$*${NC}"
+    echo -e "${color}$*${NC}" >&2
 }
 
 # Function to run a test
@@ -36,7 +36,7 @@ run_test() {
     local test_name="$1"
     local test_command="$2"
     
-    echo -n "  ◇ $test_name... "
+    echo -n "  ◇ $test_name... " >&2
     
     local output_file=$(mktemp)
     
@@ -48,7 +48,7 @@ run_test() {
         print_color "$RED" "✗"
         # Show limited error output
         if [ -s "$output_file" ]; then
-            cat "$output_file" | head -10 | sed 's/^/    /'
+            cat "$output_file" | head -10 | sed 's/^/    /' >&2
         fi
         rm -f "$output_file"
         return 1

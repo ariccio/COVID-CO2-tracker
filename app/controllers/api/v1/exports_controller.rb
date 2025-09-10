@@ -8,7 +8,7 @@ class Api::V1::ExportsController < Api::BaseController
   include ExportRateLimiting
 
   skip_before_action :authenticate_export_token, only: [:options]
-  skip_before_action :check_export_rate_limit, only: [:options]
+  # Rate limiting is now explicitly scoped in ExportRateLimiting concern
   before_action :validate_export_params, except: [:options]
   before_action :validate_date_range, only: [:index, :download]
 

@@ -32,7 +32,7 @@ SUITE_START_TIME=$(date +%s)
 print_color() {
     local color="$1"
     shift
-    echo -e "${color}$*${NC}"
+    echo -e "${color}$*${NC}" >&2
 }
 
 # Function to format duration
@@ -73,7 +73,7 @@ run_test() {
         local duration=$((end_time - start_time))
         
         # Only show failures and warnings
-        echo -n "  ◆ $test_name... "
+        echo -n "  ◆ $test_name... " >&2
         if [ "$allow_failure" = "true" ]; then
             print_color "$YELLOW" "⚠ ($(format_duration $duration))"
         else
@@ -82,11 +82,11 @@ run_test() {
         
         # Show error output
         if [ -s "$output_file" ]; then
-            echo "    Error output:"
-            cat "$output_file" | head -30 | sed 's/^/    /'
+            echo "    Error output:" >&2
+            cat "$output_file" | head -30 | sed 's/^/    /' >&2
             local line_count=$(wc -l < "$output_file")
             if [ "$line_count" -gt 30 ]; then
-                echo "    ... ($(($line_count - 30)) more lines)"
+                echo "    ... ($(($line_count - 30)) more lines)" >&2
             fi
         fi
         rm -f "$output_file"
@@ -112,7 +112,7 @@ cd "$PROJECT_DIR"
 # print_color "$BLUE" "╔═══════════════════════════════════════════╗"
 # print_color "$BLUE" "║         Full Test Suite Execution         ║"
 # print_color "$BLUE" "╚═══════════════════════════════════════════╝"
-echo ""
+echo "" >&2
 
 FAILED_TESTS=0
 WARNINGS=0

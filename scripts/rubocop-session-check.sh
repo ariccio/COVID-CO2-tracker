@@ -10,12 +10,12 @@
 set -euo pipefail
 
 # echo "═══════════════════════════════════════════════════════════════"
-echo "Running Final Rubocop Check for Session...."
+echo "Running Final Rubocop Check for Session...." >&2
 # echo "═══════════════════════════════════════════════════════════════"
 
 # Check if we have bundle and rubocop available
 if ! command -v bundle >/dev/null 2>&1; then
-    echo "⚠ Bundle not found, skipping Rubocop check"
+    echo "⚠ Bundle not found, skipping Rubocop check" >&2
     exit 0
 fi
 
@@ -40,7 +40,7 @@ if [ -n "$SESSION_ID" ]; then
     })
     
     if [ -n "$SESSION_FILES" ]; then
-        echo "Checking files modified in Claude session $SESSION_ID..."
+        echo "Checking files modified in Claude session $SESSION_ID..." >&2
         
         # Filter for only files that still exist and are still modified
         ALL_MODIFIED=""
@@ -58,7 +58,7 @@ if [ -n "$SESSION_ID" ]; then
         done <<< "$SESSION_FILES"
         
         if [ -z "$ALL_MODIFIED" ]; then
-            echo "No modified files remain from this session"
+            echo "No modified files remain from this session" >&2
             # Clear session data
             "$(dirname "$0")/track-session-files.sh" clear "$SESSION_ID" || {
                 echo "WARNING: Failed to clear session $SESSION_ID" >&2
@@ -67,7 +67,7 @@ if [ -n "$SESSION_ID" ]; then
         fi
     else
         # No files tracked for this session, fallback to time-based
-        echo "No files tracked in session, using time-based detection..."
+        echo "No files tracked in session, using time-based detection..." >&2
         HOURS="${RUBOCOP_CHECK_HOURS:-4}"
         MINUTES=$((HOURS * 60))
         ALL_MODIFIED=$(find . -type f \( -name "*.rb" -o -name "*.rake" -o -name "Gemfile*" -o -name "Rakefile*" \) -mmin -${MINUTES} || {
@@ -77,7 +77,7 @@ if [ -n "$SESSION_ID" ]; then
     fi
 else
     # No session ID available, fallback to time-based detection
-    echo "No session ID available, using time-based detection..."
+    echo "No session ID available, using time-based detection..." >&2
     HOURS="${RUBOCOP_CHECK_HOURS:-4}"
     MINUTES=$((HOURS * 60))
     ALL_MODIFIED=$(find . -type f \( -name "*.rb" -o -name "*.rake" -o -name "Gemfile*" -o -name "Rakefile*" \) -mmin -${MINUTES} || {
@@ -87,7 +87,7 @@ else
 fi
 
 if [ -z "$ALL_MODIFIED" ]; then
-    echo "No Ruby files to check"
+    echo "No Ruby files to check" >&2
     exit 0
 fi
 
@@ -105,7 +105,7 @@ done <<< "$ALL_MODIFIED"
 MODIFIED_FILES=$(echo -n "$MODIFIED_FILES" | head -20)
 
 if [ -z "$MODIFIED_FILES" ]; then
-    echo "No Ruby files modified in this session (excluding vendor/node_modules)"
+    echo "No Ruby files modified in this session (excluding vendor/node_modules)" >&2
     exit 0
 fi
 
@@ -124,11 +124,11 @@ while IFS= read -r FILE; do
         OFFENSE_COUNT=$(echo "$OUTPUT" | grep -E "^[CWE]:" | wc -l | tr -d '[:space:]')
         
         if [[ "$OFFENSE_COUNT" -gt 0 ]]; then
-            echo "⚠ $FILE: $OFFENSE_COUNT offenses"
+            echo "⚠ $FILE: $OFFENSE_COUNT offenses" >&2
             TOTAL_OFFENSES=$((TOTAL_OFFENSES + OFFENSE_COUNT))
             FILES_WITH_ISSUES="$FILES_WITH_ISSUES$FILE\n"
         else
-            echo "✓ $FILE: clean"
+            echo "✓ $FILE: clean" >&2
         fi
     fi
 done <<< "$MODIFIED_FILES"
@@ -139,14 +139,14 @@ done <<< "$MODIFIED_FILES"
 if [[ "$TOTAL_OFFENSES" -gt 0 ]]; then
     # echo "Session Summary: $TOTAL_OFFENSES total offenses found"
     # echo ""
-    echo "Files with issues:"
-    echo -e "$FILES_WITH_ISSUES"
+    echo "Files with issues:" >&2
+    echo -e "$FILES_WITH_ISSUES" >&2
     # echo ""
     # echo "To see all issues, run:"
-    echo "To see all issues, run: bundle exec rubocop --fail-level F"
+    echo "To see all issues, run: bundle exec rubocop --fail-level F" >&2
     # echo ""
-    echo "To auto-fix safe issues, run:"
-    echo "  bundle exec rubocop -a"
+    echo "To auto-fix safe issues, run:" >&2
+    echo "  bundle exec rubocop -a" >&2
 # else
 #     echo "✓ Session Summary: All modified Ruby files are clean!"
 fi

@@ -87,7 +87,7 @@ EOF
             }
         fi
         
-        echo "Session initialized: $SESSION_ID"
+        echo "Session initialized: $SESSION_ID" >&2
         ;;
         
     add)
@@ -154,7 +154,7 @@ EOF
                 true  # Non-critical, don't fail
             }
         fi
-        echo "Cleaned up old sessions"
+        echo "Cleaned up old sessions" >&2
         ;;
         
     *)

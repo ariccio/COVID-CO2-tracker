@@ -33,7 +33,7 @@ NC='\033[0m' # No Color
 print_color() {
     local color="$1"
     shift
-    echo -e "${color}$*${NC}"
+    echo -e "${color}$*${NC}" >&2
 }
 
 # Check if we're already in a stop hook (prevent recursion)
@@ -206,7 +206,7 @@ case "$TEST_LEVEL" in
         # print_color "$BLUE" "→ Running quick test suite..."
         if run_tests_with_timeout "$SCRIPT_DIR/test-suite-quick.sh" 60; then
             # print_color "$GREEN" "✓ Quick tests passed"
-            echo ""
+            echo "" >&2
         else
             print_color "$RED" "✗ Quick tests failed"
             TEST_RESULT=1
@@ -224,7 +224,7 @@ case "$TEST_LEVEL" in
                 echo "$MODIFIED_FILES" | run_tests_with_timeout "$SCRIPT_DIR/test-suite-smart.sh" 300
                 if [ $? -eq 0 ]; then
                     # print_color "$GREEN" "✓ Smart tests passed"
-                    echo ""
+                    echo "" >&2
                 else
                     print_color "$RED" "✗ Smart tests failed"
                     TEST_RESULT=1

@@ -324,5 +324,6 @@
         "yum": false,
         "zypper": false
     },
+    "chat.agent.maxRequests": 1024,
 
 }

@@ -108,22 +108,26 @@ module Export
       return ALLOWED_FIELDS if fields == 'all'
 
       if fields.is_a?(Array)
-        valid_fields = fields & ALLOWED_FIELDS
-
-        # Log when invalid fields are filtered out
-        if valid_fields.empty?
-          Rails.logger.info('CSV export: All requested fields were invalid, falling back to DEFAULT_FIELDS')
-          return DEFAULT_FIELDS
-        elsif valid_fields.size < fields.size
-          invalid_fields = fields - valid_fields
-          Rails.logger.info("CSV export: Filtered out invalid fields: #{invalid_fields.join(', ')}")
-        end
-
-        return valid_fields
+        return validate_and_filter_field_array(fields)
       else
         Rails.logger.info('CSV export: Invalid field format (expected Array), falling back to DEFAULT_FIELDS')
         return DEFAULT_FIELDS
       end
+    end
+
+    def validate_and_filter_field_array(fields)
+      valid_fields = fields & ALLOWED_FIELDS
+
+      # Log when invalid fields are filtered out
+      if valid_fields.empty?
+        Rails.logger.info('CSV export: All requested fields were invalid, falling back to DEFAULT_FIELDS')
+        return DEFAULT_FIELDS
+      elsif valid_fields.size < fields.size
+        invalid_fields = fields - valid_fields
+        Rails.logger.info("CSV export: Filtered out invalid fields: #{invalid_fields.join(', ')}")
+      end
+
+      return valid_fields
     end
   end
 end
