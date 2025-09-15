@@ -14,26 +14,39 @@ class CreateExportSystem < ActiveRecord::Migration[7.1]
 
   def change
     # Create the export_tokens table with ALL final columns
-    create_table :export_tokens do |t|
-      t.string :description
-      t.datetime :expires_at
-      t.integer :usage_count, default: 0, null: false
-      t.datetime :last_used_at
-      t.jsonb :permissions, default: {}, null: false
-      t.datetime :created_at, null: false
-      t.datetime :updated_at, null: false
-      t.string :token_hash, null: false
-      t.datetime :revoked_at
-      t.string :created_by
-      t.string :revocation_reason
+    unless table_exists?(:export_tokens)
+      create_table :export_tokens do |t|
+        t.string :description
+        t.datetime :expires_at
+        t.integer :usage_count, default: 0, null: false
+        t.datetime :last_used_at
+        t.jsonb :permissions, default: {}, null: false
+        t.datetime :created_at, null: false
+        t.datetime :updated_at, null: false
+        t.string :token_hash, null: false
+        t.datetime :revoked_at
+        t.string :created_by
+        t.string :revocation_reason
+      end
     end
 
     # Add all indexes for the export_tokens table
-    add_index :export_tokens, :token_hash, unique: true
-    add_index :export_tokens, :expires_at
-    add_index :export_tokens, :revoked_at
-    add_index :export_tokens, [:token_hash, :revoked_at]
-    add_index :export_tokens, :created_by
+    add_index :export_tokens, :token_hash, unique: true,
+              algorithm: :concurrently,
+              if_not_exists: true
+    add_index :export_tokens, :expires_at,
+              algorithm: :concurrently,
+              if_not_exists: true
+    add_index :export_tokens, :revoked_at,
+              algorithm: :concurrently,
+              if_not_exists: true
+    add_index :export_tokens, [:token_hash, :revoked_at],
+              algorithm: :concurrently,
+              if_not_exists: true,
+              name: 'index_export_tokens_on_token_hash_and_revoked_at'
+    add_index :export_tokens, :created_by,
+              algorithm: :concurrently,
+              if_not_exists: true
 
     # Add performance indexes for export queries
     # Note: Using actual column name 'measurementtime' not 'measurement_timestamp'
@@ -80,6 +93,7 @@ class CreateExportSystem < ActiveRecord::Migration[7.1]
     add_index :models, [:name, :manufacturer_id],
               unique: true,
               algorithm: :concurrently,
+              if_not_exists: true,
               name: 'index_models_on_name_and_manufacturer_id'
   end
 end

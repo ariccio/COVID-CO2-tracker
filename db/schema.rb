@@ -115,7 +115,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_08_28_000000) do
     t.datetime "updated_at", null: false
     t.decimal "place_lat", precision: 10, scale: 6
     t.decimal "place_lng", precision: 10, scale: 6
-    t.index ["google_place_id"], name: "index_places_on_google_place_id", unique: true
+    t.index ["google_place_id"], name: "index_places_on_google_place_id"
     t.index ["place_lat"], name: "index_places_on_place_lat"
     t.index ["place_lng"], name: "index_places_on_place_lng"
   end
