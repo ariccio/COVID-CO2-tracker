@@ -49,9 +49,9 @@ module ExportRateLimiting
     # Get the TTL for the cache key to determine when limit resets
     if Rails.cache.respond_to?(:redis)
       ttl = Rails.cache.redis.ttl(rate_limit_key)
-      ttl.positive? ? ttl : 3600
+      ttl.positive? ? ttl : 600
     else
-      3600 # Default to 1 hour if we can't determine TTL
+      600 # Default to 10 minutes if we can't determine TTL
     end
   end
 

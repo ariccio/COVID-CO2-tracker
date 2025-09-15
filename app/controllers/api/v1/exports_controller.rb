@@ -367,7 +367,7 @@ class Api::V1::ExportsController < Api::BaseController
     # Determine cache duration based on filters (from enhancement doc)
     cache_duration = if filters[:from] && Date.parse(filters[:from].to_s) < 30.days.ago
                        24.hours # Historical data changes less
-                     elsif filters[:above_ppm] && filters[:above_ppm] > 1500
+                     elsif filters[:above_ppm] && filters[:above_ppm].to_i > 1500
                        5.minutes # High CO2 alerts need freshness
                      else
                        15.minutes # Default

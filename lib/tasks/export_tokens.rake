@@ -105,6 +105,7 @@ namespace :export do
       end
       exit 1
     end
+    puts "ExportToken count: #{ExportToken.count}"
   rescue StandardError => e
     puts "\n✗ Unexpected error: #{e.message}"
     puts e.backtrace.first(5).join("\n") if Rails.env.development?
