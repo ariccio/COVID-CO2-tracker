@@ -57,7 +57,7 @@ class CreateExportSystem < ActiveRecord::Migration[7.1]
               if_not_exists: true,
               name: 'index_measurements_on_sub_location_id'
 
-    # Note: index_places_on_google_place_id already exists as unique index
+    # NOTE: index_places_on_google_place_id already exists as unique index
 
     # Add indexes to devices table
     add_index :devices, :serial,

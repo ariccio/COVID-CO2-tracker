@@ -10,153 +10,153 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_09_10_203748) do
+ActiveRecord::Schema[7.1].define(version: 20_250_910_203_748) do
   # These are extensions that must be enabled in order to support this database
-  enable_extension "plpgsql"
+  enable_extension 'plpgsql'
 
-  create_table "active_admin_comments", force: :cascade do |t|
-    t.string "namespace"
-    t.text "body"
-    t.string "resource_type"
-    t.bigint "resource_id"
-    t.string "author_type"
-    t.bigint "author_id"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["author_type", "author_id"], name: "index_active_admin_comments_on_author"
-    t.index ["namespace"], name: "index_active_admin_comments_on_namespace"
-    t.index ["resource_type", "resource_id"], name: "index_active_admin_comments_on_resource"
+  create_table 'active_admin_comments', force: :cascade do |t|
+    t.string 'namespace'
+    t.text 'body'
+    t.string 'resource_type'
+    t.bigint 'resource_id'
+    t.string 'author_type'
+    t.bigint 'author_id'
+    t.datetime 'created_at', null: false
+    t.datetime 'updated_at', null: false
+    t.index ['author_type', 'author_id'], name: 'index_active_admin_comments_on_author'
+    t.index ['namespace'], name: 'index_active_admin_comments_on_namespace'
+    t.index ['resource_type', 'resource_id'], name: 'index_active_admin_comments_on_resource'
   end
 
-  create_table "admin_users", force: :cascade do |t|
-    t.string "email", default: "", null: false
-    t.string "encrypted_password", default: "", null: false
-    t.string "reset_password_token"
-    t.datetime "reset_password_sent_at", precision: nil
-    t.datetime "remember_created_at", precision: nil
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["email"], name: "index_admin_users_on_email", unique: true
-    t.index ["reset_password_token"], name: "index_admin_users_on_reset_password_token", unique: true
+  create_table 'admin_users', force: :cascade do |t|
+    t.string 'email', default: '', null: false
+    t.string 'encrypted_password', default: '', null: false
+    t.string 'reset_password_token'
+    t.datetime 'reset_password_sent_at', precision: nil
+    t.datetime 'remember_created_at', precision: nil
+    t.datetime 'created_at', null: false
+    t.datetime 'updated_at', null: false
+    t.index ['email'], name: 'index_admin_users_on_email', unique: true
+    t.index ['reset_password_token'], name: 'index_admin_users_on_reset_password_token', unique: true
   end
 
-  create_table "devices", force: :cascade do |t|
-    t.string "serial", null: false
-    t.bigint "model_id", null: false
-    t.bigint "user_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["model_id"], name: "index_devices_on_model_id"
-    t.index ["serial"], name: "index_devices_on_serial"
-    t.index ["user_id"], name: "index_devices_on_user_id"
+  create_table 'devices', force: :cascade do |t|
+    t.string 'serial', null: false
+    t.bigint 'model_id', null: false
+    t.bigint 'user_id', null: false
+    t.datetime 'created_at', null: false
+    t.datetime 'updated_at', null: false
+    t.index ['model_id'], name: 'index_devices_on_model_id'
+    t.index ['serial'], name: 'index_devices_on_serial'
+    t.index ['user_id'], name: 'index_devices_on_user_id'
   end
 
-  create_table "export_tokens", force: :cascade do |t|
-    t.string "description"
-    t.datetime "expires_at"
-    t.integer "usage_count", default: 0, null: false
-    t.datetime "last_used_at"
-    t.jsonb "permissions", default: {}, null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "token_hash", null: false
-    t.datetime "revoked_at"
-    t.string "created_by"
-    t.string "revocation_reason"
-    t.index ["created_by"], name: "index_export_tokens_on_created_by"
-    t.index ["expires_at"], name: "index_export_tokens_on_expires_at"
-    t.index ["revoked_at"], name: "index_export_tokens_on_revoked_at"
-    t.index ["token_hash", "revoked_at"], name: "index_export_tokens_on_token_hash_and_revoked_at"
-    t.index ["token_hash"], name: "index_export_tokens_on_token_hash", unique: true
+  create_table 'export_tokens', force: :cascade do |t|
+    t.string 'description'
+    t.datetime 'expires_at'
+    t.integer 'usage_count', default: 0, null: false
+    t.datetime 'last_used_at'
+    t.jsonb 'permissions', default: {}, null: false
+    t.datetime 'created_at', null: false
+    t.datetime 'updated_at', null: false
+    t.string 'token_hash', null: false
+    t.datetime 'revoked_at'
+    t.string 'created_by'
+    t.string 'revocation_reason'
+    t.index ['created_by'], name: 'index_export_tokens_on_created_by'
+    t.index ['expires_at'], name: 'index_export_tokens_on_expires_at'
+    t.index ['revoked_at'], name: 'index_export_tokens_on_revoked_at'
+    t.index ['token_hash', 'revoked_at'], name: 'index_export_tokens_on_token_hash_and_revoked_at'
+    t.index ['token_hash'], name: 'index_export_tokens_on_token_hash', unique: true
   end
 
-  create_table "extra_measurement_infos", force: :cascade do |t|
-    t.boolean "realtime"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+  create_table 'extra_measurement_infos', force: :cascade do |t|
+    t.boolean 'realtime'
+    t.datetime 'created_at', null: false
+    t.datetime 'updated_at', null: false
   end
 
-  create_table "manufacturers", force: :cascade do |t|
-    t.string "name", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["name"], name: "index_manufacturers_on_name", unique: true
+  create_table 'manufacturers', force: :cascade do |t|
+    t.string 'name', null: false
+    t.datetime 'created_at', null: false
+    t.datetime 'updated_at', null: false
+    t.index ['name'], name: 'index_manufacturers_on_name', unique: true
   end
 
-  create_table "measurements", force: :cascade do |t|
-    t.bigint "device_id", null: false
-    t.integer "co2ppm", null: false
-    t.datetime "measurementtime", precision: nil, null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.integer "crowding"
-    t.bigint "sub_location_id"
-    t.bigint "extra_measurement_info_id"
-    t.index ["device_id"], name: "index_measurements_on_device_id"
-    t.index ["extra_measurement_info_id"], name: "index_measurements_on_extra_measurement_info_id"
-    t.index ["measurementtime", "co2ppm"], name: "index_measurements_on_time_and_co2"
-    t.index ["measurementtime"], name: "index_measurements_on_measurementtime"
-    t.index ["sub_location_id"], name: "index_measurements_on_sub_location_id"
+  create_table 'measurements', force: :cascade do |t|
+    t.bigint 'device_id', null: false
+    t.integer 'co2ppm', null: false
+    t.datetime 'measurementtime', precision: nil, null: false
+    t.datetime 'created_at', null: false
+    t.datetime 'updated_at', null: false
+    t.integer 'crowding'
+    t.bigint 'sub_location_id'
+    t.bigint 'extra_measurement_info_id'
+    t.index ['device_id'], name: 'index_measurements_on_device_id'
+    t.index ['extra_measurement_info_id'], name: 'index_measurements_on_extra_measurement_info_id'
+    t.index ['measurementtime', 'co2ppm'], name: 'index_measurements_on_time_and_co2'
+    t.index ['measurementtime'], name: 'index_measurements_on_measurementtime'
+    t.index ['sub_location_id'], name: 'index_measurements_on_sub_location_id'
   end
 
-  create_table "models", force: :cascade do |t|
-    t.string "name", null: false
-    t.bigint "manufacturer_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["manufacturer_id"], name: "index_models_on_manufacturer_id"
-    t.index ["name", "manufacturer_id"], name: "index_models_on_name_and_manufacturer_id", unique: true
+  create_table 'models', force: :cascade do |t|
+    t.string 'name', null: false
+    t.bigint 'manufacturer_id', null: false
+    t.datetime 'created_at', null: false
+    t.datetime 'updated_at', null: false
+    t.index ['manufacturer_id'], name: 'index_models_on_manufacturer_id'
+    t.index ['name', 'manufacturer_id'], name: 'index_models_on_name_and_manufacturer_id', unique: true
   end
 
-  create_table "places", force: :cascade do |t|
-    t.string "google_place_id", null: false
-    t.datetime "last_fetched", precision: nil, null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.decimal "place_lat", precision: 10, scale: 6
-    t.decimal "place_lng", precision: 10, scale: 6
-    t.index ["google_place_id"], name: "index_places_on_google_place_id", unique: true
-    t.index ["place_lat"], name: "index_places_on_place_lat"
-    t.index ["place_lng"], name: "index_places_on_place_lng"
+  create_table 'places', force: :cascade do |t|
+    t.string 'google_place_id', null: false
+    t.datetime 'last_fetched', precision: nil, null: false
+    t.datetime 'created_at', null: false
+    t.datetime 'updated_at', null: false
+    t.decimal 'place_lat', precision: 10, scale: 6
+    t.decimal 'place_lng', precision: 10, scale: 6
+    t.index ['google_place_id'], name: 'index_places_on_google_place_id', unique: true
+    t.index ['place_lat'], name: 'index_places_on_place_lat'
+    t.index ['place_lng'], name: 'index_places_on_place_lng'
   end
 
-  create_table "sub_locations", force: :cascade do |t|
-    t.string "description", null: false
-    t.bigint "place_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["place_id"], name: "index_sub_locations_on_place_id"
+  create_table 'sub_locations', force: :cascade do |t|
+    t.string 'description', null: false
+    t.bigint 'place_id', null: false
+    t.datetime 'created_at', null: false
+    t.datetime 'updated_at', null: false
+    t.index ['place_id'], name: 'index_sub_locations_on_place_id'
   end
 
-  create_table "user_settings", force: :cascade do |t|
-    t.bigint "realtime_upload_place_id", null: false
-    t.bigint "realtime_upload_sub_location_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
-    t.index ["realtime_upload_place_id"], name: "index_user_settings_on_realtime_upload_place_id"
-    t.index ["realtime_upload_sub_location_id"], name: "index_user_settings_on_realtime_upload_sub_location_id"
-    t.index ["user_id"], name: "index_user_settings_on_user_id"
+  create_table 'user_settings', force: :cascade do |t|
+    t.bigint 'realtime_upload_place_id', null: false
+    t.bigint 'realtime_upload_sub_location_id', null: false
+    t.datetime 'created_at', null: false
+    t.datetime 'updated_at', null: false
+    t.bigint 'user_id', null: false
+    t.index ['realtime_upload_place_id'], name: 'index_user_settings_on_realtime_upload_place_id'
+    t.index ['realtime_upload_sub_location_id'], name: 'index_user_settings_on_realtime_upload_sub_location_id'
+    t.index ['user_id'], name: 'index_user_settings_on_user_id'
   end
 
-  create_table "users", force: :cascade do |t|
-    t.string "email"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "name"
-    t.string "sub_google_uid"
-    t.index ["email"], name: "index_users_on_email", unique: true
-    t.index ["sub_google_uid"], name: "index_users_on_sub_google_uid", unique: true
+  create_table 'users', force: :cascade do |t|
+    t.string 'email'
+    t.datetime 'created_at', null: false
+    t.datetime 'updated_at', null: false
+    t.string 'name'
+    t.string 'sub_google_uid'
+    t.index ['email'], name: 'index_users_on_email', unique: true
+    t.index ['sub_google_uid'], name: 'index_users_on_sub_google_uid', unique: true
   end
 
-  add_foreign_key "devices", "models"
-  add_foreign_key "devices", "users"
-  add_foreign_key "measurements", "devices"
-  add_foreign_key "measurements", "extra_measurement_infos"
-  add_foreign_key "measurements", "sub_locations"
-  add_foreign_key "models", "manufacturers"
-  add_foreign_key "sub_locations", "places"
-  add_foreign_key "user_settings", "places", column: "realtime_upload_place_id"
-  add_foreign_key "user_settings", "sub_locations", column: "realtime_upload_sub_location_id"
-  add_foreign_key "user_settings", "users"
+  add_foreign_key 'devices', 'models'
+  add_foreign_key 'devices', 'users'
+  add_foreign_key 'measurements', 'devices'
+  add_foreign_key 'measurements', 'extra_measurement_infos'
+  add_foreign_key 'measurements', 'sub_locations'
+  add_foreign_key 'models', 'manufacturers'
+  add_foreign_key 'sub_locations', 'places'
+  add_foreign_key 'user_settings', 'places', column: 'realtime_upload_place_id'
+  add_foreign_key 'user_settings', 'sub_locations', column: 'realtime_upload_sub_location_id'
+  add_foreign_key 'user_settings', 'users'
 end

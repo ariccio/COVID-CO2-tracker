@@ -10,7 +10,7 @@ class CreateExportTokens < ActiveRecord::Migration[7.1]
 
       t.timestamps
     end
-    
+
     add_index :export_tokens, :token, unique: true
     add_index :export_tokens, :expires_at
   end
