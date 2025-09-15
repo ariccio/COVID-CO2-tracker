@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_09_10_203748) do
+ActiveRecord::Schema[7.1].define(version: 2025_09_09_032108) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -62,7 +62,6 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_10_203748) do
     t.string "token_hash", null: false
     t.datetime "revoked_at"
     t.string "created_by"
-    t.string "revocation_reason"
     t.index ["created_by"], name: "index_export_tokens_on_created_by"
     t.index ["expires_at"], name: "index_export_tokens_on_expires_at"
     t.index ["revoked_at"], name: "index_export_tokens_on_revoked_at"
