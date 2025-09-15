@@ -86,7 +86,7 @@ end
 remaining_duplicates = Model.select(:name, :manufacturer_id)
                             .group(:name, :manufacturer_id)
                             .having('COUNT(*) > 1')
-                            .count
+                            .pluck(:name, :manufacturer_id)
 
 if remaining_duplicates.empty?
   puts '✓ Verification passed: No duplicate models remain'
