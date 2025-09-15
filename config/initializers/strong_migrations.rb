@@ -18,19 +18,19 @@ if defined?(StrongMigrations) && StrongMigrations.respond_to?(:configure)
 
     # Custom error messages for better developer experience
     config.error_messages[:add_column_with_default] = <<~TEXT
-    Adding a column with a non-null default causes the entire table to be rewritten.
-    Instead, add the column without a default value, then change the default.
+      Adding a column with a non-null default causes the entire table to be rewritten.
+      Instead, add the column without a default value, then change the default.
 
-    class Add<%= column.to_s.camelize %>To<%= table.to_s.camelize %> < ActiveRecord::Migration[7.1]
-      def up
-        add_column :<%= table %>, :<%= column %>, :<%= type %>
-        change_column_default :<%= table %>, :<%= column %>, <%= default %>
+      class Add<%= column.to_s.camelize %>To<%= table.to_s.camelize %> < ActiveRecord::Migration[7.1]
+        def up
+          add_column :<%= table %>, :<%= column %>, :<%= type %>
+          change_column_default :<%= table %>, :<%= column %>, <%= default %>
+        end
+      #{'  '}
+        def down
+          remove_column :<%= table %>, :<%= column %>
+        end
       end
-    #{'  '}
-      def down
-        remove_column :<%= table %>, :<%= column %>
-      end
-    end
     TEXT
 
     # Start checking migrations after the last deployed migration

@@ -4,7 +4,7 @@
 # Script to identify and fix duplicate models in the database
 # Run with: rails runner scripts/fix_duplicate_models.rb
 
-puts "Checking for duplicate models..."
+puts 'Checking for duplicate models...'
 
 # Find all duplicate model entries
 duplicates = Model.select(:name, :manufacturer_id)
@@ -13,12 +13,12 @@ duplicates = Model.select(:name, :manufacturer_id)
                   .pluck(:name, :manufacturer_id)
 
 if duplicates.empty?
-  puts "✓ No duplicate models found!"
+  puts '✓ No duplicate models found!'
   exit 0
 end
 
 puts "\nFound #{duplicates.count} sets of duplicate models:"
-puts "=" * 60
+puts '=' * 60
 
 duplicates.each do |name, manufacturer_id|
   puts "\nModel: '#{name}', Manufacturer ID: #{manufacturer_id}"
@@ -31,10 +31,10 @@ duplicates.each do |name, manufacturer_id|
 
   # Show details of each duplicate
   duplicate_records.each_with_index do |model, index|
-    device_count = model.devices.count
+    device_count = model.device.count
     measurement_count = Measurement.joins(:device).where(devices: { model_id: model.id }).count
 
-    status = index == 0 ? "[KEEP]" : "[DUPLICATE]"
+    status = index.zero? ? '[KEEP]' : '[DUPLICATE]'
     puts "  #{status} ID: #{model.id}, Created: #{model.created_at.strftime('%Y-%m-%d %H:%M')}"
     puts "          Devices: #{device_count}, Measurements: #{measurement_count}"
   end
@@ -46,12 +46,12 @@ duplicates.each do |name, manufacturer_id|
   puts "\n  Plan: Keep model ##{keeper.id}, merge #{duplicates_to_merge.count} duplicates"
 end
 
-puts "\n" + "=" * 60
+puts "\n#{'=' * 60}"
 print "\nDo you want to proceed with merging duplicates? (yes/no): "
 
 response = STDIN.gets.chomp.downcase
-unless response == 'yes' || response == 'y'
-  puts "Operation cancelled."
+unless ['yes', 'y'].include?(response)
+  puts 'Operation cancelled.'
   exit 0
 end
 
@@ -67,7 +67,11 @@ ActiveRecord::Base.transaction do
 
     duplicates_to_merge.each do |duplicate|
       # Update all devices that reference the duplicate to point to the keeper
+      # rubocop:disable Rails/SkipsModelValidations
+      # We need update_all here for performance when bulk-updating potentially thousands of devices.
+      # This is safe because we're only changing the foreign key reference to consolidate duplicates.
       Device.where(model_id: duplicate.id).update_all(model_id: keeper.id)
+      # rubocop:enable Rails/SkipsModelValidations
 
       # Delete the duplicate
       duplicate.destroy!
@@ -85,10 +89,10 @@ remaining_duplicates = Model.select(:name, :manufacturer_id)
                             .count
 
 if remaining_duplicates.empty?
-  puts "✓ Verification passed: No duplicate models remain"
+  puts '✓ Verification passed: No duplicate models remain'
   puts "\nYou can now safely deploy the migration that adds the unique index."
 else
   puts "✗ ERROR: #{remaining_duplicates.count} duplicate sets still remain!"
-  puts "Please investigate manually."
+  puts 'Please investigate manually.'
   exit 1
 end

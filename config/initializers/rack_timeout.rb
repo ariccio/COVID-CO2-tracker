@@ -20,7 +20,7 @@ if defined?(Rack::Timeout)
     # Disable timeout in test environment
     Rails.application.config.middleware.use(
       Rack::Timeout,
-      service_timeout: 0  # 0 disables the timeout
+      service_timeout: 0 # 0 disables the timeout
     )
   elsif Rails.env.development?
     # For development, use a longer timeout for debugging

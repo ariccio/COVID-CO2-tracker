@@ -130,7 +130,7 @@ namespace :export do
   task generate_token: :environment do
     token = ExportToken.create!(
       description: "Development Test Token - #{Time.zone.now}",
-      expires_at: 1.month.from_now,
+      expires_at: 10.years.from_now,
       permissions: {
         formats: ['csv', 'jsonl', 'json'],
         max_records: 10_000,
@@ -140,14 +140,14 @@ namespace :export do
 
     puts "\n✅ Export token created successfully!"
     puts '=' * 60
-    puts "Token: #{token.token}"
+    puts "Token: #{token.raw_token}"
     puts "Expires: #{token.expires_at}"
     puts "Formats: #{token.permissions['formats'].join(', ')}"
     puts "Max Records: #{token.permissions['max_records']}"
     puts "Rate Limit: #{token.permissions['rate_limit_per_hour']} requests/hour"
     puts '=' * 60
     puts "\nExample usage:"
-    puts "curl -H 'Authorization: Bearer #{token.token}' \\"
+    puts "curl -H 'Authorization: Bearer #{token.raw_token}' \\"
     puts "     'http://localhost:3000/api/v1/export?format_type=csv'"
   end
 end
