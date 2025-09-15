@@ -79,6 +79,7 @@ class CreateExportSystem < ActiveRecord::Migration[7.1]
     # Add unique constraint to models table
     add_index :models, [:name, :manufacturer_id],
               unique: true,
+              algorithm: :concurrently,
               name: 'index_models_on_name_and_manufacturer_id'
   end
 end
