@@ -89,6 +89,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
   end
 
   after(:context) do
+    ExportToken.destroy_all
     Measurement.destroy_all
     SubLocation.destroy_all
     Device.destroy_all
@@ -522,7 +523,7 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
         expect(response).to have_http_status(:too_many_requests)
 
         # Simulate time passing (clear cache to reset)
-        Timecop.travel(1.hour.from_now) do
+        travel_to(1.hour.from_now) do
           Rails.cache.clear # Simulate cache expiry
 
           # Should work again
@@ -995,6 +996,9 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
 
     context 'Production-Like Security Scenarios' do
       it 'handles distributed attack attempts' do
+        # Record initial token count
+        initial_token_count = ExportToken.count
+
         # Simulate multiple tokens from same source
         tokens = Array.new(5) { create_test_token }
 
@@ -1005,7 +1009,8 @@ RSpec.describe 'Export System Security - Comprehensive Tests', type: :request do
 
         # System should remain stable
         expect(Measurement.table_exists?).to be true
-        expect(ExportToken.count).to eq(tokens.size)
+        # Check that exactly 5 tokens were created
+        expect(ExportToken.count - initial_token_count).to eq(tokens.size)
       end
 
       it 'maintains security during high load' do

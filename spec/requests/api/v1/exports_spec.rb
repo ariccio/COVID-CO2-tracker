@@ -57,7 +57,7 @@ RSpec.describe('API::V1::Exports') do
 
         # Verify the service was called with correct parameters
         expect(csv_service).to have_received(:export_to_string).with(
-          {}, # filters
+          { limit: 100_000 }, # filters include token's default max_records
           fields: Export::BaseService::DEFAULT_FIELDS
         )
       end
@@ -75,7 +75,7 @@ RSpec.describe('API::V1::Exports') do
 
         # Verify custom fields were passed correctly
         expect(csv_service).to have_received(:export_to_string).with(
-          {},
+          { limit: 100_000 }, # filters include token's default max_records
           fields: %w[co2_ppm timestamp user_name device_serial]
         )
       end
@@ -191,7 +191,7 @@ RSpec.describe('API::V1::Exports') do
         )
         # Update token_hash directly in database
         revoked_token.update_columns(token_hash: test_token_hash)
-        revoked_token.revoke!(_reason: 'Test revocation')
+        revoked_token.revoke!(reason: 'Test revocation')
 
         # Verify token was created and revoked properly
         expect(revoked_token.reload).to be_persisted

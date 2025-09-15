@@ -14,6 +14,9 @@ module Export
       # Apply location filters
       query = apply_location_filters(query, filters)
 
+      # Apply record limit if specified
+      query = apply_limit(query, filters)
+
       # Order by measurement time for consistent exports
       return query.order(measurementtime: :asc, id: :asc)
     end
@@ -124,6 +127,15 @@ module Export
       includes << :extra_measurement_info if needs_realtime_includes?(fields)
 
       return includes
+    end
+
+    def apply_limit(query, filters)
+      return query unless filters[:limit]
+
+      limit = filters[:limit].to_i
+      return query if limit <= 0
+
+      return query.limit(limit)
     end
 
     def needs_device_includes?(fields)

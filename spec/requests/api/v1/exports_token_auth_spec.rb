@@ -6,6 +6,13 @@ RSpec.describe('API::V1::Exports Token Authentication') do
   # Disable transactional fixtures for export tests
   self.use_transactional_tests = false
 
+  before do
+    # Clean database before each test to ensure isolation
+    DatabaseCleaner.clean_with(:truncation)
+create_list(:measurement, 5, device:, sub_location:)
+
+  end
+
   after do
     DatabaseCleaner.clean_with(:truncation)
   end
@@ -15,10 +22,6 @@ RSpec.describe('API::V1::Exports Token Authentication') do
   let(:place) { create(:place, google_place_id: 'test_place_id') }
   let(:sub_location) { create(:sub_location, place:) }
 
-  before do
-    # Create test measurements
-    create_list(:measurement, 5, device:, sub_location:)
-  end
 
   describe('Token authentication') do
     context('with valid non-expired token') do
@@ -31,9 +34,14 @@ RSpec.describe('API::V1::Exports Token Authentication') do
       end
 
       it('records token usage') do
-        expect { get('/api/v1/export', params: { format_type: 'json' }, headers:) }
-          .to(change { token.reload.usage_count }.from(0).to(1))
-          .and(change { token.reload.last_used_at }.from(nil))
+        expect(token.usage_count).to eq(0)
+        expect(token.last_used_at).to be_nil
+
+        get('/api/v1/export', params: { format_type: 'json' }, headers:)
+
+        token.reload
+        expect(token.usage_count).to eq(1)
+        expect(token.last_used_at).not_to be_nil
       end
 
       it('allows multiple uses of the same token') do
@@ -67,7 +75,7 @@ RSpec.describe('API::V1::Exports Token Authentication') do
       it('returns unauthorized') do
         get('/api/v1/export', params: { format_type: 'json' }, headers:)
         expect(response).to(have_http_status(:unauthorized))
-        expect(response.parsed_body['error']).to(include('Invalid or expired token'))
+        expect(response.parsed_body['error']).to(eq('Token has expired'))
       end
 
       it('does not record usage') do
@@ -105,7 +113,7 @@ RSpec.describe('API::V1::Exports Token Authentication') do
       it('returns unauthorized') do
         get('/api/v1/export', params: { format_type: 'json' })
         expect(response).to(have_http_status(:unauthorized))
-        expect(response.parsed_body['error']).to(include('Invalid or expired token'))
+        expect(response.parsed_body['error']).to(eq('Authentication required'))
       end
     end
 
@@ -234,7 +242,7 @@ RSpec.describe('API::V1::Exports Token Authentication') do
       expect(response).to(have_http_status(:too_many_requests))
 
       # Travel forward in time
-      Timecop.travel(2.hours.from_now) do
+      travel_to(2.hours.from_now) do
         get('/api/v1/export', params: { format_type: 'json' }, headers:)
         expect(response).to(have_http_status(:ok))
       end
@@ -394,7 +402,7 @@ RSpec.describe('API::V1::Exports Token Authentication') do
           params: { format_type: 'json', from: 'invalid-date' },
           headers:)
 
-      expect(response).to(have_http_status(:bad_request))
+      expect(response).to(have_http_status(:unprocessable_content))
       expect(response.parsed_body['error']).to(include('Invalid date'))
     end
 

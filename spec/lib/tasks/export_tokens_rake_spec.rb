@@ -4,21 +4,29 @@ require 'rails_helper'
 require 'rake'
 
 RSpec.describe('export rake tasks', type: :task) do
+  # Store original IO streams using let to avoid instance variables
+  let(:original_stdout) { $stdout }
+  let(:original_stdin) { $stdin }
+
   before do
     Rails.application.load_tasks if Rake::Task.tasks.empty?
     # Clear any existing tokens
     ExportToken.destroy_all
-    # Suppress ALL output and input to prevent interactive prompts
-    @original_stdout = $stdout
-    @original_stdin = $stdin
+    # rubocop:disable RSpec/ExpectOutput
+    # We need to globally suppress output for all rake task tests to prevent
+    # cluttering test output. Individual tests use capture_stdout when they
+    # need to verify output. This pattern is necessary for rake task testing.
     $stdout = StringIO.new
     $stdin = StringIO.new
+    # rubocop:enable RSpec/ExpectOutput
   end
-  
+
   after do
-    # Restore original stdout and stdin
-    $stdout = @original_stdout
-    $stdin = @original_stdin
+    # rubocop:disable RSpec/ExpectOutput
+    # Restore original stdout and stdin after tests
+    $stdout = original_stdout
+    $stdin = original_stdin
+    # rubocop:enable RSpec/ExpectOutput
   end
 
   describe('export:generate') do
@@ -31,9 +39,9 @@ RSpec.describe('export rake tasks', type: :task) do
     context('with valid input') do
       it('creates a new token with description') do
         # Set up input in the StringIO
-        $stdin.puts("Test Token")     # Description
-        $stdin.puts("1")              # Choice (30 days)
-        $stdin.puts("n")              # No custom permissions
+        $stdin.puts('Test Token')     # Description
+        $stdin.puts('1')              # Choice (30 days)
+        $stdin.puts('n')              # No custom permissions
         $stdin.rewind                 # Reset to beginning for reading
 
         expect { task.invoke }.to change(ExportToken, :count).by(1)

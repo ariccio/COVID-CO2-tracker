@@ -327,7 +327,7 @@ class Api::V1::ExportsController < Api::BaseController
   end
 
   def build_filters(params)
-    {
+    filters = {
       from: params[:from],
       to: params[:to],
       place_database_id: params[:place_database_id],
@@ -336,6 +336,13 @@ class Api::V1::ExportsController < Api::BaseController
       above_ppm: params[:above_ppm],
       below_ppm: params[:below_ppm]
     }.compact
+
+    # Add token's max_records limit if present
+    if @export_token&.max_records
+      filters[:limit] = @export_token.max_records
+    end
+
+    filters
   end
 
   def build_cache_key(format, fields, filters)

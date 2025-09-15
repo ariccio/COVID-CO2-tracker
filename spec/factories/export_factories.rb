@@ -143,7 +143,7 @@ FactoryBot.define do
     after(:build) do |token, evaluator|
       # Ensure permissions is never nil (database constraint)
       token.permissions ||= {}
-      
+
       if evaluator.generate_raw_token
         # Simulate token generation for testing
         raw_token = SecureRandom.urlsafe_base64(32)
