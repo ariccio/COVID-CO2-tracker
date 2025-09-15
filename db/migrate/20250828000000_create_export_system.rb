@@ -90,10 +90,28 @@ class CreateExportSystem < ActiveRecord::Migration[7.1]
               name: 'index_sub_locations_on_place_id'
 
     # Add unique constraint to models table
-    add_index :models, [:name, :manufacturer_id],
-              unique: true,
-              algorithm: :concurrently,
-              if_not_exists: true,
-              name: 'index_models_on_name_and_manufacturer_id'
+    # Check for duplicates first to avoid migration failure
+    duplicate_models = ActiveRecord::Base.connection.execute(<<-SQL.squish)
+      SELECT name, manufacturer_id, COUNT(*) as count
+      FROM models
+      GROUP BY name, manufacturer_id
+      HAVING COUNT(*) > 1
+    SQL
+
+    if duplicate_models.any?
+      puts "⚠ WARNING: Skipping unique index on models table due to duplicate records:"
+      duplicate_models.each do |row|
+        puts "  - Model '#{row['name']}' with manufacturer_id #{row['manufacturer_id']} has #{row['count']} duplicates"
+      end
+      puts "  Run 'rails runner scripts/fix_duplicate_models.rb' to clean up duplicates"
+    else
+      # Only create the index if no duplicates exist
+      unless index_exists?(:models, [:name, :manufacturer_id], name: 'index_models_on_name_and_manufacturer_id')
+        add_index :models, [:name, :manufacturer_id],
+                  unique: true,
+                  algorithm: :concurrently,
+                  name: 'index_models_on_name_and_manufacturer_id'
+      end
+    end
   end
 end

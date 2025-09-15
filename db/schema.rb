@@ -105,7 +105,6 @@ ActiveRecord::Schema[7.1].define(version: 2025_08_28_000000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["manufacturer_id"], name: "index_models_on_manufacturer_id"
-    t.index ["name", "manufacturer_id"], name: "index_models_on_name_and_manufacturer_id", unique: true
   end
 
   create_table "places", force: :cascade do |t|
