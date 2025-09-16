@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class AddUniqueIndexToPlacesGooglePlaceId < ActiveRecord::Migration[7.0]
+  disable_ddl_transaction!
+
   def up
     # First check if there are any duplicates that would prevent adding the unique index
     duplicate_ids = Place.group(:google_place_id)
@@ -25,19 +27,19 @@ class AddUniqueIndexToPlacesGooglePlaceId < ActiveRecord::Migration[7.0]
     end
 
     # Remove the existing non-unique index
-    remove_index :places, :google_place_id, if_exists: true
+    remove_index :places, :google_place_id, if_exists: true, algorithm: :concurrently
 
-    # Add the unique index back
-    add_index :places, :google_place_id, unique: true, name: 'index_places_on_google_place_id'
+    # Add the unique index back using concurrent algorithm for production safety
+    add_index :places, :google_place_id, unique: true, name: 'index_places_on_google_place_id', algorithm: :concurrently
 
     puts "Successfully added unique index on places.google_place_id"
   end
 
   def down
-    # Remove the unique index
-    remove_index :places, :google_place_id, if_exists: true
+    # Remove the unique index using concurrent algorithm
+    remove_index :places, :google_place_id, if_exists: true, algorithm: :concurrently
 
-    # Add back a non-unique index
-    add_index :places, :google_place_id, name: 'index_places_on_google_place_id'
+    # Add back a non-unique index using concurrent algorithm
+    add_index :places, :google_place_id, name: 'index_places_on_google_place_id', algorithm: :concurrently
   end
 end
