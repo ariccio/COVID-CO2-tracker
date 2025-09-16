@@ -48,7 +48,12 @@ class Api::V1::ExportsController < Api::BaseController
     last_measurement = Measurement.maximum(:updated_at)
 
     if stale?(last_modified: last_measurement&.utc, public: false)
-      stream_export_download(format, fields, filters)
+      # For CSV format, use non-streaming approach to avoid issues
+      if format == 'csv'
+        render_csv_export_download(fields, filters)
+      else
+        stream_export_download(format, fields, filters)
+      end
     end
   end
 
@@ -71,6 +76,20 @@ class Api::V1::ExportsController < Api::BaseController
   end
 
   def render_csv_export(fields, filters)
+    @export_token.record_usage!
+
+    service = Export::CsvService.new(filters)
+    csv_content = service.export_to_string(filters, fields:)
+
+    filename = "co2_export_#{Time.current.strftime('%Y%m%d_%H%M%S')}.csv"
+
+    send_data csv_content,
+              filename: filename,
+              type: 'text/csv; charset=utf-8',
+              disposition: 'attachment'
+  end
+
+  def render_csv_export_download(fields, filters)
     @export_token.record_usage!
 
     service = Export::CsvService.new(filters)
