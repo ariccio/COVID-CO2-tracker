@@ -36,12 +36,12 @@ run_test() {
     local test_name="$1"
     local test_command="$2"
     
-    echo -n "  ◇ $test_name... " >&2
+    # echo -n "  ◇ $test_name... " >&2
     
     local output_file=$(mktemp)
     
     if eval "$test_command" > "$output_file" 2>&1; then
-        print_color "$GREEN" "✓"
+        # print_color "$GREEN" "✓"
         rm -f "$output_file"
         return 0
     else
@@ -274,7 +274,7 @@ fi
 print_color "$CYAN" "────────────────────"
 
 if [ $FAILED_TESTS -eq 0 ]; then
-    print_color "$GREEN" "✓ All targeted tests passed"
+    # print_color "$GREEN" "✓ All targeted tests passed"
     exit 0
 else
     print_color "$RED" "✗ $FAILED_TESTS targeted test(s) failed"

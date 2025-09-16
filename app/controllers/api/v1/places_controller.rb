@@ -215,11 +215,20 @@ module Api
         )
       rescue ::ActiveRecord::RecordInvalid => e
         ::Sentry.capture_exception(e)
-        render(
-          json: {
-            errors: [create_activerecord_error('creation failed!', e)]
-          }, status: :bad_request
-        )
+        # Check if it's a uniqueness validation error for google_place_id
+        if e.record.errors[:google_place_id].any? { |msg| msg.include?('has already been taken') }
+          render(
+            json: {
+              errors: [create_error('place already created! Did you click twice?', e)]
+            }, status: :bad_request
+          )
+        else
+          render(
+            json: {
+              errors: [create_activerecord_error('creation failed!', e)]
+            }, status: :bad_request
+          )
+        end
       end
 
       def in_bounds

@@ -28,9 +28,10 @@ module Export
 
         # Stream tempfile in chunks to avoid loading entire file in memory
         tempfile.rewind
-        chunk_size = 1.megabyte
+        chunk_size = 64.kilobytes # Smaller chunks for better streaming
         while (chunk = tempfile.read(chunk_size))
           response_stream.write(chunk)
+          response_stream.flush if response_stream.respond_to?(:flush)
           # Yield control to allow client read
           sleep(0) if chunk.size == chunk_size
         end

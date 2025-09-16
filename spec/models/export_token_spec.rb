@@ -467,7 +467,7 @@ RSpec.describe(ExportToken) do
       let(:token) { create(:export_token) }
 
       it('returns default of 10') do
-        expect(token.rate_limit_per_hour).to(eq(10))
+        expect(token.rate_limit_per_hour).to(eq(100))
       end
     end
 
@@ -571,7 +571,7 @@ RSpec.describe(ExportToken) do
     it('maintains data integrity with nil permissions') do
       token = create(:export_token, permissions: nil)
       expect(token.max_records).to(eq(100_000))
-      expect(token.rate_limit_per_hour).to(eq(10))
+      expect(token.rate_limit_per_hour).to(eq(100))
       expect(token.can_export_format?('csv')).to(be(true))
     end
   end

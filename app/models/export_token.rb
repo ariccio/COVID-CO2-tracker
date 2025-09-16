@@ -92,9 +92,9 @@ class ExportToken < ApplicationRecord
   end
 
   def rate_limit_per_hour
-    return 10 if permissions.nil?
+    return 100 if permissions.nil?
 
-    permissions['rate_limit_per_hour'] || 10
+    permissions['rate_limit_per_hour'] || 100
   end
 
   # Method to get a unique identifier for rate limiting (uses hash, not token)
