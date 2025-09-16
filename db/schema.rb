@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_09_15_185444) do
+ActiveRecord::Schema[7.1].define(version: 2025_09_16_043933) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -115,7 +115,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_09_15_185444) do
     t.datetime "updated_at", null: false
     t.decimal "place_lat", precision: 10, scale: 6
     t.decimal "place_lng", precision: 10, scale: 6
-    t.index ["google_place_id"], name: "index_places_on_google_place_id"
+    t.index ["google_place_id"], name: "index_places_on_google_place_id", unique: true
     t.index ["place_lat"], name: "index_places_on_place_lat"
     t.index ["place_lng"], name: "index_places_on_place_lng"
   end
