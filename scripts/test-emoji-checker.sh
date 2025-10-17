@@ -11,12 +11,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TEST_DIR="/tmp/emoji-checker-tests"
 CHECKER="npx ts-node $SCRIPT_DIR/check-emoji-usage.ts"
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# Source tty-colors library for TTY-aware output
+source "${SCRIPT_DIR}/lib/tty-colors.sh"
 
 # Test counters
 TESTS_RUN=0

@@ -21,12 +21,11 @@ TEST_TOKEN=""
 TEST_TOKEN_ID=""
 VERBOSE="${VERBOSE:-false}"
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# Constants
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Source tty-colors library for TTY-aware output
+source "${SCRIPT_DIR}/lib/tty-colors.sh"
 
 # Test results tracking
 TESTS_PASSED=0

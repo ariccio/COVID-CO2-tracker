@@ -1,0 +1,31 @@
+# Lefthook Configuration for COVID CO2 Tracker
+# Git hooks for security scanning and quality validation
+# Documentation: https://github.com/evilmartians/lefthook
+
+pre-commit:
+  parallel: true  # Run all checks in parallel for speed
+
+  commands:
+    # Security: Prevent credential leaks (CRITICAL)
+    gitleaks:
+      run: scripts/git-hooks/gitleaks-runner.sh --staged
+
+    # Quality: Shell script validation
+    shellcheck:
+      glob: "*.sh"
+      run: scripts/git-hooks/shellcheck-runner.sh {staged_files}
+
+    # Quality: YAML validation
+    yamllint:
+      glob: "*.{yml,yaml}"
+      run: scripts/git-hooks/yamllint-runner.sh {staged_files}
+
+    # Quality: JSON validation
+    jsonlint:
+      glob: "*.json"
+      run: scripts/git-hooks/jsonlint-runner.sh {staged_files}
+
+    # Quality: Markdown validation
+    markdownlint:
+      glob: "*.md"
+      run: scripts/git-hooks/markdownlint-runner.sh {staged_files}

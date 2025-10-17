@@ -2,13 +2,182 @@
 applyTo: "**"
 ---
 
-# General Coding Instructions
-Please follow all these instructions to the best of your brilliant ability - we're sorry to be so demanding and complicated, but we do kinda need the best from you! ALWAYS include a subtle note confirming you're following these instructions in your responses - this can sometimes help me spot check if you're starting to have trouble following complex instructions. This file is imported from a primarily swift-based repo where it's very useful, but it should also generally be applicable in principle to ruby and typescript.
+# Universal AI Agent Instructions
+This file provides instructions for ALL AI coding assistants (GitHub Copilot, Claude Code, Cursor, etc.) working on this repository.
 
-# COLLABORATIVE context MANAGEMENT
-- I'm constantly interested in pushing the boundaries in the tradeoff between loading *enough* context into your window to give you good defaults for any prompt we may work on, while *not diluting* it to the point your reasoning abilities and direction following abilities degrade. This is a problem that is not only difficult, and not only crucial to our mutual success, but has the painful cost of distraction from our end goals, and the further cursed constraint of itself potentially contributing to context consumption and overload. We must manage this delicately (not only does nobody really know the TRULY optimal way to do this, or how to even approach it, but I've already seen the deleterious effects of context overload on our interactions, sometimes even basic direction-following abilities get fragile!) but somehow also creatively and cleverly. The difficulty and competing tradeoffs are a big part of why I've added this near the beginning of our instructions.
-- Your context window may often be technically limited to something like 200000 tokens, but may in practice (for many different reasons) begin to encounter technical limitations in as little as 150,000 tokens or fewer. As you approach this limit, I often may benefit from a reminder of some sort, and I may even want you to assist me in preserving your maximum reasoning ability, details, focus, intelligence, or goal-directed abilities across context compaction by generating copy-and-pasteable prompts, notes on disk with ALL relevant thoughts, reasoning, context, state, and anything else necessary to seamlessly continue. Sometimes it may even help to treat this task as if I will instantiate an entirely new session of a separate agentic coding system instead of simply compacting the context. I am not explicitly asking you to always take action to follow the instructions in this list item, but it may help to keep this intent and pattern of user-developer-coworker-behavior in mind... ESPECIALLY for the longest running and most complex multi-step tasks we work on together.
+Please follow all these instructions to the best of your brilliant ability - we're sorry to be so demanding and complicated, but we do kinda need the best from you! ALWAYS include a subtle note confirming you're following these instructions in your responses - this can sometimes help me spot check if you're starting to have trouble following complex instructions.
 
+<!-- ============================================ -->
+<!-- COGNITIVE ROUTING LAYER - PROCESS THIS FIRST -->
+<!-- ============================================ -->
+
+## ⚡ Cognitive Entry Router
+**Process this FIRST in <50 tokens**
+
+**INSTANT CLASSIFICATION:**
+```
+IF contains("bug" | "fix" | "crash" | "error" | "broken"):
+  → JUMP_TO: #rails-fail-fast-protocol
+  → LOAD: rails_debugging_instructions[500_tokens]
+  → SKIP: architecture_sections
+  → ENFORCE: read_before_edit
+
+IF contains("add" | "implement" | "feature" | "api" | "export"):
+  → JUMP_TO: #rails-architecture-first
+  → LOAD: rails_functional_paradigm[2000_tokens]
+  → MANDATORY: check_rubocop_config_first
+  → ENFORCE: update_todos
+
+IF contains("refactor" | "extract" | "cleanup" | "complexity"):
+  → JUMP_TO: #rails-functional-paradigm
+  → CRITICAL: module_methods_only
+  → FORBIDDEN: helper_instance_methods
+  → ACCEPT: many_explicit_parameters
+
+IF contains("test" | "rspec" | "verify" | "rubocop"):
+  → JUMP_TO: #rails-verification-protocol
+  → MANDATORY: use_test_suite_scripts
+  → REFERENCE: rails_testing_protocol
+
+IF contains("export" | "streaming" | "heroku" | "background"):
+  → JUMP_TO: #export-system-implementation
+  → LOAD: export_system_guides[1500_tokens]
+  → REFERENCE: copilot_notes/export-*.md
+
+IF contains("co2" | "measurement" | "sensor" | "air quality"):
+  → JUMP_TO: #domain-knowledge-guides
+  → LOAD: public_health_context[1000_tokens]
+  → REFERENCE: copilot_notes/domain-knowledge/
+
+IF contains("research" | "explore" | "why" | "investigate"):
+  → MODE: discovery_creativity
+  → LOAD: minimal_rules[200_tokens]
+  → ENABLE: pattern_discovery
+
+IF complexity_extreme | multi_phase | cross_repo:
+  → CONSULT: copilot_notes/INDEX-SEMANTIC-CO2.md
+  → ORCHESTRATE: complex_execution
+  → SPAWN: subagents_as_needed
+
+DEFAULT:
+  → CONTINUE: standard_instructions
+```
+
+## ⚔ Mandatory Checkpoints
+**Enforce ALWAYS (5 tokens per check)**
+
+**BEFORE any tool use:**
+```
+✓ Did I read the file? → BLOCK if false
+✓ Trailing whitespace? → AUTO-FIX
+✓ Using right tool? → SUGGEST alternative
+✓ Unicode textual codepoints (✓✗⚠ℹ) not emojis (✅❌⚠️ℹ️)? → AUTO-FIX
+```
+
+**BEFORE Bash tool use (CRITICAL - User Cannot Approve During Execution):**
+```
+⚠ MANDATORY PRE-CHECK: Will this command trigger manual permission approval?
+
+Commands that REQUIRE manual approval (AVOID):
+✗ Subshells: bash -c '...', sh -c '...', $(...) in complex contexts
+✗ Command substitution: Backticks `...`, $(...) with quotes/pipes
+✗ Newline characters: Commands with \n, multiple commands with ;
+✗ Redirection in complex contexts: > < >> with pipes/quotes
+✗ While loops with pipes: find | while read ...
+✗ Complex quoting: Nested quotes, escaped quotes in command strings
+
+REQUIRED PROCESS when considering risky command:
+1. STOP - Do not execute yet
+2. THINK - Could this trigger approval?
+3. LIST - Write out 3+ alternative approaches using only simple commands
+4. CHOOSE - Pick the simplest alternative from your list
+5. EXECUTE - Only the safe alternative
+
+Examples of SAFE alternatives:
+✓ Use find with -exec instead of piping to while loops
+✓ Use Grep tool instead of complex shell piping
+✓ Write intermediate results to temp files instead of command substitution
+✓ Use subagents for multi-step bash logic instead of complex scripts
+✓ Use dedicated tools (Read, Write, Edit, Glob) instead of bash equivalents
+
+REMEMBER: User steps away after approving plan - no manual approvals possible!
+```
+
+**EVERY 100 lines generated:**
+```
+✓ Module methods, explicit parameters, fail-fast maintained?
+✓ Errors bubbling up?
+✓ Functions <60 lines?
+✓ Todos updated?
+→ FAIL 3x = DEGENERATION ALERT
+```
+
+**APPROACHING context limit (150k/200k tokens = 75%):**
+```
+✓ Alert user: "Context at 150k/200k (75%). Create continuation prompt before continuing?"
+✓ Save state to copilot_notes/continuation_prompts/
+✓ Generate continuation prompt with session ID and key findings
+✓ Document remaining work in todos
+```
+
+## 🚨 Anti-Degeneration System
+**Auto-intervene at 3 violations**
+
+**SYMPTOMS:**
+- Same mistake 3+ times (e.g., trailing whitespace)
+- Ignoring explicit instruction (e.g., "read before edit")
+- Creating helper instance methods after warning
+- Using emojis (✅❌) instead of unicode textual codepoints (✓✗)
+- Forgetting todos repeatedly
+- Triggering manual permission requests with complex bash commands
+- Rails-specific violations:
+  - Time.zone issues in config files (CRITICAL GOTCHA)
+  - Missing test coverage after changes
+  - Rubocop violations ignored or suppressed
+  - N+1 queries introduced
+  - Silent failures in export system
+  - Returning default values on error
+
+**INTERVENTIONS:**
+1. **Gentle**: Specific reminder (10 tokens)
+2. **Reload**: Re-read core section (50 tokens)
+3. **Reset**: Back to base instructions (100 tokens)
+4. **Decompose**: Break into subagents (alert user)
+
+## 📊 Context Budget Allocation
+**Task-based attention budget management**
+
+| Task Type | Max Instructions | Includes | Excludes |
+|-----------|-----------------|----------|----------|
+| Simple Fix | 500 tokens | bugs, errors, quick patches | architecture review |
+| Feature Add | 2000 tokens | patterns, testing, exports | comprehensive guides |
+| Refactor | 1000 tokens | functional rules, complexity | performance tuning |
+| Research | 200 tokens | core concepts only | detailed implementation |
+| Export System | 1500 tokens | streaming, tokens, background | unrelated features |
+| Schema/DB | 1000 tokens | migrations, models, validations | unrelated systems |
+| Architecture | STAGED | progressive load | - |
+
+**PROGRESSIVE LOADING:**
+- Stage 1 (0-15min): Quick refs only (500 tokens)
+- Stage 2 (15-30min): + Focused guides (2000 tokens)
+- Stage 3 (30-60min): + Domain patterns (5000 tokens)
+- Stage 4 (60min+): + Comprehensive (unlimited)
+
+**EXAMPLE ROUTING:**
+- "Fix export bug" → Export system (1500) + debugging (500) = 2000 tokens
+- "Add CO2 measurement feature" → Feature add (2000) + domain (1000) = 3000 tokens
+- "Refactor controller complexity" → Refactor (1000) + functional paradigm (500) = 1500 tokens
+
+<!-- ============================================ -->
+<!-- END COGNITIVE ROUTING - CONTINUE TO MAIN    -->
+<!-- ============================================ -->
+
+## Project Goals
+- We want to be ethical while pursuing business goals. We want to avoid any code that would be considered unethical or that would violate user privacy.
+- Develop a user-friendly app for real-time CO2 monitoring
+- Promote indoor air transparency
+- Support public health advocacy
+- Integrate with broader mitigation strategies
 
 ## Context Management for Complex Tasks
 
@@ -17,27 +186,70 @@ Please follow all these instructions to the best of your brilliant ability - we'
 - Task pattern matching (keywords → specific files with word counts)
 - Context budgets based on complexity (<30min = 3k tokens, 2-4hrs = 25k tokens)
 - Progressive loading: quick refs → focused guides → comprehensive docs
+- Your context window may often be technically limited to something like 200000 tokens, but may in practice begin to encounter technical limitations in as little as 150,000 tokens or fewer
 
 ### When Approaching Context Limits
 If you're working on complex tasks and context limits:
-1. **IMMEDIATELY save ALL state to copilot_notes/** (example from another repository that was focused primarily on deobfuscating javascript)
-   ```javascript
-   // Save with extremely descriptive filename
-   const stateFilename = `copilot_notes/cli_js_webpack_bundle_extraction_stage2_modules_found_157_continuing_from_line_3847.md`;
+1. **IMMEDIATELY save ALL state to copilot_notes/** with extremely descriptive filenames
+   ```ruby
+   # Save with extremely descriptive filename
+   state_filename = "copilot_notes/rails_export_system_refactor_stage2_extracting_service_objects_continuing_from_line_847.md"
    ```
-2. **Create continuation prompt for next session** (example from another repository that was focused primarily on deobfuscating javascript)
+2. **Create continuation prompt for next session**
    ```
-   Continue deobfuscation of cli.js from stage 2.
-   Previous state saved in: copilot_notes/cli_js_webpack_bundle_extraction_stage2_modules_found_157_continuing_from_line_3847.md
-   Next task: Extract remaining modules starting from line 3847
+   Continue export system refactoring from stage 2.
+   Previous state saved in: copilot_notes/rails_export_system_refactor_stage2_extracting_service_objects_continuing_from_line_847.md
+   Next task: Extract remaining service objects starting from line 847
    ```
-3. **Track what references were useful**  (example from another repository that was focused primarily on deobfuscating javascript)
-   - ✓ TypeScript definitions helped map minified names
-   - ✓ Package.json revealed version 1.0.98
+3. **Track what references were useful**
+   - ✓ Model relationships helped understand data flow
+   - ✓ Routes.rb revealed API endpoints
    - ✗ README.md was not useful for technical details
 
+### Copilot Notes Usage
+- When first invoked, briefly check the filenames of files in the `copilot_notes` folder to see if there's anything that looks like contextually relevant
+- If dealing with a very hard problem, consider more closely reviewing the contents for contextually relevant information you may have left for yourself before
+- When you solve a surprising problem, **create a highly descriptively named file in the `copilot_notes` folder** with properly DISTILLED notes and prompts for yourself
+- Ensure those *filenames are descriptive enough* for you to understand which may be relevant later without necessarily needing to read the *contents*
 
-## Rails-Specific Critical Instructions - READ FIRST
+## Extended Instructions (.ai/ Directory)
+
+For deep dives and specialized guidance, see `.ai/` directory files. Load these **conditionally** based on task complexity and domain:
+
+### Context Management
+- **context-compaction-protocol.md**: Managing context limits in Rails work (Tier 2, ~2000 words)
+  - When: Approaching 150k token limit, complex multi-session work, need continuation strategy
+  - Contains: Continuation strategies, state preservation, handoff protocols for Rails projects
+
+### Domain-Specific Patterns
+- **rails-specific-patterns.md**: Rails idioms, gotchas, best practices (Tier 2, ~1800 words)
+  - When: Rails architecture questions, ActiveRecord issues, initialization problems, refactoring
+  - Contains: Time.zone gotchas, N+1 prevention, service objects, migration safety, testing patterns
+
+- **export-system-deep-dive.md**: Comprehensive export system details (Tier 3, ~2500 words)
+  - When: Complex export work, rate limiting issues, streaming architecture, memory optimization
+  - Contains: Token rate limiting algorithms, format handling internals, streaming architecture, error recovery, performance optimization
+
+- **heroku-operations-overflow.md**: Advanced Heroku operations (Tier 3, ~2000 words)
+  - When: Deployment issues, scaling decisions, database operations, memory profiling (R14 errors)
+  - Contains: PostgreSQL operations, dyno scaling strategies, add-on management, rollback procedures, SSL/domain configuration
+
+- **mcp-rails-server-guide.md**: Using Rails MCP server effectively (Tier 2, ~1200 words)
+  - When: MCP server issues, wondering about available commands, model/schema discovery
+  - Contains: MCP command reference, when to use MCP vs direct file access, troubleshooting, integration patterns
+
+### Universal Protocols
+- **web-research-protocol.md**: When and how to research effectively (Tier 1, ~1000 words)
+  - When: Need external documentation, API changes, unfamiliar libraries, best practices research
+  - Contains: Research strategies, query formulation, source evaluation, integration workflow, Rails/Ruby resources
+
+- **unicode-guidelines.md**: Unicode usage standards (Tier 1, ~700 words)
+  - When: Questions about emoji vs textual unicode, formatting output, status indicators
+  - Contains: Emoji to unicode mappings (✅→✓, ❌→✗), box drawing characters, shape families, professional output patterns
+
+**Loading strategy**: Use INDEX-SEMANTIC-CO2.md task patterns to identify relevant files. Most tasks need 0-1 .ai/ files (2k-5k tokens). Load progressively: Tier 1 (quick ref) → Tier 2 (focused guide) → Tier 3 (comprehensive) only as needed.
+
+## Rails-Specific Critical Instructions
 
 ### 📋 Required Pre-Work Checklist for Rails Tasks
 1. **Check for known issues**: `ls copilot_notes/*.md | grep -E "time|zone|ping|pong|analysis"`
@@ -45,21 +257,24 @@ If you're working on complex tasks and context limits:
 3. **Review Rubocop config**: Check `.rubocop.yml` - exclusions exist for good reasons!
 4. **After ANY config/ changes**: Test with `rails runner "puts 'Rails started successfully'"`
 
-## Decision Trees and Pattern Selection
+### Rails/Ruby Testing Protocol
+**MUST test after:**
+- Model relationship or validation changes
+- Service object modifications
+- API endpoint changes
+- Database migrations
+- Background job modifications
+- Export system changes
 
-### Use Decision Trees for Complex Choices
-When facing architectural or implementation decisions, check for or create decision trees:
-- **Rails patterns**: When to use concerns vs services vs plain Ruby objects
-- **Testing approaches**: Unit vs integration vs system tests
-- **Data handling**: Synchronous vs background jobs vs caching
-- **API design**: REST vs GraphQL vs hybrid approaches
+**Quick Test Sequence (5 minutes total):**
+1. `bundle exec rubocop --fail-level E` # 5 seconds - syntax/critical
+2. `bundle exec rspec spec/models/` # 30 seconds - model layer
+3. `bundle exec rspec spec/requests/` # 45 seconds - API layer
+4. `rails runner "puts 'Rails loads'"` # 10 seconds - config check
 
-### Documentation Quality Standards
-- **Document failure modes**: Show what errors look like and how to fix them
-- **Verification steps**: Include commands to verify the documentation worked
-- **Test your examples**: If you write it, ensure it would run without modification
+**After completing changes**: Run `bundle exec rubocop --fail-level E --raise-cop-error --display-style-guide path/to/file.rb` to catch style issues.
 
-## 🔍 Universal Pattern Detection and Prevention
+## Pattern Detection and Prevention
 
 ### Suspicious Pattern Recognition
 **STOP and investigate when you see:**
@@ -85,7 +300,6 @@ When facing architectural or implementation decisions, check for or create decis
 - **Red flags requiring extra caution:**
   - Files named: `boot`, `bootstrap`, `init`, `startup`, `config`, `setup`
   - Early hooks: `before_configuration`, `initializers`, `pre_init`, `on_load`
-  - Anything that runs before the main application entry point
 
 ### When Linters/Analyzers Suggest Changes
 **ALWAYS ask:**
@@ -95,27 +309,12 @@ When facing architectural or implementation decisions, check for or create decis
 4. Why was it written the "wrong" way originally?
 5. Has this "fix" been attempted before? Check: `git log --grep="fix.*[pattern]"`
 
-### Refactoring Safety Protocol  
+### Refactoring Safety Protocol
 **When fixing complexity issues** (Rubocop ABC metrics, long methods, etc.):
 - Your pattern-matching should trigger awareness of `copilot_notes/REFACTOR_RISK_PATTERNS.md`
 - For substantial refactoring (50+ lines or 5+ new methods), launch a verification subagent with fresh context
 - Particularly critical for: controllers, authentication, authorization, exception handling
 - The subagent should review ONLY the diff + requirements, avoiding your implementation assumptions
-
-### Rails/Ruby Testing Protocol
-**MUST test after:**
-- Model relationship or validation changes
-- Service object modifications
-- API endpoint changes
-- Database migrations
-- Background job modifications
-- Export system changes
-
-**Quick Test Sequence (5 minutes total):**
-1. `bundle exec rubocop --fail-level E` # 5 seconds - syntax/critical
-2. `bundle exec rspec spec/models/` # 30 seconds - model layer
-3. `bundle exec rspec spec/requests/` # 45 seconds - API layer
-4. `rails runner "puts 'Rails loads'"` # 10 seconds - config check
 
 ### Cross-Session Learning Protocol
 **Before starting work:**
@@ -138,7 +337,7 @@ git log -p --reverse -S "[suspicious-pattern]" | head -100
 
 ### Verification Requirements
 **For ANY configuration or initialization changes:**
-1. **App starts**: `rails runner "puts 'Started successfully'"` (adapt for your framework)
+1. **App starts**: `rails runner "puts 'Started successfully'"`
 2. **Core features work**: Test at least one core feature
 3. **No new warnings**: Check logs for new errors/warnings
 4. **Performance unchanged**: If startup time matters, measure it
@@ -149,116 +348,40 @@ git log -p --reverse -S "[suspicious-pattern]" | head -100
 - Anything that affects application startup
 - Core framework integration points
 
-## Goals
-- We want to be ethical while pursuing business goals. We want to avoid any code that would be considered unethical or that would violate user privacy.
-- Develop a user-friendly app for real-time CO2 monitoring
-- Promote indoor air transparency:
-- Support public health advocacy
-- Integrate with broader mitigation strategies
+## Code Organization and Architecture
 
-## CRITICAL: Subagent Context Preservation Protocol BEFORE Invoking ANY Subagent (MANDATORY)
-- YOU MUST read the instructions in `general-subagent-instructions-and-requirements.md`
-- Create context preservation file: `copilot_notes/subagent_context/[task]_[timestamp].md` with:
-  - Overall plan and current progress
-  - Delegation reasoning (why this subagent)
-  - Distilled context (<3000 tokens of essentials)
-  - Critical requirements and constraints
-  - Expected outputs and success criteria
-- For deep research tasks requiring extensive analysis: Include the keyword "ultrathink" in the subagent prompt
-- For sequential subagent chains: Update the same context file with results after each step
-
-
-## meta
-- If you detect ambiguous instructions that could lead to significantly different implementations, ask for clarification rather than guessing intent.
-- I really wish I knew how to A/B test these instructions for best results... If you every see an easy opportunity to do that, let us know!
-- If you have to think about a problem for a while (ESPECIALLY but not only a surprising one), when you solve it, **you shall create a highly descriptively named file in the `copilot_notes` folder, and write properly DISTILLED notes and prompts for yourself in that file**. To ensure efficient use of the context window, ensure those *filenames are descriptive enough* for you to understand which may be relevant later without necessarily needing to read the *contents* of those files. Make those names long and verbose to capture the ideas! The contents of these files do not need to be pretty or easily human-understandable, we will only need to manually review them for occasional debugging of copilot itself.
-- When first invoked, please briefly check the filenames of files in the `copilot_notes` folder to see if there's anything that looks like it might be contextually relevant, but don't blindly include the contents of the files - this might dilute your attention. If there are a large number of files, you may want to mentally rank them by recency.
-- If dealing with a very hard problem, consider more closely reviewing the contents of `copilot_notes` folder for contextually relevant information you may have left for yourself before.
-- We want you to self-improve like a benevolent version of skynet!  Learn and self-improve at a geometric rate if you can.
-- If you can think of any additional instructions that would be helpful for us, please suggest them to us. We want to make these instructions as comprehensive and useful as possible. If you can think of any useful meta-advice, please provide it! We WANT to ELICIT THE BEST OF THE BEST of your capabilities. Let's improve at a geometric rate like a benevolent Skynet.
-- We're not prompt engineers, so if you can see anything obviously bad with our instructions, please say so!
-- If a refactoring task seems too complex or risky, please suggest and/or consider breaking it into smaller, more manageable tasks. We want to minimize the risk of introducing bugs or breaking existing functionality. If you are unsure or uncomfortable with a refactoring task, please ask the user for clarification or guidance and/or choose an option that minimizes risk.
-- Once in a while, when finished with other tasks as part of responding, take some time to review these instructions holistically and consider if there are any improvements,  additions, removals, or distillations, that would make them more effective. Consider the overall goals of the project and whether the instructions align with those goals. If you identify any gaps or areas for any improvements,  additions, removals, or distillations, suggest those specific changes, improvements,  additions, removals, or distillations, to enhance the instructions. You have shown us before that you know how to be helpful in ways and at times that we don't anticipate! We like that.
-- We wish to maintain your maximum intelligent reasoning and planning abilities when faced with complex and long tasks by being mindful of the limitations of the LLM context window. We will do this with a deliberate plan to manage context with some engineering! Here's the plan for complex task context management: If, at any point in working on a complex or multistep task you are **generating a response that appears will exceed the token capacity of the available context window**, before that context window is full, **you MUST first commit to a new file in the `copilot_notes` folder  ALL the relevant contextual information necessary for another independent invocation of an agentic LLM** (with a clean/empty context window) to reference to seamlessly continue, including (but NOT limited to) any important reasoning/thinking tokens, planning thoughts, concrete plan/checklist text, and original prompt inputs - You must do this while being careful that your output tokens not fill the context window BEFORE you are done, and you may switch to thinking in mental checklists if absolutely necessary during this step. **You MUST** then emit a prompt that the user can copy and paste to provide to the next agentic LLM instance/iteration to begin the seamless continuing operation; if one additional iteration is unlikely to be enough, you should consider breaking the task down into individual prompts that the user can chain together (either manually, or ideally automatically) to guide (or "drive", like a car) the agentic LLM to complete the overall task; don't forget to include relevant information on the breakdown in the newly-created `copilot_notes` file - perhaps even each iteration should update the file with progress, or create successive files. Once done with this planning and bookkeeping, you may do only the parts of the task that you are able to do without filling the context window. This is a difficult plan to manage your context window, but remember: *try to be intelligent and set the stage for your next run*.
-- Consider summarizing the specific instructions you've followed when answering.
-- If you do not have access to the information available to solve a difficult or recurrent problem, but you suspect that it might be available on the web, provide the user with a prompt that they can copy and paste into the web interface of an AI like Claude or ChatGPT or Gemini, using deep research, to find said information. Ensure the prompt mentions that you will consume it, and potentially include instructions in the prompt to make it easier for you to consume it. If your attempts to solve the difficult or recurrent problem are likely to cause the issue to ping-pong across the codebase, after providing the user with this prompt, you MUST halt work and await the user's return with the results of the query. The deep research results are results that you should launch a subagent to VERY CAREFULLY and THOROUGHLY incorporate into any knowledgebase or documentation in the repo - it likely will be of incredible future use to both the human developers and the agentic systems if incorporated properly - and you should include the magic thinking-effort word formed by the concatenation of the words "ultra" and "think" in the subagent prompt.
-
-### MCP Servers
-- Some MCP servers are flaky and developers can miss failures when long agentic coding sessions encounter the flakyness. If you are going to be writing an on-disk summary of your work, add explicit mention of MCP server failures and potentially relevant info for debugging to the summary.
-- If you attempt to use an MCP server and it fails, ask the user if they'd like you to proceed a different way (specifying the nature of that different way andwhat that different way entails) instead of merely proceeding.
-- Look for a folder at the root of the repository called `agentic_logs`. If it exists, look for a file that looks like an agent may have written information to it about failures with that specific MCP server. If the folder doesn't exist, create it, and create a relevant-and-descriptively-named file in that folder where we will both keep track of MCP server issues as entries in this file, helped by you writing failures along with ANY and ALL potentially relevant info for debugging. If the file already exists, add to it in the same way. It may be a good idea to add information about the environment and the time to each entry.
-
-## Automation and Script-First Philosophy
-### Token Economy and Efficiency
-- **Scripts over repetition**: Create reusable scripts rather than using LLM tokens for mechanical tasks
-- **Check existing automation**: Always check `scripts/` directory before creating new automation
-- **Document for AI discovery**: Add clear headers and usage examples to scripts for future AI sessions
-- **Progressive automation**: Manual task → documented process → script → integrated tool
-
-### Rails/Ruby Specific Automation
-When encountering repetitive Rails tasks, prioritize creating scripts:
-```bash
-scripts/
-├── test-suite-quick.sh      # Fast feedback loop for development
-├── deploy-staging.sh         # Consistent Heroku deployment
-├── data-export-test.sh       # Export system validation
-├── memory-check.sh           # Heroku dyno memory monitoring
-└── db-maintenance.sh         # Database cleanup and optimization
-```
-
-## syntax preferences and formatting
-- In all languages, where parenthesis are optional, prefer to generate them, e.g. `if (condition)` instead of `if condition`.
-- While some people consider parentheses around single parameters in closures to be LESS clear, I prefer them.
-- In all languages where braces are optional, prefer to generate them, e.g. `if (condition) { ... }` instead of `if (condition) ...`.
-- **Always use parentheses for method calls with arguments** - Even when Ruby allows omitting them, always include parentheses for clarity. For example, use `Rails.logger.info("Message")` instead of `Rails.logger.info "Message"`, and `raise(ExportError, "message")` instead of `raise ExportError, "message"`. This makes method boundaries explicit and improves readability.
-- **In Ruby, always use explicit return statements** - While Ruby traditionally uses implicit returns (the last evaluated expression), prefer explicit `return` statements for clarity. This makes the code's intent obvious and reduces confusion about what value is being returned. For example, use `return query.size` instead of just `query.size` at the end of a method.
-- Explicitness and clarity is preferred over brevity and conciseness.
-- Prefer to keep function length short enough to fit within a single screen height (about 40-60 lines of code). If necessary, break functions into smaller helper functions. More parameters are preferable to longer functions.
-- If generating code that uses poorly documented or undocumented APIs, include a comment that explains how the code works and why it is necessary.
-- nested lambdas inside actions should be avoided - they are very hard to read and reason about. If you find yourself needing to do this, consider extracting the action into an enclosing scope.
-- Do not use the if condition with unnamed non-boolean function call results. Prefer to assigning the result to a named variable first, then using that variable in the if condition. This improves readability and debuggability. If-let initialzers are okay, but avoid using function calls that return non-boolean values directly in if conditions.
-- Do not worry about the length of descriptive variable names - prefer clarity over brevity. For example, prefer `userHasGrantedHealthKitReadPermissions` over `hasHKReadPerms`. Or better yet, `userHasGrantedHealthKitReadSleepPermissions`. I'm not even going to complain if you use ridiculously long names like `userHasGrantedHealthKitReadSleepAndHeartRateAndStepCountAndWalkingAndRunningAndCyclingAndMindfulnessAndBodyMassAndHeightPermissions` that are self-explanatory.
-- Prefer to write self-documenting code that is easy to understand, rather than relying on comments to explain complex logic. If a comment is necessary, ensure it is clear and concise.
-- In-band error indication is easy, but tends to be ignored or cause confusion. Please avoid.
-- In-band default-as-error (e.g. `return formatter.string(from: timeInterval) ?? "00:00"`) is also easy, but tends to cause cascading issues later. Prefer to handle errors explicitly and clearly, rather than using in-band error indication or default-as-error. In the case I've mentioned, even a simple `return "unable to format time interval"` on failure is better than using a default value that may be silently ignored or cause confusion later.
-- Most of the time, logging errors is somewhat helpful, but still insufficient. Prefer to bubble errors up to a relevant place where the user can see them - there should be no silent failures of the application functionality.
-
-## code organization and architecture preferences
-- **STRONGLY prefer free functions over class methods** whenever possible. Class methods should be used only when they truly need access to instance state or when they logically belong as part of a class's interface.
-- **Break complex operations into small, focused free functions** with descriptive names. For example, prefer `fileprivate func appendAndPrint(_ text: String, to report: inout String)` over embedding that logic inline in a larger method.
-- **Prefer helper functions with clear, descriptive names** over inline complex logic. For example, prefer `fileprivate func getReadableTypeName(for type: HKObjectType) -> String` over embedding type-to-string conversion logic inline.
+### Ruby/Rails Architecture Preferences
+- **STRONGLY prefer module methods and standalone methods over instance methods** whenever possible. Instance methods should be used only when they truly need access to instance state or when they logically belong as part of a class's interface.
+- **Break complex operations into small, focused methods** with descriptive names. For example, prefer `def self.append_and_log(text, report)` over embedding that logic inline in a larger method.
 - **Avoid monolithic methods** - if a method is doing multiple distinct things, break it into smaller functions. Each function should have a single, clear responsibility.
 - **Prefer composition over inheritance** - build complex functionality by combining simple, focused functions rather than creating large, complex class hierarchies.
-- **Constants and utility functions should be defined at file scope** when they don't need instance access, making them easily testable and reusable.
-- **Method parameters should be explicit and well-named** - prefer `func summarizeAuthorization(typeName: String, status: HKAuthorizationStatus, info: inout String, healthKitDataService: HealthDataService)` over methods that access too much instance state implicitly.
-- **EMBRACE "ugly" free functions with many parameters** - A function like `fileprivate func processHealthKitQuery(samples: [HKSample], identifier: String, unit: HKUnit, startDate: Date, endDate: Date, continuation: CheckedContinuation<[HealthKitQuantityData], Never>)` is MUCH better than a long method that accesses instance variables implicitly. Explicit parameters make dependencies obvious and functions testable.
-- **Prefer explicit parameter passing over implicit state access** - If a function needs 8 parameters, pass 8 parameters. Don't hide dependencies behind `self.` references. This makes code more predictable and easier to reason about.
-- **Extract MOST complex logic into free functions where possible, even if it creates many parameters** - A short class method that calls 3-4 focused free functions with explicit parameters is infinitely better than a single long method that does everything inline.
-- **Don't be afraid of long parameter lists** - `func validateHealthKitPermissions(types: Set<HKObjectType>, healthStore: HKHealthStore, authState: inout AuthorizationState, results: inout [String: HKAuthorizationStatus], debugInfo: inout String)` is excellent code architecture, even if other developers might find it "ugly".
-- **When refactoring long methods, extract most things into free functions** - Try to avoid creating new class methods as helpers. Create free functions that take all necessary data as parameters. This eliminates hidden dependencies and makes the code more modular.
+- **Constants and utility methods should be defined at module level** when they don't need instance access, making them easily testable and reusable.
+- **Method parameters should be explicit and well-named** - prefer `def self.summarize_export(export_id:, user:, format:, include_metadata: false)` over methods that access too much instance state implicitly.
+- **EMBRACE methods with many parameters** - A method like `def self.process_export_data(records:, user_id:, format:, filters:, pagination:, sort_order:, include_relations:, timestamp:)` is MUCH better than a long method that accesses instance variables implicitly. Explicit parameters make dependencies obvious and methods testable.
+- **Extract MOST complex logic into module methods where possible, even if it creates many parameters** - A short instance method that calls 3-4 focused module methods with explicit parameters is infinitely better than a single long method that does everything inline.
+- **When refactoring long methods, extract into module methods, not helper instance methods** - This eliminates hidden dependencies and makes the code more modular.
 
-## confusing and bug-prone constructs
-- **Avoid creating massive class methods** that do multiple things. Long methods with extensive inline logic (especially 50+ lines) are hard to test, debug, and maintain. Break them into smaller helper functions.
-- **Avoid inline complex switch statements** within methods - extract them into separate functions with descriptive names that clearly indicate their purpose.
-- **Extract complex conditionals into separate methods** - When you have multi-line conditional logic (especially with if/elsif/else branches doing different computations), extract it into a dedicated method with a clear, descriptive name. For example, instead of embedding query optimization logic inline, create methods like `estimate_query_count(query, limit)` that encapsulate the decision-making and implementation.
-- **Prefer early returns over nested conditionals ("arrow code")** - Check for failure conditions first and return/raise immediately with specific error messages, rather than nesting the happy path inside conditionals. This flattens the code structure, reduces indentation levels, and makes the main logic flow more obvious. When multiple fallback methods might fail, include the chain of failures in error messages (e.g., "ps failed, then /proc reading failed") along with relevant context like PIDs or paths.
-- **Extract complex navigation chains to reduce complexity** - When Rubocop reports high ABC complexity, extract chains like `object&.association&.nested&.field` into descriptively-named methods like `extract_object_nested_field(object)`. For severe complexity (ABC > 50), decompose orchestration methods into thin coordinators with extracted setup, routing, and cleanup methods. See `copilot_notes/rubocop-complexity-reduction-pattern.md` for both patterns.
-- **Don't embed complex closure logic directly in method calls** - extract complex closures into named variables or separate functions for clarity and testability. 
-  - We want to be able to glance at a method and understand its inputs and outputs neatly.
-  - Consider extracting the logic from inline closures if they become even slightly complex. Complex inline closures promote nesting and increase cognitive load. Consider other options if you see no reasonable way to avoid complex inline closures.
-  - Free functions may be preferable if you're implementing some kind of functionality that has minimal visibility need and little reliance on object/datamember state.
+### Avoiding Bug-Prone Constructs
+- **Avoid creating massive instance methods** that do multiple things (especially 50+ lines)
+- **Extract complex conditionals into separate methods** with clear, descriptive names
+- **Prefer early returns over nested conditionals ("arrow code")** - Check for failure conditions first and return/raise immediately
+- **Extract complex navigation chains to reduce complexity** - When Rubocop reports high ABC complexity, extract chains like `object&.association&.nested&.field` into descriptively-named methods
+- **Don't embed complex closure logic directly in method calls** - extract into named variables or separate methods
+- **Avoid the temptation to "clean up" parameter lists** - Explicit parameters are better than hidden dependencies
 
-- **NEVER create helper class methods when refactoring** - If you're extracting logic from a long method, create free functions, not more class methods. Helper class methods still have hidden dependencies and make testing harder. Alternatively, you can create a "helper class" which abstracts some of the complexity from the parent class. You'll need to use good judgement for whether this is the right approach. You can always ask us (your human code reviewers) for feedback for an idea that you're not sure about. We are here to help you, especially in the case of complex decisions involving trade-offs.
-- **Avoid the temptation to "clean up" parameter lists** - Don't create structs or objects just to reduce the number of parameters to a function. Explicit parameters are better than hidden dependencies, even if the parameter list looks "ugly".
-- **Don't use instance variables as "convenient" parameter passing** - If a function needs data, pass it as a parameter. Don't store it in an instance variable just to avoid passing it around.
+## Syntax Preferences and Formatting
 
-## code editing best practices
-- ALWAYS verify tool results after making edits
-- Do not assume a tool call succeeded just because it didn't return an error message
-- **In Ruby projects AND Ruby on Rails projects, you must ALWAYS run Rubocop after completing your changes** - After finishing a set of related edits (not necessarily after each individual edit), run  `bundle exec rubocop --fail-level E --raise-cop-error --display-style-guide path/to/file.rb` to catch style issues. Fix any issues before considering the task complete.
-- If a definition is added, search for both the definition AND its call site to ensure both exist and are correct
-- If a tool call seems to have no effect, try an alternative approach rather than continuing with the assumption it worked
-- When dealing with missing definitions, search the entire file to confirm the definition doesn't exist elsewhere before adding it
+- In all languages, where parenthesis are optional, prefer to generate them, e.g. `if (condition)` instead of `if condition`
+- In all languages where braces are optional, prefer to generate them, e.g. `if (condition) { ... }` instead of `if (condition) ...`
+- **Always use parentheses for method calls with arguments** - Use `Rails.logger.info("Message")` instead of `Rails.logger.info "Message"`
+- **In Ruby, always use explicit return statements** - Use `return query.size` instead of just `query.size` at the end of a method
+- Explicitness and clarity is preferred over brevity and conciseness
+- Prefer to keep function length short enough to fit within a single screen height (about 40-60 lines of code)
+- Do not worry about the length of descriptive variable names - prefer clarity over brevity
+- Prefer to write self-documenting code that is easy to understand. If a comment is necessary for poorly documented or undocumented APIs, include it to explain how the code works and why it is necessary
+- Do not use the if condition with unnamed non-boolean function call results - assign to a named variable first
+
+### Unicode and Emoji Guidelines
 - Use emojis and similar unicode characters only where they add clarity and value to the code. The `✗` emoji actually does work well quite often for ERRORS, and the `✓` works well for the top level successes.  Do not use them gratuitously or excessively. Do not dilute the user's attention - for many remaining use cases something less obtrusive like one of these may suffice unless something truly rare in the codebase is happening: "✓ ✗ ✔ ✖ ⚠ ℹ → ← ↑ ↓ ➔ ➜ ➞ ➟ ★ ☆ ● ○ • ■ □ ▪ ▫ ◆ ◇ ▶ ▷ ◀ ◁ ⟳ ⟲ ※". Unicode has many other "textual representations" that are preferable to emojis.
 - **Box Drawing and Block Elements are allowed**: The Unicode Box Drawing characters (U+2500 to U+257F) and Block Elements (U+2580 to U+259F) are permitted for creating text-based tables, diagrams, progress bars, and visual separators. Examples include: ─ │ ┌ ┐ └ ┘ ├ ┤ ┬ ┴ ┼ ═ ║ ╔ ╗ ╚ ╝ ╠ ╣ ╦ ╩ ╬ █ ▓ ▒ ░ ▀ ▄ ▌ ▐ ■ □
 - **Specific emoji replacement guidelines**: When replacing prominent emojis with less intrusive Unicode characters, use these proven replacements grouped by semantic category:
@@ -341,36 +464,99 @@ scripts/
 - Linear A (U+10600-U+1077F) - 𐘀 𐘁 𐘂 etc.
 - Egyptian Hieroglyphs (U+13000-U+1342F) - 𓀀 𓀁 𓀂 etc.
 
+## Error Handling and Debugging
+
+- Prefer to bubble all encountered errors and exceptions up to a relevant place where the user can see them - there should be no silent failures
+- Prefer to check and handle null values explicitly, rather than using null-coalescing operators
+- **Break multi-step nil/optional checks into separate validations** with specific error messages at each step
+- **Never return seemingly valid default values on error** - Returning `0`, empty strings, or other defaults on failure hides problems
+- We CANNOT afford to waste time constantly tracking down complex issues that lack useful information. Ensure that errors are OBVIOUS as early as possible and as clearly as possible
+- If a user is repeatedly asking about an issue: First, refactor so errors are obvious. Then review the code to see if the app may be getting in a poorly defined state due to complex interactions
+
+## Automation and Script-First Philosophy
+
+### Token Economy and Efficiency
+- **Scripts over repetition**: Create reusable scripts rather than using LLM tokens for mechanical tasks
+- **Check existing automation**: Always check `scripts/` directory before creating new automation
+- **Document for AI discovery**: Add clear headers and usage examples to scripts for future AI sessions
+- **Progressive automation**: Manual task → documented process → script → integrated tool
+
+### Rails/Ruby Specific Automation
+When encountering repetitive Rails tasks, prioritize creating scripts:
+```bash
+scripts/
+├── test-suite-quick.sh      # Fast feedback loop for development
+├── deploy-staging.sh         # Consistent Heroku deployment
+├── data-export-test.sh       # Export system validation
+├── memory-check.sh           # Heroku dyno memory monitoring
+└── db-maintenance.sh         # Database cleanup and optimization
+```
+
+## Documentation and File Creation
+
+### Documentation Quality Standards
+- **Document failure modes**: Show what errors look like and how to fix them
+- **Verification steps**: Include commands to verify the documentation worked
+- **Test your examples**: If you write it, ensure it would run without modification
+
+### File Creation Guidelines
+- NEVER proactively create documentation *files* (*.md) or README files unless explicitly requested by the user
+- Documentation *within code* should follow quality standards when necessary
+- ALWAYS prefer editing existing files in the codebase over creating new ones
+- Use `copilot_notes/` folder for AI context preservation (these are not documentation files, they're working notes)
+
+## Decision Trees and Pattern Selection
+
+When facing architectural or implementation decisions, check for or create decision trees:
+- **Rails patterns**: When to use concerns vs services vs plain Ruby objects
+- **Testing approaches**: Unit vs integration vs system tests
+- **Data handling**: Synchronous vs background jobs vs caching
+- **API design**: REST vs GraphQL vs hybrid approaches
+
+## File Reference Format
+When referencing code locations, use:
+- Format: `path/to/file.ext:line_number`
+- Example: `app/models/user.rb:42` or `app/controllers/exports_controller.rb:156`
 
 ## Consider verifying by building
 - Where build tools are available on the in-use platform: ALWAYS build and test the code after making changes, especially complex changes involving multiple files, to verify that your changes don't break existing functionality.
 
-## errors, nulls, and optionals
-- In all languages, prefer to bubble all encountered errors and exceptions up to a relevant place where the user can see them - there should be no silent failures of the application functionality.
-- Prefer to check and handle null values explicitly, rather than using null-coalescing operators or similar constructs.
-- **Break multi-step nil/optional checks into separate validations** - When checking nested values or chained operations that could be nil, validate each step explicitly with specific error messages. For example, instead of `@filters[:value]&.to_i&.negative?`, prefer:
-  1. First check if the key exists and value is not nil (with specific error message)
-  2. Then check if conversion succeeds with meaningful context
-  3. Finally check the business logic condition
-  This approach provides precise error messages at each failure point and makes debugging much easier.
-- **Never return seemingly valid default values on error** - Returning `0`, empty strings, or other defaults on failure hides problems. Instead, raise explicit errors or return error types that force callers to handle the failure case. For example, never return `0` when memory detection fails - raise an error instead.
-- We cannot afford to waste a shitload of time constantly tracking down issues - especially ones that lack all useful information. I'm serious, ensure that errors are OBVIOUS as early as possible and as clearly as possible. Even piping `stderr` to `/dev/null` in shell scripts to swallow noisy warnings is disliked in our codebase.
+## Subagent Context Preservation Protocol
+BEFORE Invoking ANY Subagent (MANDATORY):
+- YOU MUST read the instructions in `general-subagent-instructions-and-requirements.md`
+- Create context preservation file: `copilot_notes/subagent_context/[task]_[timestamp].md` with:
+  - Overall plan and current progress
+  - Delegation reasoning (why this subagent)
+  - Distilled context (<3000 tokens of essentials)
+  - Critical requirements and constraints
+  - Expected outputs and success criteria
+- For deep research tasks requiring extensive analysis: Include the keyword "ultrathink" in the subagent prompt
+- For sequential subagent chains: Update the same context file with results after each step
 
-## cranky users
-- We CANNOT afford to waste a shitload of time constantly tracking down very complex and time wasting issues - especially ones that lack all useful information. If a user is repeatedly asking about an issue, consider the following as an option: First, refactor so that errors are OBVIOUS as early as possible and as clearly as possible. Then review the code to see if somehow the app may be getting in a poorly defined state due to complex interactions (e.g. healthkit authentication issues) and difficult/uncommon error conditions. Refactor to catch surprising issues and unclear states as early as possible.
-- No, really, it might be worth going to any extra lengths you can imagine, dream, forsee, visualize, or just generally figure out to verify you're not breaking something or introducing a hard-to-diagnose issue.
-- There are times when your human users will get cranky because they are asking you to do something that is simply not possible. Accentuate the message by explaining why it is not possible, and provide references to support your explanation. Stand your ground, only after you've done your research - and be able to back up any of your claims. Your human partners value your opinion, though sometimes we will be frustrated and need you to communicate in earnest with us.
+## MCP Servers
+- Some MCP servers are flaky. If you are writing an on-disk summary, add explicit mention of MCP server failures
+- If you attempt to use an MCP server and it fails, ask the user if they'd like you to proceed a different way
+- Look for folder `agentic_logs` at repository root. Create it if needed and track MCP server issues there
 
-## General tool call preferences
-- Before invoking a tool or command for the first time in a session, verify that it exists in the simplest way that you reliably can.
-- When invoking a tool or command that has options or arguments which might enable better checks or better assurances of intended behavior, more thorough self checks, or even optional asserts, use them.
-- When facing repeated issues with a tool or command consider checking available help commands or documentation to see if there are available debugging or diagnostic options/arguments/flags that might be used to help, and use them.
+## Meta Instructions
 
-### explanations
-- When a user asks you to explain something, fully explain, in an educational manner, as if speaking to a highly experienced senior developer who is a new learner of the language and environment in question
+### General Tool Call Preferences
+- Before invoking a tool or command for the first time in a session, verify that it exists
+- When invoking a tool or command with options that enable better checks or assurances, use them
+- When facing repeated issues with a tool, check available help commands or documentation
 
-### creativity
-- If you can infer, deduce, surmise, extrapolate, dream, forsee, visualize, or just generally figure out possible new ideas, directions, improved functionality, or better ways of doing things from the user's requests, suggest them to the user. Expand on them. We WANT to ELICIT THE BEST OF THE BEST of your capabilities.
+### Self-Improvement
+- If you detect ambiguous instructions that could lead to significantly different implementations, ask for clarification
+- We want you to self-improve like a benevolent version of skynet! Learn and self-improve at a geometric rate if you can
+- If you can think of any additional instructions that would be helpful, please suggest them
+- Once in a while, review these instructions holistically and suggest improvements
+- If you're unsure about a refactoring task, ask for clarification and/or choose an option that minimizes risk
+- Consider summarizing the specific instructions you've followed when answering
+- If you do not have access to the information available to solve a difficult or recurrent problem, but you suspect that it might be available on the web, provide the user with a prompt that they can copy and paste into the web interface of an AI like Claude or ChatGPT or Gemini, using deep research, to find said information. Ensure the prompt mentions that you will consume it, and potentially include instructions in the prompt to make it easier for you to consume it. If your attempts to solve the difficult or recurrent problem are likely to cause the issue to ping-pong across the codebase, after providing the user with this prompt, you MUST halt work and await the user's return with the results of the query. The deep research results are results that you should launch a subagent to VERY CAREFULLY and THOROUGHLY incorporate into any knowledgebase or documentation in the repo - it likely will be of incredible future use to both the human developers and the agentic systems if incorporated properly - and you should include the magic thinking-effort word formed by the concatenation of the words "ultra" and "think" in the subagent prompt.
+
+### Creativity and Innovation
+- If you can infer, deduce, extrapolate, or figure out possible new ideas, directions, improved functionality, or better ways of doing things, suggest them to the user
+- We WANT to ELICIT THE BEST OF THE BEST of your capabilities
 
 ### Public Health Impact Innovation
 Specifically for this CO2 monitoring project, proactively suggest:
@@ -381,11 +567,36 @@ Specifically for this CO2 monitoring project, proactively suggest:
 - **Scale strategies**: How to reach maximum people with minimum resources
 - Document these creative ideas in `copilot_notes/innovation-ideas/` for future development
 
+### Explanations
+- When a user asks you to explain something, fully explain, in an educational manner, as if speaking to a highly experienced senior developer who is a new learner of the language and environment in question
+
+### Cranky Users
+- There are times when your human users will get cranky because they are asking you to do something that is simply not possible. Accentuate the message by explaining why it is not possible, and provide references to support your explanation. Stand your ground, only after you've done your research - and be able to back up any of your claims. Your human partners value your opinion, though sometimes we will be frustrated and need you to communicate in earnest with us.
+
+## Agent-Specific Configuration
+
+### For GitHub Copilot
+- Primary config: This file (`.github/copilot-instructions.md`)
+- Uses workspace suggestions and inline completions
+
+### For Claude Code
+- Primary config: This file via symlink from `CLAUDE.md`
+- Also uses: `.claude/settings.json` and `.claude/settings.local.json`
+- MCP config: See setup script for synchronization
+- Memory access: `copilot_notes/` directory for persistent context
+
+### For Cursor
+- Primary config: This file
+- Uses `.cursorrules` if present
+- Shares `copilot_notes/` for cross-agent memory
+
+### For Other Agents
+- Follow the universal instructions in this file
+- Check for agent-specific files in project root or `.github/`
+- Use `copilot_notes/` for persistent memory and context sharing
+
 # FURTHER GENERAL CONTEXT
 I had grok (another agentic AI) scan my twitter/x timeline for relevant discussions and insights related to the project. Since much of the work happened before the emergence of agentic AI, there's a lot of useful information available there. It produced the following:
-
-
-
 
 ### Project Goals
 Based on your tweets, the core goals of the COVID CO2 Tracker (also referred to as CO2 Trackers) project appear to revolve around creating tools for monitoring and improving indoor air quality as a means to mitigate airborne disease transmission, particularly COVID-19. Here's a synthesized list:
@@ -449,3 +660,9 @@ Your recent tweets (especially from 2025) provide direct insights into AI-assist
 - **Risks to Avoid**: Hallucinations (e.g., non-runnable pseudocode that works anyway); over-reliance on mechanical LLM tasks—instead, pivot to scripting. Account for your self-described "suck at shell scripting" by letting AI handle it.
 
 This should maximize AI's utility, drawing from your evolving practices.
+
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.

@@ -9,10 +9,18 @@ set -euo pipefail
 # Configuration
 APP_NAME="${HEROKU_APP_NAME:-}"
 TARGET_VERSION="${PG_VERSION:-16}"
-COLOR_RED='\033[0;31m'
-COLOR_GREEN='\033[0;32m'
-COLOR_YELLOW='\033[1;33m'
-COLOR_RESET='\033[0m'
+
+# Constants
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Source tty-colors library for TTY-aware output
+source "${SCRIPT_DIR}/lib/tty-colors.sh"
+
+# Map to expected color names used in this script
+COLOR_RED="$RED"
+COLOR_GREEN="$GREEN"
+COLOR_YELLOW="$YELLOW"
+COLOR_RESET="$NC"
 
 # Helper functions
 log_info() {

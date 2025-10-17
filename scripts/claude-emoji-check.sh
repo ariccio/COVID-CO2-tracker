@@ -15,10 +15,8 @@ PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 SESSION_ID_FILE="/tmp/claude-current-session-id"
 SESSION_FILES_DIR="/tmp/claude-session-files"
 
-# Colors for output
-YELLOW='\033[1;33m'
-GRAY='\033[0;90m'
-NC='\033[0m' # No Color
+# Source tty-colors library for TTY-aware output
+source "${SCRIPT_DIR}/lib/tty-colors.sh"
 
 # Function to print colored output
 print_color() {

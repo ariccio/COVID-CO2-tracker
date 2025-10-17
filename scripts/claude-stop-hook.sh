@@ -22,12 +22,8 @@ PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 SESSION_ID_FILE="/tmp/claude-current-session-id"
 MAX_TEST_DURATION=600  # 10 minutes timeout
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# Source tty-colors library for TTY-aware output
+source "${SCRIPT_DIR}/lib/tty-colors.sh"
 
 # Function to print colored output
 print_color() {
