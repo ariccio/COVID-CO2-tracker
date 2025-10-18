@@ -112,23 +112,46 @@ VACUUM FULL measurements;
 
 ### Database Upgrades
 
+⚠ **IMPORTANT:** For comprehensive upgrade procedures, see `/Users/alexanderriccio/Documents/GitHub/COVID-CO2-tracker/copilot_notes/2025-01-05-HEROKU-POSTGRES-UPGRADE-COMPREHENSIVE-GUIDE.md`
+
+**Current Status (October 2025):**
+- ✓ PostgreSQL 16.8 (upgraded October 17, 2025)
+- ✓ Rails 7.1.3.4 compatible
+- Next evaluation: PostgreSQL 17 (Q2 2026)
+
 **Check current version**:
 ```bash
 heroku pg:info --app covid-co2-tracker
 # Look for "PG Version" line
 ```
 
-**Upgrade process**:
-1. **Staging first** (always test!)
-2. **Backup production** before upgrade
-3. **Read upgrade notes** for breaking changes
-4. **Schedule during maintenance window**
-5. **Monitor errors** after upgrade
+**Quick upgrade checklist** (See comprehensive guide for details):
+1. **Backup first** - Always create and download backup
+2. **Research compatibility** - Verify Rails version compatibility
+3. **Enable maintenance mode** - Prevent user access during upgrade
+4. **Scale dynos to 0** - Prevent concurrent writes
+5. **Execute upgrade** - Use pg:upgrade command
+6. **⚠ CRITICAL: Run ANALYZE** - Required post-upgrade step (often missed!)
+7. **Verify and restore** - Check version, scale dynos back, disable maintenance
 
+**Basic upgrade command**:
 ```bash
-# Upgrade to latest version
-heroku pg:upgrade DATABASE_URL --version 14 --app covid-co2-tracker
+# ALWAYS use comprehensive guide for full procedure!
+# This is a reference only - do NOT run without preparation
+heroku pg:upgrade DATABASE_URL --version 16 --confirm covid-co2-tracker --app covid-co2-tracker
+
+# ⚠ CRITICAL: Run ANALYZE after upgrade
+heroku pg:psql --app covid-co2-tracker -c "ANALYZE;"
 ```
+
+**Why ANALYZE is critical:**
+- `pg:upgrade` copies table data but NOT `pg_statistics`
+- Without ANALYZE, query planner uses outdated statistics
+- Result: Complex queries may be extremely slow
+- This step is often missing from upgrade documentation
+
+**For real-world upgrade example:**
+See `/Users/alexanderriccio/Documents/GitHub/COVID-CO2-tracker/copilot_notes/2025-10-17-pg14-to-pg16-upgrade-execution-report.md` for complete timeline and lessons learned from October 2025 upgrade (PG 14.17 → 16.8).
 
 ---
 

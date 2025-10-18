@@ -26,8 +26,9 @@ The `.ai/` directory holds detailed guidance that would dilute the main `CLAUDE.
 These files integrate with the 6-tier system from INDEX-SEMANTIC-CO2.md:
 
 **Tier 0 (Intelligence Layer)**: CLAUDE.md, INDEX - Always load first
-**Tier 1 (Quick References)**: unicode-guidelines.md, web-research-protocol.md
-**Tier 2 (Focused Guides)**: rails-specific-patterns.md, mcp-rails-server-guide.md, context-compaction-protocol.md
+**Tier 1 (Quick References)**: unicode-guidelines.md, web-research-protocol.md, rails-syntax-style-guide.md (partial)
+**Tier 2 (Focused Guides)**: rails-specific-patterns.md, rails-pattern-detection-protocol.md, rails-syntax-style-guide.md, mcp-rails-server-guide.md, context-compaction-protocol.md
+**Tier 2-3 (Focused to Comprehensive)**: public-health-advocacy-context.md
 **Tier 3 (Comprehensive)**: export-system-deep-dive.md, heroku-operations-overflow.md
 
 ## File Guide
@@ -175,7 +176,7 @@ These files integrate with the 6-tier system from INDEX-SEMANTIC-CO2.md:
 **Tier**: 1 (Quick Reference)
 **Word count**: ~700 words
 **Contains**:
-- Emoji to unicode textual codepoint mappings (✅→✓, ❌→✗, etc.)
+- Emoji to unicode textual codepoint mappings (✓→✓, ✗→✗, etc.)
 - Status indicators (✓✗⚠ℹ for success/error/warning/info)
 - Box drawing characters (allowed for tables, progress bars, diagrams)
 - Shape families (circles, diamonds, hexagons for semantic grouping)
@@ -189,6 +190,75 @@ These files integrate with the 6-tier system from INDEX-SEMANTIC-CO2.md:
 - Building progress indicators
 - Questions about emoji usage
 - Professional appearance concerns
+
+### public-health-advocacy-context.md
+**When to load**: Tasks involving CO2 monitoring, public health advocacy, domain knowledge, project mission
+**Purpose**: Historical context and domain expertise from user's public health work (Twitter/X timeline synthesis)
+**Tier**: 2-3 (Focused to Comprehensive)
+**Word count**: ~2000 words
+**Contains**:
+- Project goals and philosophy (CO2 monitoring as airborne disease mitigation)
+- Historical timeline (2020-2025: advocacy → beta launch → AI-assisted development)
+- Domain knowledge (CO2 thresholds, filtration specs, PPE integration)
+- Institutional failures context (CDC droplet dogma, filter removal incidents)
+- Real-world application insights (10,000 ppm bars, school ventilation)
+- Public health impact priorities (life-saving features, accessibility, advocacy tools)
+- Cultural context (public skepticism, grassroots activism, media undercoverage)
+- Codebase guidance (why technical decisions align with mission)
+
+**Load when**:
+- Implementing CO2 measurement features
+- Building advocacy or export tools
+- Understanding project mission and priorities
+- Designing user-facing messaging
+- Making trade-offs between technical and impact goals
+- Need real-world context for feature decisions
+
+### rails-pattern-detection-protocol.md
+**When to load**: Refactoring, investigating "suspicious" code, linter suggestions, initialization issues
+**Purpose**: Prevents ping-pong debugging by teaching when "obvious fixes" break things
+**Tier**: 2 (Focused Guide)
+**Word count**: ~1000 words
+**Contains**:
+- Suspicious pattern recognition (when code looks wrong but is intentional)
+- Investigation protocol before "fixing" (git history, comments, context analysis)
+- Framework initialization awareness (boot → config → initializers → runtime)
+- Time.zone gotcha (config vs runtime availability)
+- Linter false positives (Rubocop suggestions that break initialization)
+- Refactoring safety protocol (verification subagents for complex changes)
+- Cross-session learning (check copilot_notes/ for previous ping-pongs)
+- Verification requirements (rails runner tests before committing)
+
+**Load when**:
+- Rubocop suggests changes in config/ or initializers/
+- Code looks "wrong" but works (old-style patterns in framework code)
+- Refactoring controllers or complex methods (50+ lines)
+- Linter exclusions without explanations
+- Initialization or bootstrap issues
+- Before "fixing" framework integration code
+
+### rails-syntax-style-guide.md
+**When to load**: Writing code, formatting questions, syntax decisions, unicode usage
+**Purpose**: Project-specific syntax standards (explicitness over brevity)
+**Tier**: 1-2 (Quick Reference to Focused Guide)
+**Word count**: ~600 words
+**Contains**:
+- General syntax preferences (parentheses even when optional, explicit returns)
+- Method call formatting (always use parentheses with arguments)
+- Code organization (40-60 line functions, descriptive variable names)
+- Conditional assignment rules (no unnamed non-boolean function results in if)
+- Unicode and emoji guidelines (comprehensive emoji → textual codepoint mappings)
+- Status indicator standards (✓✗⚠ℹ not ✓✗⚠ℹ)
+- Box drawing allowance (progress bars, tables, diagrams)
+- Cool unicode blocks reference (technical symbols, mathematical operators)
+
+**Load when**:
+- Writing or formatting Ruby/Rails code
+- Questions about parentheses, braces, returns
+- Unicode or emoji usage questions
+- Output formatting for scripts
+- Professional appearance concerns
+- Style guide reference needed
 
 ## Loading Strategy Examples
 
@@ -227,7 +297,9 @@ These files integrate with the 6-tier system from INDEX-SEMANTIC-CO2.md:
 
 ## Token Budgeting
 
-**Total .ai/ content**: ~15,000 words (~20,000 tokens if all loaded)
+**Total .ai/ content**: ~19,500 words (~26,000 tokens if all loaded)
+  - Existing 8 files: ~15,000 words
+  - New 3 files: ~4,500 words (public-health: 2000, pattern-detection: 1000, syntax-style: 600, README additions: 900)
 **Typical usage**: 0-1 files per session (0-5k tokens)
 **Heavy usage**: 2-3 files per session (5-10k tokens)
 **Full load**: Rare, only for comprehensive architecture work or emergency all-hands situations
@@ -368,7 +440,7 @@ Add new files when:
 
 **Part of COVID CO2 Tracker AI infrastructure**
 **Adapted from DeeDee-Prototype patterns for Rails/Ruby domain**
-**Version**: 1.0.0
+**Version**: 1.1.0 (Added public-health-advocacy-context, rails-pattern-detection-protocol, rails-syntax-style-guide)
 **Last updated**: 2025-10-17
 **Maintained by**: Alexander Riccio + AI agents
 
